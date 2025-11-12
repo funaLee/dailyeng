@@ -108,6 +108,14 @@ export const StudyPlanSchema = z.object({
   ),
 })
 
+export const StudyPlanDataSchema = z.object({
+  goal: z.enum(["conversation", "travel", "work", "exam"]),
+  level: z.enum(["A1", "A2", "B1", "B2"]),
+  interests: z.array(z.string()).min(1),
+  minutesPerDay: z.number().min(10).max(60),
+  wordsPerDay: z.number().int().positive(),
+})
+
 export const ProfileStatsSchema = z.object({
   userId: z.string(),
   xp: z.number(),
@@ -133,4 +141,5 @@ export type SRSItem = z.infer<typeof SRSItemSchema>
 export type SpeakingScenario = z.infer<typeof SpeakingScenarioSchema>
 export type SpeakingTurn = z.infer<typeof SpeakingTurnSchema>
 export type StudyPlan = z.infer<typeof StudyPlanSchema>
+export type StudyPlanData = z.infer<typeof StudyPlanDataSchema>
 export type ProfileStats = z.infer<typeof ProfileStatsSchema>

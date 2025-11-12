@@ -1,14 +1,15 @@
 "use client"
-
-import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useAppStore } from "@/lib/store"
-import { Calendar, Zap, CheckCircle2, Circle, Flame, BookOpen } from "lucide-react"
+import { Calendar, Zap, CheckCircle2, Circle, Flame, BookOpen, ArrowLeft, ArrowRight, Check } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { createStudyPlanAction } from "@/app/actions/study-plan"
+import type { StudyPlanData } from "@/app/actions/study-plan"
+import { mockTopics } from "@/lib/mock-data"
 
 interface Task {
   id: string
@@ -19,17 +20,83 @@ interface Task {
   completed: boolean
 }
 
+const placementTestQuestions = [
+  {
+    id: 1,
+    question: "What is the correct form: 'She ___ to work every day.'",
+    options: ["go", "goes", "going", "gone"],
+    correctAnswer: "goes",
+    level: "A1",
+  },
+  {
+    id: 2,
+    question: "Choose the correct word: 'I ___ a book yesterday.'",
+    options: ["read", "readed", "reading", "reads"],
+    correctAnswer: "read",
+    level: "A2",
+  },
+  {
+    id: 3,
+    question: "Complete: 'If I ___ you, I would study harder.'",
+    options: ["am", "was", "were", "be"],
+    correctAnswer: "were",
+    level: "B1",
+  },
+  {
+    id: 4,
+    question: "What does 'procrastinate' mean?",
+    options: ["To delay doing something", "To finish quickly", "To work hard", "To celebrate success"],
+    correctAnswer: "To delay doing something",
+    level: "B1",
+  },
+  {
+    id: 5,
+    question: "Choose the correct phrase: 'The meeting has been ___.'",
+    options: ["put off", "put up", "put on", "put down"],
+    correctAnswer: "put off",
+    level: "B2",
+  },
+  {
+    id: 6,
+    question: "What is a synonym for 'meticulous'?",
+    options: ["Careless", "Detailed", "Quick", "Simple"],
+    correctAnswer: "Detailed",
+    level: "B2",
+  },
+  {
+    id: 7,
+    question: "Complete: 'Despite ___ tired, she continued working.'",
+    options: ["being", "be", "been", "to be"],
+    correctAnswer: "being",
+    level: "B1",
+  },
+  {
+    id: 8,
+    question: "Which sentence is correct?",
+    options: ["She don't like coffee", "She doesn't likes coffee", "She doesn't like coffee", "She not like coffee"],
+    correctAnswer: "She doesn't like coffee",
+    level: "A1",
+  },
+]
+
 export default function StudyPlanPage() {
+  const router = useRouter()
   const { stats } = useAppStore()
   const [plan, setPlan] = useState<any>(null)
   const [tasks, setTasks] = useState<Task[]>([])
   const [showOnboarding, setShowOnboarding] = useState(false)
-  const [onboardingData, setOnboardingData] = useState({
-    goal: "intermediate",
-    level: "A2",
-    minutesPerDay: 30,
+
+  const [currentStep, setCurrentStep] = useState(0)
+  const [wizardData, setWizardData] = useState({
+    goal: "",
+    level: "",
     interests: [] as string[],
+    minutesPerDay: 30,
+    wordsPerDay: 12,
   })
+  const [testAnswers, setTestAnswers] = useState<Record<number, string>>({})
+  const [testCompleted, setTestCompleted] = useState(false)
+  const [calculatedLevel, setCalculatedLevel] = useState<string>("")
 
   useEffect(() => {
     const savedPlan = localStorage.getItem("studyPlan")
@@ -76,19 +143,58 @@ export default function StudyPlanPage() {
     setTasks(mockTasks)
   }
 
-  const handleOnboardingSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const newPlan = {
-      goal: onboardingData.goal,
-      level: onboardingData.level,
-      minutesPerDay: onboardingData.minutesPerDay,
-      interests: onboardingData.interests,
-      startDate: new Date(),
+  const evaluatePlacementTest = () => {
+    let correctCount = 0
+    placementTestQuestions.forEach((q) => {
+      if (testAnswers[q.id] === q.correctAnswer) {
+        correctCount++
+      }
+    })
+
+    const percentage = (correctCount / placementTestQuestions.length) * 100
+    let level = "A1"
+
+    if (percentage >= 90) {
+      level = "B2"
+    } else if (percentage >= 70) {
+      level = "B1"
+    } else if (percentage >= 50) {
+      level = "A2"
+    } else {
+      level = "A1"
     }
-    localStorage.setItem("studyPlan", JSON.stringify(newPlan))
-    setPlan(newPlan)
-    generateTasks(newPlan)
-    setShowOnboarding(false)
+
+    setCalculatedLevel(level)
+    setWizardData({ ...wizardData, level })
+    setTestCompleted(true)
+  }
+
+  const handleNext = () => {
+    if (currentStep === 1 && !testCompleted) {
+      evaluatePlacementTest()
+      return
+    }
+    setCurrentStep((prev) => Math.min(prev + 1, 3))
+  }
+
+  const handleBack = () => {
+    setCurrentStep((prev) => Math.max(prev - 1, 0))
+  }
+
+  const handleWizardSubmit = async () => {
+    try {
+  const result = await createStudyPlanAction(wizardData as StudyPlanData)
+
+      if (result.success) {
+        localStorage.setItem("studyPlan", JSON.stringify(result.plan))
+        setPlan(result.plan)
+        generateTasks(result.plan)
+        setShowOnboarding(false)
+        router.push("/profile")
+      }
+    } catch (error) {
+      console.error("Error creating study plan:", error)
+    }
   }
 
   const todayTasks = tasks.filter((t) => {
@@ -119,116 +225,252 @@ export default function StudyPlanPage() {
   }
 
   if (showOnboarding) {
-    const interestOptions = ["Travel", "Food", "Business", "Entertainment", "Sports", "Technology"]
+    const goalOptions = [
+      { value: "conversation", label: "Daily Conversation", desc: "Learn to chat comfortably" },
+      { value: "travel", label: "Travel", desc: "Navigate foreign countries" },
+      { value: "work", label: "Work", desc: "Professional communication" },
+      { value: "exam", label: "Exam", desc: "IELTS, TOEIC, Cambridge" },
+    ]
 
     return (
-      <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 py-12">
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Welcome to Your Learning Journey! 🚀</h1>
-          <p className="text-muted-foreground">Let's set up your personalized study plan</p>
+          <h1 className="text-3xl font-bold mb-2">Build Your Study Plan</h1>
+          <p className="text-muted-foreground">Let's personalize your learning journey</p>
+
+          <div className="flex items-center justify-center gap-2 mt-6">
+            {[0, 1, 2, 3].map((step) => (
+              <div
+                key={step}
+                className={`h-2 rounded-full transition-all ${
+                  step === currentStep ? "w-8 bg-primary" : step < currentStep ? "w-2 bg-primary" : "w-2 bg-gray-300"
+                }`}
+              />
+            ))}
+          </div>
+          <p className="text-sm text-muted-foreground mt-2">Step {currentStep + 1} of 4</p>
         </div>
 
         <Card className="p-8">
-          <form onSubmit={handleOnboardingSubmit} className="space-y-6">
-            {/* Goal Selection */}
-            <div>
-              <label className="text-sm font-semibold block mb-3">What's your learning goal?</label>
-              <div className="space-y-2">
-                {[
-                  { value: "casual", label: "Casual Learner", desc: "Learn at your own pace" },
-                  { value: "intermediate", label: "Intermediate", desc: "Consistent daily practice" },
-                  { value: "fluent", label: "Fluent Speaker", desc: "Intensive daily training" },
-                ].map((option) => (
-                  <label
-                    key={option.value}
-                    className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-secondary"
-                  >
-                    <input
-                      type="radio"
-                      name="goal"
-                      value={option.value}
-                      checked={onboardingData.goal === option.value}
-                      onChange={(e) => setOnboardingData({ ...onboardingData, goal: e.target.value })}
-                      className="mr-3"
-                    />
-                    <div>
-                      <p className="font-medium">{option.label}</p>
-                      <p className="text-xs text-muted-foreground">{option.desc}</p>
+          {currentStep === 0 && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl font-semibold mb-4">What's your learning goal?</h2>
+                <div className="space-y-3">
+                  {goalOptions.map((option) => (
+                    <label
+                      key={option.value}
+                      className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all hover:border-primary ${
+                        wizardData.goal === option.value ? "border-primary bg-primary/5" : ""
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="goal"
+                        value={option.value}
+                        checked={wizardData.goal === option.value}
+                        onChange={(e) => setWizardData({ ...wizardData, goal: e.target.value })}
+                        className="mr-3"
+                      />
+                      <div className="flex-1">
+                        <p className="font-medium">{option.label}</p>
+                        <p className="text-sm text-muted-foreground">{option.desc}</p>
+                      </div>
+                      {wizardData.goal === option.value && <Check className="h-5 w-5 text-primary" />}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 1 && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl font-semibold mb-2">Mini Placement Test</h2>
+                <p className="text-muted-foreground mb-6">Answer these questions to determine your level (A1-B2)</p>
+
+                {!testCompleted ? (
+                  <div className="space-y-4">
+                    {placementTestQuestions.map((q) => (
+                      <div key={q.id} className="p-4 border rounded-lg">
+                        <p className="font-medium mb-3">
+                          {q.id}. {q.question}
+                        </p>
+                        <div className="space-y-2">
+                          {q.options.map((option) => (
+                            <label
+                              key={option}
+                              className={`flex items-center p-2 border rounded cursor-pointer transition-all hover:bg-secondary ${
+                                testAnswers[q.id] === option ? "border-primary bg-primary/5" : ""
+                              }`}
+                            >
+                              <input
+                                type="radio"
+                                name={`question-${q.id}`}
+                                value={option}
+                                checked={testAnswers[q.id] === option}
+                                onChange={(e) => setTestAnswers({ ...testAnswers, [q.id]: e.target.value })}
+                                className="mr-3"
+                              />
+                              <span>{option}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 text-green-600 mb-4">
+                      <Check className="h-8 w-8" />
                     </div>
+                    <h3 className="text-xl font-semibold mb-2">Test Completed!</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Your level: <span className="font-bold text-primary">{calculatedLevel}</span>
+                    </p>
+                    <p className="text-sm text-muted-foreground">Click Next to continue building your study plan</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {currentStep === 2 && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl font-semibold mb-2">Select Your Interests</h2>
+                <p className="text-muted-foreground mb-4">Choose topics you'd like to learn (at least 1)</p>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {mockTopics.map((topic) => (
+                    <button
+                      key={topic.id}
+                      type="button"
+                      onClick={() => {
+                        setWizardData((prev) => ({
+                          ...prev,
+                          interests: prev.interests.includes(topic.id)
+                            ? prev.interests.filter((i) => i !== topic.id)
+                            : [...prev.interests, topic.id],
+                        }))
+                      }}
+                      className={`p-4 rounded-lg border transition-all text-left ${
+                        wizardData.interests.includes(topic.id)
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "border-input hover:border-primary"
+                      }`}
+                    >
+                      <p className="font-medium">{topic.title}</p>
+                      <p className="text-xs opacity-80 mt-1">{topic.level}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {currentStep === 3 && (
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl font-semibold mb-4">Set Your Schedule</h2>
+
+                {/* Minutes per day slider */}
+                <div className="mb-6">
+                  <label className="text-sm font-medium block mb-3">
+                    Minutes per day: {wizardData.minutesPerDay} min
                   </label>
-                ))}
+                  <input
+                    type="range"
+                    min="10"
+                    max="60"
+                    step="10"
+                    value={wizardData.minutesPerDay}
+                    onChange={(e) => setWizardData({ ...wizardData, minutesPerDay: Number.parseInt(e.target.value) })}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground mt-2">
+                    <span>10 min</span>
+                    <span>60 min</span>
+                  </div>
+                </div>
+
+                {/* Words per day radio */}
+                <div>
+                  <label className="text-sm font-medium block mb-3">Words per day:</label>
+                  <div className="space-y-2">
+                    {[
+                      { value: 8, label: "8 words", desc: "Light pace" },
+                      { value: 12, label: "12 words", desc: "Moderate pace" },
+                      { value: 20, label: "20 words", desc: "Intensive pace" },
+                    ].map((option) => (
+                      <label
+                        key={option.value}
+                        className={`flex items-center p-3 border rounded-lg cursor-pointer transition-all hover:border-primary ${
+                          wizardData.wordsPerDay === option.value ? "border-primary bg-primary/5" : ""
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="wordsPerDay"
+                          value={option.value}
+                          checked={wizardData.wordsPerDay === option.value}
+                          onChange={(e) =>
+                            setWizardData({ ...wizardData, wordsPerDay: Number.parseInt(e.target.value) })
+                          }
+                          className="mr-3"
+                        />
+                        <div className="flex-1">
+                          <p className="font-medium">{option.label}</p>
+                          <p className="text-xs text-muted-foreground">{option.desc}</p>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Summary */}
+                <div className="mt-6 p-4 bg-secondary rounded-lg">
+                  <h3 className="font-semibold mb-2">Summary</h3>
+                  <ul className="text-sm space-y-1">
+                    <li>Goal: {goalOptions.find((g) => g.value === wizardData.goal)?.label}</li>
+                    <li>Level: {wizardData.level}</li>
+                    <li>Topics: {wizardData.interests.length} selected</li>
+                    <li>
+                      Daily: {wizardData.minutesPerDay} min, {wizardData.wordsPerDay} words
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
+          )}
 
-            {/* Level Selection */}
-            <div>
-              <label className="text-sm font-semibold block mb-3">What's your current level?</label>
-              <select
-                value={onboardingData.level}
-                onChange={(e) => setOnboardingData({ ...onboardingData, level: e.target.value })}
-                className="w-full px-3 py-2 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="A1">A1 - Beginner</option>
-                <option value="A2">A2 - Elementary</option>
-                <option value="B1">B1 - Intermediate</option>
-                <option value="B2">B2 - Upper Intermediate</option>
-              </select>
-            </div>
-
-            {/* Time Slider */}
-            <div>
-              <label className="text-sm font-semibold block mb-3">
-                How many minutes per day? ({onboardingData.minutesPerDay} min)
-              </label>
-              <input
-                type="range"
-                min="15"
-                max="120"
-                step="15"
-                value={onboardingData.minutesPerDay}
-                onChange={(e) =>
-                  setOnboardingData({ ...onboardingData, minutesPerDay: Number.parseInt(e.target.value) })
-                }
-                className="w-full"
-              />
-              <div className="flex justify-between text-xs text-muted-foreground mt-2">
-                <span>15 min</span>
-                <span>120 min</span>
-              </div>
-            </div>
-
-            {/* Interests */}
-            <div>
-              <label className="text-sm font-semibold block mb-3">What interests you? (Select at least one)</label>
-              <div className="grid grid-cols-2 gap-2">
-                {interestOptions.map((interest) => (
-                  <button
-                    key={interest}
-                    type="button"
-                    onClick={() => {
-                      setOnboardingData((prev) => ({
-                        ...prev,
-                        interests: prev.interests.includes(interest)
-                          ? prev.interests.filter((i) => i !== interest)
-                          : [...prev.interests, interest],
-                      }))
-                    }}
-                    className={`px-3 py-2 rounded-lg border transition-all ${
-                      onboardingData.interests.includes(interest)
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "border-input hover:border-primary"
-                    }`}
-                  >
-                    {interest}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <Button type="submit" disabled={onboardingData.interests.length === 0} className="w-full" size="lg">
-              Start Learning
+          <div className="flex items-center justify-between mt-8 pt-6 border-t">
+            <Button type="button" variant="outline" onClick={handleBack} disabled={currentStep === 0}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
             </Button>
-          </form>
+
+            {currentStep < 3 ? (
+              <Button
+                type="button"
+                onClick={handleNext}
+                disabled={
+                  (currentStep === 0 && !wizardData.goal) ||
+                  (currentStep === 1 && Object.keys(testAnswers).length < placementTestQuestions.length) ||
+                  (currentStep === 2 && wizardData.interests.length === 0)
+                }
+              >
+                {currentStep === 1 && !testCompleted ? "Submit Test" : "Next"}
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            ) : (
+              <Button type="button" onClick={handleWizardSubmit}>
+                Create Study Plan
+                <Check className="h-4 w-4 ml-2" />
+              </Button>
+            )}
+          </div>
         </Card>
       </div>
     )
@@ -429,9 +671,10 @@ export default function StudyPlanPage() {
                   defaultValue={plan.goal}
                   className="w-full px-3 py-2 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                 >
-                  <option value="casual">Casual Learner</option>
-                  <option value="intermediate">Intermediate</option>
-                  <option value="fluent">Fluent Speaker</option>
+                  <option value="conversation">Daily Conversation</option>
+                  <option value="travel">Travel</option>
+                  <option value="work">Work</option>
+                  <option value="exam">Exam</option>
                 </select>
               </div>
 

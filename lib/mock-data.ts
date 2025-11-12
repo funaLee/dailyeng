@@ -1,4 +1,5 @@
 import type { Topic, VocabItem, GrammarNote, QuizItem } from "@/types"
+import { Coffee, ShoppingBag, Users, TrendingUp, Plane, MessageCircle } from "lucide-react"
 
 export const mockTopics: Topic[] = [
   {
@@ -595,67 +596,69 @@ Finally, don't underestimate the value of soft skills such as communication, lea
   },
 }
 
-export const mockSpeakingScenarios: Record<string, any[]> = {
-  "1": [
+export const mockSpeakingScenarios = {
+  daily: [
     {
-      id: "s1",
-      topicId: "1",
-      title: "Airport Check-in",
-      description: "Practice checking in at an airport",
-      goal: "Learn how to check in for a flight and handle common airport situations",
-      context: "You are at the airport counter. The agent will help you check in.",
+      id: "cafe-order",
+      title: "Ordering at a Café",
+      description: "Practice ordering coffee and food at a local café",
+      goal: "Learn to order confidently and handle common café interactions",
       difficulty: "A2",
+      icon: Coffee,
+      context: "You are at a café counter. The barista will take your order.",
     },
     {
-      id: "s2",
-      topicId: "1",
-      title: "Hotel Booking",
-      description: "Book a room at a hotel",
-      goal: "Practice booking accommodation and asking about amenities",
-      context: "You are calling a hotel to book a room for your stay.",
-      difficulty: "A2",
+      id: "shopping",
+      title: "Shopping for Clothes",
+      description: "Navigate a clothing store and ask for sizes and colors",
+      goal: "Master retail vocabulary and polite requests",
+      difficulty: "B1",
+      icon: ShoppingBag,
+      context: "You are in a clothing store looking for specific items.",
     },
   ],
-  "2": [
+  work: [
     {
-      id: "s3",
-      topicId: "2",
-      title: "Restaurant Ordering",
-      description: "Order food at a restaurant",
-      goal: "Learn how to order meals and ask about ingredients",
-      context: "You are at a restaurant. The waiter will take your order.",
+      id: "meeting",
+      title: "Team Meeting",
+      description: "Participate in a professional team discussion",
+      goal: "Practice business vocabulary and professional communication",
+      difficulty: "B2",
+      icon: Users,
+      context: "You are in a team meeting discussing project updates.",
+    },
+    {
+      id: "presentation",
+      title: "Product Presentation",
+      description: "Present a new product to potential clients",
+      goal: "Develop presentation skills and persuasive language",
+      difficulty: "C1",
+      icon: TrendingUp,
+      context: "You are presenting a new product to potential clients.",
+    },
+  ],
+  travel: [
+    {
+      id: "hotel",
+      title: "Hotel Check-in",
+      description: "Check into a hotel and ask about amenities",
+      goal: "Learn travel-related vocabulary and polite inquiries",
       difficulty: "A2",
-    },
-    {
-      id: "s4",
-      topicId: "2",
-      title: "Cooking Discussion",
-      description: "Discuss cooking and recipes",
-      goal: "Practice talking about food preparation and preferences",
-      context: "You are chatting with a friend about cooking.",
-      difficulty: "B1",
-    },
+      icon: Plane,
+      context: "You are checking in at a hotel reception.",
+    }
   ],
-  "3": [
+  social: [
     {
-      id: "s5",
-      topicId: "3",
-      title: "Job Interview",
-      description: "Practice a job interview",
-      goal: "Learn how to answer common interview questions",
-      context: "You are in a job interview. The interviewer will ask you questions.",
+      id: "small-talk",
+      title: "Making Small Talk",
+      description: "Have casual conversations with new acquaintances",
+      goal: "Build confidence in informal social situations",
       difficulty: "B1",
-    },
-    {
-      id: "s6",
-      topicId: "3",
-      title: "Networking Event",
-      description: "Network at a professional event",
-      goal: "Practice introducing yourself and discussing your background",
-      context: "You are at a networking event. Someone approaches you to chat.",
-      difficulty: "B1",
-    },
-  ],
+      icon: MessageCircle,
+      context: "You are at a social event meeting new people.",
+    }
+  ]
 }
 
 export const mockCustomScenarios: any[] = []

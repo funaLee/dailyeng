@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { SessionChat } from "@/components/speaking/session-chat"
 import { SessionTranscript } from "@/components/speaking/session-transcript"
-import { mockSpeakingScenarios, mockSpeakingTurns } from "@/lib/mock-data"
+import { mockSpeakingScenarios, mockSpeakingTurns, mockCustomScenarios } from "@/lib/mock-data"
 import { useAppStore } from "@/lib/store"
 import { ArrowLeft, BarChart3, BookOpen, Download } from "lucide-react"
 import Link from "next/link"
@@ -44,7 +44,11 @@ export default function SpeakingSessionPage() {
   const TURNS_FOR_COMPLETION = 6
 
   useEffect(() => {
-    const allScenarios = Object.values(mockSpeakingScenarios).flat()
+    // Flatten all scenarios from all categories
+    const allScenarios = Object.values(mockSpeakingScenarios)
+      .reduce((acc, curr) => [...acc, ...curr], [])
+      .concat(mockCustomScenarios)
+    
     const found = allScenarios.find((s) => s.id === scenarioId)
     setScenario(found)
 
@@ -167,13 +171,13 @@ export default function SpeakingSessionPage() {
     newWords.forEach((item) => {
       addFlashcard({
         id: `fc-${Date.now()}-${Math.random()}`,
-        topicId: scenario?.topicId || "speaking",
         front: item.word,
         back: `${item.meaning}\n\nExample: Used in speaking session "${scenario?.title}"`,
-        createdAt: new Date(),
         interval: 1,
         easeFactor: 2.5,
         repetitions: 0,
+        nextReviewDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // tomorrow
+        lastReviewDate: new Date()
       })
     })
 
