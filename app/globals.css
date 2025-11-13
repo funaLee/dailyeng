@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -10,19 +11,19 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
+  --primary: oklch(74.077% 0.15023 239.504);
+  --primary-foreground: oklch(0.145 0 0);
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --accent: oklch(0.92 0.04 230);
+  --accent-foreground: oklch(0.145 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --ring: oklch(0.92 0.04 230);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -83,19 +84,19 @@
   --color-foreground: 0 0% 3.6%;
   --color-card: 0 0% 100%;
   --color-card-foreground: 0 0% 3.6%;
-  --color-primary: 217 91% 60%;
-  --color-primary-foreground: 210 40% 98%;
+  --color-primary: 208 89% 87%;
+  --color-primary-foreground: 0 0% 3.6%;
   --color-secondary: 210 40% 96%;
   --color-secondary-foreground: 222.2 47.6% 11.2%;
   --color-muted: 210 40% 96%;
   --color-muted-foreground: 215.4 16.3% 46.9%;
-  --color-accent: 168 76% 42%;
-  --color-accent-foreground: 210 40% 98%;
+  --color-accent: 208 89% 87%;
+  --color-accent-foreground: 0 0% 3.6%;
   --color-destructive: 0 84.2% 60.2%;
   --color-destructive-foreground: 210 40% 98%;
   --color-border: 214.3 31.8% 91.4%;
   --color-input: 214.3 31.8% 91.4%;
-  --color-ring: 217 91% 60%;
+  --color-ring: 208 89% 87%;
 
   --radius: 0.5rem;
 

@@ -1,286 +1,507 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import type React from "react"
+
+import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { FlashcardReview } from "@/components/flashcard/flashcard-review"
-import { BookOpen, BarChart3, Zap, Search, X } from "lucide-react"
-import type { SRSCard } from "@/lib/srs"
-import { getCardsDue, getReviewStats } from "@/lib/srs"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  BookOpen,
+  FileText,
+  Link2,
+  MessageSquare,
+  Zap,
+  FileCheck,
+  LinkIcon,
+  Volume2,
+  Info,
+  Edit,
+  Plus,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  Star,
+} from "lucide-react"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+
+type Collection = {
+  id: string
+  name: string
+  icon: React.ReactNode
+  count: number
+}
+
+type NotebookItem = {
+  id: string
+  word: string
+  pronunciation: string
+  meaning: string[]
+  vietnamese: string[]
+  examples: { en: string; vi: string }[]
+  partOfSpeech: string
+  level: string
+  note?: string
+  tags: string[]
+  collectionId: string
+  masteryLevel: number
+}
 
 export default function NotebookPage() {
-  const [cards, setCards] = useState<SRSCard[]>([])
-  const [dueCards, setDueCards] = useState<SRSCard[]>([])
-  const [stats, setStats] = useState({ due: 0, new_cards: 0, learning: 0, review: 0, total: 0 })
-  const [isReviewing, setIsReviewing] = useState(false)
+  const [selectedCollection, setSelectedCollection] = useState<string>("vocabulary")
+  const [viewMode, setViewMode] = useState<"list" | "flashcards" | "daily-review">("list")
   const [searchQuery, setSearchQuery] = useState("")
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
+  const [currentCardIndex, setCurrentCardIndex] = useState(0)
+  const [showAnswer, setShowAnswer] = useState(false)
 
-  useEffect(() => {
-    // Initialize with mock flashcards
-    const mockCards: SRSCard[] = [
-      {
-        id: "fc1",
-        front: "passport",
-        back: "An official document for international travel",
-        interval: 1,
-        easeFactor: 2.5,
-        repetitions: 0,
-        nextReviewDate: new Date(),
-      },
-      {
-        id: "fc2",
-        front: "luggage",
-        back: "Bags and suitcases for carrying belongings",
-        interval: 1,
-        easeFactor: 2.5,
-        repetitions: 0,
-        nextReviewDate: new Date(),
-      },
-      {
-        id: "fc3",
-        front: "accommodation",
-        back: "A place to stay during travel",
-        interval: 3,
-        easeFactor: 2.3,
-        repetitions: 1,
-        nextReviewDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-      },
-      {
-        id: "fc4",
-        front: "itinerary",
-        back: "A planned route or journey",
-        interval: 1,
-        easeFactor: 2.5,
-        repetitions: 0,
-        nextReviewDate: new Date(),
-      },
-      {
-        id: "fc5",
-        front: "souvenir",
-        back: "A memento or gift from a place visited",
-        interval: 1,
-        easeFactor: 2.5,
-        repetitions: 0,
-        nextReviewDate: new Date(),
-      },
-    ]
+  const collections: Collection[] = [
+    { id: "vocabulary", name: "Vocabulary", icon: <BookOpen className="h-4 w-4" />, count: 247 },
+    { id: "grammar", name: "Grammar", icon: <FileText className="h-4 w-4" />, count: 45 },
+    { id: "collocations", name: "Collocations", icon: <Link2 className="h-4 w-4" />, count: 89 },
+    { id: "idioms", name: "Idioms & Expressions", icon: <MessageSquare className="h-4 w-4" />, count: 67 },
+    { id: "phrasal-verbs", name: "Phrasal Verbs", icon: <Zap className="h-4 w-4" />, count: 123 },
+    { id: "sentence-patterns", name: "Sentence Patterns", icon: <FileCheck className="h-4 w-4" />, count: 34 },
+    { id: "linking-words", name: "Linking Words", icon: <LinkIcon className="h-4 w-4" />, count: 56 },
+    { id: "pronunciation", name: "Pronunciation", icon: <Volume2 className="h-4 w-4" />, count: 78 },
+    { id: "common-mistakes", name: "Common Mistakes", icon: <Info className="h-4 w-4" />, count: 29 },
+  ]
 
-    setCards(mockCards)
-    const due = getCardsDue(mockCards)
-    setDueCards(due)
-    setStats(getReviewStats(mockCards))
-  }, [])
+  const [notebookItems] = useState<NotebookItem[]>([
+    {
+      id: "1",
+      word: "Accomplish",
+      pronunciation: "/əˈkʌmplɪʃ/",
+      meaning: ["To complete or achieve something successfully"],
+      vietnamese: ["Hoàn thành, đạt được"],
+      examples: [
+        {
+          en: "She was able to accomplish all her goals this year.",
+          vi: "Cô ấy đã có thể hoàn thành tất cả mục tiêu của mình trong năm nay.",
+        },
+      ],
+      partOfSpeech: "verb",
+      level: "B1",
+      note: "Often used in professional contexts",
+      tags: ["business", "achievement"],
+      collectionId: "vocabulary",
+      masteryLevel: 65,
+    },
+    {
+      id: "2",
+      word: "Collaborate",
+      pronunciation: "/kəˈlæbəreɪt/",
+      meaning: ["To work together with others on a project or task"],
+      vietnamese: ["Cộng tác, làm việc cùng nhau"],
+      examples: [
+        {
+          en: "The teams will collaborate to develop the new software.",
+          vi: "Các nhóm sẽ cộng tác để phát triển phần mềm mới.",
+        },
+      ],
+      partOfSpeech: "verb",
+      level: "B2",
+      note: "Very common in workplace English",
+      tags: ["business", "teamwork"],
+      collectionId: "vocabulary",
+      masteryLevel: 40,
+    },
+    {
+      id: "3",
+      word: "behaviour",
+      pronunciation: "/bɪˈheɪvjə(r)/",
+      meaning: [
+        "the way that somebody behaves, especially towards other people",
+        "the way a person, an animal, a plant, a chemical, etc. behaves or functions in a particular situation",
+      ],
+      vietnamese: [
+        "Hành vi / cách cư xử (đối với người khác)",
+        "Cách hoạt động / phản ứng (trong một tình huống cụ thể)",
+      ],
+      examples: [
+        { en: "It is hard to change old patterns of behaviour.", vi: "Thật khó để thay đổi những hành vi cũ." },
+        {
+          en: "Animals in zoos often display disturbed behaviour.",
+          vi: "Động vật trong vườn thú thường thể hiện hành vi bất thường.",
+        },
+      ],
+      partOfSpeech: "noun",
+      level: "A2",
+      tags: [],
+      collectionId: "vocabulary",
+      masteryLevel: 80,
+    },
+  ])
 
-  const filteredCards = cards.filter((card) => {
-    const matchesSearch =
-      card.front.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      card.back.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesSearch
-  })
+  const filteredItems = notebookItems.filter(
+    (item) =>
+      item.collectionId === selectedCollection &&
+      (item.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.meaning.some((m) => m.toLowerCase().includes(searchQuery.toLowerCase()))),
+  )
 
-  const handleReviewComplete = (updatedCards: SRSCard[]) => {
-    setCards(updatedCards)
-    setIsReviewing(false)
-    setStats(getReviewStats(updatedCards))
-    setDueCards(getCardsDue(updatedCards))
+  const dueCount = 15
+
+  const handleNextCard = () => {
+    if (currentCardIndex < filteredItems.length - 1) {
+      setCurrentCardIndex(currentCardIndex + 1)
+      setShowAnswer(false)
+    }
   }
 
+  const handlePrevCard = () => {
+    if (currentCardIndex > 0) {
+      setCurrentCardIndex(currentCardIndex - 1)
+      setShowAnswer(false)
+    }
+  }
+
+  const currentItem = filteredItems[currentCardIndex]
+
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold flex items-center gap-2 mb-2">
-          <BookOpen className="h-8 w-8 text-blue-500" />
-          Personal Notebook
-        </h1>
-        <p className="text-muted-foreground">
-          Review your saved flashcards using spaced repetition to maximize retention.
-        </p>
-      </div>
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex gap-6 min-h-[calc(100vh-200px)]">
+        {/* Sidebar */}
+        <div className="w-64 flex-shrink-0">
+          <Card className="p-6 sticky top-8">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Collections</h2>
+              <Button size="sm" variant="ghost" className="h-8 w-8 rounded-full p-0">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
 
-      {isReviewing ? (
-        <div className="max-w-2xl mx-auto">
-          <Button variant="outline" className="mb-6 bg-transparent" onClick={() => setIsReviewing(false)}>
-            Back to Notebook
-          </Button>
-          <FlashcardReview cards={dueCards} onComplete={handleReviewComplete} />
+            <div className="space-y-1">
+              {collections.map((collection) => (
+                <button
+                  key={collection.id}
+                  onClick={() => {
+                    setSelectedCollection(collection.id)
+                    setViewMode("list")
+                  }}
+                  className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${
+                    selectedCollection === collection.id
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "hover:bg-muted text-muted-foreground"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    {collection.icon}
+                    <span>{collection.name}</span>
+                  </div>
+                  <span className="text-xs">{collection.count}</span>
+                </button>
+              ))}
+            </div>
+          </Card>
         </div>
-      ) : (
-        <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="all">All Cards</TabsTrigger>
-            <TabsTrigger value="stats">Statistics</TabsTrigger>
-          </TabsList>
 
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-6">
-            <div className="grid md:grid-cols-4 gap-4">
-              <Card className="p-6 text-center">
-                <p className="text-3xl font-bold text-red-500">{stats.due}</p>
-                <p className="text-sm text-muted-foreground mt-2">Due Today</p>
-              </Card>
-              <Card className="p-6 text-center">
-                <p className="text-3xl font-bold text-blue-500">{stats.new_cards}</p>
-                <p className="text-sm text-muted-foreground mt-2">New Cards</p>
-              </Card>
-              <Card className="p-6 text-center">
-                <p className="text-3xl font-bold text-yellow-500">{stats.learning}</p>
-                <p className="text-sm text-muted-foreground mt-2">Learning</p>
-              </Card>
-              <Card className="p-6 text-center">
-                <p className="text-3xl font-bold text-green-500">{stats.review}</p>
-                <p className="text-sm text-muted-foreground mt-2">Review</p>
-              </Card>
-            </div>
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col">
+          {/* Header */}
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold mb-1">Knowledge Notebook</h1>
+            <p className="text-sm text-muted-foreground">Organize and review your English learning notes</p>
+          </div>
 
-            <Card className="p-8 text-center">
-              {stats.due > 0 ? (
-                <>
-                  <Zap className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Ready to Review</h3>
-                  <p className="text-muted-foreground mb-6">You have {stats.due} cards due for review today.</p>
-                  <Button size="lg" onClick={() => setIsReviewing(true)}>
-                    Start Review Session
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">All Caught Up!</h3>
-                  <p className="text-muted-foreground">No cards due for review today. Great job!</p>
-                </>
-              )}
-            </Card>
-          </TabsContent>
-
-          {/* All Cards Tab */}
-          <TabsContent value="all" className="space-y-4">
-            <div className="flex gap-2 mb-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Search cards..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 rounded-lg border border-border focus:outline-none focus:border-primary"
-                />
+          {/* Collection Header with Actions */}
+          <Card className="p-6 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                {collections.find((c) => c.id === selectedCollection)?.icon}
+                <h2 className="text-lg font-semibold capitalize">{selectedCollection}</h2>
+                <span className="text-sm text-muted-foreground">({filteredItems.length} items)</span>
               </div>
-              {searchQuery && (
-                <Button variant="ghost" size="sm" onClick={() => setSearchQuery("")} className="gap-1">
-                  <X className="h-4 w-4" />
-                  Clear
-                </Button>
-              )}
+              <Button size="sm" className="gap-2">
+                <Plus className="h-4 w-4" />
+                Add Item
+              </Button>
             </div>
 
-            {filteredCards.length === 0 ? (
-              <Card className="p-8 text-center">
-                <p className="text-muted-foreground">
-                  {searchQuery ? "No cards found matching your search." : "No cards yet. Start adding!"}
-                </p>
+            {/* Search Bar */}
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search your notes..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
+            {/* View Tabs */}
+            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="w-full">
+              <TabsList className="grid w-full max-w-md grid-cols-3">
+                <TabsTrigger value="list">List View</TabsTrigger>
+                <TabsTrigger value="flashcards">Flashcards</TabsTrigger>
+                <TabsTrigger value="daily-review">Daily Review</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </Card>
+
+          {/* Content Area */}
+          <div className="flex-1">
+            {viewMode === "list" && (
+              <Card className="p-6">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[180px]">Word</TableHead>
+                      <TableHead className="w-[300px]">Meaning</TableHead>
+                      <TableHead className="w-[80px]">Level</TableHead>
+                      <TableHead className="w-[140px]">Status</TableHead>
+                      <TableHead className="w-[180px] text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredItems.map((item) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="py-4">
+                          <div>
+                            <p className="font-semibold">{item.word}</p>
+                            <p className="text-xs text-muted-foreground">{item.pronunciation}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <div className="space-y-1">
+                            <p className="text-sm line-clamp-1">{item.meaning[0]}</p>
+                            {item.meaning.length > 1 && (
+                              <p className="text-sm line-clamp-1 text-muted-foreground">{item.meaning[1]}</p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <Badge variant="outline">{item.level}</Badge>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <div className="space-y-2">
+                            <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-primary transition-all"
+                                style={{ width: `${item.masteryLevel}%` }}
+                              />
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              {item.masteryLevel < 30 ? "Learning" : item.masteryLevel < 70 ? "Reviewing" : "Mastered"}
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right py-4">
+                          <div className="flex justify-end gap-2">
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                              <Volume2 className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" variant="outline" className="h-8 bg-transparent">
+                              Practice
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </Card>
-            ) : (
-              <div className="grid md:grid-cols-2 gap-4">
-                {filteredCards.map((card) => (
-                  <Card key={card.id} className="p-4">
-                    <div className="space-y-2">
-                      <div>
-                        <p className="text-xs font-semibold text-muted-foreground uppercase">Front</p>
-                        <p className="font-medium">{card.front}</p>
+            )}
+
+            {viewMode === "flashcards" && currentItem && (
+              <div className="max-w-4xl mx-auto">
+                <Card className="p-8 min-h-[500px]">
+                  {/* Card Header */}
+                  <div className="flex items-start justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                      <h2 className="text-3xl font-bold">{currentItem.word}</h2>
+                      <Badge variant="secondary">{currentItem.partOfSpeech}</Badge>
+                      <Badge variant="outline">{currentItem.level}</Badge>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">New</span>
+                        <div className="w-32 h-2 bg-secondary rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-primary transition-all"
+                            style={{ width: `${currentItem.masteryLevel}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-muted-foreground">Mastered</span>
                       </div>
-                      <div>
-                        <p className="text-xs font-semibold text-muted-foreground uppercase">Back</p>
-                        <p className="text-sm text-muted-foreground">{card.back}</p>
-                      </div>
-                      <div className="flex gap-2 pt-2">
-                        <span className="text-xs bg-secondary px-2 py-1 rounded">Reps: {card.repetitions}</span>
-                        <span className="text-xs bg-secondary px-2 py-1 rounded">Interval: {card.interval}d</span>
-                        <span className="text-xs bg-secondary px-2 py-1 rounded">EF: {card.easeFactor.toFixed(2)}</span>
+                      <Button size="sm" variant="ghost" className="h-8 w-8 rounded-full p-0">
+                        <Star className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <p className="text-lg text-muted-foreground mb-8">{currentItem.pronunciation}</p>
+
+                  {/* Card Content */}
+                  <div className="grid md:grid-cols-2 gap-8">
+                    <div>
+                      <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-3">Meaning</h3>
+                      <div className="space-y-2">
+                        {currentItem.meaning.map((m, idx) => (
+                          <div key={idx} className="flex gap-2">
+                            <div className="h-6 w-6 rounded-full bg-slate-300 flex-shrink-0" />
+                            <p className="text-sm">{m}</p>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  </Card>
-                ))}
+
+                    <div>
+                      <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-3">Vietnamese</h3>
+                      <div className="space-y-2">
+                        {currentItem.vietnamese.map((v, idx) => (
+                          <div key={idx} className="flex gap-2">
+                            <div className="h-6 w-6 rounded-full bg-blue-300 flex-shrink-0" />
+                            <p className="text-sm">{v}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Examples */}
+                  <div className="mt-8">
+                    <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-3">Example</h3>
+                    <div className="space-y-2">
+                      {currentItem.examples.map((ex, idx) => (
+                        <div key={idx} className="flex gap-2">
+                          <div className="h-6 w-6 rounded-full bg-slate-300 flex-shrink-0" />
+                          <p className="text-sm italic">"{ex.en}"</p>
+                        </div>
+                      ))}
+                    </div>
+                    <Button variant="outline" size="sm" className="mt-4 bg-transparent">
+                      shadowing these sentences
+                    </Button>
+                  </div>
+                </Card>
+
+                {/* Navigation */}
+                <div className="flex justify-center items-center gap-4 mt-6">
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    onClick={handlePrevCard}
+                    disabled={currentCardIndex === 0}
+                    className="rounded-full bg-transparent"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    onClick={handleNextCard}
+                    disabled={currentCardIndex === filteredItems.length - 1}
+                    className="rounded-full bg-transparent"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </Button>
+                </div>
               </div>
             )}
-          </TabsContent>
 
-          {/* Statistics Tab */}
-          <TabsContent value="stats" className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              <Card className="p-6">
-                <h3 className="font-semibold mb-4">Card Distribution</h3>
-                <div className="space-y-3">
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm">New</span>
-                      <span className="text-sm font-medium">{stats.new_cards}</span>
-                    </div>
-                    <div className="w-full bg-secondary rounded-full h-2">
-                      <div
-                        className="bg-blue-500 h-2 rounded-full"
-                        style={{ width: `${(stats.new_cards / stats.total) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm">Learning</span>
-                      <span className="text-sm font-medium">{stats.learning}</span>
-                    </div>
-                    <div className="w-full bg-secondary rounded-full h-2">
-                      <div
-                        className="bg-yellow-500 h-2 rounded-full"
-                        style={{ width: `${(stats.learning / stats.total) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-sm">Review</span>
-                      <span className="text-sm font-medium">{stats.review}</span>
-                    </div>
-                    <div className="w-full bg-secondary rounded-full h-2">
-                      <div
-                        className="bg-green-500 h-2 rounded-full"
-                        style={{ width: `${(stats.review / stats.total) * 100}%` }}
-                      />
-                    </div>
-                  </div>
+            {viewMode === "daily-review" && (
+              <div className="max-w-2xl mx-auto">
+                <Card className="p-8 text-center">
+                  <Zap className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
+                  <h2 className="text-2xl font-bold mb-2">Daily Review</h2>
+                  <p className="text-muted-foreground mb-6">
+                    You have <span className="font-semibold text-primary">{dueCount} words</span> ready for review
+                    today.
+                  </p>
+                  <p className="text-sm text-muted-foreground mb-8">
+                    Consistent daily practice helps reinforce your learning and improve retention.
+                  </p>
+                  <Button size="lg" onClick={() => setIsReviewModalOpen(true)} className="gap-2">
+                    <Zap className="h-5 w-5" />
+                    Start Practice
+                  </Button>
+                </Card>
+
+                {/* Stats */}
+                <div className="grid grid-cols-3 gap-4 mt-6">
+                  <Card className="p-4 text-center">
+                    <p className="text-2xl font-bold text-blue-500">247</p>
+                    <p className="text-xs text-muted-foreground mt-1">Total Words</p>
+                  </Card>
+                  <Card className="p-4 text-center">
+                    <p className="text-2xl font-bold text-green-500">182</p>
+                    <p className="text-xs text-muted-foreground mt-1">Mastered</p>
+                  </Card>
+                  <Card className="p-4 text-center">
+                    <p className="text-2xl font-bold text-yellow-500">7</p>
+                    <p className="text-xs text-muted-foreground mt-1">Day Streak</p>
+                  </Card>
                 </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <Dialog open={isReviewModalOpen} onOpenChange={setIsReviewModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Practice Review</DialogTitle>
+          </DialogHeader>
+          {currentItem && (
+            <div className="space-y-6">
+              <Card className="p-6 bg-muted/30">
+                <h3 className="text-2xl font-bold mb-2">{currentItem.word}</h3>
+                <p className="text-muted-foreground mb-4">{currentItem.pronunciation}</p>
+
+                {showAnswer ? (
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm font-semibold mb-2">Meaning:</p>
+                      {currentItem.meaning.map((m, idx) => (
+                        <p key={idx} className="text-sm">
+                          • {m}
+                        </p>
+                      ))}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold mb-2">Vietnamese:</p>
+                      {currentItem.vietnamese.map((v, idx) => (
+                        <p key={idx} className="text-sm">
+                          • {v}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <Button onClick={() => setShowAnswer(true)} variant="outline" className="w-full">
+                    Show Answer
+                  </Button>
+                )}
               </Card>
 
-              <Card className="p-6">
-                <h3 className="font-semibold mb-4">Review Information</h3>
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Total Cards</span>
-                    <span className="font-medium">{stats.total}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Due Today</span>
-                    <span className="font-medium">{stats.due}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Average Ease</span>
-                    <span className="font-medium">
-                      {cards.length > 0
-                        ? (cards.reduce((sum, c) => sum + c.easeFactor, 0) / cards.length).toFixed(2)
-                        : "0.00"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Total Reviews</span>
-                    <span className="font-medium">{cards.reduce((sum, c) => sum + c.repetitions, 0)}</span>
-                  </div>
+              {showAnswer && (
+                <div className="grid grid-cols-4 gap-2">
+                  <Button variant="outline" className="bg-red-50 hover:bg-red-100">
+                    Again
+                  </Button>
+                  <Button variant="outline" className="bg-yellow-50 hover:bg-yellow-100">
+                    Hard
+                  </Button>
+                  <Button variant="outline" className="bg-green-50 hover:bg-green-100">
+                    Good
+                  </Button>
+                  <Button variant="outline" className="bg-blue-50 hover:bg-blue-100">
+                    Easy
+                  </Button>
                 </div>
-              </Card>
+              )}
             </div>
-          </TabsContent>
-        </Tabs>
-      )}
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

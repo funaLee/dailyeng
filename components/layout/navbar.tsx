@@ -73,7 +73,7 @@ export function Navbar() {
                   href={item.href}
                   className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     pathname === item.href
-                      ? "bg-primary text-primary-foreground"
+                      ? "bg-primary/30 text-primary-foreground"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -126,7 +126,7 @@ export function Navbar() {
                         href={subItem.href}
                         className={`block pl-6 py-2 rounded-lg text-sm font-medium transition-colors ${
                           pathname.startsWith(subItem.href)
-                            ? "bg-primary text-primary-foreground"
+                            ? "bg-primary/30 text-primary-foreground"
                             : "text-muted-foreground hover:text-foreground"
                         }`}
                         onClick={() => setMobileOpen(false)}
@@ -144,7 +144,7 @@ export function Navbar() {
                   href={item.href}
                   className={`block px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     pathname === item.href
-                      ? "bg-primary text-primary-foreground"
+                      ? "bg-primary/30 text-primary-foreground"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                   onClick={() => setMobileOpen(false)}
