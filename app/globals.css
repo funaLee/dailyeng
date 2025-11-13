@@ -1,7 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -76,8 +75,9 @@
 }
 
 @theme inline {
-  --font-sans: "Geist", "Geist Fallback";
-  --font-mono: "Geist Mono", "Geist Mono Fallback";
+  /* Updated font variables to use Comic Neue (Comic Relief alternative) */
+  --font-sans: "Nunito", "Comic Sans MS", cursive, -apple-system, sans-serif;
+  --font-mono: "Nunito", "Comic Sans MS", monospace;
 
   /* Color System */
   --color-background: 0 0% 100%;

@@ -1,11 +1,9 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { CheckCircle2, XCircle, BookOpen } from "lucide-react"
+import { CheckCircle2, XCircle, BookOpen, ChevronLeft, ChevronRight, Star } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface GlossaryItem {
@@ -36,39 +34,123 @@ interface ReadingSectionProps {
 }
 
 export function ReadingSection({ passage }: ReadingSectionProps) {
-  const [hoveredWord, setHoveredWord] = useState<string | null>(null)
-  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 })
+  const [currentQuestion, setCurrentQuestion] = useState(0)
   const [answers, setAnswers] = useState<Record<string, string>>({})
-  const [submitted, setSubmitted] = useState(false)
+  const [checkedQuestions, setCheckedQuestions] = useState<Set<string>>(new Set())
+  const [showHint, setShowHint] = useState(false)
+  const [completed, setCompleted] = useState(false)
 
   const glossaryMap = new Map(passage.glossary.map((item) => [item.word.toLowerCase(), item]))
-
-  const handleWordHover = (e: React.MouseEvent<HTMLSpanElement>, word: string) => {
-    if (glossaryMap.has(word.toLowerCase())) {
-      const rect = e.currentTarget.getBoundingClientRect()
-      setTooltipPos({ x: rect.left, y: rect.top - 10 })
-      setHoveredWord(word)
-    }
-  }
+  const currentQ = passage.questions[currentQuestion]
+  const isCurrentAnswered = currentQ?.id in answers
+  const isCurrentChecked = checkedQuestions.has(currentQ?.id || "")
+  const isCurrentCorrect = answers[currentQ?.id] === currentQ?.correctAnswer
 
   const handleAnswerChange = (questionId: string, answer: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: answer }))
   }
 
-  const handleSubmit = () => {
-    setSubmitted(true)
+  const handleCheck = () => {
+    if (currentQ) {
+      setCheckedQuestions((prev) => new Set([...prev, currentQ.id]))
+    }
+  }
+
+  const handleNext = () => {
+    if (currentQuestion < passage.questions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1)
+      setShowHint(false)
+    } else {
+      setCompleted(true)
+    }
+  }
+
+  const handlePrevious = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion(currentQuestion - 1)
+      setShowHint(false)
+    }
   }
 
   const correctCount = passage.questions.filter((q) => answers[q.id] === q.correctAnswer).length
+  const accuracy = Math.round((correctCount / passage.questions.length) * 100)
+  const stars = Math.ceil((correctCount / passage.questions.length) * 5)
+
+  if (completed) {
+    return (
+      <div className="space-y-6">
+        <Card className="p-8 text-center space-y-6">
+          <div className="flex justify-center gap-1">
+            {[...Array(5)].map((_, idx) => (
+              <Star
+                key={idx}
+                className={cn("h-12 w-12", idx < stars ? "fill-yellow-400 text-yellow-400" : "text-gray-300")}
+              />
+            ))}
+          </div>
+
+          <div>
+            <h2 className="text-3xl font-bold mb-2">Reading Complete!</h2>
+            <p className="text-muted-foreground">Great job on finishing the reading practice</p>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
+            <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
+              <p className="text-sm text-muted-foreground">Questions</p>
+              <p className="text-2xl font-bold text-blue-900">{passage.questions.length}</p>
+            </div>
+            <div className="p-4 rounded-lg bg-green-50 border border-green-200">
+              <p className="text-sm text-muted-foreground">Correct</p>
+              <p className="text-2xl font-bold text-green-900">{correctCount}</p>
+            </div>
+            <div className="p-4 rounded-lg bg-purple-50 border border-purple-200">
+              <p className="text-sm text-muted-foreground">Accuracy</p>
+              <p className="text-2xl font-bold text-purple-900">{accuracy}%</p>
+            </div>
+          </div>
+
+          <div className="flex gap-3 justify-center">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setCompleted(false)
+                setCurrentQuestion(0)
+                setAnswers({})
+                setCheckedQuestions(new Set())
+              }}
+            >
+              Retry
+            </Button>
+            <Button>Back to Topics</Button>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+            <BookOpen className="h-5 w-5" />
+            Vocabulary from this passage
+          </h3>
+          <div className="grid md:grid-cols-2 gap-3">
+            {passage.glossary.map((item, idx) => (
+              <div key={idx} className="p-3 rounded-lg border border-border hover:bg-secondary/50 transition-colors">
+                <p className="font-semibold text-sm">{item.word}</p>
+                <p className="text-xs text-muted-foreground mt-1">{item.definition}</p>
+                <p className="text-xs text-blue-600 mt-1">{item.vietnamese}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+    )
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Passage */}
-      <Card className="p-8 space-y-4">
-        <h2 className="text-2xl font-bold">{passage.title}</h2>
+    <div className="grid lg:grid-cols-2 gap-6 items-start">
+      <Card className="p-6 space-y-4 lg:sticky lg:top-6 max-h-[calc(100vh-8rem)] overflow-y-auto">
+        <h2 className="text-xl font-bold text-center">{passage.title}</h2>
 
         <div className="prose prose-sm max-w-none dark:prose-invert">
-          <p className="text-base leading-relaxed text-foreground whitespace-pre-wrap">
+          <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap">
             {passage.content.split(/\b/).map((token, idx) => {
               const word = token.trim()
               const isGlossaryWord = glossaryMap.has(word.toLowerCase())
@@ -78,9 +160,8 @@ export function ReadingSection({ passage }: ReadingSectionProps) {
               return (
                 <span
                   key={idx}
-                  onMouseEnter={(e) => handleWordHover(e, word)}
-                  onMouseLeave={() => setHoveredWord(null)}
-                  className={cn(isGlossaryWord ? "cursor-help border-b-2 border-blue-400 hover:bg-blue-500/10" : "")}
+                  className={cn(isGlossaryWord ? "cursor-help border-b border-blue-400 hover:bg-blue-500/10" : "")}
+                  title={isGlossaryWord ? glossaryMap.get(word.toLowerCase())?.definition : undefined}
                 >
                   {token}
                 </span>
@@ -88,141 +169,115 @@ export function ReadingSection({ passage }: ReadingSectionProps) {
             })}
           </p>
         </div>
-
-        {/* Glossary Tooltip */}
-        {hoveredWord && glossaryMap.has(hoveredWord.toLowerCase()) && (
-          <div
-            className="fixed z-50 bg-popover border border-border rounded-lg shadow-lg p-3 max-w-xs"
-            style={{
-              left: `${tooltipPos.x}px`,
-              top: `${tooltipPos.y}px`,
-              transform: "translateY(-100%)",
-            }}
-          >
-            <p className="font-semibold text-sm">{hoveredWord}</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              {glossaryMap.get(hoveredWord.toLowerCase())?.definition}
-            </p>
-            <p className="text-xs text-blue-600 mt-1">{glossaryMap.get(hoveredWord.toLowerCase())?.vietnamese}</p>
-          </div>
-        )}
       </Card>
 
-      {/* Questions */}
-      <div className="space-y-4">
-        <h3 className="text-xl font-bold">Comprehension Questions</h3>
-
-        {passage.questions.map((question, idx) => {
-          const isCorrect = answers[question.id] === question.correctAnswer
-          const isAnswered = question.id in answers
-
-          return (
-            <Card key={question.id} className="p-6 space-y-4">
-              <div className="flex items-start gap-3">
-                <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">
-                  {idx + 1}
-                </span>
-                <h4 className="font-semibold text-base flex-1">{question.question}</h4>
-              </div>
-
-              {question.type === "multiple-choice" ? (
-                <div className="space-y-2 ml-9">
-                  {question.options?.map((option, optIdx) => (
-                    <button
-                      key={optIdx}
-                      onClick={() => handleAnswerChange(question.id, option)}
-                      disabled={submitted}
-                      className={cn(
-                        "w-full text-left p-3 rounded-lg border-2 transition-colors",
-                        answers[question.id] === option
-                          ? "border-primary bg-primary/10"
-                          : "border-border hover:border-primary/50",
-                        submitted && option === question.correctAnswer ? "border-green-500 bg-green-500/10" : "",
-                        submitted && answers[question.id] === option && !isCorrect
-                          ? "border-red-500 bg-red-500/10"
-                          : "",
-                      )}
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <textarea
-                  value={answers[question.id] || ""}
-                  onChange={(e) => handleAnswerChange(question.id, e.target.value)}
-                  placeholder="Type your answer..."
-                  disabled={submitted}
-                  className="w-full min-h-20 p-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground disabled:opacity-50 ml-9"
-                />
-              )}
-
-              {/* Feedback */}
-              {submitted && isAnswered && (
-                <div
-                  className={cn(
-                    "ml-9 p-4 rounded-lg flex items-start gap-3",
-                    isCorrect ? "bg-green-500/10 border border-green-500/30" : "bg-red-500/10 border border-red-500/30",
-                  )}
-                >
-                  {isCorrect ? (
-                    <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                  ) : (
-                    <XCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-                  )}
-                  <div className="text-sm">
-                    <p className={cn("font-semibold", isCorrect ? "text-green-700" : "text-red-700")}>
-                      {isCorrect ? "Correct!" : "Incorrect"}
-                    </p>
-                    <p className="text-muted-foreground mt-1">{question.explanation}</p>
-                  </div>
-                </div>
-              )}
-            </Card>
-          )
-        })}
-      </div>
-
-      {/* Submit Button */}
-      {!submitted && (
-        <Button onClick={handleSubmit} size="lg" className="w-full">
-          Submit Answers
-        </Button>
-      )}
-
-      {/* Results Summary */}
-      {submitted && (
-        <Card className="p-6 space-y-4 bg-blue-500/5 border-blue-500/20">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold text-lg">Results</h3>
-            <span className="text-2xl font-bold text-primary">
-              {correctCount}/{passage.questions.length}
-            </span>
+      <Card className="p-6 space-y-4 flex flex-col min-h-[600px]">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-900 flex items-center justify-center font-bold text-sm">
+              {currentQuestion + 1}
+            </div>
+            <h3 className="font-semibold">Question's content</h3>
           </div>
-          <p className="text-sm text-muted-foreground">
-            {correctCount === passage.questions.length
-              ? "Perfect! You understood the passage well."
-              : `You got ${correctCount} out of ${passage.questions.length} correct. Review the explanations above.`}
-          </p>
-        </Card>
-      )}
+          <Button variant="outline" size="sm" onClick={() => setShowHint(!showHint)}>
+            {showHint ? "Hide Hint" : "Show Hint"}
+          </Button>
+        </div>
 
-      {/* Review Suggestions */}
-      <Card className="p-6 space-y-4 bg-blue-500/5 border-blue-500/20">
-        <h3 className="font-semibold flex items-center gap-2">
-          <BookOpen className="h-4 w-4" />
-          Review Suggestions
-        </h3>
-        <div className="space-y-2 text-sm">
-          <p className="text-muted-foreground">
-            After finishing reading practice, reinforce your learning with related activities.
-          </p>
-          <div className="flex gap-2 pt-2">
-            <Button variant="outline" size="sm">
-              Back to Learn
+        <p className="text-sm font-medium">{currentQ?.question}</p>
+
+        {showHint && (
+          <div className="p-3 rounded-lg bg-yellow-50 border border-yellow-200 text-sm text-yellow-900">
+            <p className="font-semibold mb-1">Hint:</p>
+            <p>{currentQ?.explanation}</p>
+          </div>
+        )}
+
+        <div className="space-y-2 flex-1">
+          {currentQ?.type === "multiple-choice" ? (
+            currentQ.options?.map((option, optIdx) => (
+              <button
+                key={optIdx}
+                onClick={() => handleAnswerChange(currentQ.id, option)}
+                disabled={isCurrentChecked}
+                className={cn(
+                  "w-full text-left p-4 rounded-lg border-2 transition-colors text-sm",
+                  answers[currentQ.id] === option
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-200 hover:border-blue-300 bg-gray-50",
+                  isCurrentChecked && option === currentQ.correctAnswer ? "border-green-500 bg-green-50" : "",
+                  isCurrentChecked && answers[currentQ.id] === option && !isCurrentCorrect
+                    ? "border-red-500 bg-red-50"
+                    : "",
+                )}
+              >
+                {option}
+              </button>
+            ))
+          ) : (
+            <textarea
+              value={answers[currentQ?.id] || ""}
+              onChange={(e) => handleAnswerChange(currentQ.id, e.target.value)}
+              placeholder="Type your answer..."
+              disabled={isCurrentChecked}
+              className="w-full min-h-32 p-4 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground disabled:opacity-50"
+            />
+          )}
+        </div>
+
+        {isCurrentChecked && (
+          <div
+            className={cn(
+              "p-4 rounded-lg flex items-start gap-3",
+              isCurrentCorrect ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200",
+            )}
+          >
+            {isCurrentCorrect ? (
+              <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+            ) : (
+              <XCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+            )}
+            <div className="text-sm">
+              <p className={cn("font-semibold", isCurrentCorrect ? "text-green-700" : "text-red-700")}>
+                {isCurrentCorrect ? "Correct!" : "Incorrect"}
+              </p>
+              <p className="text-muted-foreground mt-1">{currentQ?.explanation}</p>
+            </div>
+          </div>
+        )}
+
+        {!isCurrentChecked && isCurrentAnswered && (
+          <Button onClick={handleCheck} className="w-full">
+            Check Answer
+          </Button>
+        )}
+
+        <div className="border-t border-border pt-4 space-y-4">
+          <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div
+              className="absolute left-0 top-0 h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-300"
+              style={{ width: `${((currentQuestion + 1) / passage.questions.length) * 100}%` }}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Button
+              variant="outline"
+              onClick={handlePrevious}
+              disabled={currentQuestion === 0}
+              className="gap-2 bg-transparent"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Previous
             </Button>
-            <Button variant="outline" size="sm">
-              Review Flashcards
+
+            <span className="text-sm font-medium px-4 py-1 rounded-full bg-blue-100 text-blue-900">
+              {currentQuestion + 1} / {passage.questions.length}
+            </span>
+
+            <Button onClick={handleNext} disabled={!isCurrentChecked} className="gap-2">
+              {currentQuestion === passage.questions.length - 1 ? "Finish" : "Next"}
+              <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         </div>

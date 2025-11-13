@@ -184,7 +184,7 @@ export default function Home() {
       </section>
 
       {/* Social Proof Section - Redesigned */}
-      <section className="py-16 bg-gradient-to-b from-white to-[#C2E2FA]/30">
+      <section className="py-16 bg-linear-to-b from-white to-[#C2E2FA]/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-8">
             {/* Rating Card */}
@@ -284,7 +284,7 @@ export default function Home() {
                     fill
                     className="object-cover group-hover:scale-110 transition-transform duration-500"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                  <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent"></div>
                   <div className="absolute bottom-4 left-4">
                     <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg">
                       <feature.icon className="w-6 h-6 text-[#C2E2FA]" />
@@ -303,7 +303,7 @@ export default function Home() {
       </section>
 
       {/* What You Can Do on DailyEng Section */}
-      <section className="py-20 bg-gradient-to-b from-white to-[#C2E2FA]/30">
+      <section className="py-20 bg-linear-to-b from-white to-[#C2E2FA]/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">What You Can Do on DailyEng</h2>
@@ -379,7 +379,7 @@ export default function Home() {
                         className="bg-[#C2E2FA]/30 border border-[#C2E2FA] p-4 rounded-xl hover:shadow-md transition-shadow"
                       >
                         <div className="flex items-start gap-3 mb-3">
-                          <div className="w-10 h-10 bg-[#C2E2FA] rounded-full flex items-center justify-center text-gray-900 font-bold text-sm flex-shrink-0">
+                          <div className="w-10 h-10 bg-[#C2E2FA] rounded-full flex items-center justify-center text-gray-900 font-bold text-sm shrink-0">
                             {review.name.charAt(0)}
                           </div>
                           <div className="flex-1 min-w-0">
@@ -411,7 +411,7 @@ export default function Home() {
                       className="bg-[#C2E2FA]/30 border border-[#C2E2FA] p-4 rounded-xl hover:shadow-md transition-shadow"
                     >
                       <div className="flex items-start gap-3 mb-3">
-                        <div className="w-10 h-10 bg-[#C2E2FA] rounded-full flex items-center justify-center text-gray-900 font-bold text-sm flex-shrink-0">
+                        <div className="w-10 h-10 bg-[#C2E2FA] rounded-full flex items-center justify-center text-gray-900 font-bold text-sm shrink-0">
                           {review.name.charAt(0)}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -443,7 +443,7 @@ export default function Home() {
             <div className="grid md:grid-cols-2">
               <div className="relative h-full min-h-[400px]">
                 <Image src="/learning.png" alt="Start Learning" fill className="object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-r from-[#C2E2FA]/20 to-transparent"></div>
+                <div className="absolute inset-0 bg-linear-to-r from-[#C2E2FA]/20 to-transparent"></div>
               </div>
               <div className="p-12 flex flex-col justify-center">
                 <h2 className="text-4xl font-bold mb-4 text-gray-900">Starting your Learning Journey right now!</h2>

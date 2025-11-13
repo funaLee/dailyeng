@@ -5,24 +5,36 @@ import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Mic, Play, ChevronRight } from "lucide-react"
+import { Mic, Play } from "lucide-react"
 
 const CEFR_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"]
 
 const TOPIC_GROUPS = [
-  "Daily Life",
-  "Professional English",
-  "Academic",
-  "Business",
-  "Travel",
-  "Presentation",
-  "Negotiation",
-  "Thoughts and Feelings",
-  "Technical English",
-  "Emergency English",
+  {
+    name: "Daily Life",
+    subcategories: ["Shopping", "Dining", "Healthcare", "Transportation"],
+  },
+  {
+    name: "Professional English",
+    subcategories: ["Meetings", "Presentations", "Negotiations", "Interviews"],
+  },
+  {
+    name: "Academic",
+    subcategories: ["Lectures", "Discussions", "Research", "Presentations"],
+  },
+  {
+    name: "Business",
+    subcategories: ["Marketing", "Sales", "Finance", "Management"],
+  },
+  {
+    name: "Travel",
+    subcategories: ["Hotels", "Airports", "Tourist Sites", "Emergency"],
+  },
+  {
+    name: "Social Situations",
+    subcategories: ["Parties", "Small Talk", "Making Friends", "Dating"],
+  },
 ]
-
-const SCENARIO_CATEGORIES = ["Daily Conversations", "Work & Business", "Travel & Leisure", "Academic"]
 
 type TabType = "available" | "custom" | "history"
 
@@ -87,7 +99,7 @@ const mockScenarios: Scenario[] = [
     id: "5",
     title: "Job Interview",
     description: "Practice professional conversations and learn how to present yourself confidently.",
-    category: "Professional",
+    category: "Professional English",
     level: "B2",
     image: "png5",
     sessionsCompleted: 0,
@@ -113,6 +125,7 @@ export default function SpeakingRoomPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedLevels, setSelectedLevels] = useState<string[]>(["A1", "A2"])
   const [selectedGroup, setSelectedGroup] = useState<string>("Daily Life")
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string>("Shopping")
   const [activeTab, setActiveTab] = useState<TabType>("available")
 
   useEffect(() => {
@@ -132,6 +145,8 @@ export default function SpeakingRoomPage() {
     setSelectedLevels((prev) => (prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level]))
   }
 
+  const currentSubcategories = TOPIC_GROUPS.find((g) => g.name === selectedGroup)?.subcategories || []
+
   if (loading) {
     return (
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
@@ -146,7 +161,6 @@ export default function SpeakingRoomPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-      {/* Hero Card */}
       <Card className="p-8 mb-8 relative overflow-hidden">
         <div className="relative z-10">
           <h1 className="text-4xl font-bold mb-2">SPEAKING ROOM</h1>
@@ -170,7 +184,7 @@ export default function SpeakingRoomPage() {
             </Button>
           </div>
         </div>
-        <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-br from-[#C2E2FA]/50 to-[#A0D2F7]/30 rounded-lg pointer-events-none">
+        <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-br from-blue-200/50 to-blue-400/30 rounded-lg pointer-events-none">
           <div className="absolute right-12 top-12 text-blue-600/20 text-6xl font-bold rotate-12">
             <Mic className="h-20 w-20" />
           </div>
@@ -179,7 +193,6 @@ export default function SpeakingRoomPage() {
         </div>
       </Card>
 
-      {/* Tabs */}
       <div className="mb-6 flex gap-2 border-b border-border">
         <button
           onClick={() => setActiveTab("available")}
@@ -189,7 +202,7 @@ export default function SpeakingRoomPage() {
               : "border-transparent text-muted-foreground hover:text-foreground"
           }`}
         >
-          Available Topics
+          Available Scenarios
         </button>
         <button
           onClick={() => setActiveTab("custom")}
@@ -199,7 +212,7 @@ export default function SpeakingRoomPage() {
               : "border-transparent text-muted-foreground hover:text-foreground"
           }`}
         >
-          Custom Topics
+          Custom Scenarios
         </button>
         <button
           onClick={() => setActiveTab("history")}
@@ -209,7 +222,7 @@ export default function SpeakingRoomPage() {
               : "border-transparent text-muted-foreground hover:text-foreground"
           }`}
         >
-          History
+          Practice History
         </button>
         <div className="flex-1" />
         <Input
@@ -220,50 +233,42 @@ export default function SpeakingRoomPage() {
         />
       </div>
 
-      {/* Category Pills */}
-      <div className="mb-6 flex gap-2 overflow-x-auto pb-2">
-        {SCENARIO_CATEGORIES.map((cat) => (
-          <button
-            key={cat}
-            className="px-4 py-2 rounded-full bg-[#C2E2FA] text-blue-900 text-sm font-medium whitespace-nowrap hover:bg-[#A0D2F7] transition-colors"
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-
-      {/* Main Content */}
-      <div className="grid lg:grid-cols-4 gap-6">
-        {/* Sidebar */}
+      <div className="grid lg:grid-cols-5 gap-6">
         <div className="lg:col-span-1 space-y-6">
-          <Card className="p-4">
-            <h3 className="font-semibold mb-3">Topic Groups</h3>
+          <Card className="p-6 bg-[#C2E2FA]/30">
+            <h3 className="font-bold text-lg mb-4">Topic Groups</h3>
             <div className="space-y-1">
               {TOPIC_GROUPS.map((group) => (
                 <button
-                  key={group}
-                  onClick={() => setSelectedGroup(group)}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center justify-between ${
-                    selectedGroup === group ? "bg-secondary font-medium" : "hover:bg-secondary/50"
+                  key={group.name}
+                  onClick={() => {
+                    setSelectedGroup(group.name)
+                    setSelectedSubcategory(group.subcategories[0])
+                  }}
+                  className={`w-full text-left px-4 py-3 rounded-lg text-sm transition-colors flex items-center gap-3 ${
+                    selectedGroup === group.name ? "bg-white font-semibold shadow-sm" : "hover:bg-white/50"
                   }`}
                 >
-                  <span className="flex items-center gap-2">
-                    {selectedGroup === group && <div className="h-2 w-2 rounded-full bg-primary" />}
-                    {group}
-                  </span>
+                  {selectedGroup === group.name && (
+                    <div className="h-4 w-4 rounded-full border-4 border-primary flex-shrink-0" />
+                  )}
+                  {selectedGroup !== group.name && (
+                    <div className="h-4 w-4 rounded-full border-2 border-gray-400 flex-shrink-0" />
+                  )}
+                  <span>{group.name}</span>
                 </button>
               ))}
-              <Button variant="ghost" size="sm" className="w-full justify-start text-xs">
-                More
-              </Button>
             </div>
           </Card>
 
-          <Card className="p-4">
-            <h3 className="font-semibold mb-3">Levels</h3>
+          <Card className="p-6 bg-[#C2E2FA]/30">
+            <h3 className="font-bold text-lg mb-4">Levels</h3>
+            <Button variant="outline" size="sm" className="w-full justify-center text-xs mb-3 bg-white">
+              CEFR
+            </Button>
             <div className="space-y-2">
               {CEFR_LEVELS.map((level) => (
-                <label key={level} className="flex items-center gap-2 cursor-pointer">
+                <label key={level} className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={selectedLevels.includes(level)}
@@ -277,53 +282,67 @@ export default function SpeakingRoomPage() {
           </Card>
         </div>
 
-        {/* Content Area */}
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-4">
           {activeTab === "available" && (
-            <div className="grid md:grid-cols-2 gap-6">
-              {filteredScenarios.map((scenario) => (
-                <Card key={scenario.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="aspect-video bg-gradient-to-br from-[#C2E2FA] to-[#A0D2F7] relative flex items-center justify-center">
-                    <span className="text-blue-600/40 text-4xl font-bold">{scenario.image}</span>
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-semibold text-lg mb-2">{scenario.title}</h3>
-                    <p className="text-sm text-muted-foreground mb-4">{scenario.description}</p>
-                    <div className="flex items-center gap-2 mb-4">
-                      <span className="px-2 py-1 rounded bg-[#C2E2FA] text-blue-900 text-xs font-medium">
-                        {scenario.category}
-                      </span>
-                      <span className="px-2 py-1 rounded bg-primary/10 text-primary text-xs font-medium">
-                        {scenario.level}
-                      </span>
-                      <span className="px-2 py-1 rounded bg-secondary text-secondary-foreground text-xs font-medium">
-                        CEFR
-                      </span>
+            <>
+              <div className="flex flex-wrap gap-3 mb-6">
+                {currentSubcategories.map((subcat) => (
+                  <button
+                    key={subcat}
+                    onClick={() => setSelectedSubcategory(subcat)}
+                    className={`px-6 py-3 rounded-lg text-base font-semibold whitespace-nowrap transition-colors shadow-sm ${
+                      selectedSubcategory === subcat
+                        ? "bg-blue-800 text-white"
+                        : "bg-[#C2E2FA] text-blue-900 hover:bg-blue-300"
+                    }`}
+                  >
+                    {subcat}
+                  </button>
+                ))}
+              </div>
+
+              <div className="grid md:grid-cols-4 gap-4">
+                {filteredScenarios.map((scenario) => (
+                  <Card key={scenario.id} className="overflow-hidden hover:shadow-lg transition-shadow border-2">
+                    <div className="aspect-[4/3] bg-gradient-to-br from-blue-200 to-blue-300 relative flex items-center justify-center">
+                      <span className="text-blue-600/40 text-3xl font-bold">{scenario.image}</span>
                     </div>
-                    <div className="text-xs text-muted-foreground mb-3">
-                      {scenario.sessionsCompleted} / {scenario.totalSessions} sessions
-                    </div>
-                    <div className="h-1.5 bg-secondary rounded-full mb-4">
-                      <div
-                        className="h-full bg-green-500 rounded-full transition-all"
-                        style={{ width: `${scenario.progress}%` }}
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <Link href={`/speaking/session/${scenario.id}`} className="flex-1">
-                        <Button className="w-full gap-2" size="sm">
-                          <Play className="h-4 w-4" />
-                          {scenario.progress > 0 ? "Continue" : "Start"}
+                    <div className="p-3">
+                      <h3 className="font-semibold text-base mb-1.5 line-clamp-2">{scenario.title}</h3>
+                      <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{scenario.description}</p>
+                      <div className="flex items-center gap-1.5 mb-3">
+                        <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-900 text-[10px] font-medium">
+                          {scenario.category}
+                        </span>
+                        <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-medium">
+                          {scenario.level}
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-muted-foreground mb-2">
+                        {scenario.sessionsCompleted} / {scenario.totalSessions} sessions
+                      </div>
+                      <div className="h-1 bg-secondary rounded-full mb-3">
+                        <div
+                          className="h-full bg-green-500 rounded-full transition-all"
+                          style={{ width: `${scenario.progress}%` }}
+                        />
+                      </div>
+                      <div className="flex gap-1.5">
+                        <Link href={`/speaking/session/${scenario.id}`} className="flex-1">
+                          <Button className="w-full gap-1.5 text-xs h-7" size="sm">
+                            <Play className="h-3 w-3" />
+                            {scenario.progress > 0 ? "Continue" : "Start"}
+                          </Button>
+                        </Link>
+                        <Button variant="outline" size="sm" className="text-xs h-7 px-2 bg-transparent">
+                          Info
                         </Button>
-                      </Link>
-                      <Button variant="outline" size="sm">
-                        Details
-                      </Button>
+                      </div>
                     </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
+                  </Card>
+                ))}
+              </div>
+            </>
           )}
 
           {activeTab === "custom" && (
@@ -334,10 +353,7 @@ export default function SpeakingRoomPage() {
                 <p className="text-muted-foreground mb-6">
                   Design your own speaking practice scenarios tailored to your specific needs and goals.
                 </p>
-                <Button className="gap-2">
-                  <ChevronRight className="h-4 w-4" />
-                  Create New Scenario
-                </Button>
+                <Button className="gap-2">Create New Scenario</Button>
               </div>
             </Card>
           )}

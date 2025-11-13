@@ -1,448 +1,318 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Badge } from "@/components/ui/badge"
-import { ArrowRightLeft, Mic, MicOff, Volume2, Send, BookmarkPlus, Check } from "lucide-react"
+import { Mic, Check, X, Trophy, Star } from "lucide-react"
 
 interface TranslateSpeakLabProps {
   topicTitle: string
 }
 
-interface FeedbackBadge {
-  type: "meaning" | "grammar" | "style"
-  label: string
-  color: string
-}
-
-interface ScoreRing {
-  label: string
-  score: number
-  color: string
-}
-
 export function TranslateSpeakLab({ topicTitle }: TranslateSpeakLabProps) {
-  const [translateTab, setTranslateTab] = useState<"en-vi" | "vi-en">("en-vi")
-  const [sourceText, setSourceText] = useState("")
-  const [translatedText, setTranslatedText] = useState("")
-  const [translationFeedback, setTranslationFeedback] = useState<FeedbackBadge[]>([])
-  const [isRecording, setIsRecording] = useState(false)
-  const [recordingTime, setRecordingTime] = useState(0)
-  const [recordedText, setRecordedText] = useState("")
-  const [speakingScores, setSpeakingScores] = useState<ScoreRing[]>([])
-  const [writingText, setWritingText] = useState("")
-  const [writingAnnotations, setWritingAnnotations] = useState<
-    Array<{ start: number; end: number; type: string; message: string }>
-  >([])
-  const [savedSentence, setSavedSentence] = useState(false)
-  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null)
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const [currentSentence, setCurrentSentence] = useState(0)
+  const [translation, setTranslation] = useState("")
+  const [checkedWords, setCheckedWords] = useState<Set<number>>(new Set())
+  const [checkedGrammar, setCheckedGrammar] = useState<Set<number>>(new Set())
+  const [isChecked, setIsChecked] = useState(false)
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null)
+  const [completedSentences, setCompletedSentences] = useState<Set<number>>(new Set())
+  const [showResults, setShowResults] = useState(false)
 
-  const handleTranslate = () => {
-    if (translateTab === "en-vi") {
-      const mockTranslations: Record<string, string> = {
-        hello: "Xin chào",
-        goodbye: "Tạm biệt",
-        "thank you": "Cảm ơn",
-        please: "Vui lòng",
-        water: "Nước",
-        food: "Thức ăn",
-        "i would like to order": "Tôi muốn gọi",
-      }
+  const sentences = [
+    {
+      vietnamese:
+        "Trong lớp, có giáo luôn khen những bạn có hành vi tốt, nhắc nhở những bạn có hành vi xấu, và đặc biệt chú ý đến những hành vi kỳ lạ trong cách cư xử với người khác.",
+      sampleAnswer:
+        "In class, teachers always praise students with good behaviour, remind those with bad behaviour, and pay special attention to strange behaviour in the way they interact with others.",
+      vocabularyHints: [
+        { word: "praise (n)", meaning: "khen" },
+        { word: "pay attention (v)", meaning: "chú ý" },
+        { word: "strange (adj)", meaning: "kỳ lạ" },
+      ],
+      grammarHints: [
+        "praise + someone + for + something",
+        "remind / warn + someone + about + something",
+        "pay attention to + something",
+        "behaviour towards + someone",
+      ],
+    },
+    {
+      vietnamese: "Học sinh cần có hành vi tốt trong lớp học và tôn trọng giáo viên.",
+      sampleAnswer: "Students need to have good behaviour in the classroom and respect teachers.",
+      vocabularyHints: [
+        { word: "respect (v)", meaning: "tôn trọng" },
+        { word: "classroom (n)", meaning: "lớp học" },
+        { word: "student (n)", meaning: "học sinh" },
+      ],
+      grammarHints: ["need to + verb", "show respect to + someone", "behave well in + place"],
+    },
+  ]
 
-      const lower = sourceText.toLowerCase()
-      const translated = mockTranslations[lower] || `[Mock translation of: ${sourceText}]`
-      setTranslatedText(translated)
+  const currentData = sentences[currentSentence]
+  const totalSentences = sentences.length
 
-      // Mock feedback badges
-      setTranslationFeedback([
-        { type: "meaning", label: "Meaning: Accurate", color: "bg-green-100 text-green-800" },
-        { type: "grammar", label: "Grammar: Correct", color: "bg-blue-100 text-blue-800" },
-        { type: "style", label: "Style: Natural", color: "bg-purple-100 text-purple-800" },
-      ])
+  const wordCount = translation.trim() ? translation.trim().split(/\s+/).length : 0
+
+  const handleCheck = () => {
+    setIsChecked(true)
+    // Simple check - in real app, would use more sophisticated comparison
+    const isAnswerCorrect = translation.trim().length > 10
+    setIsCorrect(isAnswerCorrect)
+    if (isAnswerCorrect) {
+      setCompletedSentences((prev) => new Set(prev).add(currentSentence))
+    }
+  }
+
+  const handlePrevious = () => {
+    if (currentSentence > 0) {
+      setCurrentSentence(currentSentence - 1)
+      setTranslation("")
+      setCheckedWords(new Set())
+      setCheckedGrammar(new Set())
+      setIsChecked(false)
+      setIsCorrect(null)
+    }
+  }
+
+  const handleNext = () => {
+    if (currentSentence < totalSentences - 1) {
+      setCurrentSentence(currentSentence + 1)
+      setTranslation("")
+      setCheckedWords(new Set())
+      setCheckedGrammar(new Set())
+      setIsChecked(false)
+      setIsCorrect(null)
     } else {
-      const mockTranslations: Record<string, string> = {
-        "xin chào": "Hello",
-        "tạm biệt": "Goodbye",
-        "cảm ơn": "Thank you",
-        "vui lòng": "Please",
-        nước: "Water",
-        "thức ăn": "Food",
-        "tôi muốn gọi": "I would like to order",
-      }
-
-      const lower = sourceText.toLowerCase()
-      const translated = mockTranslations[lower] || `[Mock translation of: ${sourceText}]`
-      setTranslatedText(translated)
-
-      setTranslationFeedback([
-        { type: "meaning", label: "Meaning: Accurate", color: "bg-green-100 text-green-800" },
-        { type: "grammar", label: "Grammar: Correct", color: "bg-blue-100 text-blue-800" },
-        { type: "style", label: "Style: Natural", color: "bg-purple-100 text-purple-800" },
-      ])
+      setShowResults(true)
     }
   }
 
-  const handleToggleRecording = async () => {
-    if (!isRecording) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-        const mediaRecorder = new MediaRecorder(stream)
-        mediaRecorderRef.current = mediaRecorder
-
-        mediaRecorder.start()
-        setIsRecording(true)
-        setRecordingTime(0)
-        setRecordedText("")
-        setSpeakingScores([])
-
-        // Simulate recording timer
-        recordingIntervalRef.current = setInterval(() => {
-          setRecordingTime((prev) => prev + 1)
-        }, 1000)
-
-        mediaRecorder.onstart = () => {
-          console.log("[v0] Recording started")
-        }
-      } catch (error) {
-        // Fallback: fake recording with timer
-        console.log("[v0] Using fake recording mode")
-        setIsRecording(true)
-        setRecordingTime(0)
-        setRecordedText("")
-        setSpeakingScores([])
-
-        recordingIntervalRef.current = setInterval(() => {
-          setRecordingTime((prev) => prev + 1)
-        }, 1000)
+  const handleToggleWord = (index: number) => {
+    setCheckedWords((prev) => {
+      const newSet = new Set(prev)
+      if (newSet.has(index)) {
+        newSet.delete(index)
+      } else {
+        newSet.add(index)
       }
-    } else {
-      // Stop recording
-      if (mediaRecorderRef.current) {
-        mediaRecorderRef.current.stop()
+      return newSet
+    })
+  }
+
+  const handleToggleGrammar = (index: number) => {
+    setCheckedGrammar((prev) => {
+      const newSet = new Set(prev)
+      if (newSet.has(index)) {
+        newSet.delete(index)
+      } else {
+        newSet.add(index)
       }
-      if (recordingIntervalRef.current) {
-        clearInterval(recordingIntervalRef.current)
-      }
-      setIsRecording(false)
-
-      // Mock recorded text and scores
-      setRecordedText("I would like to order a coffee, please.")
-      setSpeakingScores([
-        { label: "Pronunciation", score: 85, color: "text-green-600" },
-        { label: "Fluency", score: 78, color: "text-blue-600" },
-        { label: "Grammar", score: 82, color: "text-purple-600" },
-        { label: "Content", score: 80, color: "text-orange-600" },
-      ])
-    }
+      return newSet
+    })
   }
 
-  const handleSpeak = (text: string) => {
-    if ("speechSynthesis" in window && text) {
-      const utterance = new SpeechSynthesisUtterance(text)
-      utterance.lang = "en-US"
-      window.speechSynthesis.speak(utterance)
-    }
+  const handleRetry = () => {
+    setShowResults(false)
+    setCurrentSentence(0)
+    setTranslation("")
+    setCheckedWords(new Set())
+    setCheckedGrammar(new Set())
+    setIsChecked(false)
+    setIsCorrect(null)
+    setCompletedSentences(new Set())
   }
 
-  const handleGetWritingFeedback = () => {
-    if (!writingText.trim()) return
-
-    // Mock inline annotations
-    setWritingAnnotations([
-      {
-        start: 0,
-        end: 5,
-        type: "grammar",
-        message: "Consider capitalizing the first word",
-      },
-      {
-        start: writingText.indexOf("favorite"),
-        end: writingText.indexOf("favorite") + 8,
-        type: "vocabulary",
-        message: "Good word choice!",
-      },
-    ])
-  }
-
-  const handleSaveSentence = () => {
-    setSavedSentence(true)
-    setTimeout(() => setSavedSentence(false), 2000)
-  }
-
-  const renderScoreRing = (score: number, label: string, color: string) => {
-    const circumference = 2 * Math.PI * 45
-    const offset = circumference - (score / 100) * circumference
+  if (showResults) {
+    const correctCount = completedSentences.size
+    const accuracy = Math.round((correctCount / totalSentences) * 100)
 
     return (
-      <div key={label} className="flex flex-col items-center">
-        <div className="relative w-24 h-24">
-          <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-            <circle
-              cx="50"
-              cy="50"
-              r="45"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3"
-              className="text-secondary"
-            />
-            <circle
-              cx="50"
-              cy="50"
-              r="45"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="3"
-              strokeDasharray={circumference}
-              strokeDashoffset={offset}
-              className={`${color} transition-all duration-500`}
-              strokeLinecap="round"
-            />
-          </svg>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className={`text-lg font-bold ${color}`}>{score}</span>
+      <div className="max-w-2xl mx-auto py-12">
+        <Card className="p-8 text-center space-y-6">
+          <div className="flex justify-center">
+            <div className="h-24 w-24 rounded-full bg-gradient-to-br from-blue-200 to-blue-400 flex items-center justify-center">
+              <Trophy className="h-12 w-12 text-blue-900" />
+            </div>
           </div>
-        </div>
-        <p className="text-xs text-muted-foreground mt-2 text-center">{label}</p>
+
+          <div className="space-y-2">
+            <h2 className="text-3xl font-bold">Congratulations!</h2>
+            <p className="text-muted-foreground">You've completed all translation exercises</p>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4 py-6">
+            <div className="space-y-1">
+              <p className="text-2xl font-bold text-blue-600">{correctCount}</p>
+              <p className="text-sm text-muted-foreground">Correct</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-2xl font-bold text-blue-600">{totalSentences}</p>
+              <p className="text-sm text-muted-foreground">Total</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-2xl font-bold text-blue-600">{accuracy}%</p>
+              <p className="text-sm text-muted-foreground">Accuracy</p>
+            </div>
+          </div>
+
+          <div className="flex justify-center gap-2">
+            {[...Array(5)].map((_, i) => (
+              <Star
+                key={i}
+                className={`h-8 w-8 ${i < Math.floor(accuracy / 20) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`}
+              />
+            ))}
+          </div>
+
+          <div className="flex gap-3 justify-center pt-4">
+            <Button onClick={handleRetry} variant="outline">
+              Try Again
+            </Button>
+            <Button onClick={() => (window.location.href = "/vocab")}>Back to Topics</Button>
+          </div>
+        </Card>
       </div>
     )
   }
 
   return (
-    <Tabs defaultValue="translate" className="w-full">
-      <TabsList className="grid w-full grid-cols-3">
-        <TabsTrigger value="translate" className="gap-2">
-          <ArrowRightLeft className="h-4 w-4" />
-          <span className="hidden sm:inline">Translate</span>
-        </TabsTrigger>
-        <TabsTrigger value="speak" className="gap-2">
-          <Mic className="h-4 w-4" />
-          <span className="hidden sm:inline">Read-Aloud</span>
-        </TabsTrigger>
-        <TabsTrigger value="write" className="gap-2">
-          <span>✍️</span>
-          <span className="hidden sm:inline">Writing</span>
-        </TabsTrigger>
-      </TabsList>
+    <div className="space-y-6">
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Left Column - Vietnamese sentence and translation */}
+        <div className="lg:col-span-2 space-y-4">
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Vietnamese sentence:</h3>
+            <p className="text-sm mb-6 leading-relaxed">{currentData.vietnamese}</p>
 
-      {/* Translate Tab */}
-      <TabsContent value="translate" className="space-y-4">
-        <div className="grid md:grid-cols-2 gap-4">
-          {/* Source */}
-          <Card className="p-4">
-            <div className="flex items-center justify-between mb-3">
-              <label className="text-sm font-semibold">{translateTab === "en-vi" ? "English" : "Vietnamese"}</label>
-              <button
-                onClick={() => setTranslateTab(translateTab === "en-vi" ? "vi-en" : "en-vi")}
-                className="p-1 hover:bg-secondary rounded transition-colors"
-                aria-label="Swap languages"
-              >
-                <ArrowRightLeft className="h-4 w-4" />
-              </button>
-            </div>
-            <textarea
-              value={sourceText}
-              onChange={(e) => setSourceText(e.target.value)}
-              placeholder={translateTab === "en-vi" ? "Enter English text..." : "Nhập văn bản tiếng Việt..."}
-              className="w-full h-32 p-3 rounded-lg border border-input bg-background resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-            <Button onClick={handleTranslate} className="w-full mt-3" disabled={!sourceText.trim()}>
-              Translate
-            </Button>
-          </Card>
-
-          {/* Target */}
-          <Card className="p-4">
-            <label className="text-sm font-semibold block mb-3">
-              {translateTab === "en-vi" ? "Vietnamese" : "English"}
-            </label>
-            <div className="w-full h-32 p-3 rounded-lg border border-input bg-secondary/50 text-sm overflow-y-auto">
-              {translatedText || <span className="text-muted-foreground">Translation will appear here...</span>}
-            </div>
-
-            {translationFeedback.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-3">
-                {translationFeedback.map((feedback) => (
-                  <Badge key={feedback.type} className={`${feedback.color} border-0`}>
-                    {feedback.label}
-                  </Badge>
-                ))}
-              </div>
-            )}
-
-            <Button
-              variant="outline"
-              onClick={() => handleSpeak(translatedText)}
-              className="w-full mt-3 gap-2"
-              disabled={!translatedText}
-            >
-              <Volume2 className="h-4 w-4" />
-              Hear Translation
-            </Button>
-          </Card>
-        </div>
-      </TabsContent>
-
-      {/* Read-Aloud Tab */}
-      <TabsContent value="speak" className="space-y-4">
-        <Card className="p-6">
-          <h3 className="font-semibold mb-4">Read-Aloud Practice: {topicTitle}</h3>
-
-          <div className="space-y-4">
-            <div className="bg-secondary/50 p-4 rounded-lg">
-              <p className="text-sm font-medium mb-2">Prompt:</p>
-              <p className="text-sm">"Imagine you're at a restaurant. Order a meal and ask about the ingredients."</p>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <label className="text-sm font-semibold">Your Recording</label>
-                <Button
-                  variant={isRecording ? "destructive" : "default"}
-                  size="sm"
-                  onClick={handleToggleRecording}
-                  className="gap-2"
-                >
-                  {isRecording ? (
-                    <>
-                      <MicOff className="h-4 w-4" />
-                      Stop ({recordingTime}s)
-                    </>
-                  ) : (
-                    <>
-                      <Mic className="h-4 w-4" />
-                      Start Recording
-                    </>
-                  )}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Translation:</h3>
+                <Button variant="outline" size="sm" className="text-xs bg-transparent">
+                  Sample answer
                 </Button>
               </div>
 
-              {isRecording && (
-                <div className="mb-3 p-3 rounded-lg bg-red-50 border border-red-200 flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-                  <span className="text-sm text-red-700">Recording...</span>
-                </div>
-              )}
-
-              {(isRecording || recordedText) && (
-                <div className="mb-3 p-4 rounded-lg border border-input bg-background">
-                  <div className="flex items-center justify-center gap-1 h-12">
-                    {[...Array(20)].map((_, i) => (
-                      <div
-                        key={i}
-                        className={`w-1 rounded-full transition-all ${
-                          isRecording ? "bg-primary animate-pulse" : "bg-primary/60"
-                        }`}
-                        style={{
-                          height: `${Math.random() * 100}%`,
-                          animationDelay: isRecording ? `${i * 0.05}s` : "0s",
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {recordedText && (
-                <div className="p-3 rounded-lg border border-input bg-background mb-3">
-                  <p className="text-sm">{recordedText}</p>
-                </div>
-              )}
-            </div>
-
-            {speakingScores.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {speakingScores.map((score) => renderScoreRing(score.score, score.label, score.color))}
+              <div className="relative">
+                <textarea
+                  value={translation}
+                  onChange={(e) => setTranslation(e.target.value)}
+                  placeholder="Type your translation here..."
+                  className="w-full h-32 p-4 rounded-lg border border-input bg-background resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                  disabled={isChecked}
+                />
+                <button
+                  className="absolute bottom-3 right-3 p-2 hover:bg-secondary rounded-lg transition-colors"
+                  aria-label="Voice input"
+                >
+                  <Mic className="h-5 w-5 text-muted-foreground" />
+                </button>
               </div>
-            )}
 
-            {speakingScores.length > 0 && (
-              <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
-                <p className="text-sm font-medium text-blue-900 mb-2">Tips for Improvement:</p>
-                <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
-                  <li>Speak more slowly to improve clarity</li>
-                  <li>Use more varied vocabulary</li>
-                  <li>Practice stress and intonation patterns</li>
-                </ul>
-              </div>
-            )}
-          </div>
-        </Card>
-      </TabsContent>
-
-      {/* Writing Tab */}
-      <TabsContent value="write" className="space-y-4">
-        <Card className="p-6">
-          <h3 className="font-semibold mb-4">Writing Practice: {topicTitle}</h3>
-
-          <div className="space-y-4">
-            <div className="bg-secondary/50 p-4 rounded-lg">
-              <p className="text-sm font-medium mb-2">Task:</p>
-              <p className="text-sm">
-                Write a short paragraph (3-5 sentences) about your favorite food and why you like it.
-              </p>
-            </div>
-
-            <div>
-              <label className="text-sm font-semibold block mb-2">Your Writing</label>
-              <textarea
-                value={writingText}
-                onChange={(e) => setWritingText(e.target.value)}
-                placeholder="Start typing your response here..."
-                className="w-full h-40 p-3 rounded-lg border border-input bg-background resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-              />
-              <div className="flex justify-between items-center mt-3">
-                <span className="text-xs text-muted-foreground">{writingText.length} characters</span>
-                <div className="flex gap-2">
-                  <Button onClick={handleGetWritingFeedback} disabled={!writingText.trim()} className="gap-2">
-                    <Send className="h-4 w-4" />
-                    Get Feedback
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">{wordCount} words</span>
+                {!isChecked ? (
+                  <Button size="sm" onClick={handleCheck} disabled={translation.trim().length === 0} className="gap-2">
+                    <Check className="h-4 w-4" />
+                    Check
                   </Button>
-                  <Button
-                    variant={savedSentence ? "default" : "outline"}
-                    onClick={handleSaveSentence}
-                    disabled={!writingText.trim()}
-                    className="gap-2"
-                  >
-                    {savedSentence ? (
+                ) : (
+                  <div className="flex items-center gap-2">
+                    {isCorrect ? (
                       <>
-                        <Check className="h-4 w-4" />
-                        Saved
+                        <Check className="h-5 w-5 text-green-600" />
+                        <span className="text-sm font-medium text-green-600">Great job!</span>
                       </>
                     ) : (
                       <>
-                        <BookmarkPlus className="h-4 w-4" />
-                        Save Sentence
+                        <X className="h-5 w-5 text-red-600" />
+                        <span className="text-sm font-medium text-red-600">Try again</span>
                       </>
                     )}
-                  </Button>
-                </div>
+                  </div>
+                )}
               </div>
+
+              {isChecked && (
+                <Card className="p-4 bg-blue-50 border-blue-200">
+                  <p className="text-sm font-medium text-blue-900 mb-2">Sample answer:</p>
+                  <p className="text-sm text-blue-800">{currentData.sampleAnswer}</p>
+                </Card>
+              )}
             </div>
 
-            {writingAnnotations.length > 0 && (
+            <div className="mt-6 pt-6 border-t border-border space-y-4">
               <div className="space-y-2">
-                {writingAnnotations.map((annotation, idx) => (
+                <div className="h-2 bg-secondary rounded-full overflow-hidden">
                   <div
-                    key={idx}
-                    className={`p-3 rounded-lg border-l-4 ${
-                      annotation.type === "grammar" ? "bg-yellow-50 border-yellow-400" : "bg-green-50 border-green-400"
-                    }`}
-                  >
-                    <p className="text-xs font-semibold text-gray-700 mb-1">
-                      {annotation.type === "grammar" ? "Grammar" : "Vocabulary"}
-                    </p>
-                    <p className="text-sm text-gray-700">{annotation.message}</p>
-                  </div>
-                ))}
+                    className="h-full bg-gradient-to-r from-blue-600 via-blue-400 to-blue-300 transition-all duration-300"
+                    style={{ width: `${((currentSentence + 1) / totalSentences) * 100}%` }}
+                  />
+                </div>
+                <div className="flex justify-center">
+                  <span className="px-3 py-1 rounded-full bg-blue-200 text-blue-900 text-sm font-medium">
+                    {currentSentence + 1} / {totalSentences}
+                  </span>
+                </div>
               </div>
-            )}
-          </div>
-        </Card>
-      </TabsContent>
-    </Tabs>
+
+              <div className="flex justify-between items-center">
+                <Button variant="outline" onClick={handlePrevious} disabled={currentSentence === 0}>
+                  Previous
+                </Button>
+                <Button onClick={handleNext} disabled={!isChecked}>
+                  {currentSentence >= totalSentences - 1 ? "Finish" : "Next"}
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Right Column - Hints */}
+        <div className="space-y-4">
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Suggested words:</h3>
+            <div className="space-y-3">
+              {currentData.vocabularyHints.map((hint, idx) => (
+                <label key={idx} className="flex items-start gap-3 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={checkedWords.has(idx)}
+                    onChange={() => handleToggleWord(idx)}
+                    className="h-4 w-4 mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <p
+                    className={`text-sm flex-1 transition-colors ${checkedWords.has(idx) ? "line-through text-muted-foreground" : ""}`}
+                  >
+                    <span className="font-medium">{hint.word}:</span> {hint.meaning}
+                  </p>
+                </label>
+              ))}
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Suggested grammar patterns:</h3>
+            <div className="space-y-3">
+              {currentData.grammarHints.map((hint, idx) => (
+                <label key={idx} className="flex items-start gap-3 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={checkedGrammar.has(idx)}
+                    onChange={() => handleToggleGrammar(idx)}
+                    className="h-4 w-4 mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <p
+                    className={`text-sm flex-1 transition-colors ${checkedGrammar.has(idx) ? "line-through text-muted-foreground" : ""}`}
+                  >
+                    {hint}
+                  </p>
+                </label>
+              ))}
+            </div>
+          </Card>
+        </div>
+      </div>
+    </div>
   )
 }

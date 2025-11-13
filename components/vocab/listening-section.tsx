@@ -226,27 +226,6 @@ export function ListeningSection({ topicTitle, tasks = [] }: ListeningProps) {
           )}
         </div>
       </Card>
-
-      {/* Review Suggestions */}
-      <Card className="p-6 space-y-4 bg-blue-500/5 border-blue-500/20">
-        <h3 className="font-semibold flex items-center gap-2">
-          <BookOpen className="h-4 w-4" />
-          Review Suggestions
-        </h3>
-        <div className="space-y-2 text-sm">
-          <p className="text-muted-foreground">
-            After finishing listening practice, review related vocabulary and grammar to reinforce your learning.
-          </p>
-          <div className="flex gap-2 pt-2">
-            <Button variant="outline" size="sm">
-              Back to Learn
-            </Button>
-            <Button variant="outline" size="sm">
-              Review Flashcards
-            </Button>
-          </div>
-        </div>
-      </Card>
     </div>
   )
 }
