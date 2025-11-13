@@ -244,40 +244,72 @@ export default function TopicDetailPage() {
                     </div>
 
                     <div>
-                      <p className="text-xs font-semibold text-muted-foreground mb-2">SEE ALSO</p>
-                      <div className="flex flex-wrap gap-2">
-                        {[
-                          "conduct",
-                          "manners",
-                          "attitude",
-                          "customs",
-                          "misbehavior",
-                          "misconduct",
-                          "rudeness",
-                          "good behaviour",
-                          "bad behaviour",
-                          "strange behaviour",
-                          "behaviour towards others",
-                        ].map((term, idx) => (
-                          <span
-                            key={idx}
-                            className="px-3 py-1 rounded-full bg-green-100 text-green-800 text-xs font-medium hover:bg-green-200 cursor-pointer"
-                          >
-                            {term}
-                          </span>
-                        ))}
+                      <p className="text-xs font-semibold text-muted-foreground mb-3">SEE ALSO</p>
+                      <div className="space-y-2">
+                        {/* Green row - positive/neutral terms */}
+                        <div className="flex flex-wrap gap-2">
+                          {["conduct", "manners", "attitude", "customs"].map((term, idx) => (
+                            <span
+                              key={idx}
+                              className="px-3 py-1 rounded-full bg-green-100 text-green-800 text-xs font-medium hover:bg-green-200 cursor-pointer border border-green-300"
+                            >
+                              {term}
+                            </span>
+                          ))}
+                        </div>
+                        {/* Orange row - negative terms */}
+                        <div className="flex flex-wrap gap-2">
+                          {["misbehavior", "misconduct", "rudeness"].map((term, idx) => (
+                            <span
+                              key={`neg-${idx}`}
+                              className="px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-xs font-medium hover:bg-orange-200 cursor-pointer border border-orange-300"
+                            >
+                              {term}
+                            </span>
+                          ))}
+                        </div>
+                        {/* Blue row - phrases */}
+                        <div className="flex flex-wrap gap-2">
+                          {["good behaviour", "bad behaviour", "strange behaviour", "behaviour towards others"].map(
+                            (term, idx) => (
+                              <span
+                                key={`phrase-${idx}`}
+                                className="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-medium hover:bg-blue-200 cursor-pointer border border-blue-300"
+                              >
+                                {term}
+                              </span>
+                            ),
+                          )}
+                        </div>
                       </div>
                     </div>
 
-                    <div className="border-t border-border pt-4 space-y-2">
-                      {["Mới hoàn toàn", "Chưa nhớ lắm", "Bình thường", "Đã nhớ", "Đã nhớ kỹ"].map((level, idx) => (
-                        <button
-                          key={idx}
-                          className="w-full px-4 py-2 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-900 text-sm font-medium text-left transition-colors"
-                        >
-                          {level}
-                        </button>
-                      ))}
+                    <div className="border-t border-border pt-6">
+                      <div className="flex flex-wrap items-center justify-center gap-3">
+                        {[
+                          { label: "Brand New", color: "bg-red-100 text-red-800 border-red-300 hover:bg-red-200" },
+                          {
+                            label: "Not Remembered",
+                            color: "bg-orange-100 text-orange-800 border-orange-300 hover:bg-orange-200",
+                          },
+                          {
+                            label: "Normal",
+                            color: "bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200",
+                          },
+                          { label: "Remembered", color: "bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200" },
+                          {
+                            label: "Mastered",
+                            color: "bg-green-100 text-green-800 border-green-300 hover:bg-green-200",
+                          },
+                        ].map((level, idx) => (
+                          <button
+                            key={idx}
+                            className={`px-4 py-2 rounded-full ${level.color} text-sm font-medium transition-colors border`}
+                          >
+                            {level.label}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </Card>
                 ) : (

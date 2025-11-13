@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
+import { Nunito } from "next/font/google"
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 import { KittyTutor } from "@/components/layout/kitty-tutor"
@@ -8,8 +8,17 @@ import { SearchCommand } from "@/components/layout/search-command"
 import "@/app/globals.css"
 import { Suspense } from "react"
 
-const geistSans = Geist({ subsets: ["latin"] })
-const geistMono = Geist_Mono({ subsets: ["latin"] })
+// const montserrat = Montserrat({
+//   subsets: ["latin"],
+//   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+//   variable: "--font-montserrat",
+// })
+
+const nunito = Nunito({
+  subsets: ["latin"],
+  weight: ["200", "300", "400", "500", "600", "700", "800", "900"],
+  variable: "--font-nunito",
+})
 
 export const metadata: Metadata = {
   title: "EnglishFlow - Learn English with AI",
@@ -29,7 +38,7 @@ export default function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.className} bg-background text-foreground`}>
+      <body className={`${nunito.className} bg-background text-foreground`}>
         <Navbar />
         <Suspense fallback={<div>Loading...</div>}>
           <main className="min-h-screen">{children}</main>

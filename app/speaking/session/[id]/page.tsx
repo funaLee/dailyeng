@@ -48,7 +48,7 @@ export default function SpeakingSessionPage() {
     const allScenarios = Object.values(mockSpeakingScenarios)
       .reduce((acc, curr) => [...acc, ...curr], [])
       .concat(mockCustomScenarios)
-    
+
     const found = allScenarios.find((s) => s.id === scenarioId)
     setScenario(found)
 
@@ -177,7 +177,7 @@ export default function SpeakingSessionPage() {
         easeFactor: 2.5,
         repetitions: 0,
         nextReviewDate: new Date(Date.now() + 24 * 60 * 60 * 1000), // tomorrow
-        lastReviewDate: new Date()
+        lastReviewDate: new Date(),
       })
     })
 
@@ -222,8 +222,8 @@ export default function SpeakingSessionPage() {
               <p className="text-3xl font-bold text-blue-600">{sessionStats.avgPronunciation}</p>
               <p className="text-sm text-muted-foreground">Pronunciation</p>
             </div>
-            <div className="bg-purple-50 p-4 rounded-lg">
-              <p className="text-3xl font-bold text-purple-600">{sessionStats.avgFluency}</p>
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <p className="text-3xl font-bold text-blue-600">{sessionStats.avgFluency}</p>
               <p className="text-sm text-muted-foreground">Fluency</p>
             </div>
             <div className="bg-green-50 p-4 rounded-lg">
@@ -331,7 +331,7 @@ export default function SpeakingSessionPage() {
                 </div>
                 <div className="w-full bg-secondary rounded-full h-2">
                   <div
-                    className="bg-purple-500 h-2 rounded-full"
+                    className="bg-blue-500 h-2 rounded-full"
                     style={{ width: `${(sessionStats.avgFluency / 10) * 100}%` }}
                   />
                 </div>

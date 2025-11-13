@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -170,12 +170,12 @@ export default function SpeakingRoomPage() {
             </Button>
           </div>
         </div>
-        <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-br from-purple-200/50 to-purple-400/30 rounded-lg pointer-events-none">
-          <div className="absolute right-12 top-12 text-purple-600/20 text-6xl font-bold rotate-12">
+        <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-br from-[#C2E2FA]/50 to-[#A0D2F7]/30 rounded-lg pointer-events-none">
+          <div className="absolute right-12 top-12 text-blue-600/20 text-6xl font-bold rotate-12">
             <Mic className="h-20 w-20" />
           </div>
-          <div className="absolute right-24 top-32 text-purple-600/20 text-5xl font-bold -rotate-6">conversation</div>
-          <div className="absolute right-8 top-52 text-purple-600/20 text-4xl font-bold rotate-3">fluency</div>
+          <div className="absolute right-24 top-32 text-blue-600/20 text-5xl font-bold -rotate-6">conversation</div>
+          <div className="absolute right-8 top-52 text-blue-600/20 text-4xl font-bold rotate-3">fluency</div>
         </div>
       </Card>
 
@@ -225,7 +225,7 @@ export default function SpeakingRoomPage() {
         {SCENARIO_CATEGORIES.map((cat) => (
           <button
             key={cat}
-            className="px-4 py-2 rounded-full bg-purple-200 text-purple-900 text-sm font-medium whitespace-nowrap hover:bg-purple-300 transition-colors"
+            className="px-4 py-2 rounded-full bg-[#C2E2FA] text-blue-900 text-sm font-medium whitespace-nowrap hover:bg-[#A0D2F7] transition-colors"
           >
             {cat}
           </button>
@@ -283,14 +283,14 @@ export default function SpeakingRoomPage() {
             <div className="grid md:grid-cols-2 gap-6">
               {filteredScenarios.map((scenario) => (
                 <Card key={scenario.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                  <div className="aspect-video bg-gradient-to-br from-purple-200 to-purple-300 relative flex items-center justify-center">
-                    <span className="text-purple-600/40 text-4xl font-bold">{scenario.image}</span>
+                  <div className="aspect-video bg-gradient-to-br from-[#C2E2FA] to-[#A0D2F7] relative flex items-center justify-center">
+                    <span className="text-blue-600/40 text-4xl font-bold">{scenario.image}</span>
                   </div>
                   <div className="p-4">
                     <h3 className="font-semibold text-lg mb-2">{scenario.title}</h3>
                     <p className="text-sm text-muted-foreground mb-4">{scenario.description}</p>
                     <div className="flex items-center gap-2 mb-4">
-                      <span className="px-2 py-1 rounded bg-purple-100 text-purple-900 text-xs font-medium">
+                      <span className="px-2 py-1 rounded bg-[#C2E2FA] text-blue-900 text-xs font-medium">
                         {scenario.category}
                       </span>
                       <span className="px-2 py-1 rounded bg-primary/10 text-primary text-xs font-medium">
