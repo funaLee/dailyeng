@@ -2,709 +2,519 @@
 import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Progress } from "@/components/ui/progress"
 import { useAppStore } from "@/lib/store"
-import { Calendar, Zap, CheckCircle2, Circle, Flame, BookOpen, ArrowLeft, ArrowRight, Check } from "lucide-react"
+import { Calendar, Plus, ChevronRight, Clock, Target, TrendingUp, BookOpen, Mic, Headphones, PenTool, CheckCircle2, Circle, Settings, List, Network, Sparkles, BarChart3, ArrowRight } from 'lucide-react'
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { createStudyPlanAction } from "@/app/actions/study-plan"
-import type { StudyPlanData } from "@/app/actions/study-plan"
 import { mockTopics } from "@/lib/mock-data"
 
-interface Task {
+interface StudyPlan {
   id: string
-  date: Date
-  type: "vocab" | "grammar" | "speaking" | "listening"
+  name: string
+  goal: string
+  level: string
+  startDate: Date
+  endDate: Date
+  totalHours: number
+  studiedHours: number
+  progress: number
+  units: StudyUnit[]
+  status: "active" | "completed" | "paused"
+}
+
+interface StudyUnit {
+  id: string
+  title: string
+  type: "vocab" | "grammar" | "listening" | "reading" | "speaking" | "writing"
+  completed: boolean
+  estimatedMinutes: number
+  topicId?: string
+}
+
+interface DailyTask {
+  id: string
+  type: "vocab" | "grammar" | "listening" | "reading" | "speaking" | "writing"
   title: string
   link: string
   completed: boolean
+  planId: string
 }
 
-const placementTestQuestions = [
-  {
-    id: 1,
-    question: "What is the correct form: 'She ___ to work every day.'",
-    options: ["go", "goes", "going", "gone"],
-    correctAnswer: "goes",
-    level: "A1",
-  },
-  {
-    id: 2,
-    question: "Choose the correct word: 'I ___ a book yesterday.'",
-    options: ["read", "readed", "reading", "reads"],
-    correctAnswer: "read",
-    level: "A2",
-  },
-  {
-    id: 3,
-    question: "Complete: 'If I ___ you, I would study harder.'",
-    options: ["am", "was", "were", "be"],
-    correctAnswer: "were",
-    level: "B1",
-  },
-  {
-    id: 4,
-    question: "What does 'procrastinate' mean?",
-    options: ["To delay doing something", "To finish quickly", "To work hard", "To celebrate success"],
-    correctAnswer: "To delay doing something",
-    level: "B1",
-  },
-  {
-    id: 5,
-    question: "Choose the correct phrase: 'The meeting has been ___.'",
-    options: ["put off", "put up", "put on", "put down"],
-    correctAnswer: "put off",
-    level: "B2",
-  },
-  {
-    id: 6,
-    question: "What is a synonym for 'meticulous'?",
-    options: ["Careless", "Detailed", "Quick", "Simple"],
-    correctAnswer: "Detailed",
-    level: "B2",
-  },
-  {
-    id: 7,
-    question: "Complete: 'Despite ___ tired, she continued working.'",
-    options: ["being", "be", "been", "to be"],
-    correctAnswer: "being",
-    level: "B1",
-  },
-  {
-    id: 8,
-    question: "Which sentence is correct?",
-    options: ["She don't like coffee", "She doesn't likes coffee", "She doesn't like coffee", "She not like coffee"],
-    correctAnswer: "She doesn't like coffee",
-    level: "A1",
-  },
-]
+interface TimeBlock {
+  id: string
+  day: string
+  startTime: string
+  endTime: string
+  planId: string
+  planName: string
+}
 
 export default function StudyPlanPage() {
-  const router = useRouter()
   const { stats } = useAppStore()
-  const [plan, setPlan] = useState<any>(null)
-  const [tasks, setTasks] = useState<Task[]>([])
-  const [showOnboarding, setShowOnboarding] = useState(false)
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null)
+  const [showSettings, setShowSettings] = useState(false)
 
-  const [currentStep, setCurrentStep] = useState(0)
-  const [wizardData, setWizardData] = useState({
-    goal: "",
-    level: "",
-    interests: [] as string[],
-    minutesPerDay: 30,
-    wordsPerDay: 12,
-  })
-  const [testAnswers, setTestAnswers] = useState<Record<number, string>>({})
-  const [testCompleted, setTestCompleted] = useState(false)
-  const [calculatedLevel, setCalculatedLevel] = useState<string>("")
+  const [studyPlans, setStudyPlans] = useState<StudyPlan[]>([
+    {
+      id: "plan1",
+      name: "IELTS Preparation",
+      goal: "Achieve IELTS band 7.0",
+      level: "B2",
+      startDate: new Date("2024-01-01"),
+      endDate: new Date("2024-06-30"),
+      totalHours: 200,
+      studiedHours: 87,
+      progress: 43.5,
+      status: "active",
+      units: [
+        {
+          id: "u1",
+          title: "Travel Vocabulary",
+          type: "vocab",
+          completed: true,
+          estimatedMinutes: 45,
+          topicId: "1",
+        },
+        {
+          id: "u2",
+          title: "Food & Dining",
+          type: "vocab",
+          completed: true,
+          estimatedMinutes: 50,
+          topicId: "2",
+        },
+        {
+          id: "u3",
+          title: "Job Interview",
+          type: "vocab",
+          completed: false,
+          estimatedMinutes: 60,
+          topicId: "3",
+        },
+        { id: "u4", title: "Present Perfect Practice", type: "grammar", completed: false, estimatedMinutes: 40 },
+        { id: "u5", title: "Listening Comprehension", type: "listening", completed: false, estimatedMinutes: 30 },
+        { id: "u6", title: "Reading Practice", type: "reading", completed: false, estimatedMinutes: 35 },
+      ],
+    },
+    {
+      id: "plan2",
+      name: "Business English",
+      goal: "Master professional communication",
+      level: "B1",
+      startDate: new Date("2024-02-01"),
+      endDate: new Date("2024-05-31"),
+      totalHours: 120,
+      studiedHours: 34,
+      progress: 28.3,
+      status: "active",
+      units: [
+        {
+          id: "u7",
+          title: "Business Vocabulary",
+          type: "vocab",
+          completed: true,
+          estimatedMinutes: 45,
+          topicId: "3",
+        },
+        { id: "u8", title: "Email Writing", type: "writing", completed: false, estimatedMinutes: 40 },
+        { id: "u9", title: "Presentation Skills", type: "speaking", completed: false, estimatedMinutes: 50 },
+      ],
+    },
+  ])
 
-  useEffect(() => {
-    const savedPlan = localStorage.getItem("studyPlan")
-    if (!savedPlan) {
-      setShowOnboarding(true)
-    } else {
-      const parsedPlan = JSON.parse(savedPlan)
-      setPlan(parsedPlan)
-      generateTasks(parsedPlan)
-    }
-  }, [])
+  const [timeBlocks, setTimeBlocks] = useState<TimeBlock[]>([
+    {
+      id: "tb1",
+      day: "Monday",
+      startTime: "18:00",
+      endTime: "19:00",
+      planId: "plan1",
+      planName: "IELTS Preparation",
+    },
+    {
+      id: "tb2",
+      day: "Wednesday",
+      startTime: "18:00",
+      endTime: "19:00",
+      planId: "plan1",
+      planName: "IELTS Preparation",
+    },
+    {
+      id: "tb3",
+      day: "Friday",
+      startTime: "18:00",
+      endTime: "19:00",
+      planId: "plan2",
+      planName: "Business English",
+    },
+  ])
 
-  const generateTasks = (planData: any) => {
-    const mockTasks: Task[] = []
-    for (let i = 0; i < 14; i++) {
-      const date = new Date()
-      date.setDate(date.getDate() - i)
+  const [dailyTasks, setDailyTasks] = useState<DailyTask[]>([
+    { id: "dt1", type: "vocab", title: "Learn 10 new words", link: "/vocab", completed: false, planId: "plan1" },
+    {
+      id: "dt2",
+      type: "grammar",
+      title: "Present Perfect exercises",
+      link: "/grammar",
+      completed: true,
+      planId: "plan1",
+    },
+    {
+      id: "dt3",
+      type: "listening",
+      title: "Listen to podcast",
+      link: "/vocab/1",
+      completed: false,
+      planId: "plan1",
+    },
+    {
+      id: "dt4",
+      type: "speaking",
+      title: "Practice presentation",
+      link: "/speaking",
+      completed: false,
+      planId: "plan2",
+    },
+  ])
 
-      const types: Array<"vocab" | "grammar" | "speaking" | "listening"> = ["vocab", "grammar", "speaking", "listening"]
-      const titles: Record<string, string> = {
-        vocab: "Learn 5 new words",
-        grammar: "Study present perfect",
-        speaking: "Practice pronunciation",
-        listening: "Listen to podcast",
-      }
-      const links: Record<string, string> = {
-        vocab: "/vocab",
-        grammar: "/vocab",
-        speaking: "/speaking",
-        listening: "/vocab",
-      }
+  const selectedPlan = studyPlans.find((p) => p.id === selectedPlanId) || studyPlans[0]
+  const completedToday = dailyTasks.filter((t) => t.completed).length
+  const totalToday = dailyTasks.length
 
-      types.forEach((type) => {
-        mockTasks.push({
-          id: `task-${i}-${type}`,
-          date,
-          type,
-          title: titles[type],
-          link: links[type],
-          completed: i > 0 || Math.random() > 0.3,
-        })
-      })
-    }
-    setTasks(mockTasks)
+  const typeIcons = {
+    vocab: <BookOpen className="h-4 w-4" />,
+    grammar: <PenTool className="h-4 w-4" />,
+    listening: <Headphones className="h-4 w-4" />,
+    reading: <BookOpen className="h-4 w-4" />,
+    speaking: <Mic className="h-4 w-4" />,
+    writing: <PenTool className="h-4 w-4" />,
   }
-
-  const evaluatePlacementTest = () => {
-    let correctCount = 0
-    placementTestQuestions.forEach((q) => {
-      if (testAnswers[q.id] === q.correctAnswer) {
-        correctCount++
-      }
-    })
-
-    const percentage = (correctCount / placementTestQuestions.length) * 100
-    let level = "A1"
-
-    if (percentage >= 90) {
-      level = "B2"
-    } else if (percentage >= 70) {
-      level = "B1"
-    } else if (percentage >= 50) {
-      level = "A2"
-    } else {
-      level = "A1"
-    }
-
-    setCalculatedLevel(level)
-    setWizardData({ ...wizardData, level })
-    setTestCompleted(true)
-  }
-
-  const handleNext = () => {
-    if (currentStep === 1 && !testCompleted) {
-      evaluatePlacementTest()
-      return
-    }
-    setCurrentStep((prev) => Math.min(prev + 1, 3))
-  }
-
-  const handleBack = () => {
-    setCurrentStep((prev) => Math.max(prev - 1, 0))
-  }
-
-  const handleWizardSubmit = async () => {
-    try {
-  const result = await createStudyPlanAction(wizardData as StudyPlanData)
-
-      if (result.success) {
-        localStorage.setItem("studyPlan", JSON.stringify(result.plan))
-        setPlan(result.plan)
-        generateTasks(result.plan)
-        setShowOnboarding(false)
-        router.push("/profile")
-      }
-    } catch (error) {
-      console.error("Error creating study plan:", error)
-    }
-  }
-
-  const todayTasks = tasks.filter((t) => {
-    const taskDate = new Date(t.date)
-    const today = new Date()
-    return (
-      taskDate.getDate() === today.getDate() &&
-      taskDate.getMonth() === today.getMonth() &&
-      taskDate.getFullYear() === today.getFullYear()
-    )
-  })
-
-  const completedToday = todayTasks.filter((t) => t.completed).length
-  const completionRate = todayTasks.length > 0 ? (completedToday / todayTasks.length) * 100 : 0
 
   const typeColors: Record<string, string> = {
     vocab: "bg-blue-100 text-blue-700",
     grammar: "bg-purple-100 text-purple-700",
-    speaking: "bg-green-100 text-green-700",
     listening: "bg-orange-100 text-orange-700",
-  }
-
-  const typeIcons: Record<string, string> = {
-    vocab: "📚",
-    grammar: "✏️",
-    speaking: "🎤",
-    listening: "👂",
-  }
-
-  if (showOnboarding) {
-    const goalOptions = [
-      { value: "conversation", label: "Daily Conversation", desc: "Learn to chat comfortably" },
-      { value: "travel", label: "Travel", desc: "Navigate foreign countries" },
-      { value: "work", label: "Work", desc: "Professional communication" },
-      { value: "exam", label: "Exam", desc: "IELTS, TOEIC, Cambridge" },
-    ]
-
-    return (
-      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Build Your Study Plan</h1>
-          <p className="text-muted-foreground">Let's personalize your learning journey</p>
-
-          <div className="flex items-center justify-center gap-2 mt-6">
-            {[0, 1, 2, 3].map((step) => (
-              <div
-                key={step}
-                className={`h-2 rounded-full transition-all ${
-                  step === currentStep ? "w-8 bg-primary" : step < currentStep ? "w-2 bg-primary" : "w-2 bg-gray-300"
-                }`}
-              />
-            ))}
-          </div>
-          <p className="text-sm text-muted-foreground mt-2">Step {currentStep + 1} of 4</p>
-        </div>
-
-        <Card className="p-8">
-          {currentStep === 0 && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-xl font-semibold mb-4">What's your learning goal?</h2>
-                <div className="space-y-3">
-                  {goalOptions.map((option) => (
-                    <label
-                      key={option.value}
-                      className={`flex items-center p-4 border rounded-lg cursor-pointer transition-all hover:border-primary ${
-                        wizardData.goal === option.value ? "border-primary bg-primary/5" : ""
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="goal"
-                        value={option.value}
-                        checked={wizardData.goal === option.value}
-                        onChange={(e) => setWizardData({ ...wizardData, goal: e.target.value })}
-                        className="mr-3"
-                      />
-                      <div className="flex-1">
-                        <p className="font-medium">{option.label}</p>
-                        <p className="text-sm text-muted-foreground">{option.desc}</p>
-                      </div>
-                      {wizardData.goal === option.value && <Check className="h-5 w-5 text-primary" />}
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {currentStep === 1 && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-xl font-semibold mb-2">Mini Placement Test</h2>
-                <p className="text-muted-foreground mb-6">Answer these questions to determine your level (A1-B2)</p>
-
-                {!testCompleted ? (
-                  <div className="space-y-4">
-                    {placementTestQuestions.map((q) => (
-                      <div key={q.id} className="p-4 border rounded-lg">
-                        <p className="font-medium mb-3">
-                          {q.id}. {q.question}
-                        </p>
-                        <div className="space-y-2">
-                          {q.options.map((option) => (
-                            <label
-                              key={option}
-                              className={`flex items-center p-2 border rounded cursor-pointer transition-all hover:bg-secondary ${
-                                testAnswers[q.id] === option ? "border-primary bg-primary/5" : ""
-                              }`}
-                            >
-                              <input
-                                type="radio"
-                                name={`question-${q.id}`}
-                                value={option}
-                                checked={testAnswers[q.id] === option}
-                                onChange={(e) => setTestAnswers({ ...testAnswers, [q.id]: e.target.value })}
-                                className="mr-3"
-                              />
-                              <span>{option}</span>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 text-green-600 mb-4">
-                      <Check className="h-8 w-8" />
-                    </div>
-                    <h3 className="text-xl font-semibold mb-2">Test Completed!</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Your level: <span className="font-bold text-primary">{calculatedLevel}</span>
-                    </p>
-                    <p className="text-sm text-muted-foreground">Click Next to continue building your study plan</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {currentStep === 2 && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-xl font-semibold mb-2">Select Your Interests</h2>
-                <p className="text-muted-foreground mb-4">Choose topics you'd like to learn (at least 1)</p>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {mockTopics.map((topic) => (
-                    <button
-                      key={topic.id}
-                      type="button"
-                      onClick={() => {
-                        setWizardData((prev) => ({
-                          ...prev,
-                          interests: prev.interests.includes(topic.id)
-                            ? prev.interests.filter((i) => i !== topic.id)
-                            : [...prev.interests, topic.id],
-                        }))
-                      }}
-                      className={`p-4 rounded-lg border transition-all text-left ${
-                        wizardData.interests.includes(topic.id)
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "border-input hover:border-primary"
-                      }`}
-                    >
-                      <p className="font-medium">{topic.title}</p>
-                      <p className="text-xs opacity-80 mt-1">{topic.level}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {currentStep === 3 && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-xl font-semibold mb-4">Set Your Schedule</h2>
-
-                {/* Minutes per day slider */}
-                <div className="mb-6">
-                  <label className="text-sm font-medium block mb-3">
-                    Minutes per day: {wizardData.minutesPerDay} min
-                  </label>
-                  <input
-                    type="range"
-                    min="10"
-                    max="60"
-                    step="10"
-                    value={wizardData.minutesPerDay}
-                    onChange={(e) => setWizardData({ ...wizardData, minutesPerDay: Number.parseInt(e.target.value) })}
-                    className="w-full"
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground mt-2">
-                    <span>10 min</span>
-                    <span>60 min</span>
-                  </div>
-                </div>
-
-                {/* Words per day radio */}
-                <div>
-                  <label className="text-sm font-medium block mb-3">Words per day:</label>
-                  <div className="space-y-2">
-                    {[
-                      { value: 8, label: "8 words", desc: "Light pace" },
-                      { value: 12, label: "12 words", desc: "Moderate pace" },
-                      { value: 20, label: "20 words", desc: "Intensive pace" },
-                    ].map((option) => (
-                      <label
-                        key={option.value}
-                        className={`flex items-center p-3 border rounded-lg cursor-pointer transition-all hover:border-primary ${
-                          wizardData.wordsPerDay === option.value ? "border-primary bg-primary/5" : ""
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="wordsPerDay"
-                          value={option.value}
-                          checked={wizardData.wordsPerDay === option.value}
-                          onChange={(e) =>
-                            setWizardData({ ...wizardData, wordsPerDay: Number.parseInt(e.target.value) })
-                          }
-                          className="mr-3"
-                        />
-                        <div className="flex-1">
-                          <p className="font-medium">{option.label}</p>
-                          <p className="text-xs text-muted-foreground">{option.desc}</p>
-                        </div>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Summary */}
-                <div className="mt-6 p-4 bg-secondary rounded-lg">
-                  <h3 className="font-semibold mb-2">Summary</h3>
-                  <ul className="text-sm space-y-1">
-                    <li>Goal: {goalOptions.find((g) => g.value === wizardData.goal)?.label}</li>
-                    <li>Level: {wizardData.level}</li>
-                    <li>Topics: {wizardData.interests.length} selected</li>
-                    <li>
-                      Daily: {wizardData.minutesPerDay} min, {wizardData.wordsPerDay} words
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="flex items-center justify-between mt-8 pt-6 border-t">
-            <Button type="button" variant="outline" onClick={handleBack} disabled={currentStep === 0}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-
-            {currentStep < 3 ? (
-              <Button
-                type="button"
-                onClick={handleNext}
-                disabled={
-                  (currentStep === 0 && !wizardData.goal) ||
-                  (currentStep === 1 && Object.keys(testAnswers).length < placementTestQuestions.length) ||
-                  (currentStep === 2 && wizardData.interests.length === 0)
-                }
-              >
-                {currentStep === 1 && !testCompleted ? "Submit Test" : "Next"}
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Button>
-            ) : (
-              <Button type="button" onClick={handleWizardSubmit}>
-                Create Study Plan
-                <Check className="h-4 w-4 ml-2" />
-              </Button>
-            )}
-          </div>
-        </Card>
-      </div>
-    )
-  }
-
-  if (!plan) {
-    return (
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-        <div className="h-96 bg-secondary animate-pulse rounded-2xl" />
-      </div>
-    )
+    reading: "bg-green-100 text-green-700",
+    speaking: "bg-pink-100 text-pink-700",
+    writing: "bg-indigo-100 text-indigo-700",
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold flex items-center gap-2 mb-2">
-          <Calendar className="h-8 w-8 text-blue-500" />
-          Study Plan
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold flex items-center gap-2">
+          <Calendar className="h-8 w-8 text-[#C2E2FA]" />
+          Study Plans
         </h1>
-        <p className="text-muted-foreground">Stay on track with your personalized learning schedule</p>
+        <p className="text-muted-foreground mt-1">Manage your personalized learning paths</p>
       </div>
 
-      <Tabs defaultValue="today" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="today">Today</TabsTrigger>
-          <TabsTrigger value="week">This Week</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-        </TabsList>
-
-        {/* Today Tab */}
-        <TabsContent value="today" className="space-y-6">
-          {/* Quick Stats */}
-          <div className="grid md:grid-cols-3 gap-4">
-            <Card className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground uppercase">SRS Due</p>
-                  <p className="text-2xl font-bold">12</p>
-                </div>
-                <BookOpen className="h-8 w-8 text-blue-500 opacity-50" />
-              </div>
-            </Card>
-            <Card className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground uppercase">Weekly Streak</p>
-                  <p className="text-2xl font-bold">{stats?.streak || 0} days</p>
-                </div>
-                <Flame className="h-8 w-8 text-orange-500 opacity-50" />
-              </div>
-            </Card>
-            <Card className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground uppercase">XP Earned</p>
-                  <p className="text-2xl font-bold">{stats?.xp || 0}</p>
-                </div>
-                <Zap className="h-8 w-8 text-yellow-500 opacity-50" />
-              </div>
-            </Card>
+      <div className="grid lg:grid-cols-2 gap-6 mb-6">
+        {/* Weekly Study Schedule */}
+        <Card className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">Weekly Study Schedule</h2>
+            <Button variant="outline" size="sm">
+              <Settings className="h-4 w-4 mr-2" />
+              Edit
+            </Button>
           </div>
 
-          {/* Progress Card */}
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold">Today's Progress</h3>
-              <span className="text-2xl font-bold text-primary">{Math.round(completionRate)}%</span>
+          {/* Weekly Overview Stats */}
+          <div className="grid grid-cols-4 gap-2 mb-4">
+            <div className="text-center p-2 bg-blue-50 rounded">
+              <p className="text-lg font-bold text-blue-600">8.5h</p>
+              <p className="text-xs text-muted-foreground">Hours</p>
             </div>
-            <div className="w-full bg-secondary rounded-full h-3">
-              <div className="bg-primary h-3 rounded-full transition-all" style={{ width: `${completionRate}%` }} />
+            <div className="text-center p-2 bg-yellow-50 rounded">
+              <p className="text-lg font-bold text-yellow-600">240</p>
+              <p className="text-xs text-muted-foreground">XP</p>
             </div>
-            <p className="text-sm text-muted-foreground mt-3">
-              {completedToday} of {todayTasks.length} tasks completed
-            </p>
-          </Card>
+            <div className="text-center p-2 bg-green-50 rounded">
+              <p className="text-lg font-bold text-green-600">18</p>
+              <p className="text-xs text-muted-foreground">Lessons</p>
+            </div>
+            <div className="text-center p-2 bg-red-50 rounded">
+              <p className="text-lg font-bold text-red-600">1</p>
+              <p className="text-xs text-muted-foreground">Missed</p>
+            </div>
+          </div>
 
-          {/* Today's Tasks */}
+          {/* Calendar View */}
+          <div className="border rounded-lg overflow-hidden">
+            {/* Time slots */}
+            <div className="grid grid-cols-8 border-b bg-secondary/30">
+              <div className="p-2 text-xs font-semibold text-center">Time</div>
+              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+                <div key={day} className="p-2 text-xs font-semibold text-center border-l">
+                  {day}
+                </div>
+              ))}
+            </div>
+
+            {/* Time rows */}
+            {["06:00", "09:00", "12:00", "15:00", "18:00", "21:00"].map((time) => (
+              <div key={time} className="grid grid-cols-8 border-b min-h-[60px]">
+                <div className="p-2 text-xs text-muted-foreground flex items-center justify-center bg-secondary/10">
+                  {time}
+                </div>
+                {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => {
+                  const block = timeBlocks.find((tb) => tb.day === day && tb.startTime === time)
+                  return (
+                    <div key={day} className="border-l p-1 hover:bg-secondary/20 cursor-pointer">
+                      {block ? (
+                        <div className="bg-[#C2E2FA]/40 border border-[#C2E2FA] rounded p-2 h-full">
+                          <p className="text-xs font-medium truncate">{block.planName}</p>
+                          <p className="text-xs text-muted-foreground">{block.startTime} - {block.endTime}</p>
+                        </div>
+                      ) : null}
+                    </div>
+                  )
+                })}
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* Today's Tasks */}
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Today's Tasks</h3>
+          <div className="space-y-2">
+            {dailyTasks.map((task) => (
+              <Link key={task.id} href={task.link}>
+                <div className={`flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/50 ${
+                  task.completed ? "bg-secondary/30" : ""
+                }`}>
+                  {task.completed ? (
+                    <CheckCircle2 className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <Circle className="h-5 w-5 text-muted-foreground" />
+                  )}
+                  <div className="flex-1">
+                    <p className={`font-medium ${task.completed ? "line-through text-muted-foreground" : ""}`}>
+                      {task.title}
+                    </p>
+                  </div>
+                  <span className={`text-xs px-2 py-1 rounded ${typeColors[task.type]}`}>
+                    {typeIcons[task.type]}
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          <div className="mt-4 pt-4 border-t">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Progress</span>
+              <span className="font-semibold">{completedToday}/{totalToday} completed</span>
+            </div>
+            <Progress value={(completedToday / totalToday) * 100} className="mt-2" />
+          </div>
+
+          {/* Daily Review SRS */}
+          <div className="mt-6 pt-6 border-t">
+            <h4 className="font-semibold mb-3">Daily Review (SRS)</h4>
+            <div className="text-center py-6 bg-[#C2E2FA]/10 rounded-lg">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#C2E2FA]/30 mb-3">
+                <BookOpen className="h-6 w-6 text-blue-600" />
+              </div>
+              <p className="text-2xl font-bold mb-1">12</p>
+              <p className="text-sm text-muted-foreground mb-3">cards due for review</p>
+              <Link href="/notebook">
+                <Button size="sm">
+                  Start Review
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-6">
+        {/* Left Column: My Study Plans */}
+        <Card className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">My Study Plans</h2>
+            <Button size="sm">
+              <Plus className="h-4 w-4 mr-1" />
+              New Plan
+            </Button>
+          </div>
+
           <div className="space-y-3">
-            <h3 className="font-semibold">Today's Tasks</h3>
-            {todayTasks.length > 0 ? (
-              todayTasks.map((task) => (
-                <Link key={task.id} href={task.link}>
-                  <Card
-                    className={`p-4 cursor-pointer transition-all hover:shadow-md ${
-                      task.completed ? "bg-secondary/50" : ""
+            {studyPlans.map((plan) => (
+              <div
+                key={plan.id}
+                className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${
+                  selectedPlanId === plan.id || (!selectedPlanId && plan.id === studyPlans[0].id)
+                    ? "border-[#C2E2FA] border-2 bg-[#C2E2FA]/5" 
+                    : "hover:border-[#C2E2FA]/50"
+                }`}
+                onClick={() => setSelectedPlanId(plan.id)}
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <h3 className="font-semibold text-sm">{plan.name}</h3>
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded ${
+                      plan.status === "active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <button className="flex-shrink-0">
-                        {task.completed ? (
-                          <CheckCircle2 className="h-6 w-6 text-green-500" />
-                        ) : (
-                          <Circle className="h-6 w-6 text-muted-foreground" />
-                        )}
-                      </button>
-                      <div className="flex-1">
-                        <p className={`font-medium ${task.completed ? "line-through text-muted-foreground" : ""}`}>
-                          {task.title}
-                        </p>
-                      </div>
-                      <span className={`text-sm px-2 py-1 rounded ${typeColors[task.type]}`}>
-                        {typeIcons[task.type]} {task.type}
-                      </span>
+                    {plan.status}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mb-3">{plan.goal}</p>
+
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Progress</span>
+                    <span className="font-semibold">{Math.round(plan.progress)}%</span>
+                  </div>
+                  <Progress value={plan.progress} className="h-1.5" />
+
+                  <div className="flex items-center justify-between text-muted-foreground pt-1">
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      <span>{plan.studiedHours}h / {plan.totalHours}h</span>
                     </div>
-                  </Card>
-                </Link>
-              ))
-            ) : (
-              <Card className="p-8 text-center">
-                <Zap className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No tasks for today. Great job!</p>
-              </Card>
-            )}
-          </div>
-        </TabsContent>
-
-        {/* Week Tab */}
-        <TabsContent value="week" className="space-y-6">
-          <div className="grid md:grid-cols-7 gap-2">
-            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day, idx) => {
-              const date = new Date()
-              date.setDate(date.getDate() - ((new Date().getDay() - 1 + 7) % 7) + idx)
-
-              const dayTasks = tasks.filter((t) => {
-                const taskDate = new Date(t.date)
-                return (
-                  taskDate.getDate() === date.getDate() &&
-                  taskDate.getMonth() === date.getMonth() &&
-                  taskDate.getFullYear() === date.getFullYear()
-                )
-              })
-
-              const completed = dayTasks.filter((t) => t.completed).length
-              const total = dayTasks.length
-
-              return (
-                <Card key={day} className="p-4 text-center">
-                  <p className="text-xs font-semibold text-muted-foreground mb-2">{day}</p>
-                  <p className="text-2xl font-bold mb-2">{date.getDate()}</p>
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">
-                      {completed}/{total}
-                    </p>
-                    <div className="w-full bg-secondary rounded-full h-1">
-                      <div
-                        className="bg-primary h-1 rounded-full"
-                        style={{ width: total > 0 ? `${(completed / total) * 100}%` : "0%" }}
-                      />
+                    <div className="flex items-center gap-1">
+                      <Target className="h-3 w-3" />
+                      <span>{plan.level}</span>
                     </div>
                   </div>
-                </Card>
-              )
-            })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* Right Column: Study Plan Detail */}
+        <Card className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">Study Plan Detail</h2>
+            <Button variant="outline" size="sm" onClick={() => setShowSettings(!showSettings)}>
+              <Settings className="h-4 w-4 mr-2" />
+              Settings
+            </Button>
           </div>
 
-          {/* Weekly Stats */}
-          <Card className="p-6">
-            <h3 className="font-semibold mb-4">Weekly Summary</h3>
-            <div className="grid md:grid-cols-4 gap-4">
-              <div>
-                <p className="text-3xl font-bold text-blue-500">
-                  {tasks.filter((t) => t.type === "vocab" && t.completed).length}
-                </p>
-                <p className="text-sm text-muted-foreground">Vocab Tasks</p>
-              </div>
-              <div>
-                <p className="text-3xl font-bold text-purple-500">
-                  {tasks.filter((t) => t.type === "grammar" && t.completed).length}
-                </p>
-                <p className="text-sm text-muted-foreground">Grammar Tasks</p>
-              </div>
-              <div>
-                <p className="text-3xl font-bold text-green-500">
-                  {tasks.filter((t) => t.type === "speaking" && t.completed).length}
-                </p>
-                <p className="text-sm text-muted-foreground">Speaking Tasks</p>
-              </div>
-              <div>
-                <p className="text-3xl font-bold text-orange-500">
-                  {tasks.filter((t) => t.type === "listening" && t.completed).length}
-                </p>
-                <p className="text-sm text-muted-foreground">Listening Tasks</p>
-              </div>
-            </div>
-          </Card>
-        </TabsContent>
+          <div className="mb-6">
+            <h3 className="text-2xl font-bold">{selectedPlan.name}</h3>
+            <p className="text-muted-foreground text-sm mt-1">{selectedPlan.goal}</p>
+          </div>
 
-        {/* Settings Tab */}
-        <TabsContent value="settings" className="space-y-6">
-          <Card className="p-6">
-            <h3 className="font-semibold mb-4">Learning Goal</h3>
+          <div className="grid grid-cols-4 gap-4 mb-6 pb-6 border-b">
+            <div>
+              <p className="text-2xl font-bold text-[#C2E2FA]">{Math.round(selectedPlan.progress)}%</p>
+              <p className="text-xs text-muted-foreground">Progress</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{selectedPlan.studiedHours}h</p>
+              <p className="text-xs text-muted-foreground">Studied</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{selectedPlan.totalHours - selectedPlan.studiedHours}h</p>
+              <p className="text-xs text-muted-foreground">Remaining</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold">{selectedPlan.level}</p>
+              <p className="text-xs text-muted-foreground">Level</p>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Study Content</h3>
+            
+            <div className="space-y-3">
+              {selectedPlan.units.map((unit, index) => (
+                <div
+                  key={unit.id}
+                  className={`flex items-start justify-between p-4 rounded-lg border ${
+                    unit.completed ? "bg-green-50 border-green-200" : "bg-white hover:bg-secondary/30"
+                  }`}
+                >
+                  <div className="flex items-start gap-4 flex-1">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-secondary text-sm font-semibold">
+                      {index + 1}
+                    </div>
+                    
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className={`font-semibold ${unit.completed ? "text-green-700" : ""}`}>
+                          {unit.title}
+                        </h4>
+                        {unit.completed && (
+                          <CheckCircle2 className="h-5 w-5 text-green-600" />
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                        <span className={`flex items-center gap-1 px-2 py-1 rounded text-xs ${typeColors[unit.type]}`}>
+                          {typeIcons[unit.type]}
+                          {unit.type.charAt(0).toUpperCase() + unit.type.slice(1)}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {unit.estimatedMinutes} min
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {!unit.completed && (
+                    <Link href={unit.topicId ? `/vocab/${unit.topicId}` : "/vocab"}>
+                      <Button size="sm">
+                        Start
+                        <ArrowRight className="h-4 w-4 ml-1" />
+                      </Button>
+                    </Link>
+                  )}
+                  
+                  {unit.completed && (
+                    <Link href={unit.topicId ? `/vocab/${unit.topicId}` : "/vocab"}>
+                      <Button variant="outline" size="sm">
+                        Review
+                      </Button>
+                    </Link>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {showSettings && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Card className="p-6 max-w-md w-full mx-4">
+            <h3 className="text-xl font-semibold mb-4">Study Plan Settings</h3>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium block mb-2">Goal</label>
-                <select
-                  defaultValue={plan.goal}
-                  className="w-full px-3 py-2 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  <option value="conversation">Daily Conversation</option>
-                  <option value="travel">Travel</option>
-                  <option value="work">Work</option>
-                  <option value="exam">Exam</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium block mb-2">Current Level</label>
-                <select
-                  defaultValue={plan.level}
-                  className="w-full px-3 py-2 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  <option value="A1">A1 - Beginner</option>
-                  <option value="A2">A2 - Elementary</option>
-                  <option value="B1">B1 - Intermediate</option>
-                  <option value="B2">B2 - Upper Intermediate</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium block mb-2">Minutes per Day</label>
+                <label className="text-sm font-medium block mb-2">Plan Name</label>
                 <input
-                  type="number"
-                  defaultValue={plan.minutesPerDay}
-                  className="w-full px-3 py-2 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+                  type="text"
+                  defaultValue={selectedPlan.name}
+                  className="w-full px-3 py-2 rounded-lg border"
                 />
               </div>
-
-              <Button className="w-full">Save Settings</Button>
+              <div>
+                <label className="text-sm font-medium block mb-2">Daily Study Duration (minutes)</label>
+                <input type="number" defaultValue={60} className="w-full px-3 py-2 rounded-lg border" />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-2">New Lessons Per Week</label>
+                <input type="number" defaultValue={5} className="w-full px-3 py-2 rounded-lg border" />
+              </div>
+              <div className="flex items-center justify-between pt-4 border-t">
+                <Button variant="outline" onClick={() => setShowSettings(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={() => setShowSettings(false)}>Save Changes</Button>
+              </div>
             </div>
           </Card>
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
     </div>
   )
 }

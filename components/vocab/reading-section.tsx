@@ -1,9 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { CheckCircle2, XCircle, BookOpen, ChevronLeft, ChevronRight, Star } from "lucide-react"
+import { CheckCircle2, XCircle, BookOpen, ChevronLeft, ChevronRight, Star, Highlighter } from 'lucide-react'
 import { cn } from "@/lib/utils"
 
 interface GlossaryItem {
@@ -39,6 +39,9 @@ export function ReadingSection({ passage }: ReadingSectionProps) {
   const [checkedQuestions, setCheckedQuestions] = useState<Set<string>>(new Set())
   const [showHint, setShowHint] = useState(false)
   const [completed, setCompleted] = useState(false)
+  const [highlights, setHighlights] = useState<Highlight[]>([])
+  const [isHighlightMode, setIsHighlightMode] = useState(false)
+  const passageRef = useRef<HTMLDivElement>(null)
 
   const glossaryMap = new Map(passage.glossary.map((item) => [item.word.toLowerCase(), item]))
   const currentQ = passage.questions[currentQuestion]
@@ -50,16 +53,128 @@ export function ReadingSection({ passage }: ReadingSectionProps) {
     setAnswers((prev) => ({ ...prev, [questionId]: answer }))
   }
 
+  const handleTextSelection = () => {
+    if (!isHighlightMode) return
+
+    const selection = window.getSelection()
+    if (!selection || selection.isCollapsed) return
+
+    const range = selection.getRangeAt(0)
+    const preSelectionRange = range.cloneRange()
+    preSelectionRange.selectNodeContents(passageRef.current!)
+    preSelectionRange.setEnd(range.startContainer, range.startOffset)
+    const start = preSelectionRange.toString().length
+    const end = start + range.toString().length
+
+    setHighlights((prev) => [
+      ...prev.filter((h) => h.type === "user" && (h.end <= start || h.start >= end)),
+      { start, end, color: "green", type: "user" },
+    ])
+
+    selection.removeAllRanges()
+  }
+
+  const handleToggleHint = () => {
+    setShowHint(!showHint)
+
+    if (!showHint) {
+      const questionWords = currentQ?.question.toLowerCase().split(" ").filter((w) => w.length > 4)
+      const content = passage.content.toLowerCase()
+      const newHintHighlights: Highlight[] = []
+
+      questionWords?.forEach((word) => {
+        let index = content.indexOf(word)
+        while (index !== -1) {
+          newHintHighlights.push({
+            start: index,
+            end: index + word.length,
+            color: "red",
+            type: "hint",
+          })
+          index = content.indexOf(word, index + 1)
+        }
+      })
+
+      setHighlights((prev) => [...prev.filter((h) => h.type !== "hint"), ...newHintHighlights])
+    } else {
+      setHighlights((prev) => prev.filter((h) => h.type !== "hint"))
+    }
+  }
+
   const handleCheck = () => {
     if (currentQ) {
       setCheckedQuestions((prev) => new Set([...prev, currentQ.id]))
+
+      if (answers[currentQ.id] !== currentQ.correctAnswer) {
+        const correctWords = currentQ.correctAnswer.toLowerCase().split(" ").filter((w) => w.length > 4)
+        const content = passage.content.toLowerCase()
+        const newAnswerHighlights: Highlight[] = []
+
+        correctWords.forEach((word) => {
+          let index = content.indexOf(word)
+          while (index !== -1) {
+            newAnswerHighlights.push({
+              start: index,
+              end: index + word.length,
+              color: "red",
+              type: "answer",
+            })
+            index = content.indexOf(word, index + 1)
+          }
+        })
+
+        setHighlights((prev) => [...prev.filter((h) => h.type !== "answer"), ...newAnswerHighlights])
+      }
     }
+  }
+
+  const renderHighlightedContent = () => {
+    const content = passage.content
+    const segments: { text: string; highlight?: Highlight }[] = []
+    let lastIndex = 0
+
+    const sortedHighlights = [...highlights].sort((a, b) => a.start - b.start)
+
+    sortedHighlights.forEach((highlight) => {
+      if (highlight.start > lastIndex) {
+        segments.push({ text: content.slice(lastIndex, highlight.start) })
+      }
+      segments.push({
+        text: content.slice(highlight.start, highlight.end),
+        highlight,
+      })
+      lastIndex = highlight.end
+    })
+
+    if (lastIndex < content.length) {
+      segments.push({ text: content.slice(lastIndex) })
+    }
+
+    return segments.map((segment, idx) => {
+      if (segment.highlight) {
+        return (
+          <mark
+            key={idx}
+            className={cn(
+              "px-0.5 rounded",
+              segment.highlight.color === "green"
+                ? "bg-green-200 text-green-900"
+                : "bg-red-200 text-red-900",
+            )}
+          >
+            {segment.text}
+          </mark>
+        )
+      }
+      return <span key={idx}>{segment.text}</span>
+    })
   }
 
   const handleNext = () => {
     if (currentQuestion < passage.questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1)
       setShowHint(false)
+      setHighlights((prev) => prev.filter((h) => h.type === "user"))
     } else {
       setCompleted(true)
     }
@@ -69,6 +184,7 @@ export function ReadingSection({ passage }: ReadingSectionProps) {
     if (currentQuestion > 0) {
       setCurrentQuestion(currentQuestion - 1)
       setShowHint(false)
+      setHighlights((prev) => prev.filter((h) => h.type === "user"))
     }
   }
 
@@ -117,6 +233,7 @@ export function ReadingSection({ passage }: ReadingSectionProps) {
                 setCurrentQuestion(0)
                 setAnswers({})
                 setCheckedQuestions(new Set())
+                setHighlights([])
               }}
             >
               Retry
@@ -147,26 +264,29 @@ export function ReadingSection({ passage }: ReadingSectionProps) {
   return (
     <div className="grid lg:grid-cols-2 gap-6 items-start">
       <Card className="p-6 space-y-4 lg:sticky lg:top-6 max-h-[calc(100vh-8rem)] overflow-y-auto">
-        <h2 className="text-xl font-bold text-center">{passage.title}</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold">{passage.title}</h2>
+          <Button
+            variant={isHighlightMode ? "default" : "outline"}
+            size="sm"
+            onClick={() => setIsHighlightMode(!isHighlightMode)}
+            className="gap-2"
+          >
+            <Highlighter className="h-4 w-4" />
+            {isHighlightMode ? "Highlighting" : "Highlight"}
+          </Button>
+        </div>
 
-        <div className="prose prose-sm max-w-none dark:prose-invert">
+        <div
+          ref={passageRef}
+          onMouseUp={handleTextSelection}
+          className={cn(
+            "prose prose-sm max-w-none dark:prose-invert",
+            isHighlightMode ? "cursor-text select-text" : "select-none",
+          )}
+        >
           <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap">
-            {passage.content.split(/\b/).map((token, idx) => {
-              const word = token.trim()
-              const isGlossaryWord = glossaryMap.has(word.toLowerCase())
-
-              if (!word) return token
-
-              return (
-                <span
-                  key={idx}
-                  className={cn(isGlossaryWord ? "cursor-help border-b border-blue-400 hover:bg-blue-500/10" : "")}
-                  title={isGlossaryWord ? glossaryMap.get(word.toLowerCase())?.definition : undefined}
-                >
-                  {token}
-                </span>
-              )
-            })}
+            {renderHighlightedContent()}
           </p>
         </div>
       </Card>
@@ -179,7 +299,7 @@ export function ReadingSection({ passage }: ReadingSectionProps) {
             </div>
             <h3 className="font-semibold">Question's content</h3>
           </div>
-          <Button variant="outline" size="sm" onClick={() => setShowHint(!showHint)}>
+          <Button variant="outline" size="sm" onClick={handleToggleHint}>
             {showHint ? "Hide Hint" : "Show Hint"}
           </Button>
         </div>
@@ -284,4 +404,11 @@ export function ReadingSection({ passage }: ReadingSectionProps) {
       </Card>
     </div>
   )
+}
+
+interface Highlight {
+  start: number
+  end: number
+  color: "green" | "red"
+  type: "user" | "hint" | "answer"
 }
