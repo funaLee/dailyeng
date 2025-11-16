@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect, useRef } from "react"
-import { useParams, useSearchParams, useRouter } from "next/navigation"
+import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
@@ -10,7 +10,7 @@ import { ListeningSection } from "@/components/vocab/listening-section"
 import { ReadingSection } from "@/components/vocab/reading-section"
 import { mockTopics, mockVocab, mockQuizzes, mockListeningTasks, mockReadingPassages } from "@/lib/mock-data"
 import type { VocabItem } from "@/types"
-import { ArrowLeft, BookOpen, BookMarked, ChevronLeft, ChevronRight, Mic } from "lucide-react"
+import { ArrowLeft, BookOpen, BookMarked, ChevronLeft, ChevronRight, Mic } from 'lucide-react'
 
 type TabType = "learn" | "translate" | "listening" | "reading" | "writing" | "quiz"
 
@@ -28,7 +28,16 @@ export default function TopicDetailPage() {
   const [savedFlashcards, setSavedFlashcards] = useState<VocabItem[]>([])
   const [shadowingOpen, setShadowingOpen] = useState(false)
   const [currentSentence, setCurrentSentence] = useState(0)
+  const [currentWordIndex, setCurrentWordIndex] = useState(0)
+  const [masterySelected, setMasterySelected] = useState(false)
   const wordListRef = useRef<HTMLDivElement>(null)
+
+  const shadowingSentences = selectedWord
+    ? [
+        selectedWord.exampleSentence,
+        "Animals in zoos often display disturbed behaviour.",
+      ]
+    : []
 
   useEffect(() => {
     const foundTopic = mockTopics.find((t) => t.id === topicId)
@@ -40,33 +49,48 @@ export default function TopicDetailPage() {
       const word = topicVocab.find((w) => w.id === selectedWordId)
       if (word) {
         setSelectedWord(word)
+        const index = topicVocab.findIndex((w) => w.id === word.id)
+        if (index !== -1) {
+          setCurrentWordIndex(index)
+        }
       } else if (topicVocab.length > 0) {
         setSelectedWord(topicVocab[0])
+        setCurrentWordIndex(0)
       }
     } else if (topicVocab.length > 0) {
       setSelectedWord(topicVocab[0])
+      setCurrentWordIndex(0)
     }
   }, [topicId, selectedWordId])
 
   const handleSelectWord = (word: VocabItem) => {
     setSelectedWord(word)
+    const index = vocab.findIndex((w) => w.id === word.id)
+    if (index !== -1) {
+      setCurrentWordIndex(index)
+    }
+    setMasterySelected(false)
     router.push(`/vocab/${topicId}?w=${word.id}`, { scroll: false })
   }
 
-  const handleAddFlashcard = (word: VocabItem) => {
-    setSavedFlashcards((prev) => {
-      const exists = prev.some((w) => w.id === word.id)
-      if (exists) {
-        return prev.filter((w) => w.id !== word.id)
-      }
-      return [...prev, word]
-    })
+  const handleMasterySelect = (level: string) => {
+    setMasterySelected(true)
+    console.log(`[v0] Selected mastery level: ${level} for word: ${selectedWord?.word}`)
   }
 
-  const shadowingSentences = [
-    "It is hard to change old patterns of behaviour.",
-    "Animals in zoos often display disturbed behaviour.",
-  ]
+  const handlePrevious = () => {
+    if (currentWordIndex > 0) {
+      const prevWord = vocab[currentWordIndex - 1]
+      handleSelectWord(prevWord)
+    }
+  }
+
+  const handleNext = () => {
+    if (currentWordIndex < vocab.length - 1) {
+      const nextWord = vocab[currentWordIndex + 1]
+      handleSelectWord(nextWord)
+    }
+  }
 
   if (!topic) {
     return (
@@ -304,12 +328,39 @@ export default function TopicDetailPage() {
                         ].map((level, idx) => (
                           <button
                             key={idx}
+                            onClick={() => handleMasterySelect(level.label)}
                             className={`px-4 py-2 rounded-full ${level.color} text-sm font-medium transition-colors border`}
                           >
                             {level.label}
                           </button>
                         ))}
                       </div>
+                    </div>
+
+                    {/* Navigation buttons */}
+                    <div className="border-t border-border pt-6 flex items-center justify-between">
+                      <Button
+                        variant="outline"
+                        onClick={handlePrevious}
+                        disabled={currentWordIndex === 0}
+                        className="gap-2"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        Previous
+                      </Button>
+                      
+                      <span className="text-sm text-muted-foreground">
+                        {masterySelected ? "Ready to continue" : "Select a mastery level to continue"}
+                      </span>
+                      
+                      <Button
+                        onClick={handleNext}
+                        disabled={!masterySelected || currentWordIndex === vocab.length - 1}
+                        className="gap-2"
+                      >
+                        Next
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
                     </div>
                   </Card>
                 ) : (
@@ -321,9 +372,16 @@ export default function TopicDetailPage() {
             </div>
 
             <div className="mt-8">
-              <div className="h-2 bg-gradient-to-r from-blue-600 via-blue-400 to-blue-200 rounded-full w-1/2" />
+              <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-600 via-blue-400 to-blue-200 rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${vocab.length > 0 ? ((currentWordIndex + 1) / vocab.length) * 100 : 0}%` }}
+                />
+              </div>
               <div className="text-center mt-2">
-                <span className="text-sm font-medium">8 / 55</span>
+                <span className="text-sm font-medium">
+                  {currentWordIndex + 1} / {vocab.length}
+                </span>
               </div>
             </div>
           </div>

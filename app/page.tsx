@@ -5,8 +5,9 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Star, MessageSquare, BookOpen, Target, Sparkles, Quote, ArrowRight } from "lucide-react"
+import { Star, MessageSquare, BookOpen, Target, Sparkles, Quote, ArrowRight } from 'lucide-react'
 import { InteractiveGridBackground } from "@/components/ui/interactive-grid-background"
+import { StackedCardCarousel } from "@/components/home/stacked-card-carousel"
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("language-hub")
@@ -143,15 +144,16 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Cột phải – chỉ là hình minh hoạ, không cần click */}
-            <div className="relative w-full h-96 lg:h-150 flex items-center justify-center pointer-events-none">
-              <div className="relative w-80 h-96 lg:w-120 lg:h-150 rounded-2xl overflow-hidden shadow-2xl">
-                <Image src="/learning.png" alt="Learning" fill className="object-cover" />
-              </div>
-
-              <div className="absolute -right-10 -top-10 w-48 h-64 lg:w-56 lg:h-72 rounded-xl overflow-hidden shadow-xl transform rotate-4">
-                <Image src="/learning.png" alt="Learning overlay" fill className="object-cover" />
-              </div>
+            <div className="relative w-full pointer-events-auto">
+              <StackedCardCarousel
+                images={[
+                  "/learning.png",
+                  "/learning.png",
+                  "/learning.png",
+                  "/learning.png",
+                ]}
+                autoPlayInterval={5000}
+              />
             </div>
           </div>
         </div>
@@ -184,7 +186,7 @@ export default function Home() {
       </section>
 
       {/* Social Proof Section - Redesigned */}
-      <section className="py-16 bg-linear-to-b from-white to-[#C2E2FA]/30">
+      <section className="py-16 bg-gradient-to-b from-white to-[#C2E2FA]/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 gap-8">
             {/* Rating Card */}
@@ -242,59 +244,46 @@ export default function Home() {
             <p className="text-xl text-gray-600">Four powerful features that transform your learning experience</p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             {[
               {
                 title: "Speak First",
-                subtitle: "Real Conversations",
-                description: "Practice real-life conversations in our Virtual Speaking Room.",
-                icon: MessageSquare,
-                image: "/learning.png",
+                description: "Practice real-life conversations with AI tutors and get instant feedback.",
               },
               {
                 title: "Learn by Using",
-                subtitle: "Active Learning",
-                description: "Vocabulary & grammar are applied through listening, reading, and writing.",
-                icon: BookOpen,
-                image: "/learning.png",
+                description: "Apply vocabulary & grammar through listening, reading, and writing exercises.",
               },
               {
                 title: "Stay Motivated",
-                subtitle: "Gamified Experience",
-                description: "Points, streaks, minigames, and leaderboards keep learning fun.",
-                icon: Target,
-                image: "/learning.png",
+                description: "Track progress with points, streaks, and leaderboards that keep learning fun.",
               },
               {
                 title: "Smart Companion",
-                subtitle: "AI-Powered Tutor",
-                description: "Kitty Tutor guides you, answers questions, and helps you study anytime.",
-                icon: Sparkles,
-                image: "/learning.png",
+                description: "Get personalized guidance from Kitty Tutor, your AI learning assistant.",
               },
             ].map((feature, idx) => (
               <Card
                 key={idx}
-                className="bg-white border-2 border-[#C2E2FA] overflow-hidden hover:shadow-2xl transition-all duration-300 group hover:border-[#A8D5F7] rounded-2xl"
+                className="bg-gradient-to-br from-[#C2E2FA]/30 to-white border-2 border-[#C2E2FA]/50 overflow-hidden hover:shadow-lg transition-all duration-300 group rounded-3xl aspect-square flex flex-col"
               >
-                <div className="relative h-48 overflow-hidden">
-                  <Image
-                    src={feature.image || "/placeholder.svg"}
+                {/* Decorative illustration area with learning.png */}
+                <div className="relative h-40 overflow-hidden bg-gradient-to-br from-[#C2E2FA]/40 to-[#C2E2FA]/20 rounded-t-3xl">
+                  <Image 
+                    src="/learning.png" 
                     alt={feature.title}
                     fill
-                    className="object-cover group-hover:scale-110 transition-transform duration-500"
+                    className="object-cover opacity-60 rounded-t-3xl"
                   />
-                  <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent"></div>
-                  <div className="absolute bottom-4 left-4">
-                    <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg">
-                      <feature.icon className="w-6 h-6 text-[#C2E2FA]" />
-                    </div>
-                  </div>
+                  {/* Decorative elements */}
+                  <div className="absolute top-3 left-3 w-12 h-12 bg-white/40 rounded-full"></div>
+                  <div className="absolute bottom-3 right-3 w-8 h-8 bg-white/40 rounded-full"></div>
                 </div>
-                <div className="p-6">
-                  <div className="text-sm font-semibold text-gray-700 mb-1">{feature.subtitle}</div>
-                  <h3 className="font-bold text-xl mb-3 text-gray-900">{feature.title}</h3>
-                  <p className="text-gray-600 text-sm leading-relaxed">{feature.description}</p>
+
+                {/* Content */}
+                <div className="flex-1 flex flex-col items-center justify-center text-center p-6">
+                  <h3 className="font-bold text-2xl mb-3 text-gray-900">{feature.title}</h3>
+                  <p className="text-gray-600 text-base leading-relaxed">{feature.description}</p>
                 </div>
               </Card>
             ))}
@@ -303,7 +292,7 @@ export default function Home() {
       </section>
 
       {/* What You Can Do on DailyEng Section */}
-      <section className="py-20 bg-linear-to-b from-white to-[#C2E2FA]/30">
+      <section className="py-20 bg-gradient-to-b from-white to-[#C2E2FA]/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">What You Can Do on DailyEng</h2>
@@ -379,7 +368,7 @@ export default function Home() {
                         className="bg-[#C2E2FA]/30 border border-[#C2E2FA] p-4 rounded-xl hover:shadow-md transition-shadow"
                       >
                         <div className="flex items-start gap-3 mb-3">
-                          <div className="w-10 h-10 bg-[#C2E2FA] rounded-full flex items-center justify-center text-gray-900 font-bold text-sm shrink-0">
+                          <div className="w-10 h-10 bg-[#C2E2FA] rounded-full flex items-center justify-center text-gray-900 font-bold text-sm flex-shrink-0">
                             {review.name.charAt(0)}
                           </div>
                           <div className="flex-1 min-w-0">
@@ -411,7 +400,7 @@ export default function Home() {
                       className="bg-[#C2E2FA]/30 border border-[#C2E2FA] p-4 rounded-xl hover:shadow-md transition-shadow"
                     >
                       <div className="flex items-start gap-3 mb-3">
-                        <div className="w-10 h-10 bg-[#C2E2FA] rounded-full flex items-center justify-center text-gray-900 font-bold text-sm shrink-0">
+                        <div className="w-10 h-10 bg-[#C2E2FA] rounded-full flex items-center justify-center text-gray-900 font-bold text-sm flex-shrink-0">
                           {review.name.charAt(0)}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -443,7 +432,7 @@ export default function Home() {
             <div className="grid md:grid-cols-2">
               <div className="relative h-full min-h-[400px]">
                 <Image src="/learning.png" alt="Start Learning" fill className="object-cover" />
-                <div className="absolute inset-0 bg-linear-to-r from-[#C2E2FA]/20 to-transparent"></div>
+                <div className="absolute inset-0 bg-gradient-to-r from-[#C2E2FA]/20 to-transparent"></div>
               </div>
               <div className="p-12 flex flex-col justify-center">
                 <h2 className="text-4xl font-bold mb-4 text-gray-900">Starting your Learning Journey right now!</h2>

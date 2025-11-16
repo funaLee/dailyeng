@@ -3,7 +3,7 @@ import type { QuizItem } from "@/types"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
-import { CheckCircle2, XCircle, BookMarked, Zap } from "lucide-react"
+import { CheckCircle2, XCircle, BookMarked, Zap } from 'lucide-react'
 import { useAppStore } from "@/lib/store"
 
 interface QuizSectionProps {
@@ -163,7 +163,10 @@ export function QuizSection({ items, topicId }: QuizSectionProps) {
           <p className="text-sm font-medium">Score: {score}</p>
         </div>
         <div className="w-full bg-secondary rounded-full h-2">
-          <div className="bg-primary h-2 rounded-full transition-all" style={{ width: `${progress}%` }} />
+          <div 
+            className="bg-primary h-2 rounded-full transition-all duration-500 ease-out" 
+            style={{ width: `${progress}%` }} 
+          />
         </div>
       </div>
 

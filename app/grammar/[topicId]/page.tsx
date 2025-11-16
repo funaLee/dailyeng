@@ -9,7 +9,7 @@ import { TranslateSpeakLab } from "@/components/vocab/translate-speak-lab"
 import { ListeningSection } from "@/components/vocab/listening-section"
 import { ReadingSection } from "@/components/vocab/reading-section"
 import { mockGrammar, mockQuizzes, mockListeningTasks, mockReadingPassages } from "@/lib/mock-data"
-import { ArrowLeft, BookMarked } from 'lucide-react'
+import { ArrowLeft, BookMarked, ChevronLeft, ChevronRight } from 'lucide-react'
 import Link from "next/link"
 
 type TabType = "learn" | "translate" | "listening" | "reading" | "writing" | "quiz"
@@ -18,27 +18,29 @@ export default function GrammarTopicPage() {
   const params = useParams()
   const router = useRouter()
   const topicId = params.topicId as string
-  const lookupId = topicId?.startsWith("g") ? topicId.slice(1) : topicId
 
   const [activeTab, setActiveTab] = useState<TabType>("learn")
   const [grammarNotes, setGrammarNotes] = useState<any[]>([])
   const [selectedNote, setSelectedNote] = useState<any>(null)
+  const [currentNoteIndex, setCurrentNoteIndex] = useState(0)
+  const [masterySelected, setMasterySelected] = useState(false)
 
   useEffect(() => {
-    const notes = mockGrammar[lookupId] || []
+    const notes = mockGrammar[topicId] || []
     setGrammarNotes(notes)
     if (notes.length > 0) {
       setSelectedNote(notes[0])
+      setCurrentNoteIndex(0)
     }
   }, [topicId])
 
   const topic = {
     id: topicId,
-    title: lookupId === "1" ? "Travel Grammar" : lookupId === "2" ? "Food & Dining Grammar" : "Job Interview Grammar",
+    title: topicId === "1" ? "Travel Grammar" : topicId === "2" ? "Food & Dining Grammar" : "Job Interview Grammar",
     description:
-      lookupId === "1"
+      topicId === "1"
         ? "Master grammar rules for travel conversations"
-        : lookupId === "2"
+        : topicId === "2"
           ? "Learn grammar for food and dining situations"
           : "Professional grammar for job interviews",
     level: "A2",
@@ -54,6 +56,31 @@ export default function GrammarTopicPage() {
     { id: "writing", label: "Writing" },
     { id: "quiz", label: "Quiz" },
   ]
+
+  const handleSelectNote = (note: any, index: number) => {
+    setSelectedNote(note)
+    setCurrentNoteIndex(index)
+    setMasterySelected(false)
+  }
+
+  const handleMasterySelect = (level: string) => {
+    setMasterySelected(true)
+    console.log(`[v0] Selected mastery level: ${level} for grammar: ${selectedNote?.title}`)
+  }
+
+  const handlePrevious = () => {
+    if (currentNoteIndex > 0) {
+      const prevNote = grammarNotes[currentNoteIndex - 1]
+      handleSelectNote(prevNote, currentNoteIndex - 1)
+    }
+  }
+
+  const handleNext = () => {
+    if (currentNoteIndex < grammarNotes.length - 1) {
+      const nextNote = grammarNotes[currentNoteIndex + 1]
+      handleSelectNote(nextNote, currentNoteIndex + 1)
+    }
+  }
 
   if (grammarNotes.length === 0) {
     return (
@@ -116,7 +143,7 @@ export default function GrammarTopicPage() {
                 {grammarNotes.map((note, idx) => (
                   <button
                     key={note.id}
-                    onClick={() => setSelectedNote(note)}
+                    onClick={() => handleSelectNote(note, idx)}
                     className={`w-full text-left px-3 py-2 rounded-lg transition-colors text-sm font-medium ${
                       selectedNote?.id === note.id
                         ? "bg-blue-600 text-white"
@@ -173,6 +200,61 @@ export default function GrammarTopicPage() {
                         </li>
                       </ul>
                     </div>
+
+                    <div className="border-t border-border pt-6">
+                      <p className="text-center text-sm font-medium mb-4">How well do you understand this grammar?</p>
+                      <div className="flex flex-wrap items-center justify-center gap-3">
+                        {[
+                          { label: "Brand New", color: "bg-red-100 text-red-800 border-red-300 hover:bg-red-200" },
+                          {
+                            label: "Not Remembered",
+                            color: "bg-orange-100 text-orange-800 border-orange-300 hover:bg-orange-200",
+                          },
+                          {
+                            label: "Normal",
+                            color: "bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200",
+                          },
+                          { label: "Remembered", color: "bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200" },
+                          {
+                            label: "Mastered",
+                            color: "bg-green-100 text-green-800 border-green-300 hover:bg-green-200",
+                          },
+                        ].map((level, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => handleMasterySelect(level.label)}
+                            className={`px-4 py-2 rounded-full ${level.color} text-sm font-medium transition-colors border`}
+                          >
+                            {level.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="border-t border-border pt-6 flex items-center justify-between">
+                      <Button
+                        variant="outline"
+                        onClick={handlePrevious}
+                        disabled={currentNoteIndex === 0}
+                        className="gap-2"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        Previous
+                      </Button>
+                      
+                      <span className="text-sm text-muted-foreground">
+                        {masterySelected ? "Ready to continue" : "Select a mastery level to continue"}
+                      </span>
+                      
+                      <Button
+                        onClick={handleNext}
+                        disabled={!masterySelected || currentNoteIndex === grammarNotes.length - 1}
+                        className="gap-2"
+                      >
+                        Next
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </Card>
                 ) : (
                   <Card className="p-8 text-center">
@@ -183,10 +265,15 @@ export default function GrammarTopicPage() {
             </div>
 
             <div className="mt-8">
-              <div className="h-2 bg-gradient-to-r from-blue-600 via-blue-400 to-blue-200 rounded-full w-1/2" />
+              <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-600 via-blue-400 to-blue-200 rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${grammarNotes.length > 0 ? ((currentNoteIndex + 1) / grammarNotes.length) * 100 : 0}%` }}
+                />
+              </div>
               <div className="text-center mt-2">
                 <span className="text-sm font-medium">
-                  {grammarNotes.indexOf(selectedNote) + 1} / {grammarNotes.length}
+                  {currentNoteIndex + 1} / {grammarNotes.length}
                 </span>
               </div>
             </div>
@@ -203,15 +290,15 @@ export default function GrammarTopicPage() {
         {activeTab === "listening" && (
           <div>
             <h2 className="text-2xl font-bold mb-6">Listening Practice</h2>
-                <ListeningSection topicTitle={topic.title} tasks={mockListeningTasks[lookupId] || []} />
+            <ListeningSection topicTitle={topic.title} tasks={mockListeningTasks[topicId] || []} />
           </div>
         )}
 
         {activeTab === "reading" && (
           <div>
             <h2 className="text-2xl font-bold mb-6">Reading Practice</h2>
-              {mockReadingPassages[lookupId] ? (
-              <ReadingSection passage={mockReadingPassages[lookupId]} />
+            {mockReadingPassages[topicId] ? (
+              <ReadingSection passage={mockReadingPassages[topicId]} />
             ) : (
               <Card className="p-8 text-center">
                 <BookMarked className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -270,7 +357,7 @@ export default function GrammarTopicPage() {
         {activeTab === "quiz" && (
           <div>
             <h2 className="text-2xl font-bold mb-6">Quiz</h2>
-            <QuizSection items={mockQuizzes[lookupId] || []} />
+            <QuizSection items={mockQuizzes[topicId] || []} />
           </div>
         )}
       </div>

@@ -1,15 +1,17 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams, useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { SessionChat } from "@/components/speaking/session-chat"
 import { SessionTranscript } from "@/components/speaking/session-transcript"
+import { RadarChart } from "@/components/speaking/radar-chart"
 import { mockSpeakingScenarios, mockSpeakingTurns, mockCustomScenarios } from "@/lib/mock-data"
 import { useAppStore } from "@/lib/store"
-import { ArrowLeft, BarChart3, BookOpen, Download } from "lucide-react"
+import { ArrowLeft, BarChart3, BookOpen, Download, Play, RotateCcw, User, Bot, Volume2, Copy, Check, Mic, MoreVertical, RefreshCw } from 'lucide-react'
 import Link from "next/link"
+import Image from "next/image"
 
 interface Turn {
   id: string
@@ -24,6 +26,8 @@ interface Turn {
   }
 }
 
+type ViewState = "preparation" | "active" | "complete"
+
 export default function SpeakingSessionPage() {
   const params = useParams()
   const router = useRouter()
@@ -33,13 +37,14 @@ export default function SpeakingSessionPage() {
   const [scenario, setScenario] = useState<any>(null)
   const [turns, setTurns] = useState<Turn[]>([])
   const [isRecording, setIsRecording] = useState(false)
-  const [sessionComplete, setSessionComplete] = useState(false)
+  const [viewState, setViewState] = useState<ViewState>("preparation")
   const [sessionStats, setSessionStats] = useState({
     avgPronunciation: 0,
     avgFluency: 0,
     avgGrammar: 0,
     avgContent: 0,
   })
+  const [copiedId, setCopiedId] = useState<string | null>(null)
 
   const TURNS_FOR_COMPLETION = 6
 
@@ -49,7 +54,26 @@ export default function SpeakingSessionPage() {
       .reduce((acc, curr) => [...acc, ...curr], [])
       .concat(mockCustomScenarios)
 
-    const found = allScenarios.find((s) => s.id === scenarioId)
+    let found = allScenarios.find((s) => s.id === scenarioId)
+
+    // Fallbacks for mismatched ids (numeric ids or slight formatting differences)
+    if (!found) {
+      const numeric = parseInt(scenarioId, 10)
+      if (!isNaN(numeric) && numeric > 0 && numeric <= allScenarios.length) {
+        found = allScenarios[numeric - 1]
+      }
+    }
+
+    if (!found) {
+      // try loose match ignoring hyphens/underscores
+      const normalized = (id: string) => id.replace(/[-_]/g, "").toLowerCase()
+      found = allScenarios.find((s) => normalized(s.id) === normalized(scenarioId))
+    }
+
+    if (!found) {
+      console.warn("Speaking scenario not found for id:", scenarioId, "available:", allScenarios.map(s => s.id))
+    }
+
     setScenario(found)
 
     setTurns(mockSpeakingTurns.session1 as Turn[])
@@ -112,7 +136,7 @@ export default function SpeakingSessionPage() {
           calculateStats(finalTurns)
 
           if (finalTurns.length >= TURNS_FOR_COMPLETION) {
-            setSessionComplete(true)
+            setViewState("complete")
             addXP(50)
           }
         }, 1000)
@@ -155,7 +179,7 @@ export default function SpeakingSessionPage() {
       calculateStats(finalTurns)
 
       if (finalTurns.length >= TURNS_FOR_COMPLETION) {
-        setSessionComplete(true)
+        setViewState("complete")
         addXP(50)
       }
     }, 1000)
@@ -203,7 +227,288 @@ export default function SpeakingSessionPage() {
     )
   }
 
-  if (sessionComplete) {
+  if (viewState === "preparation") {
+    return (
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <Link href="/speaking">
+          <Button variant="ghost" className="gap-2 mb-6">
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+        </Link>
+
+        <div className="grid lg:grid-cols-2 gap-6">
+          {/* Left side: Learning Goals and Key Expressions */}
+          <Card className="p-8 space-y-8">
+            <div>
+              <div className="flex items-center gap-2 mb-6">
+                <BookOpen className="h-6 w-6" />
+                <h2 className="text-2xl font-bold">Learning Goals</h2>
+              </div>
+              <div className="space-y-3">
+                <div className="flex gap-3 p-4 bg-blue-50 rounded-xl">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+                    1
+                  </div>
+                  <p className="text-sm">Talk about being tired of a small room.</p>
+                </div>
+                <div className="flex gap-3 p-4 bg-blue-50 rounded-xl">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+                    2
+                  </div>
+                  <p className="text-sm">Describe your dream house.</p>
+                </div>
+                <div className="flex gap-3 p-4 bg-blue-50 rounded-xl">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+                    3
+                  </div>
+                  <p className="text-sm">Compare and talk about two types of houses.</p>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2 mb-6">
+                <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+                <h2 className="text-2xl font-bold">Key expressions</h2>
+              </div>
+              <div className="space-y-4 p-4 bg-blue-50 rounded-xl text-sm">
+                <div>
+                  <p className="font-medium mb-1">1. One day, I'm going to have a house with a pool, a walk-in closet, and a huge kitchen.</p>
+                  <p className="text-muted-foreground italic">Một ngày nào đó, tôi sẽ có một căn nhà với hồ bơi, tủ đồ cỡ mà có thể bước vào được, và một căn bếp rất mà rất lớn.</p>
+                </div>
+                <div>
+                  <p className="font-medium mb-1">2. Don't forget the home theater! I'll invite you over for movie nights every weekend.</p>
+                  <p className="text-muted-foreground italic">Đừng quên rạp chiếu phim tại nhà nhé! Tớ sẽ mời cậu tới xem phim mỗi cuối tuần.</p>
+                </div>
+                <div>
+                  <p className="font-medium mb-1">3. Sounds perfect … now if only our bank accounts would agree.</p>
+                  <p className="text-muted-foreground italic">Nghe hoàn hảo đây … giá mà tài khoản ngân hàng của chúng ta cũng đồng ý.</p>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Right side: Topic card with play button */}
+          <div className="space-y-6">
+            <Card className="p-8">
+              <div className="aspect-video bg-gradient-to-br from-blue-200 to-blue-300 rounded-2xl mb-6 relative overflow-hidden">
+                <Image
+                  src="/learning.png"
+                  alt={scenario.title}
+                  fill
+                  className="object-cover rounded-2xl"
+                />
+              </div>
+
+              <h1 className="text-3xl font-bold mb-4">{scenario.title || "Share about your dream house"}</h1>
+
+              <p className="text-muted-foreground mb-6 leading-relaxed">
+                In their shabby little room, A dreams of a mansion with countless rooms — for gaming, movies, and spa. B dreams of a cozy home surrounded by flowers and butterflies. While they are arguing, the power suddenly goes out, and the sounds of neighbors complaining bring them both back to reality.
+              </p>
+
+              <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-3">
+                  <User className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium">You play as:</p>
+                    <p className="text-base font-bold">Student B</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Bot className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium">AI plays as:</p>
+                    <p className="text-base font-bold">Student A</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <Button 
+                  onClick={() => setViewState("active")}
+                  className="flex-1 gap-2 text-lg py-6"
+                  size="lg"
+                >
+                  <Play className="h-5 w-5" />
+                  Start Speaking
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="lg"
+                  className="px-6 bg-transparent"
+                >
+                  <RotateCcw className="h-5 w-5" />
+                </Button>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (viewState === "active") {
+    return (
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
+        <Card className="p-8">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => setViewState("preparation")}
+              className="rounded-xl"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            
+            <h1 className="text-2xl font-bold text-center">{scenario.title || "Share about your dream house"}</h1>
+            
+            <div className="flex gap-2">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="rounded-xl"
+              >
+                <RefreshCw className="h-5 w-5" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="rounded-xl"
+              >
+                <MoreVertical className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Situation Description */}
+          <div className="mb-6">
+            <h3 className="font-bold mb-2">Situation Description</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              In a shabby room, A dreams of a mansion with countless rooms: a game room, a cinema room, and a spa. B dreams of a cottage surrounded by flowers and butterflies. While they are arguing, the power suddenly goes out, and the sounds of neighbors complaining bring them both back to reality.
+            </p>
+          </div>
+
+          {/* Objectives */}
+          <div className="mb-8">
+            <h3 className="font-bold mb-3">Objectives</h3>
+            <ol className="space-y-2 text-sm">
+              <li>1. Express frustration with the small rented room.</li>
+              <li>2. Describe your dream house.</li>
+              <li>3. Compare and discuss the two types of houses.</li>
+            </ol>
+          </div>
+
+          {/* Conversation Area */}
+          <div className="space-y-4 mb-8 min-h-[300px]">
+            {turns.map((turn) => (
+              <div key={turn.id} className={`flex ${turn.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div className="flex gap-3 max-w-lg">
+                  {turn.role === "tutor" && (
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                      <Bot className="h-5 w-5 text-blue-600" />
+                    </div>
+                  )}
+                  
+                  <div className="flex-1">
+                    <div className={`rounded-2xl px-4 py-3 ${
+                      turn.role === "user" 
+                        ? "bg-blue-50 border border-gray-200" 
+                        : "bg-gray-100 border border-gray-200"
+                    }`}>
+                      <p className="text-sm leading-relaxed">{turn.text}</p>
+                    </div>
+                    
+                    {/* Action buttons below message */}
+                    <div className="flex gap-2 mt-2 ml-2">
+                      <button
+                        onClick={() => {
+                          if ("speechSynthesis" in window) {
+                            const utterance = new SpeechSynthesisUtterance(turn.text)
+                            utterance.lang = "en-US"
+                            window.speechSynthesis.speak(utterance)
+                          }
+                        }}
+                        className="w-8 h-8 rounded-full bg-blue-100 hover:bg-blue-200 flex items-center justify-center transition-colors"
+                        aria-label="Speak"
+                      >
+                        <Volume2 className="h-4 w-4 text-blue-600" />
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(turn.text)
+                          setCopiedId(turn.id)
+                          setTimeout(() => setCopiedId(null), 2000)
+                        }}
+                        className="w-8 h-8 rounded-full bg-blue-100 hover:bg-blue-200 flex items-center justify-center transition-colors"
+                        aria-label="Copy"
+                      >
+                        {copiedId === turn.id ? (
+                          <Check className="h-4 w-4 text-blue-600" />
+                        ) : (
+                          <Copy className="h-4 w-4 text-blue-600" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {turn.role === "user" && (
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
+                      <User className="h-5 w-5 text-white" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {turns.length === 0 && (
+              <div className="text-center py-12 text-muted-foreground">
+                <p className="mb-2">Ready to start speaking?</p>
+                <p className="text-sm">Tap the microphone button below to begin</p>
+              </div>
+            )}
+          </div>
+
+          {/* Tap to Speak Button */}
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-sm text-muted-foreground">Tap to speak</p>
+            <button
+              onClick={handleToggleRecording}
+              className={`w-20 h-20 rounded-full flex items-center justify-center transition-all ${
+                isRecording 
+                  ? "bg-red-500 hover:bg-red-600 animate-pulse" 
+                  : "bg-blue-100 hover:bg-blue-200"
+              }`}
+              aria-label={isRecording ? "Stop recording" : "Start recording"}
+            >
+              <Mic className={`h-10 w-10 ${isRecording ? "text-white" : "text-blue-600"}`} />
+            </button>
+            {isRecording && (
+              <p className="text-sm text-red-500 font-medium animate-pulse">Recording...</p>
+            )}
+          </div>
+        </Card>
+      </div>
+    )
+  }
+
+  if (viewState === "complete") {
+    const overallScore = Math.round(
+      (sessionStats.avgPronunciation + sessionStats.avgFluency + sessionStats.avgGrammar + sessionStats.avgContent) / 4 * 10
+    )
+
+    const radarData = [
+      { label: "Relevance", value: Math.round(sessionStats.avgContent * 10) },
+      { label: "Pronunciation", value: Math.round(sessionStats.avgPronunciation * 10) },
+      { label: "Intonation & Stress", value: Math.round((sessionStats.avgFluency * 0.8) * 10) },
+      { label: "Fluency", value: Math.round(sessionStats.avgFluency * 10) },
+      { label: "Grammar", value: Math.round(sessionStats.avgGrammar * 10) },
+    ]
+
     return (
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
         <Link href="/speaking">
@@ -213,58 +518,83 @@ export default function SpeakingSessionPage() {
           </Button>
         </Link>
 
-        <Card className="p-8 text-center mb-6">
-          <h1 className="text-3xl font-bold mb-2">Session Complete! 🎉</h1>
-          <p className="text-muted-foreground mb-6">Great job! You've completed this speaking session.</p>
-
-          <div className="grid md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <p className="text-3xl font-bold text-blue-600">{sessionStats.avgPronunciation}</p>
-              <p className="text-sm text-muted-foreground">Pronunciation</p>
-            </div>
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <p className="text-3xl font-bold text-blue-600">{sessionStats.avgFluency}</p>
-              <p className="text-sm text-muted-foreground">Fluency</p>
-            </div>
-            <div className="bg-green-50 p-4 rounded-lg">
-              <p className="text-3xl font-bold text-green-600">{sessionStats.avgGrammar}</p>
-              <p className="text-sm text-muted-foreground">Grammar</p>
-            </div>
-            <div className="bg-orange-50 p-4 rounded-lg">
-              <p className="text-3xl font-bold text-orange-600">{sessionStats.avgContent}</p>
-              <p className="text-sm text-muted-foreground">Content</p>
-            </div>
-          </div>
-
-          <div className="space-y-3 mb-6">
-            <Button onClick={handleExtractWords} className="w-full gap-2 bg-transparent" variant="outline">
-              <BookOpen className="h-4 w-4" />
-              Extract New Words → Save to Flashcards
-            </Button>
-            <Button onClick={handleDownloadTranscript} className="w-full gap-2 bg-transparent" variant="outline">
-              <Download className="h-4 w-4" />
-              Download Transcript
-            </Button>
-          </div>
-
-          <div className="bg-secondary/50 p-4 rounded-lg mb-6 text-left max-h-96 overflow-y-auto">
-            <h3 className="font-semibold mb-3">Session Transcript</h3>
-            <div className="space-y-3 text-sm">
-              {turns.map((turn) => (
-                <div key={turn.id}>
-                  <p className="font-medium text-xs text-muted-foreground uppercase">
-                    {turn.role === "user" ? "You" : "Tutor"}
-                  </p>
-                  <p className="mt-1">{turn.text}</p>
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Left Column: Overall Score and Feedback */}
+          <div className="space-y-8">
+            {/* Overall Score Badge */}
+            <Card className="p-12 bg-gradient-to-br from-gray-50 to-gray-100">
+              <div className="flex flex-col items-center">
+                <div className="w-64 h-64 rounded-full bg-gradient-to-br from-blue-300 to-blue-400 flex items-center justify-center shadow-lg mb-6">
+                  <span className="text-8xl font-bold text-white">{overallScore}</span>
                 </div>
-              ))}
-            </div>
+                <p className="text-xl font-bold text-center">Overall speaking score</p>
+              </div>
+            </Card>
+
+            {/* Feedback Section */}
+            <Card className="p-8 bg-gradient-to-br from-gray-50 to-gray-100">
+              <h2 className="text-3xl font-bold mb-4">Amazing context understanding</h2>
+              <p className="text-base text-muted-foreground leading-relaxed">
+                Amazing work! You seem to understand the context really well, you also got nice pronunciation 
+                and good use of grammar. However, you may want to put in more time in speaking session to improve 
+                your fluency, since there are a couple of times you pause a bit too long to remember the 
+                pronunciation of a word.
+              </p>
+            </Card>
           </div>
 
-          <Button onClick={() => router.push("/speaking")} className="w-full">
-            Start Another Session
-          </Button>
-        </Card>
+          {/* Right Column: Radar Chart and Learning Goals */}
+          <div className="space-y-8">
+            {/* Radar Chart */}
+            <Card className="p-8">
+              <RadarChart data={radarData} size={400} className="mb-4" />
+            </Card>
+
+            {/* Learning Goals */}
+            <Card className="p-8">
+              <div className="flex items-center gap-2 mb-6">
+                <BookOpen className="h-6 w-6" />
+                <h2 className="text-2xl font-bold">Learning Goals</h2>
+              </div>
+              <div className="space-y-3">
+                <div className="flex gap-3 p-4 bg-blue-50 rounded-xl">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+                    1
+                  </div>
+                  <p className="text-sm">Talk about being tired of a small room.</p>
+                </div>
+                <div className="flex gap-3 p-4 bg-blue-50 rounded-xl">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+                    2
+                  </div>
+                  <p className="text-sm">Describe your dream house.</p>
+                </div>
+                <div className="flex gap-3 p-4 bg-blue-50 rounded-xl">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+                    3
+                  </div>
+                  <p className="text-sm">Compare and talk about two types of houses.</p>
+                </div>
+              </div>
+            </Card>
+
+            {/* Action Buttons */}
+            <div className="space-y-3">
+              <Button onClick={handleExtractWords} className="w-full gap-2" variant="outline">
+                <BookOpen className="h-4 w-4" />
+                Extract New Words to Flashcards
+              </Button>
+              <Button onClick={handleDownloadTranscript} className="w-full gap-2" variant="outline">
+                <Download className="h-4 w-4" />
+                Download Transcript
+              </Button>
+              <Button onClick={() => router.push("/speaking")} className="w-full gap-2">
+                <RotateCcw className="h-4 w-4" />
+                Start Another Session
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
@@ -365,7 +695,6 @@ export default function SpeakingSessionPage() {
             </div>
           </div>
 
-          {/* Transcript */}
           <SessionTranscript turns={turns} scenarioTitle={scenario.title} />
         </div>
       </div>

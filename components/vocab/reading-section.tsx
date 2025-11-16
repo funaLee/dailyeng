@@ -375,7 +375,7 @@ export function ReadingSection({ passage }: ReadingSectionProps) {
         <div className="border-t border-border pt-4 space-y-4">
           <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
             <div
-              className="absolute left-0 top-0 h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-300"
+              className="absolute left-0 top-0 h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-500 ease-out shadow-md"
               style={{ width: `${((currentQuestion + 1) / passage.questions.length) * 100}%` }}
             />
           </div>

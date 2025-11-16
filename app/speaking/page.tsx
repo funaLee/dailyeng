@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Mic, Play, Gift, MessageSquarePlus, Search } from 'lucide-react'
+import { Mic, Play, Gift, MessageSquarePlus, Search, ChevronRight, Eye, RotateCcw } from 'lucide-react'
 import { RadarChart } from "@/components/speaking/radar-chart"
 
 const CEFR_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"]
@@ -128,6 +128,10 @@ export default function SpeakingRoomPage() {
   const [selectedGroup, setSelectedGroup] = useState<string>("Daily Life")
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>("Shopping")
   const [activeTab, setActiveTab] = useState<TabType>("available")
+  const excellentScrollRef = useRef<HTMLDivElement>(null)
+  const goodScrollRef = useRef<HTMLDivElement>(null)
+  const averageScrollRef = useRef<HTMLDivElement>(null)
+  const poorScrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setScenarios(mockScenarios)
@@ -148,6 +152,21 @@ export default function SpeakingRoomPage() {
 
   const currentSubcategories = TOPIC_GROUPS.find((g) => g.name === selectedGroup)?.subcategories || []
 
+  const scrollRight = (ref: React.RefObject<HTMLDivElement>) => {
+    if (ref.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = ref.current
+      const isAtEnd = scrollLeft + clientWidth >= scrollWidth - 10 // 10px threshold
+      
+      if (isAtEnd) {
+        // Loop back to start
+        ref.current.scrollTo({ left: 0, behavior: 'smooth' })
+      } else {
+        // Scroll right normally
+        ref.current.scrollBy({ left: 300, behavior: 'smooth' })
+      }
+    }
+  }
+
   if (loading) {
     return (
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
@@ -162,22 +181,30 @@ export default function SpeakingRoomPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-      <Card className="p-8 mb-8 relative overflow-hidden bg-gradient-to-br from-white to-blue-50">
-        <div className="grid lg:grid-cols-2 gap-8 items-center">
-          <div className="relative z-10">
-            <h1 className="text-4xl font-bold mb-4">SPEAKING ROOM</h1>
-            <p className="text-muted-foreground text-lg">
-              Practice real conversations with AI tutors and get instant feedback on your pronunciation, fluency,
-              grammar, and content.
-            </p>
+      <Card className="p-8 mb-8 relative overflow-hidden">
+        <div className="relative z-10">
+          <h1 className="text-4xl font-bold mb-2">SPEAKING ROOM</h1>
+          <p className="text-muted-foreground mb-6">
+            Practice real conversations with AI tutors and get instant feedback on your pronunciation, fluency,
+            grammar, and content.
+          </p>
+          <div className="flex flex-wrap gap-3 mb-4">
+            <Button className="gap-2">Start Practice</Button>
+            <Button variant="outline" className="gap-2 bg-transparent">
+              Choose Topic
+            </Button>
           </div>
-          <div className="relative flex justify-center">
-            <img
-              src="/learning.png"
-              alt="Speaking practice illustration"
-              className="w-full max-w-md"
-            />
+          <div className="flex items-center gap-2">
+            <span className="text-sm">Practice streak: 7 days</span>
+            <Button variant="outline" size="sm">
+              Continue
+            </Button>
           </div>
+        </div>
+        <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-br from-blue-200/50 to-blue-400/30 rounded-lg pointer-events-none">
+          <div className="absolute right-12 top-12 text-blue-600/20 text-6xl font-bold rotate-12">speaking</div>
+          <div className="absolute right-24 top-32 text-blue-600/20 text-5xl font-bold -rotate-6">fluency</div>
+          <div className="absolute right-8 top-52 text-blue-600/20 text-4xl font-bold rotate-3">practice</div>
         </div>
       </Card>
 
@@ -440,20 +467,33 @@ export default function SpeakingRoomPage() {
 
               <div className="space-y-8">
                 <div>
-                  <h3 className="text-xl font-bold mb-4">Excellent range score topic (&gt; 90):</h3>
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-bold">Excellent range score topic (&gt; 90):</h3>
+                    <button
+                      onClick={() => scrollRight(excellentScrollRef)}
+                      className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
+                    >
+                      <ChevronRight className="h-5 w-5 text-primary" />
+                    </button>
+                  </div>
+                  <div 
+                    ref={excellentScrollRef}
+                    className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
+                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                  >
                     {[
                       { title: "Space", score: 95 },
                       { title: "Magic", score: 92 },
+                      { title: "Future Tech", score: 93 },
                     ].map((topic, index) => (
-                      <Card key={index} className="overflow-hidden border-2">
+                      <Card key={index} className="flex-shrink-0 w-64 overflow-hidden border-2">
                         <div className="aspect-[4/3] bg-gradient-to-br from-blue-200 to-blue-300" />
                         <div className="p-3">
                           <h4 className="font-semibold text-base mb-1.5">{topic.title}</h4>
                           <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
                             Learn vocabulary used in everyday eating, cooking, and ordering food in real situations.
                           </p>
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1.5 mb-3">
                             <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-900 text-[10px] font-medium">
                               Daily Life
                             </span>
@@ -461,8 +501,18 @@ export default function SpeakingRoomPage() {
                               A1
                             </span>
                             <span className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-900 text-[10px] font-medium">
-                              A2
+                              Score: {topic.score}
                             </span>
+                          </div>
+                          <div className="flex gap-1.5">
+                            <Button variant="outline" size="sm" className="flex-1 text-xs h-7 gap-1">
+                              <Eye className="h-3 w-3" />
+                              View result
+                            </Button>
+                            <Button size="sm" className="flex-1 text-xs h-7 gap-1">
+                              <RotateCcw className="h-3 w-3" />
+                              Speak again
+                            </Button>
                           </div>
                         </div>
                       </Card>
@@ -471,29 +521,160 @@ export default function SpeakingRoomPage() {
                 </div>
 
                 <div>
-                  <h3 className="text-xl font-bold mb-4">Good range score topic (&gt; 80):</h3>
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-bold">Good range score topic (80-90):</h3>
+                    <button
+                      onClick={() => scrollRight(goodScrollRef)}
+                      className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
+                    >
+                      <ChevronRight className="h-5 w-5 text-primary" />
+                    </button>
+                  </div>
+                  <div 
+                    ref={goodScrollRef}
+                    className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
+                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                  >
                     {[
-                      { title: "Space", score: 85 },
-                      { title: "Magic", score: 83 },
+                      { title: "Shopping", score: 85 },
+                      { title: "Travel", score: 83 },
+                      { title: "Business", score: 88 },
                     ].map((topic, index) => (
-                      <Card key={index} className="overflow-hidden border-2">
-                        <div className="aspect-[4/3] bg-gradient-to-br from-blue-200 to-blue-300" />
+                      <Card key={index} className="flex-shrink-0 w-64 overflow-hidden border-2">
+                        <div className="aspect-[4/3] bg-gradient-to-br from-green-200 to-green-300" />
                         <div className="p-3">
                           <h4 className="font-semibold text-base mb-1.5">{topic.title}</h4>
                           <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
                             Learn vocabulary used in everyday eating, cooking, and ordering food in real situations.
                           </p>
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1.5 mb-3">
                             <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-900 text-[10px] font-medium">
                               Daily Life
                             </span>
                             <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-medium">
-                              A1
-                            </span>
-                            <span className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-900 text-[10px] font-medium">
                               A2
                             </span>
+                            <span className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-900 text-[10px] font-medium">
+                              Score: {topic.score}
+                            </span>
+                          </div>
+                          <div className="flex gap-1.5">
+                            <Button variant="outline" size="sm" className="flex-1 text-xs h-7 gap-1">
+                              <Eye className="h-3 w-3" />
+                              View result
+                            </Button>
+                            <Button size="sm" className="flex-1 text-xs h-7 gap-1">
+                              <RotateCcw className="h-3 w-3" />
+                              Speak again
+                            </Button>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-bold">Average range score topic (60-80):</h3>
+                    <button
+                      onClick={() => scrollRight(averageScrollRef)}
+                      className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
+                    >
+                      <ChevronRight className="h-5 w-5 text-primary" />
+                    </button>
+                  </div>
+                  <div 
+                    ref={averageScrollRef}
+                    className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
+                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                  >
+                    {[
+                      { title: "Healthcare", score: 72 },
+                      { title: "Education", score: 68 },
+                      { title: "Sports", score: 75 },
+                    ].map((topic, index) => (
+                      <Card key={index} className="flex-shrink-0 w-64 overflow-hidden border-2">
+                        <div className="aspect-[4/3] bg-gradient-to-br from-yellow-200 to-yellow-300" />
+                        <div className="p-3">
+                          <h4 className="font-semibold text-base mb-1.5">{topic.title}</h4>
+                          <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+                            Learn vocabulary used in everyday eating, cooking, and ordering food in real situations.
+                          </p>
+                          <div className="flex items-center gap-1.5 mb-3">
+                            <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-900 text-[10px] font-medium">
+                              Daily Life
+                            </span>
+                            <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-medium">
+                              B1
+                            </span>
+                            <span className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-900 text-[10px] font-medium">
+                              Score: {topic.score}
+                            </span>
+                          </div>
+                          <div className="flex gap-1.5">
+                            <Button variant="outline" size="sm" className="flex-1 text-xs h-7 gap-1">
+                              <Eye className="h-3 w-3" />
+                              View result
+                            </Button>
+                            <Button size="sm" className="flex-1 text-xs h-7 gap-1">
+                              <RotateCcw className="h-3 w-3" />
+                              Speak again
+                            </Button>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-xl font-bold">Needs improvement (&lt; 60):</h3>
+                    <button
+                      onClick={() => scrollRight(poorScrollRef)}
+                      className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
+                    >
+                      <ChevronRight className="h-5 w-5 text-primary" />
+                    </button>
+                  </div>
+                  <div 
+                    ref={poorScrollRef}
+                    className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
+                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                  >
+                    {[
+                      { title: "Interviews", score: 52 },
+                      { title: "Presentations", score: 48 },
+                      { title: "Negotiations", score: 55 },
+                    ].map((topic, index) => (
+                      <Card key={index} className="flex-shrink-0 w-64 overflow-hidden border-2">
+                        <div className="aspect-[4/3] bg-gradient-to-br from-red-200 to-red-300" />
+                        <div className="p-3">
+                          <h4 className="font-semibold text-base mb-1.5">{topic.title}</h4>
+                          <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+                            Learn vocabulary used in everyday eating, cooking, and ordering food in real situations.
+                          </p>
+                          <div className="flex items-center gap-1.5 mb-3">
+                            <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-900 text-[10px] font-medium">
+                              Professional
+                            </span>
+                            <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-medium">
+                              B2
+                            </span>
+                            <span className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-900 text-[10px] font-medium">
+                              Score: {topic.score}
+                            </span>
+                          </div>
+                          <div className="flex gap-1.5">
+                            <Button variant="outline" size="sm" className="flex-1 text-xs h-7 gap-1">
+                              <Eye className="h-3 w-3" />
+                              View result
+                            </Button>
+                            <Button size="sm" className="flex-1 text-xs h-7 gap-1">
+                              <RotateCcw className="h-3 w-3" />
+                              Speak again
+                            </Button>
                           </div>
                         </div>
                       </Card>

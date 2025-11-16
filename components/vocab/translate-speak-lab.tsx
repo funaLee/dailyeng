@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Mic, Check, X, Trophy, Star } from "lucide-react"
+import { Mic, Check, X, Trophy, Star } from 'lucide-react'
 
 interface TranslateSpeakLabProps {
   topicTitle: string
@@ -245,7 +245,7 @@ export function TranslateSpeakLab({ topicTitle }: TranslateSpeakLabProps) {
               <div className="space-y-2">
                 <div className="h-2 bg-secondary rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-blue-600 via-blue-400 to-blue-300 transition-all duration-300"
+                    className="h-full bg-gradient-to-r from-blue-600 via-blue-400 to-blue-300 transition-all duration-500 ease-out shadow-md"
                     style={{ width: `${((currentSentence + 1) / totalSentences) * 100}%` }}
                   />
                 </div>
