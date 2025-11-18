@@ -2,30 +2,14 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import {
-  BookOpen,
-  FileText,
-  Link2,
-  MessageSquare,
-  Zap,
-  FileCheck,
-  LinkIcon,
-  Volume2,
-  Info,
-  Edit,
-  Plus,
-  Search,
-  ChevronLeft,
-  ChevronRight,
-  Star,
-} from "lucide-react"
+import { BookOpen, FileText, Link2, MessageSquare, Zap, FileCheck, LinkIcon, Volume2, Info, Edit, Plus, Search, ChevronLeft, ChevronRight, Star, Mic, Square } from 'lucide-react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 type Collection = {
@@ -57,6 +41,10 @@ export default function NotebookPage() {
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
   const [currentCardIndex, setCurrentCardIndex] = useState(0)
   const [showAnswer, setShowAnswer] = useState(false)
+  const [isFlipped, setIsFlipped] = useState(false)
+  const [shadowingOpen, setShadowingOpen] = useState(false)
+  const [currentSentence, setCurrentSentence] = useState(0)
+  const [isRecording, setIsRecording] = useState(false)
 
   const collections: Collection[] = [
     { id: "vocabulary", name: "Vocabulary", icon: <BookOpen className="h-4 w-4" />, count: 247 },
@@ -145,6 +133,22 @@ export default function NotebookPage() {
 
   const dueCount = 15
 
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.code === "Space" && viewMode === "flashcards") {
+        e.preventDefault()
+        setIsFlipped(!isFlipped)
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyPress)
+    return () => window.removeEventListener("keydown", handleKeyPress)
+  }, [isFlipped, viewMode])
+
+  useEffect(() => {
+    setIsFlipped(false)
+  }, [currentCardIndex])
+
   const handleNextCard = () => {
     if (currentCardIndex < filteredItems.length - 1) {
       setCurrentCardIndex(currentCardIndex + 1)
@@ -157,6 +161,10 @@ export default function NotebookPage() {
       setCurrentCardIndex(currentCardIndex - 1)
       setShowAnswer(false)
     }
+  }
+
+  const handleRecording = () => {
+    setIsRecording(!isRecording)
   }
 
   const currentItem = filteredItems[currentCardIndex]
@@ -311,79 +319,134 @@ export default function NotebookPage() {
 
             {viewMode === "flashcards" && currentItem && (
               <div className="max-w-4xl mx-auto">
-                <Card className="p-8 min-h-[500px]">
-                  {/* Card Header */}
-                  <div className="flex items-start justify-between mb-6">
-                    <div className="flex items-center gap-3">
-                      <h2 className="text-3xl font-bold">{currentItem.word}</h2>
-                      <Badge variant="secondary">{currentItem.partOfSpeech}</Badge>
-                      <Badge variant="outline">{currentItem.level}</Badge>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground">New</span>
-                        <div className="w-32 h-2 bg-secondary rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-primary transition-all"
-                            style={{ width: `${currentItem.masteryLevel}%` }}
-                          />
+                <div
+                  className="perspective-1000 cursor-pointer mb-8"
+                  onClick={() => setIsFlipped(!isFlipped)}
+                  style={{ perspective: "1000px" }}
+                >
+                  <div
+                    className="relative w-full h-[500px] transition-transform duration-500 preserve-3d"
+                    style={{
+                      transformStyle: "preserve-3d",
+                      transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+                    }}
+                  >
+                    <Card
+                      className="absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8"
+                      style={{ backfaceVisibility: "hidden" }}
+                    >
+                      <div className="text-center space-y-6">
+                        <h2 className="text-5xl font-bold">{currentItem.word}</h2>
+                        <div className="flex items-center gap-3 justify-center">
+                          <Badge variant="secondary" className="text-lg px-4 py-1">
+                            {currentItem.partOfSpeech}
+                          </Badge>
+                          <Badge variant="outline" className="text-lg px-4 py-1">
+                            {currentItem.level}
+                          </Badge>
                         </div>
-                        <span className="text-xs text-muted-foreground">Mastered</span>
-                      </div>
-                      <Button size="sm" variant="ghost" className="h-8 w-8 rounded-full p-0">
-                        <Star className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  <p className="text-lg text-muted-foreground mb-8">{currentItem.pronunciation}</p>
-
-                  {/* Card Content */}
-                  <div className="grid md:grid-cols-2 gap-8">
-                    <div>
-                      <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-3">Meaning</h3>
-                      <div className="space-y-2">
-                        {currentItem.meaning.map((m, idx) => (
-                          <div key={idx} className="flex gap-2">
-                            <div className="h-6 w-6 rounded-full bg-slate-300 flex-shrink-0" />
-                            <p className="text-sm">{m}</p>
+                        <div className="flex items-center gap-2 justify-center mt-8">
+                          <span className="text-sm text-muted-foreground">
+                            {currentItem.masteryLevel < 30 ? "New" : currentItem.masteryLevel < 70 ? "Learning" : "Mastered"}
+                          </span>
+                          <div className="w-48 h-3 bg-secondary rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-primary transition-all"
+                              style={{ width: `${currentItem.masteryLevel}%` }}
+                            />
                           </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-3">Vietnamese</h3>
-                      <div className="space-y-2">
-                        {currentItem.vietnamese.map((v, idx) => (
-                          <div key={idx} className="flex gap-2">
-                            <div className="h-6 w-6 rounded-full bg-blue-300 flex-shrink-0" />
-                            <p className="text-sm">{v}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Examples */}
-                  <div className="mt-8">
-                    <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-3">Example</h3>
-                    <div className="space-y-2">
-                      {currentItem.examples.map((ex, idx) => (
-                        <div key={idx} className="flex gap-2">
-                          <div className="h-6 w-6 rounded-full bg-slate-300 flex-shrink-0" />
-                          <p className="text-sm italic">"{ex.en}"</p>
                         </div>
-                      ))}
-                    </div>
-                    <Button variant="outline" size="sm" className="mt-4 bg-transparent">
-                      shadowing these sentences
-                    </Button>
-                  </div>
-                </Card>
+                        <p className="text-sm text-muted-foreground mt-8">Click or press Space to flip</p>
+                      </div>
+                    </Card>
 
-                {/* Navigation */}
-                <div className="flex justify-center items-center gap-4 mt-6">
+                    <Card
+                      className="absolute inset-0 backface-hidden p-8 overflow-y-auto"
+                      style={{
+                        backfaceVisibility: "hidden",
+                        transform: "rotateY(180deg)",
+                      }}
+                    >
+                      <div className="space-y-6">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            <h2 className="text-3xl font-bold">{currentItem.word}</h2>
+                            <Badge variant="secondary">{currentItem.partOfSpeech}</Badge>
+                            <Badge variant="outline">{currentItem.level}</Badge>
+                          </div>
+                          <Button size="sm" variant="ghost" className="h-8 w-8 rounded-full p-0">
+                            <Star className="h-4 w-4" />
+                          </Button>
+                        </div>
+
+                        <p className="text-lg text-muted-foreground">{currentItem.pronunciation}</p>
+
+                        <div className="grid md:grid-cols-2 gap-6">
+                          <div>
+                            <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-3">Meaning</h3>
+                            <div className="space-y-2">
+                              {currentItem.meaning.map((m, idx) => (
+                                <div key={idx} className="flex gap-2">
+                                  <div className="h-6 w-6 rounded-full bg-blue-100 flex-shrink-0 flex items-center justify-center text-xs font-semibold text-blue-700">
+                                    {idx + 1}
+                                  </div>
+                                  <p className="text-sm">{m}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div>
+                            <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-3">Vietnamese</h3>
+                            <div className="space-y-2">
+                              {currentItem.vietnamese.map((v, idx) => (
+                                <div key={idx} className="flex gap-2">
+                                  <div className="h-6 w-6 rounded-full bg-green-100 flex-shrink-0 flex items-center justify-center text-xs font-semibold text-green-700">
+                                    {idx + 1}
+                                  </div>
+                                  <p className="text-sm">{v}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-3">Examples</h3>
+                          <div className="space-y-3">
+                            {currentItem.examples.map((ex, idx) => (
+                              <div key={idx} className="bg-muted/50 rounded-lg p-3 space-y-1">
+                                <p className="text-sm italic">"{ex.en}"</p>
+                                <p className="text-sm text-muted-foreground">"{ex.vi}"</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="pt-4">
+                          <Button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setShadowingOpen(true)
+                              setCurrentSentence(0)
+                            }}
+                            variant="outline"
+                            className="gap-2 bg-transparent"
+                          >
+                            <Mic className="h-4 w-4" />
+                            shadowing these sentences
+                          </Button>
+                        </div>
+
+                        <p className="text-sm text-muted-foreground text-center pt-4">
+                          Click or press Space to flip back
+                        </p>
+                      </div>
+                    </Card>
+                  </div>
+                </div>
+
+                <div className="flex justify-center items-center gap-4">
                   <Button
                     size="icon"
                     variant="outline"
@@ -393,6 +456,9 @@ export default function NotebookPage() {
                   >
                     <ChevronLeft className="h-5 w-5" />
                   </Button>
+                  <span className="text-sm font-medium">
+                    {currentCardIndex + 1} / {filteredItems.length}
+                  </span>
                   <Button
                     size="icon"
                     variant="outline"
@@ -424,7 +490,6 @@ export default function NotebookPage() {
                   </Button>
                 </Card>
 
-                {/* Stats */}
                 <div className="grid grid-cols-3 gap-4 mt-6">
                   <Card className="p-4 text-center">
                     <p className="text-2xl font-bold text-blue-500">247</p>
@@ -498,6 +563,71 @@ export default function NotebookPage() {
                   </Button>
                 </div>
               )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={shadowingOpen} onOpenChange={setShadowingOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-center mb-6">Shadowing this sentence</DialogTitle>
+          </DialogHeader>
+          {currentItem && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between mb-4">
+                <Button
+                  size="icon"
+                  variant="outline"
+                  onClick={() => setCurrentSentence(Math.max(0, currentSentence - 1))}
+                  disabled={currentSentence === 0}
+                  className="rounded-full"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                <span className="text-sm font-medium">
+                  Câu {currentSentence + 1} / {currentItem.examples.length}
+                </span>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  onClick={() => setCurrentSentence(Math.min(currentItem.examples.length - 1, currentSentence + 1))}
+                  disabled={currentSentence === currentItem.examples.length - 1}
+                  className="rounded-full"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
+              </div>
+
+              <Card className="p-6 bg-muted/30">
+                <p className="text-xl mb-4">{currentItem.examples[currentSentence].en}</p>
+                <p className="text-base text-muted-foreground">{currentItem.examples[currentSentence].vi}</p>
+              </Card>
+
+              <div className="flex flex-col items-center gap-4">
+                <Button
+                  size="lg"
+                  variant={isRecording ? "destructive" : "default"}
+                  onClick={handleRecording}
+                  className="h-24 w-24 rounded-full"
+                >
+                  {isRecording ? <Square className="h-8 w-8" /> : <Mic className="h-8 w-8" />}
+                </Button>
+                <p className="text-sm text-muted-foreground">
+                  {isRecording ? "Recording... Click to stop" : "Click to start recording"}
+                </p>
+              </div>
+
+              <div className="flex justify-center gap-2">
+                <Button variant="outline" className="gap-2">
+                  <Volume2 className="h-4 w-4" />
+                  Play Original
+                </Button>
+                <Button variant="outline" className="gap-2" disabled={!isRecording}>
+                  <Volume2 className="h-4 w-4" />
+                  Play Recording
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>
