@@ -12,6 +12,7 @@ import { useAppStore } from "@/lib/store"
 import { ArrowLeft, BarChart3, BookOpen, Download, Play, RotateCcw, User, Bot, Volume2, Copy, Check, Mic, MoreVertical, RefreshCw } from 'lucide-react'
 import Link from "next/link"
 import Image from "next/image"
+import VocabHelperChatbot from "@/components/speaking/vocab-helper-chatbot" // Import the new component
 
 interface Turn {
   id: string
@@ -352,146 +353,154 @@ export default function SpeakingSessionPage() {
 
   if (viewState === "active") {
     return (
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
-        <Card className="p-8">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={() => setViewState("preparation")}
-              className="rounded-xl"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            
-            <h1 className="text-2xl font-bold text-center">{scenario.title || "Share about your dream house"}</h1>
-            
-            <div className="flex gap-2">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        {/*
+        */}
+        <div className="grid grid-cols-3 gap-6">
+          {/* Main Speaking Section - Without wrapping Card */}
+          <div className="rounded-2xl border bg-card p-8 col-span-2">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
               <Button 
                 variant="ghost" 
                 size="icon"
+                onClick={() => setViewState("preparation")}
                 className="rounded-xl"
               >
-                <RefreshCw className="h-5 w-5" />
+                <ArrowLeft className="h-5 w-5" />
               </Button>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="rounded-xl"
+              
+              <h1 className="text-2xl font-bold text-center">{scenario.title || "Share about your dream house"}</h1>
+              
+              <div className="flex gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  className="rounded-xl"
+                >
+                  <RefreshCw className="h-5 w-5" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  className="rounded-xl"
+                >
+                  <MoreVertical className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Situation Description */}
+            <div className="mb-6">
+              <h3 className="font-bold mb-2">Situation Description</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                In a shabby room, A dreams of a mansion with countless rooms: a game room, a cinema room, and a spa. B dreams of a cottage surrounded by flowers and butterflies. While they are arguing, the power suddenly goes out, and the sounds of neighbors complaining bring them both back to reality.
+              </p>
+            </div>
+
+            {/* Objectives */}
+            <div className="mb-8">
+              <h3 className="font-bold mb-3">Objectives</h3>
+              <ol className="space-y-2 text-sm">
+                <li>1. Express frustration with the small rented room.</li>
+                <li>2. Describe your dream house.</li>
+                <li>3. Compare and discuss the two types of houses.</li>
+              </ol>
+            </div>
+
+            {/* Conversation Area */}
+            <div className="space-y-4 mb-8 min-h-[300px]">
+              {turns.map((turn) => (
+                <div key={turn.id} className={`flex ${turn.role === "user" ? "justify-end" : "justify-start"}`}>
+                  <div className="flex gap-3 max-w-lg">
+                    {turn.role === "tutor" && (
+                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                        <Bot className="h-5 w-5 text-blue-600" />
+                      </div>
+                    )}
+                    
+                    <div className="flex-1">
+                      <div className={`rounded-2xl px-4 py-3 ${
+                        turn.role === "user" 
+                          ? "bg-blue-50 border border-gray-200" 
+                          : "bg-gray-100 border border-gray-200"
+                      }`}>
+                        <p className="text-sm leading-relaxed">{turn.text}</p>
+                      </div>
+                      
+                      {/* Action buttons below message */}
+                      <div className="flex gap-2 mt-2 ml-2">
+                        <button
+                          onClick={() => {
+                            if ("speechSynthesis" in window) {
+                              const utterance = new SpeechSynthesisUtterance(turn.text)
+                              utterance.lang = "en-US"
+                              window.speechSynthesis.speak(utterance)
+                            }
+                          }}
+                          className="w-8 h-8 rounded-full bg-blue-100 hover:bg-blue-200 flex items-center justify-center transition-colors"
+                          aria-label="Speak"
+                        >
+                          <Volume2 className="h-4 w-4 text-blue-600" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(turn.text)
+                            setCopiedId(turn.id)
+                            setTimeout(() => setCopiedId(null), 2000)
+                          }}
+                          className="w-8 h-8 rounded-full bg-blue-100 hover:bg-blue-200 flex items-center justify-center transition-colors"
+                          aria-label="Copy"
+                        >
+                          {copiedId === turn.id ? (
+                            <Check className="h-4 w-4 text-blue-600" />
+                          ) : (
+                            <Copy className="h-4 w-4 text-blue-600" />
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    {turn.role === "user" && (
+                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
+                        <User className="h-5 w-5 text-white" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {turns.length === 0 && (
+                <div className="text-center py-12 text-muted-foreground">
+                  <p className="mb-2">Ready to start speaking?</p>
+                  <p className="text-sm">Tap the microphone button below to begin</p>
+                </div>
+              )}
+            </div>
+
+            {/* Tap to Speak Button */}
+            <div className="flex flex-col items-center gap-2">
+              <p className="text-sm text-muted-foreground">Tap to speak</p>
+              <button
+                onClick={handleToggleRecording}
+                className={`w-20 h-20 rounded-full flex items-center justify-center transition-all ${
+                  isRecording 
+                    ? "bg-red-500 hover:bg-red-600 animate-pulse" 
+                    : "bg-blue-100 hover:bg-blue-200"
+                }`}
+                aria-label={isRecording ? "Stop recording" : "Start recording"}
               >
-                <MoreVertical className="h-5 w-5" />
-              </Button>
+                <Mic className={`h-10 w-10 ${isRecording ? "text-white" : "text-blue-600"}`} />
+              </button>
+              {isRecording && (
+                <p className="text-sm text-red-500 font-medium animate-pulse">Recording...</p>
+              )}
             </div>
           </div>
 
-          {/* Situation Description */}
-          <div className="mb-6">
-            <h3 className="font-bold mb-2">Situation Description</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              In a shabby room, A dreams of a mansion with countless rooms: a game room, a cinema room, and a spa. B dreams of a cottage surrounded by flowers and butterflies. While they are arguing, the power suddenly goes out, and the sounds of neighbors complaining bring them both back to reality.
-            </p>
-          </div>
-
-          {/* Objectives */}
-          <div className="mb-8">
-            <h3 className="font-bold mb-3">Objectives</h3>
-            <ol className="space-y-2 text-sm">
-              <li>1. Express frustration with the small rented room.</li>
-              <li>2. Describe your dream house.</li>
-              <li>3. Compare and discuss the two types of houses.</li>
-            </ol>
-          </div>
-
-          {/* Conversation Area */}
-          <div className="space-y-4 mb-8 min-h-[300px]">
-            {turns.map((turn) => (
-              <div key={turn.id} className={`flex ${turn.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div className="flex gap-3 max-w-lg">
-                  {turn.role === "tutor" && (
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                      <Bot className="h-5 w-5 text-blue-600" />
-                    </div>
-                  )}
-                  
-                  <div className="flex-1">
-                    <div className={`rounded-2xl px-4 py-3 ${
-                      turn.role === "user" 
-                        ? "bg-blue-50 border border-gray-200" 
-                        : "bg-gray-100 border border-gray-200"
-                    }`}>
-                      <p className="text-sm leading-relaxed">{turn.text}</p>
-                    </div>
-                    
-                    {/* Action buttons below message */}
-                    <div className="flex gap-2 mt-2 ml-2">
-                      <button
-                        onClick={() => {
-                          if ("speechSynthesis" in window) {
-                            const utterance = new SpeechSynthesisUtterance(turn.text)
-                            utterance.lang = "en-US"
-                            window.speechSynthesis.speak(utterance)
-                          }
-                        }}
-                        className="w-8 h-8 rounded-full bg-blue-100 hover:bg-blue-200 flex items-center justify-center transition-colors"
-                        aria-label="Speak"
-                      >
-                        <Volume2 className="h-4 w-4 text-blue-600" />
-                      </button>
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(turn.text)
-                          setCopiedId(turn.id)
-                          setTimeout(() => setCopiedId(null), 2000)
-                        }}
-                        className="w-8 h-8 rounded-full bg-blue-100 hover:bg-blue-200 flex items-center justify-center transition-colors"
-                        aria-label="Copy"
-                      >
-                        {copiedId === turn.id ? (
-                          <Check className="h-4 w-4 text-blue-600" />
-                        ) : (
-                          <Copy className="h-4 w-4 text-blue-600" />
-                        )}
-                      </button>
-                    </div>
-                  </div>
-
-                  {turn.role === "user" && (
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
-                      <User className="h-5 w-5 text-white" />
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-
-            {turns.length === 0 && (
-              <div className="text-center py-12 text-muted-foreground">
-                <p className="mb-2">Ready to start speaking?</p>
-                <p className="text-sm">Tap the microphone button below to begin</p>
-              </div>
-            )}
-          </div>
-
-          {/* Tap to Speak Button */}
-          <div className="flex flex-col items-center gap-2">
-            <p className="text-sm text-muted-foreground">Tap to speak</p>
-            <button
-              onClick={handleToggleRecording}
-              className={`w-20 h-20 rounded-full flex items-center justify-center transition-all ${
-                isRecording 
-                  ? "bg-red-500 hover:bg-red-600 animate-pulse" 
-                  : "bg-blue-100 hover:bg-blue-200"
-              }`}
-              aria-label={isRecording ? "Stop recording" : "Start recording"}
-            >
-              <Mic className={`h-10 w-10 ${isRecording ? "text-white" : "text-blue-600"}`} />
-            </button>
-            {isRecording && (
-              <p className="text-sm text-red-500 font-medium animate-pulse">Recording...</p>
-            )}
-          </div>
-        </Card>
+          {/* Vocabulary Helper Chatbot - Sibling column */}
+          <VocabHelperChatbot />
+        </div>
       </div>
     )
   }

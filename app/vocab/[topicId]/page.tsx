@@ -157,7 +157,7 @@ export default function TopicDetailPage() {
           <div className="space-y-6">
             <h2 className="text-2xl font-bold">Learn Vocabulary</h2>
 
-            <div className="grid lg:grid-cols-3 gap-6">
+            <div className="grid lg:grid-cols-4 gap-6">
               {/* Left Column: Word List */}
               <div
                 ref={wordListRef}
@@ -186,7 +186,7 @@ export default function TopicDetailPage() {
               </div>
 
               {/* Right Column: Word Details */}
-              <div className="lg:col-span-2 space-y-6">
+              <div className="lg:col-span-3 space-y-6">
                 {selectedWord ? (
                   <Card className="p-6 space-y-4">
                     <div className="flex items-start justify-between">
@@ -206,33 +206,43 @@ export default function TopicDetailPage() {
                       </div>
                     </div>
 
-                    <div>
-                      <p className="text-xs font-semibold text-muted-foreground mb-2">MEANING</p>
-                      <div className="space-y-2">
-                        <div className="flex gap-2">
-                          <div className="h-2 w-2 rounded-full bg-gray-400 mt-1.5" />
-                          <p className="text-sm">{selectedWord.meaning}</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <div className="h-2 w-2 rounded-full bg-blue-400 mt-1.5" />
-                          <p className="text-sm">
-                            the way a person, an animal, a plant, a chemical, etc. behaves or functions in a particular
-                            situation
-                          </p>
+                    <div className="grid md:grid-cols-2 gap-6">
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground mb-3">MEANING</p>
+                        <div className="space-y-3">
+                          <div className="flex gap-2">
+                            <div className="h-6 w-6 rounded-full bg-gray-400 text-white flex-shrink-0 flex items-center justify-center text-xs font-semibold">
+                              1
+                            </div>
+                            <p className="text-sm">{selectedWord.meaning}</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <div className="h-6 w-6 rounded-full bg-blue-400 text-white flex-shrink-0 flex items-center justify-center text-xs font-semibold">
+                              2
+                            </div>
+                            <p className="text-sm">
+                              the way a person, an animal, a plant, a chemical, etc. behaves or functions in a particular
+                              situation
+                            </p>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div>
-                      <p className="text-xs font-semibold text-muted-foreground mb-2">VIETNAMESE</p>
-                      <div className="space-y-2">
-                        <div className="flex gap-2">
-                          <div className="h-2 w-2 rounded-full bg-gray-400 mt-1.5" />
-                          <p className="text-sm">Hành vi / cách cư xử (đối với người khác)</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <div className="h-2 w-2 rounded-full bg-blue-400 mt-1.5" />
-                          <p className="text-sm">Cách hoạt động / phản ứng (trong một tình huống cụ thể)</p>
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground mb-3">VIETNAMESE</p>
+                        <div className="space-y-3">
+                          <div className="flex gap-2">
+                            <div className="h-6 w-6 rounded-full bg-gray-400 text-white flex-shrink-0 flex items-center justify-center text-xs font-semibold">
+                              1
+                            </div>
+                            <p className="text-sm">Hành vi / cách cư xử (đối với người khác)</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <div className="h-6 w-6 rounded-full bg-blue-400 text-white flex-shrink-0 flex items-center justify-center text-xs font-semibold">
+                              2
+                            </div>
+                            <p className="text-sm">Cách hoạt động / phản ứng (trong một tình huống cụ thể)</p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -241,14 +251,18 @@ export default function TopicDetailPage() {
                       <p className="text-xs font-semibold text-muted-foreground mb-2">EXAMPLE</p>
                       <div className="space-y-2">
                         <div className="flex gap-2 items-start">
-                          <div className="h-2 w-2 rounded-full bg-gray-400 mt-1.5" />
+                          <div className="h-6 w-6 rounded-full bg-gray-400 text-white flex-shrink-0 flex items-center justify-center text-xs font-semibold">
+                            1
+                          </div>
                           <div className="flex-1">
                             <p className="text-sm italic mb-1">"{selectedWord.exampleSentence}"</p>
                             <p className="text-sm text-muted-foreground">"{selectedWord.exampleTranslation}"</p>
                           </div>
                         </div>
                         <div className="flex gap-2 items-start">
-                          <div className="h-2 w-2 rounded-full bg-blue-400 mt-1.5" />
+                          <div className="h-6 w-6 rounded-full bg-blue-400 text-white flex-shrink-0 flex items-center justify-center text-xs font-semibold">
+                            2
+                          </div>
                           <div className="flex-1">
                             <p className="text-sm italic mb-1">"Animals in zoos often display disturbed behaviour."</p>
                             <p className="text-sm text-muted-foreground">
