@@ -331,9 +331,9 @@ export default function StudyPlanPage() {
         </Card>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-6">
+      <div className="grid lg:grid-cols-3 gap-6">
         {/* Left Column: My Study Plans */}
-        <Card className="p-6">
+        <Card className="p-6 col-span-1">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold">My Study Plans</h2>
             <Button size="sm">
@@ -389,7 +389,7 @@ export default function StudyPlanPage() {
         </Card>
 
         {/* Right Column: Study Plan Detail */}
-        <Card className="p-6">
+        <Card className="p-6 col-span-2">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold">Study Plan Detail</h2>
             <Button variant="outline" size="sm" onClick={() => setShowSettings(!showSettings)}>
