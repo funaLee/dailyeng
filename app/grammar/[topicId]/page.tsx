@@ -26,7 +26,23 @@ export default function GrammarTopicPage() {
   const [masterySelected, setMasterySelected] = useState(false)
 
   useEffect(() => {
-    const notes = mockGrammar[topicId] || []
+    let notes = mockGrammar[topicId] || []
+    
+    // Fallback for id format mismatches (e.g., "g1" -> "1")
+    if (notes.length === 0 && topicId?.startsWith("g")) {
+      const numericId = topicId.slice(1)
+      notes = mockGrammar[numericId] || []
+    }
+    
+    if (notes.length === 0) {
+      // Try numeric fallback directly
+      notes = mockGrammar[topicId.replace(/\D/g, "")] || []
+    }
+    
+    if (notes.length === 0) {
+      console.warn("Grammar notes not found for topicId:", topicId, "available keys:", Object.keys(mockGrammar))
+    }
+    
     setGrammarNotes(notes)
     if (notes.length > 0) {
       setSelectedNote(notes[0])
@@ -34,13 +50,15 @@ export default function GrammarTopicPage() {
     }
   }, [topicId])
 
+  const lookupId = topicId?.startsWith("g") ? topicId.slice(1) : topicId
+
   const topic = {
     id: topicId,
-    title: topicId === "1" ? "Travel Grammar" : topicId === "2" ? "Food & Dining Grammar" : "Job Interview Grammar",
+    title: lookupId === "1" ? "Travel Grammar" : lookupId === "2" ? "Food & Dining Grammar" : "Job Interview Grammar",
     description:
-      topicId === "1"
+      lookupId === "1"
         ? "Master grammar rules for travel conversations"
-        : topicId === "2"
+        : lookupId === "2"
           ? "Learn grammar for food and dining situations"
           : "Professional grammar for job interviews",
     level: "A2",
@@ -290,15 +308,15 @@ export default function GrammarTopicPage() {
         {activeTab === "listening" && (
           <div>
             <h2 className="text-2xl font-bold mb-6">Listening Practice</h2>
-            <ListeningSection topicTitle={topic.title} tasks={mockListeningTasks[topicId] || []} />
+            <ListeningSection topicTitle={topic.title} tasks={mockListeningTasks[lookupId] || []} />
           </div>
         )}
 
         {activeTab === "reading" && (
           <div>
             <h2 className="text-2xl font-bold mb-6">Reading Practice</h2>
-            {mockReadingPassages[topicId] ? (
-              <ReadingSection passage={mockReadingPassages[topicId]} />
+            {mockReadingPassages[lookupId] ? (
+              <ReadingSection passage={mockReadingPassages[lookupId]} />
             ) : (
               <Card className="p-8 text-center">
                 <BookMarked className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -357,7 +375,7 @@ export default function GrammarTopicPage() {
         {activeTab === "quiz" && (
           <div>
             <h2 className="text-2xl font-bold mb-6">Quiz</h2>
-            <QuizSection items={mockQuizzes[topicId] || []} />
+            <QuizSection items={mockQuizzes[lookupId] || []} />
           </div>
         )}
       </div>
