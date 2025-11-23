@@ -11,13 +11,8 @@ import { useAppStore } from "@/lib/store"
 const navItems = [
   { href: "/", label: "Home" },
   { href: "/speaking", label: "Speaking Room" },
-  {
-    label: "Language Lab",
-    dropdown: [
-      { href: "/vocab", label: "Vocabulary Hub" },
-      { href: "/grammar", label: "Grammar" },
-    ],
-  },
+  { href: "/vocab", label: "Vocabulary Hub" },
+  { href: "/grammar", label: "Grammar Hub" },
   { href: "/notebook", label: "Notebook" },
   { href: "/plan", label: "Study Plan" },
 ]
