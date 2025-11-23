@@ -251,8 +251,27 @@ export default function SpeakingRoomPage() {
   const poorScrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    setScenarios(mockScenarios)
-    setLoading(false)
+    const fetchScenarios = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/speaking/scenarios')
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch scenarios')
+        }
+        
+        const data = await response.json()
+        setScenarios(data)
+      } catch (error) {
+        console.error('Error fetching scenarios:', error)
+        // Fallback to mock data if API fails
+        setScenarios(mockScenarios)
+      } finally {
+        setLoading(false)
+      }
+    }
+    
+    fetchScenarios()
   }, [])
 
   const filteredScenarios = scenarios.filter((scenario) => {
