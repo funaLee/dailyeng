@@ -13,8 +13,7 @@ import {
   MessageSquarePlus,
   Search,
   ChevronRight,
-  Eye,
-  RotateCcw,
+  ChevronLeft,
   MessageCircle,
   Sparkles,
   Clock,
@@ -23,6 +22,7 @@ import {
   Plus,
 } from "lucide-react"
 import { RadarChart } from "@/components/speaking/radar-chart"
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 import { useState, useEffect, useRef } from "react"
 
 const CEFR_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"]
@@ -152,6 +152,86 @@ const DEMO_TOPICS = [
   { title: "Negotiations", score: 55 },
 ]
 
+const HISTORY_GRAPH_DATA = Array.from({ length: 50 }, (_, i) => ({
+  session: i + 1,
+  score: Math.floor(Math.random() * 40) + 60 + (i % 5) * 2, // Random score between 60-100 with some trend
+}))
+
+const HISTORY_TOPICS_DATA = [
+  {
+    id: 1,
+    title: "Space Exploration",
+    description: "Learn vocabulary used in space travel, astronomy, and scientific discovery.",
+    score: 95,
+    date: "2024-03-10",
+    tags: ["Science", "B2"],
+    image: "/placeholder.svg?height=150&width=250",
+  },
+  {
+    id: 2,
+    title: "Magic & Fantasy",
+    description: "Discuss magical worlds, spells, and fantasy creatures in descriptive English.",
+    score: 92,
+    date: "2024-03-09",
+    tags: ["Fiction", "C1"],
+    image: "/placeholder.svg?height=150&width=250",
+  },
+  {
+    id: 3,
+    title: "Future Technology",
+    description: "Debate the implications of AI, robotics, and future tech trends.",
+    score: 94,
+    date: "2024-03-08",
+    tags: ["Tech", "C1"],
+    image: "/placeholder.svg?height=150&width=250",
+  },
+  {
+    id: 4,
+    title: "Sustainable Living",
+    description: "Talk about eco-friendly habits and saving the planet.",
+    score: 91,
+    date: "2024-03-05",
+    tags: ["Environment", "B2"],
+    image: "/placeholder.svg?height=150&width=250",
+  },
+  {
+    id: 5,
+    title: "Job Interview",
+    description: "Practice answering common interview questions professionally.",
+    score: 85,
+    date: "2024-03-04",
+    tags: ["Business", "B2"],
+    image: "/placeholder.svg?height=150&width=250",
+  },
+  {
+    id: 6,
+    title: "Coffee Culture",
+    description: "Describe different types of coffee and café experiences.",
+    score: 88,
+    date: "2024-03-03",
+    tags: ["Daily Life", "A2"],
+    image: "/placeholder.svg?height=150&width=250",
+  },
+  {
+    id: 7,
+    title: "Travel Planning",
+    description: "Plan a trip, book hotels, and discuss itineraries.",
+    score: 82,
+    date: "2024-03-01",
+    tags: ["Travel", "B1"],
+    image: "/placeholder.svg?height=150&width=250",
+  },
+  {
+    id: 8,
+    title: "Movie Reviews",
+    description: "Share your opinions on recent movies and actors.",
+    score: 89,
+    date: "2024-02-28",
+    tags: ["Entertainment", "B1"],
+    image: "/placeholder.svg?height=150&width=250",
+  },
+]
+
 export default function SpeakingRoomPage() {
   const [scenarios, setScenarios] = useState<Scenario[]>([])
   const [loading, setLoading] = useState(true)
@@ -160,6 +240,11 @@ export default function SpeakingRoomPage() {
   const [selectedGroup, setSelectedGroup] = useState<string>("Daily Life")
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>("Shopping")
   const [activeTab, setActiveTab] = useState<TabType>("available")
+
+  const [historyFilter, setHistoryFilter] = useState<string>("excellent")
+  const [historyPage, setHistoryPage] = useState(1)
+  const itemsPerPage = 4
+
   const excellentScrollRef = useRef<HTMLDivElement>(null)
   const goodScrollRef = useRef<HTMLDivElement>(null)
   const averageScrollRef = useRef<HTMLDivElement>(null)
@@ -198,6 +283,25 @@ export default function SpeakingRoomPage() {
       }
     }
   }
+
+  const getFilteredHistory = () => {
+    switch (historyFilter) {
+      case "excellent":
+        return HISTORY_TOPICS_DATA.filter((t) => t.score >= 90)
+      case "good":
+        return HISTORY_TOPICS_DATA.filter((t) => t.score >= 80 && t.score < 90)
+      case "average":
+        return HISTORY_TOPICS_DATA.filter((t) => t.score >= 60 && t.score < 80)
+      case "improvement":
+        return HISTORY_TOPICS_DATA.filter((t) => t.score < 60)
+      default:
+        return HISTORY_TOPICS_DATA
+    }
+  }
+
+  const filteredHistory = getFilteredHistory()
+  const totalPages = Math.ceil(filteredHistory.length / itemsPerPage)
+  const currentHistoryItems = filteredHistory.slice((historyPage - 1) * itemsPerPage, historyPage * itemsPerPage)
 
   if (loading) {
     return (
@@ -538,258 +642,213 @@ export default function SpeakingRoomPage() {
       )}
 
       {activeTab === "history" && (
-        <Card className="p-12">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex items-center justify-between mb-8">
+        <Card className="p-8 lg:p-12 bg-white">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
               <h2 className="text-3xl font-bold">Review your speaking journey</h2>
-              <div className="relative max-w-sm">
+              <div className="relative w-full max-w-sm">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input placeholder="Search for the topic you have practiced" className="pl-10 bg-[#C2E2FA]/20" />
+                <Input
+                  placeholder="Search for the topic you have practiced"
+                  className="pl-10 bg-blue-50/50 border-blue-100 focus:ring-blue-500 focus:border-blue-500 rounded-xl"
+                />
               </div>
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-8 mb-12">
-              <div>
-                <h3 className="text-xl font-bold mb-6">Your 5 recent speaking result:</h3>
-                <div className="flex flex-col items-center mb-8">
-                  <div className="w-48 h-48 rounded-full bg-[#C2E2FA] flex items-center justify-center mb-4">
-                    <span className="text-6xl font-bold text-blue-900">81</span>
+            <div className="grid lg:grid-cols-12 gap-8 mb-16">
+              {/* Left Column: Overall Score & Radar Chart */}
+              <div className="lg:col-span-5 space-y-8">
+                <div>
+                  <h3 className="text-xl font-bold mb-6">Your 5 recent speaking result:</h3>
+                  <div className="flex flex-col items-center mb-8">
+                    <div className="w-40 h-40 rounded-full bg-gradient-to-br from-blue-200 to-blue-400 flex items-center justify-center mb-4 shadow-lg shadow-blue-100">
+                      <div className="w-36 h-36 rounded-full bg-white flex items-center justify-center">
+                        <span className="text-6xl font-bold text-blue-500">81</span>
+                      </div>
+                    </div>
+                    <p className="text-lg font-bold text-slate-800">Overall speaking score</p>
                   </div>
-                  <p className="text-lg font-semibold">Overall speaking score</p>
-                </div>
 
-                <Card className="p-8 bg-gray-50">
-                  <RadarChart
-                    data={[
-                      { label: "Relevance", value: 94 },
-                      { label: "Pronunciation", value: 82 },
-                      { label: "Intonation & Stress", value: 74 },
-                      { label: "Fluency", value: 76 },
-                      { label: "Grammar", value: 80 },
-                    ]}
-                    size={400}
-                    levels={5}
-                    className="w-full h-80"
-                  />
-                </Card>
+                  <div className="relative p-4 rounded-3xl border border-slate-200 bg-white shadow-sm">
+                    <RadarChart
+                      data={[
+                        { label: "Relevance", value: 94 },
+                        { label: "Pronunciation", value: 82 },
+                        { label: "Intonation & Stress", value: 74 },
+                        { label: "Fluency", value: 76 },
+                        { label: "Grammar", value: 80 },
+                      ]}
+                      size={350}
+                      levels={5}
+                      className="w-full aspect-square"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-8">
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold">Excellent range score topic (&gt; 90):</h3>
-                    <button
-                      onClick={() => scrollRight(excellentScrollRef)}
-                      className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
-                    >
-                      <ChevronRight className="h-5 w-5 text-primary" />
-                    </button>
-                  </div>
-                  <div ref={excellentScrollRef} className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-                    {[...Array(5)].map((_, index) => {
-                      const topic = DEMO_TOPICS[index % DEMO_TOPICS.length]
-                      return (
+              {/* Divider Line (visible on large screens) */}
+              <div className="hidden lg:block lg:col-span-1 flex justify-center">
+                <div className="h-full w-px bg-slate-200" />
+              </div>
+
+              {/* Right Column: Filtered Topic Grid */}
+              <div className="lg:col-span-6 flex flex-col h-full">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+                  <h3 className="text-xl font-bold whitespace-nowrap">
+                    {historyFilter === "excellent" && "Excellent range score topic (> 90):"}
+                    {historyFilter === "good" && "Good range score topic (80-90):"}
+                    {historyFilter === "average" && "Average range score topic (60-80):"}
+                    {historyFilter === "improvement" && "Needs improvement (< 60):"}
+                  </h3>
+                  <Select
+                    value={historyFilter}
+                    onValueChange={(val) => {
+                      setHistoryFilter(val)
+                      setHistoryPage(1)
+                    }}
+                  >
+                    <SelectTrigger className="w-[180px] rounded-xl border-slate-200 font-medium">
+                      <SelectValue placeholder="Select range" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="excellent">Excellent (&gt;90)</SelectItem>
+                      <SelectItem value="good">Good (80-90)</SelectItem>
+                      <SelectItem value="average">Average (60-80)</SelectItem>
+                      <SelectItem value="improvement">Improvement (&lt;60)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    {currentHistoryItems.length > 0 ? (
+                      currentHistoryItems.map((topic) => (
                         <Card
-                          key={index}
-                          className="group relative w-72 flex-shrink-0 overflow-hidden rounded-2xl border-slate-100 bg-white shadow-sm transition-all hover:shadow-xl dark:border-slate-800 dark:bg-slate-950"
+                          key={topic.id}
+                          className="overflow-hidden rounded-xl border border-slate-100 shadow-sm transition-all hover:shadow-md hover:border-blue-200 group"
                         >
-                          <div className="absolute right-3 top-3 z-10">
-                            <Badge className="bg-green-500 font-bold text-white shadow-sm hover:bg-green-600">
-                              Score: {topic.score}
-                            </Badge>
-                          </div>
-                          <div className="relative flex aspect-[2/1] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-green-50 to-emerald-50">
-                            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:16px_16px]" />
-                            <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-lg shadow-green-100/50 ring-1 ring-slate-100">
-                              <Sparkles className="h-6 w-6 text-green-500" />
+                          <div className="h-28 bg-slate-100 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50" />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <img
+                                src={topic.image || "/placeholder.svg"}
+                                alt={topic.title}
+                                className="w-full h-full object-cover opacity-80"
+                              />
                             </div>
                           </div>
                           <div className="p-4">
-                            <h4 className="mb-1 line-clamp-1 text-sm font-bold text-slate-900 group-hover:text-green-600 transition-colors">
-                              {topic.title}
-                            </h4>
-                            <p className="mb-3 text-xs text-slate-500">Completed 2 days ago</p>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                className="h-8 flex-1 rounded-lg text-xs font-semibold hover:bg-slate-50 bg-transparent"
-                              >
-                                <Eye className="mr-1.5 h-3.5 w-3.5" />
-                                Result
-                              </Button>
-                              <Button className="h-8 flex-1 rounded-lg bg-green-600 text-xs font-semibold text-white shadow-green-200 hover:bg-green-700 hover:shadow-green-300">
-                                <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-                                Retry
-                              </Button>
+                            <h4 className="font-bold text-slate-900 mb-1 truncate">{topic.title}</h4>
+                            <p className="text-xs text-slate-500 mb-3 line-clamp-2 h-8 leading-4">
+                              {topic.description}
+                            </p>
+                            <div className="flex flex-wrap gap-1.5">
+                              {topic.tags.map((tag) => (
+                                <span
+                                  key={tag}
+                                  className="px-2 py-0.5 rounded-md bg-slate-100 text-[10px] font-medium text-slate-600"
+                                >
+                                  {tag}
+                                </span>
+                              ))}
                             </div>
                           </div>
                         </Card>
-                      )
-                    })}
+                      ))
+                    ) : (
+                      <div className="col-span-2 flex flex-col items-center justify-center h-64 text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                        <MessageSquarePlus className="h-10 w-10 mb-2 opacity-20" />
+                        <p>No topics found in this range</p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold">Good range score topic (80-90):</h3>
-                    <button
-                      onClick={() => scrollRight(goodScrollRef)}
-                      className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
-                    >
-                      <ChevronRight className="h-5 w-5 text-primary" />
-                    </button>
-                  </div>
-                  <div ref={goodScrollRef} className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-                    {[...Array(5)].map((_, index) => {
-                      const topic = DEMO_TOPICS[(index + 2) % DEMO_TOPICS.length]
-                      return (
-                        <Card
-                          key={index}
-                          className="group relative w-72 flex-shrink-0 overflow-hidden rounded-2xl border-slate-100 bg-white shadow-sm transition-all hover:shadow-xl dark:border-slate-800 dark:bg-slate-950"
-                        >
-                          <div className="absolute right-3 top-3 z-10">
-                            <Badge className="bg-green-500 font-bold text-white shadow-sm hover:bg-green-600">
-                              Score: {topic.score}
-                            </Badge>
-                          </div>
-                          <div className="relative flex aspect-[2/1] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-green-50 to-emerald-50">
-                            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:16px_16px]" />
-                            <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-lg shadow-green-100/50 ring-1 ring-slate-100">
-                              <Sparkles className="h-6 w-6 text-green-500" />
-                            </div>
-                          </div>
-                          <div className="p-4">
-                            <h4 className="mb-1 line-clamp-1 text-sm font-bold text-slate-900 group-hover:text-green-600 transition-colors">
-                              {topic.title}
-                            </h4>
-                            <p className="mb-3 text-xs text-slate-500">Completed 2 days ago</p>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                className="h-8 flex-1 rounded-lg text-xs font-semibold hover:bg-slate-50 bg-transparent"
-                              >
-                                <Eye className="mr-1.5 h-3.5 w-3.5" />
-                                Result
-                              </Button>
-                              <Button className="h-8 flex-1 rounded-lg bg-green-600 text-xs font-semibold text-white shadow-green-200 hover:bg-green-700 hover:shadow-green-300">
-                                <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-                                Retry
-                              </Button>
-                            </div>
-                          </div>
-                        </Card>
-                      )
-                    })}
-                  </div>
-                </div>
+                {/* Pagination */}
+                <div className="flex items-center justify-end gap-2 mt-auto pt-4 border-t border-slate-100">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 rounded-lg bg-transparent"
+                    onClick={() => setHistoryPage((p) => Math.max(1, p - 1))}
+                    disabled={historyPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
 
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold">Average range score topic (60-80):</h3>
+                  {Array.from({ length: totalPages || 1 }, (_, i) => i + 1).map((page) => (
                     <button
-                      onClick={() => scrollRight(averageScrollRef)}
-                      className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
+                      key={page}
+                      onClick={() => setHistoryPage(page)}
+                      className={`h-8 w-8 rounded-lg text-sm font-medium transition-colors ${
+                        historyPage === page ? "bg-blue-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100"
+                      }`}
                     >
-                      <ChevronRight className="h-5 w-5 text-primary" />
+                      {page}
                     </button>
-                  </div>
-                  <div ref={averageScrollRef} className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-                    {[...Array(5)].map((_, index) => {
-                      const topic = DEMO_TOPICS[(index + 4) % DEMO_TOPICS.length]
-                      return (
-                        <Card
-                          key={index}
-                          className="group relative w-72 flex-shrink-0 overflow-hidden rounded-2xl border-slate-100 bg-white shadow-sm transition-all hover:shadow-xl dark:border-slate-800 dark:bg-slate-950"
-                        >
-                          <div className="absolute right-3 top-3 z-10">
-                            <Badge className="bg-green-500 font-bold text-white shadow-sm hover:bg-green-600">
-                              Score: {topic.score}
-                            </Badge>
-                          </div>
-                          <div className="relative flex aspect-[2/1] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-green-50 to-emerald-50">
-                            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:16px_16px]" />
-                            <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-lg shadow-green-100/50 ring-1 ring-slate-100">
-                              <Sparkles className="h-6 w-6 text-green-500" />
-                            </div>
-                          </div>
-                          <div className="p-4">
-                            <h4 className="mb-1 line-clamp-1 text-sm font-bold text-slate-900 group-hover:text-green-600 transition-colors">
-                              {topic.title}
-                            </h4>
-                            <p className="mb-3 text-xs text-slate-500">Completed 2 days ago</p>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                className="h-8 flex-1 rounded-lg text-xs font-semibold hover:bg-slate-50 bg-transparent"
-                              >
-                                <Eye className="mr-1.5 h-3.5 w-3.5" />
-                                Result
-                              </Button>
-                              <Button className="h-8 flex-1 rounded-lg bg-green-600 text-xs font-semibold text-white shadow-green-200 hover:bg-green-700 hover:shadow-green-300">
-                                <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-                                Retry
-                              </Button>
-                            </div>
-                          </div>
-                        </Card>
-                      )
-                    })}
-                  </div>
-                </div>
+                  ))}
 
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold">Needs improvement (&lt; 60):</h3>
-                    <button
-                      onClick={() => scrollRight(poorScrollRef)}
-                      className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
-                    >
-                      <ChevronRight className="h-5 w-5 text-primary" />
-                    </button>
-                  </div>
-                  <div ref={poorScrollRef} className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-                    {[...Array(5)].map((_, index) => {
-                      const topic = DEMO_TOPICS[(index + 7) % DEMO_TOPICS.length]
-                      return (
-                        <Card
-                          key={index}
-                          className="group relative w-72 flex-shrink-0 overflow-hidden rounded-2xl border-slate-100 bg-white shadow-sm transition-all hover:shadow-xl dark:border-slate-800 dark:bg-slate-950"
-                        >
-                          <div className="absolute right-3 top-3 z-10">
-                            <Badge className="bg-green-500 font-bold text-white shadow-sm hover:bg-green-600">
-                              Score: {topic.score}
-                            </Badge>
-                          </div>
-                          <div className="relative flex aspect-[2/1] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-green-50 to-emerald-50">
-                            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:16px_16px]" />
-                            <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-lg shadow-green-100/50 ring-1 ring-slate-100">
-                              <Sparkles className="h-6 w-6 text-green-500" />
-                            </div>
-                          </div>
-                          <div className="p-4">
-                            <h4 className="mb-1 line-clamp-1 text-sm font-bold text-slate-900 group-hover:text-green-600 transition-colors">
-                              {topic.title}
-                            </h4>
-                            <p className="mb-3 text-xs text-slate-500">Completed 2 days ago</p>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                className="h-8 flex-1 rounded-lg text-xs font-semibold hover:bg-slate-50 bg-transparent"
-                              >
-                                <Eye className="mr-1.5 h-3.5 w-3.5" />
-                                Result
-                              </Button>
-                              <Button className="h-8 flex-1 rounded-lg bg-green-600 text-xs font-semibold text-white shadow-green-200 hover:bg-green-700 hover:shadow-green-300">
-                                <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-                                Retry
-                              </Button>
-                            </div>
-                          </div>
-                        </Card>
-                      )
-                    })}
-                  </div>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 rounded-lg bg-transparent"
+                    onClick={() => setHistoryPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={historyPage === totalPages || totalPages === 0}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
                 </div>
+              </div>
+            </div>
+
+            {/* Bottom Section: Graph */}
+            <div>
+              <h3 className="text-2xl font-bold mb-8 text-center">Graph</h3>
+              <div className="h-[300px] w-full bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={HISTORY_GRAPH_DATA} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#E2E8F0" />
+                    <XAxis
+                      dataKey="session"
+                      tick={{ fontSize: 10, fill: "#64748B" }}
+                      axisLine={false}
+                      tickLine={false}
+                      tickMargin={10}
+                    />
+                    <YAxis
+                      domain={[0, 100]}
+                      hide={false}
+                      tick={{ fontSize: 10, fill: "#64748B" }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "white",
+                        borderRadius: "8px",
+                        border: "1px solid #E2E8F0",
+                        boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                      }}
+                      itemStyle={{ color: "#1E293B", fontWeight: 600 }}
+                      cursor={{ stroke: "#94A3B8", strokeWidth: 1, strokeDasharray: "4 4" }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="score"
+                      stroke="#3B82F6"
+                      strokeWidth={2}
+                      fillOpacity={1}
+                      fill="url(#colorScore)"
+                      activeDot={{ r: 6, strokeWidth: 0, fill: "#2563EB" }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
             </div>
           </div>
