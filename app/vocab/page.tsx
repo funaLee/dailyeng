@@ -14,6 +14,7 @@ import { Edit } from "lucide-react"
 import { MindMap } from "@/components/vocab/mind-map"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Image from "next/image"
+import { Play, BookOpen, Star } from "lucide-react"
 
 const CEFR_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"]
 
@@ -161,33 +162,33 @@ export default function VocabPage() {
         </div>
       </Card>
 
-      <div className="mb-8 flex items-center border-b">
+      <div className="mb-8 flex items-center border-b border-gray-200">
         <button
           onClick={() => setActiveTab("popular")}
-          className={`px-6 py-3 font-bold text-sm border-b-2 transition-colors ${
+          className={`pb-3 px-2 text-lg font-bold transition-colors border-b-2 ${
             activeTab === "popular"
               ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
+              : "border-transparent text-muted-foreground hover:text-gray-900"
           }`}
         >
           Popular Topics
         </button>
         <button
           onClick={() => setActiveTab("dictionary")}
-          className={`px-6 py-3 font-bold text-sm border-b-2 transition-colors ${
+          className={`pb-3 px-4 text-lg font-bold transition-colors border-b-2 ${
             activeTab === "dictionary"
               ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
+              : "border-transparent text-muted-foreground hover:text-gray-900"
           }`}
         >
           Dictionary
         </button>
         <button
           onClick={() => setActiveTab("mindmap")}
-          className={`px-6 py-3 font-bold text-sm border-b-2 transition-colors ${
+          className={`pb-3 px-4 text-lg font-bold transition-colors border-b-2 ${
             activeTab === "mindmap"
               ? "border-primary text-primary"
-              : "border-transparent text-muted-foreground hover:text-foreground"
+              : "border-transparent text-muted-foreground hover:text-gray-900"
           }`}
         >
           Mind Map
@@ -202,9 +203,9 @@ export default function VocabPage() {
       </div>
 
       <div className="grid lg:grid-cols-5 gap-8">
-        <div className="lg:col-span-1 space-y-6">
-          <Card className="p-4 bg-slate-50 border-none shadow-sm">
-            <h3 className="font-bold text-sm text-slate-900 mb-3 px-2">Topic Groups</h3>
+        <div className="lg:col-span-1 space-y-8">
+          <Card className="p-5 bg-[#F0F9FF] border-blue-100 shadow-sm">
+            <h3 className="font-bold text-base mb-4 text-blue-900">Topic Groups</h3>
             <div className="space-y-1">
               {TOPIC_GROUPS.map((group) => (
                 <button
@@ -213,14 +214,14 @@ export default function VocabPage() {
                     setSelectedGroup(group.name)
                     setSelectedSubcategory(group.subcategories[0])
                   }}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex items-center gap-3 ${
+                  className={`w-full text-left px-3 py-2.5 rounded-md text-sm transition-colors flex items-center gap-3 ${
                     selectedGroup === group.name
-                      ? "bg-white font-semibold text-primary shadow-sm ring-1 ring-black/5"
-                      : "text-slate-600 hover:bg-white/50 hover:text-slate-900"
+                      ? "bg-white font-semibold text-blue-700 shadow-sm border border-blue-100"
+                      : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
                   }`}
                 >
                   {selectedGroup === group.name ? (
-                    <div className="h-2 w-2 rounded-full bg-primary flex-shrink-0" />
+                    <div className="h-2 w-2 rounded-full bg-blue-500 flex-shrink-0" />
                   ) : (
                     <div className="h-2 w-2 rounded-full bg-slate-300 flex-shrink-0" />
                   )}
@@ -237,49 +238,34 @@ export default function VocabPage() {
             </div>
           </Card>
 
-          <Card className="p-4 bg-slate-50 border-none shadow-sm">
-            <div className="flex items-center justify-between mb-3 px-2">
-              <h3 className="font-bold text-sm text-slate-900">Levels</h3>
-            </div>
-
+          <Card className="p-5 bg-[#F0F9FF] border-blue-100 shadow-sm">
+            <h3 className="font-bold text-base mb-4 text-blue-900">Levels</h3>
             <Select defaultValue="cefr">
-              <SelectTrigger className="w-full bg-white mb-4 h-9 text-xs">
+              <SelectTrigger className="w-full mb-4 bg-white border-blue-200">
                 <SelectValue placeholder="Select system" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="cefr">CEFR (European)</SelectItem>
+                <SelectItem value="cefr">CEFR</SelectItem>
                 <SelectItem value="ielts">IELTS</SelectItem>
                 <SelectItem value="toefl">TOEFL</SelectItem>
               </SelectContent>
             </Select>
 
-            <div className="space-y-2 px-1">
+            <div className="space-y-2.5">
               {CEFR_LEVELS.map((level) => (
-                <label key={level} className="flex items-center gap-3 cursor-pointer group">
-                  <div
-                    className={`flex items-center justify-center h-5 w-5 rounded border transition-colors ${
-                      selectedLevels.includes(level)
-                        ? "bg-primary border-primary text-white"
-                        : "border-slate-300 bg-white group-hover:border-primary"
-                    }`}
-                  >
-                    {selectedLevels.includes(level) && (
-                      <svg className="w-3 h-3 fill-current" viewBox="0 0 20 20">
-                        <path d="M0 11l2-2 5 5L18 3l2 2L7 18z" />
-                      </svg>
-                    )}
+                <label
+                  key={level}
+                  className="flex items-center gap-3 cursor-pointer group hover:bg-blue-50 p-1.5 rounded-md text-sm transition-colors -mx-1.5"
+                >
+                  <div className="relative flex items-center">
                     <input
                       type="checkbox"
-                      className="hidden"
                       checked={selectedLevels.includes(level)}
                       onChange={() => toggleLevel(level)}
+                      className="peer h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
                   </div>
-                  <span
-                    className={`text-sm transition-colors ${selectedLevels.includes(level) ? "font-medium text-slate-900" : "text-slate-600"}`}
-                  >
-                    {level}
-                  </span>
+                  <span className="text-sm font-medium text-slate-700 group-hover:text-blue-800">{level} Level</span>
                 </label>
               ))}
             </div>
@@ -289,15 +275,15 @@ export default function VocabPage() {
         <div className="lg:col-span-4">
           {activeTab === "popular" && (
             <>
-              <div className="flex flex-wrap gap-2 mb-8">
+              <div className="flex flex-wrap gap-2 mb-6">
                 {currentSubcategories.map((subcat) => (
                   <button
                     key={subcat}
                     onClick={() => setSelectedSubcategory(subcat)}
-                    className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
+                    className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all border ${
                       selectedSubcategory === subcat
-                        ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/20"
-                        : "bg-white border border-slate-200 text-slate-600 hover:border-primary/50 hover:text-primary hover:bg-slate-50"
+                        ? "bg-blue-400 text-white border-blue-600 shadow-sm"
+                        : "bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-700 hover:bg-blue-50"
                     }`}
                   >
                     {subcat}
@@ -305,13 +291,18 @@ export default function VocabPage() {
                 ))}
               </div>
 
-              <div className="grid md:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredTopics.map((topic) => (
                   <Card
                     key={topic.id}
-                    className="group overflow-hidden rounded-2xl border-0 shadow-sm hover:shadow-xl transition-all duration-300 bg-white"
+                    className="group relative overflow-hidden rounded-2xl border-slate-100 bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl dark:border-slate-800 dark:bg-slate-950"
                   >
-                    <div className="aspect-[4/3] relative bg-slate-100 overflow-hidden">
+                    <div className="absolute right-3 top-3 z-10">
+                      <Badge className="bg-white/90 font-bold text-blue-600 shadow-sm backdrop-blur-sm hover:bg-white/90">
+                        {topic.level}
+                      </Badge>
+                    </div>
+                    <div className="relative aspect-[4/3] w-full overflow-hidden">
                       <Image
                         src="/learning.png"
                         alt={topic.title}
@@ -319,52 +310,38 @@ export default function VocabPage() {
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
-
-                      <div className="absolute bottom-3 left-3 right-3 text-white">
-                        <div className="flex gap-2 mb-1">
-                          <Badge
-                            variant="secondary"
-                            className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-md text-[10px] h-5 px-1.5"
-                          >
-                            {topic.level}
-                          </Badge>
-                          <Badge
-                            variant="secondary"
-                            className="bg-black/40 hover:bg-black/50 text-white border-0 backdrop-blur-md text-[10px] h-5 px-1.5"
-                          >
-                            Daily Life
-                          </Badge>
-                        </div>
-                      </div>
                     </div>
 
                     <div className="p-4">
-                      <h3 className="font-bold text-slate-900 mb-1 line-clamp-1 group-hover:text-primary transition-colors">
+                      <div className="mb-3 flex items-center gap-2">
+                        <Badge
+                          variant="secondary"
+                          className="rounded-lg bg-blue-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-600"
+                        >
+                          Vocabulary
+                        </Badge>
+                        <span className="flex items-center text-[10px] font-medium text-slate-400">
+                          <BookOpen className="mr-1 h-3 w-3" />
+                          20 words
+                        </span>
+                      </div>
+                      <h4 className="mb-2 line-clamp-1 text-base font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
                         {topic.title}
-                      </h3>
-                      <p className="text-xs text-slate-500 mb-4 line-clamp-2 h-8 leading-relaxed">
-                        {topic.description}
-                      </p>
-
-                      <div className="flex items-center justify-between mb-3 text-[10px] font-medium text-slate-400 uppercase tracking-wider">
-                        <span>Progress</span>
-                        <span>50%</span>
-                      </div>
-                      <div className="h-1.5 w-full bg-slate-100 rounded-full mb-4 overflow-hidden">
-                        <div className="h-full bg-green-500 rounded-full w-1/2" />
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2">
-                        <Link href={`/vocab/${topic.id}`} className="contents">
-                          <Button className="w-full h-8 text-xs font-semibold rounded-lg shadow-sm group-hover:shadow-md transition-all">
-                            Start
+                      </h4>
+                      <p className="mb-4 line-clamp-2 text-xs text-slate-500">{topic.description}</p>
+                      <div className="flex gap-2">
+                        <Link href={`/vocab/${topic.id}`} className="flex-1">
+                          <Button className="w-full h-9 rounded-xl bg-blue-300 text-xs font-semibold shadow-lg shadow-blue-100/50 transition-all hover:bg-blue-400 hover:shadow-blue-300">
+                            <Play className="mr-1.5 h-3.5 w-3.5" />
+                            Start Learning
                           </Button>
                         </Link>
                         <Button
-                          variant="outline"
-                          className="w-full h-8 text-xs font-semibold rounded-lg bg-slate-50 border-slate-200 text-slate-600 hover:bg-white hover:text-primary"
+                          variant="ghost"
+                          size="icon"
+                          className="h-9 w-9 rounded-xl text-slate-400 hover:text-blue-600"
                         >
-                          Preview
+                          <Star className="h-4 w-4" />
                         </Button>
                       </div>
                     </div>

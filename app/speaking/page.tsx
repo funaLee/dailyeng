@@ -455,7 +455,7 @@ export default function SpeakingRoomPage() {
                   onClick={() => setSelectedSubcategory(subcat)}
                   className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all border ${
                     selectedSubcategory === subcat
-                      ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                      ? "bg-blue-400 text-white border-blue-600 shadow-sm"
                       : "bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-700 hover:bg-blue-50"
                   }`}
                 >
@@ -502,7 +502,7 @@ export default function SpeakingRoomPage() {
                     </h4>
                     <p className="mb-4 line-clamp-2 text-xs text-slate-500">{topic.description}</p>
                     <div className="flex gap-2">
-                      <Button className="h-9 flex-1 rounded-xl bg-blue-600 text-xs font-semibold shadow-lg shadow-blue-100/50 transition-all hover:bg-blue-700 hover:shadow-blue-300">
+                      <Button className="h-9 flex-1 rounded-xl bg-blue-300 text-xs font-semibold shadow-lg shadow-blue-100/50 transition-all hover:bg-blue-400 hover:shadow-blue-300">
                         <Play className="mr-1.5 h-3.5 w-3.5" />
                         Start Speaking
                       </Button>
