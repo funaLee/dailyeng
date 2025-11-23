@@ -2,6 +2,7 @@
 
 import type React from "react"
 import Image from "next/image"
+import Link from "next/link"
 
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { Card } from "@/components/ui/card"
@@ -70,66 +71,66 @@ interface Scenario {
 
 const mockScenarios: Scenario[] = [
   {
-    id: "1",
+    id: "cafe-order",
     title: "Ordering at a Café",
-    description: "Learn vocabulary used in everyday eating, cooking, and ordering food in real situations.",
+    description: "Practice ordering coffee and food at a local café",
     category: "Daily Life",
-    level: "A1",
+    level: "A2",
     image: "/learning.png",
     sessionsCompleted: 2,
     totalSessions: 5,
     progress: 40,
   },
   {
-    id: "2",
-    title: "Visiting the doctor",
-    description: "Learn vocabulary used in everyday eating, cooking, and ordering food in real situations.",
+    id: "shopping",
+    title: "Shopping for Clothes",
+    description: "Navigate a clothing store and ask for sizes and colors",
     category: "Daily Life",
-    level: "A2",
+    level: "B1",
     image: "/learning.png",
     sessionsCompleted: 0,
     totalSessions: 4,
     progress: 0,
   },
   {
-    id: "3",
-    title: "Artificial Intelligence",
-    description: "Learn vocabulary used in everyday eating, cooking, and ordering food in real situations.",
-    category: "Daily Life",
-    level: "B1",
+    id: "meeting",
+    title: "Team Meeting",
+    description: "Participate in a professional team discussion",
+    category: "Professional English",
+    level: "B2",
     image: "/learning.png",
     sessionsCompleted: 3,
     totalSessions: 6,
     progress: 50,
   },
   {
-    id: "4",
-    title: "Shopping for Clothes",
-    description: "Learn vocabulary used in everyday eating, cooking, and ordering food in real situations.",
-    category: "Daily Life",
-    level: "A2",
+    id: "presentation",
+    title: "Product Presentation",
+    description: "Present a new product to potential clients",
+    category: "Professional English",
+    level: "C1",
     image: "/learning.png",
     sessionsCompleted: 1,
     totalSessions: 4,
     progress: 25,
   },
   {
-    id: "5",
-    title: "Job Interview",
-    description: "Practice professional conversations and learn how to present yourself confidently.",
-    category: "Professional English",
-    level: "B2",
+    id: "hotel",
+    title: "Hotel Check-in",
+    description: "Check into a hotel and ask about amenities",
+    category: "Travel",
+    level: "A2",
     image: "/learning.png",
     sessionsCompleted: 0,
     totalSessions: 8,
     progress: 0,
   },
   {
-    id: "6",
-    title: "Hotel Check-in",
-    description: "Learn essential phrases for traveling and staying at hotels.",
-    category: "Travel",
-    level: "A2",
+    id: "small-talk",
+    title: "Making Small Talk",
+    description: "Have casual conversations with new acquaintances",
+    category: "Social Situations",
+    level: "B1",
     image: "/learning.png",
     sessionsCompleted: 2,
     totalSessions: 5,
@@ -502,10 +503,12 @@ export default function SpeakingRoomPage() {
                     </h4>
                     <p className="mb-4 line-clamp-2 text-xs text-slate-500">{topic.description}</p>
                     <div className="flex gap-2">
-                      <Button className="h-9 flex-1 rounded-xl bg-blue-300 text-xs font-semibold shadow-lg shadow-blue-100/50 transition-all hover:bg-blue-400 hover:shadow-blue-300">
-                        <Play className="mr-1.5 h-3.5 w-3.5" />
-                        Start Speaking
-                      </Button>
+                      <Link href={`/speaking/session/${topic.id}`} className="h-9 flex-1">
+                        <Button className="h-full w-full rounded-xl bg-blue-300 text-xs font-semibold shadow-lg shadow-blue-100/50 transition-all hover:bg-blue-400 hover:shadow-blue-300">
+                          <Play className="mr-1.5 h-3.5 w-3.5" />
+                          Start Speaking
+                        </Button>
+                      </Link>
                       <Button
                         variant="ghost"
                         size="icon"
