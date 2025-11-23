@@ -55,6 +55,9 @@ export default function SpeakingSessionPage() {
       .reduce((acc, curr) => [...acc, ...curr], [])
       .concat(mockCustomScenarios)
 
+    console.log("Looking for scenarioId:", scenarioId)
+    console.log("Available scenarios:", allScenarios.map(s => s.id))
+
     let found = allScenarios.find((s) => s.id === scenarioId)
 
     // Fallbacks for mismatched ids (numeric ids or slight formatting differences)
@@ -62,17 +65,25 @@ export default function SpeakingSessionPage() {
       const numeric = parseInt(scenarioId, 10)
       if (!isNaN(numeric) && numeric > 0 && numeric <= allScenarios.length) {
         found = allScenarios[numeric - 1]
+        console.log("Found by numeric index:", numeric - 1, found?.id)
       }
     }
 
     if (!found) {
       // try loose match ignoring hyphens/underscores
       const normalized = (id: string) => id.replace(/[-_]/g, "").toLowerCase()
-      found = allScenarios.find((s) => normalized(s.id) === normalized(scenarioId))
+      const normalizedScenarioId = normalized(scenarioId)
+      found = allScenarios.find((s) => {
+        const match = normalized(s.id) === normalizedScenarioId
+        if (match) console.log("Found by loose match:", s.id)
+        return match
+      })
     }
 
     if (!found) {
       console.warn("Speaking scenario not found for id:", scenarioId, "available:", allScenarios.map(s => s.id))
+    } else {
+      console.log("Successfully found scenario:", found.title)
     }
 
     setScenario(found)
