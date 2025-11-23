@@ -1,16 +1,34 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Star, MessageSquare, BookOpen, Target, Sparkles, Quote, ArrowRight, CheckCircle2, Zap, Mic, Users, ChevronRight } from 'lucide-react'
+import {
+  Star,
+  MessageSquare,
+  BookOpen,
+  Target,
+  Sparkles,
+  Quote,
+  CheckCircle2,
+  Zap,
+  Mic,
+  Users,
+  ChevronRight,
+} from "lucide-react"
 import { InteractiveGridBackground } from "@/components/ui/interactive-grid-background"
 import { StackedCardCarousel } from "@/components/home/stacked-card-carousel"
 
 // Scroll Animation Component
-function RevealOnScroll({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+function RevealOnScroll({
+  children,
+  className = "",
+  delay = 0,
+}: { children: React.ReactNode; className?: string; delay?: number }) {
   const [isVisible, setIsVisible] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -22,7 +40,7 @@ function RevealOnScroll({ children, className = "", delay = 0 }: { children: Rea
           observer.disconnect()
         }
       },
-      { threshold: 0.15, rootMargin: "0px 0px -50px 0px" }
+      { threshold: 0.15, rootMargin: "0px 0px -50px 0px" },
     )
 
     if (ref.current) {
@@ -171,11 +189,15 @@ export default function Home() {
 
               <RevealOnScroll delay={300}>
                 <p className="text-lg sm:text-xl text-gray-400 mb-8 max-w-xl leading-relaxed">
-                  Stop memorizing lists. Start using the language. Practice with real-world scenarios, AI tutors, and personalized roadmaps.
+                  Stop memorizing lists. Start using the language. Practice with real-world scenarios, AI tutors, and
+                  personalized roadmaps.
                 </p>
               </RevealOnScroll>
 
-              <RevealOnScroll delay={400} className="flex flex-col sm:flex-row gap-4 pointer-events-auto w-full sm:w-auto">
+              <RevealOnScroll
+                delay={400}
+                className="flex flex-col sm:flex-row gap-4 pointer-events-auto w-full sm:w-auto"
+              >
                 <Link href="/auth/signup" className="pointer-events-auto w-full sm:w-auto">
                   <Button
                     size="lg"
@@ -188,27 +210,30 @@ export default function Home() {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="w-full sm:w-auto border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50 px-8 py-6 rounded-full text-lg"
+                    className="w-full sm:w-auto border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50 px-8 py-6 rounded-full text-lg bg-transparent"
                   >
                     How it works
                   </Button>
                 </Link>
               </RevealOnScroll>
-              
+
               <RevealOnScroll delay={500} className="mt-8 flex items-center gap-4 text-sm text-gray-500">
                 <div className="flex -space-x-2">
-                   {[1,2,3,4].map(i => (
-                     <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 overflow-hidden">
-                        <Image src={`/placeholder-user.jpg`} width={32} height={32} alt="User" />
-                     </div>
-                   ))}
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 overflow-hidden">
+                      <Image src={`/placeholder-user.jpg`} width={32} height={32} alt="User" />
+                    </div>
+                  ))}
                 </div>
                 <p>Trusted by 10,000+ learners</p>
               </RevealOnScroll>
             </div>
 
             {/* Right Visual - StackedCardCarousel */}
-            <div className="relative w-full pointer-events-auto lg:pl-10 animate-fade-in-up" style={{animationDelay: '600ms'}}>
+            <div
+              className="relative w-full pointer-events-auto lg:pl-10 animate-fade-in-up"
+              style={{ animationDelay: "600ms" }}
+            >
               <div className="absolute -inset-4 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full opacity-30 blur-3xl -z-10" />
               <StackedCardCarousel
                 images={[
@@ -229,13 +254,13 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 mb-6 text-center">
           <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Prepared for success with</p>
         </div>
-        
+
         <div className="relative flex overflow-hidden">
           {/* First set of logos */}
           <div className="flex animate-scroll-left whitespace-nowrap py-2">
             {[...partnerLogos, ...partnerLogos].map((logo, index) => (
               <div key={`logo-1-${index}`} className="flex items-center justify-center mx-12 w-32 h-16 relative">
-                 <Image src={logo.src} alt={logo.alt} fill className="object-contain" />
+                <Image src={logo.src || "/placeholder.svg"} alt={logo.alt} fill className="object-contain" />
               </div>
             ))}
           </div>
@@ -244,35 +269,35 @@ export default function Home() {
       </section>
 
       {/* Social Proof Section */}
-      <section className="py-24 bg-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
+      <section className="py-15 bg-white">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-2 gap-6">
             {/* Rating Card */}
             <RevealOnScroll>
-              <Card className="bg-blue-400 text-white border-0 p-10 shadow-2xl rounded-[2.5rem] relative overflow-hidden group transition-transform hover:scale-[1.02] h-full">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-24 -mt-24 blur-3xl group-hover:bg-white/20 transition-colors"></div>
-                <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-400/20 rounded-full -ml-20 -mb-20 blur-2xl"></div>
-                
+              <Card className="bg-blue-400 text-white border-0 p-6 shadow-xl rounded-2xl relative overflow-hidden group transition-transform hover:scale-[1.02] h-full">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-12 -mt-12 blur-2xl group-hover:bg-white/20 transition-colors"></div>
+                <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-400/20 rounded-full -ml-10 -mb-10 blur-xl"></div>
+
                 <div className="relative z-10 h-full flex flex-col justify-between">
                   <div>
-                    <div className="flex items-center gap-2 mb-2 text-blue-100 font-medium">
-                      <Users className="w-5 h-5" />
+                    <div className="flex items-center gap-2 mb-2 text-blue-100 font-medium text-sm">
+                      <Users className="w-4 h-4" />
                       <span>Our Community</span>
                     </div>
-                    <div className="text-7xl font-bold mb-2 tracking-tighter">100k+</div>
-                    <div className="text-blue-100 text-xl mb-8">active learners worldwide</div>
+                    <div className="text-4xl font-bold mb-1 tracking-tighter">100k+</div>
+                    <div className="text-blue-100 text-base mb-4">active learners worldwide</div>
                   </div>
-                  
-                  <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md rounded-2xl p-4 w-fit border border-white/10">
+
+                  <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md rounded-xl p-3 w-fit border border-white/10">
                     <div className="flex -space-x-1">
                       {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-6 w-6 fill-yellow-400 text-yellow-400 drop-shadow-sm" />
+                        <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400 drop-shadow-sm" />
                       ))}
                     </div>
-                    <div className="h-8 w-px bg-white/20"></div>
+                    <div className="h-6 w-px bg-white/20"></div>
                     <div>
-                      <span className="font-bold text-lg">4.9</span>
-                      <span className="text-blue-100 text-sm ml-1">/ 5.0 Rating</span>
+                      <span className="font-bold text-base">4.9</span>
+                      <span className="text-blue-100 text-xs ml-1">/ 5.0</span>
                     </div>
                   </div>
                 </div>
@@ -281,41 +306,31 @@ export default function Home() {
 
             {/* Quote Card */}
             <RevealOnScroll delay={200}>
-              <Card className="bg-slate-50 border border-slate-200 p-10 shadow-xl rounded-[2.5rem] relative flex flex-col justify-center group hover:border-blue-200 transition-colors h-full">
-                <Quote className="absolute top-10 right-10 w-20 h-20 text-blue-100 -z-0 rotate-12" />
+              <Card className="bg-slate-50 border border-slate-200 p-6 shadow-lg rounded-2xl relative flex flex-col justify-center group hover:border-blue-200 transition-colors h-full">
+                <Quote className="absolute top-4 right-4 w-10 h-10 text-blue-100 -z-0 rotate-12" />
                 <div className="relative z-10">
-                  <div className="mb-6 flex gap-1">
+                  <div className="mb-4 flex gap-1">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-5 w-5 fill-blue-500 text-blue-500" />
+                      <Star key={i} className="h-4 w-4 fill-blue-500 text-blue-500" />
                     ))}
                   </div>
-                  <p className="text-gray-900 text-2xl sm:text-3xl font-medium leading-relaxed mb-8">
-                    "This app completely changed how I prepare for my interviews. The AI speaking partner feels incredibly realistic."
+                  <p className="text-gray-900 text-lg font-medium leading-relaxed mb-6">
+                    "This app completely changed how I prepare for my interviews. The AI speaking partner feels
+                    incredibly realistic."
                   </p>
-                  <div className="flex items-center gap-5">
-                    <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl font-bold shadow-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md">
                       TT
                     </div>
                     <div>
-                      <div className="font-bold text-gray-900 text-lg">Thanh Truc</div>
-                      <div className="text-blue-400 font-medium">Software Engineer</div>
+                      <div className="font-bold text-gray-900 text-sm">Thanh Truc</div>
+                      <div className="text-blue-400 text-xs font-medium">Software Engineer</div>
                     </div>
                   </div>
                 </div>
               </Card>
             </RevealOnScroll>
           </div>
-
-          <RevealOnScroll delay={300} className="text-center mt-12">
-            <Link href="/reviews">
-              <Button
-                variant="ghost"
-                className="text-gray-600 hover:text-blue-400 hover:bg-blue-50 rounded-full px-6 py-2 group"
-              >
-                See all success stories <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
-          </RevealOnScroll>
         </div>
       </section>
 
@@ -339,7 +354,8 @@ export default function Home() {
                   </div>
                   <h3 className="text-2xl font-bold mb-4">Speak From Day One</h3>
                   <p className="text-gray-600 leading-relaxed mb-6">
-                    Don't just read about English. Practice real-life conversations with our AI tutor who listens, corrects your pronunciation, and helps you sound natural.
+                    Don't just read about English. Practice real-life conversations with our AI tutor who listens,
+                    corrects your pronunciation, and helps you sound natural.
                   </p>
                   <ul className="space-y-2">
                     <li className="flex items-center gap-2 text-sm text-gray-700">
@@ -389,8 +405,12 @@ export default function Home() {
                   </p>
                 </div>
                 <div className="mt-6 flex justify-center gap-2">
-                  <div className="bg-yellow-50 px-3 py-1 rounded-lg text-yellow-700 font-bold text-xs border border-yellow-100">🔥 12 Day Streak</div>
-                  <div className="bg-blue-50 px-3 py-1 rounded-lg text-blue-700 font-bold text-xs border border-blue-100">🏆 Top 10</div>
+                  <div className="bg-yellow-50 px-3 py-1 rounded-lg text-yellow-700 font-bold text-xs border border-yellow-100">
+                    🔥 12 Day Streak
+                  </div>
+                  <div className="bg-blue-50 px-3 py-1 rounded-lg text-blue-700 font-bold text-xs border border-blue-100">
+                    🏆 Top 10
+                  </div>
                 </div>
               </Card>
             </RevealOnScroll>
@@ -404,7 +424,8 @@ export default function Home() {
                   </div>
                   <h3 className="text-2xl font-bold mb-4 text-gray-900">Kitty Tutor Companion</h3>
                   <p className="text-gray-600 leading-relaxed mb-6">
-                    Stuck on a word? Need grammar help? Kitty is your 24/7 AI companion ready to explain concepts instantly inside any lesson.
+                    Stuck on a word? Need grammar help? Kitty is your 24/7 AI companion ready to explain concepts
+                    instantly inside any lesson.
                   </p>
                   <Button variant="default" className="bg-purple-600 hover:bg-purple-700 text-white rounded-full">
                     Chat with Kitty
@@ -412,11 +433,11 @@ export default function Home() {
                 </div>
                 <div className="flex-1 relative h-64 w-full md:h-full rounded-2xl overflow-hidden bg-purple-50/50">
                   <div className="absolute inset-0 bg-gradient-to-r from-white/40 to-transparent z-10" />
-                  <Image 
-                    src="/abstract-job-concept.png" 
-                    alt="AI Companion" 
-                    fill 
-                    className="object-cover opacity-80 mix-blend-multiply group-hover:scale-105 transition-transform duration-700" 
+                  <Image
+                    src="/abstract-job-concept.png"
+                    alt="AI Companion"
+                    fill
+                    className="object-cover opacity-80 mix-blend-multiply group-hover:scale-105 transition-transform duration-700"
                   />
                 </div>
               </Card>
@@ -441,9 +462,7 @@ export default function Home() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`group flex items-center gap-4 p-4 rounded-2xl text-left transition-all duration-300 ${
-                    activeTab === tab.id
-                      ? "bg-blue-50 ring-1 ring-blue-200 shadow-sm"
-                      : "hover:bg-gray-50"
+                    activeTab === tab.id ? "bg-blue-50 ring-1 ring-blue-200 shadow-sm" : "hover:bg-gray-50"
                   }`}
                 >
                   <div
@@ -460,7 +479,7 @@ export default function Home() {
                       {tab.label}
                     </h3>
                     {activeTab === tab.id && (
-                       <p className="text-sm text-blue-400 mt-1 font-medium animate-fade-in">Active Feature</p>
+                      <p className="text-sm text-blue-400 mt-1 font-medium animate-fade-in">Active Feature</p>
                     )}
                   </div>
                   {activeTab === tab.id && <ChevronRight className="ml-auto w-5 h-5 text-blue-500" />}
@@ -475,22 +494,30 @@ export default function Home() {
                   <div
                     key={tab.id}
                     className={`absolute inset-2 bg-white rounded-[2rem] flex flex-col transition-all duration-500 ease-in-out ${
-                      activeTab === tab.id ? "opacity-100 translate-y-0 z-10" : "opacity-0 translate-y-8 z-0 pointer-events-none"
+                      activeTab === tab.id
+                        ? "opacity-100 translate-y-0 z-10"
+                        : "opacity-0 translate-y-8 z-0 pointer-events-none"
                     }`}
                   >
                     <div className="relative h-64 w-full overflow-hidden rounded-t-[2rem]">
-                       <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 z-10" />
-                       <Image src={tab.image} alt={tab.title} fill className="object-cover" />
-                       <div className="absolute bottom-6 left-8 z-20">
-                         <div className="inline-block bg-blue-400 text-white text-xs font-bold px-3 py-1 rounded-full mb-2">FEATURE</div>
-                         <h3 className="text-3xl font-bold text-white">{tab.title}</h3>
-                       </div>
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 z-10" />
+                      <Image src={tab.image || "/placeholder.svg"} alt={tab.title} fill className="object-cover" />
+                      <div className="absolute bottom-6 left-8 z-20">
+                        <div className="inline-block bg-blue-400 text-white text-xs font-bold px-3 py-1 rounded-full mb-2">
+                          FEATURE
+                        </div>
+                        <h3 className="text-3xl font-bold text-white">{tab.title}</h3>
+                      </div>
                     </div>
                     <div className="p-8 flex flex-col justify-between flex-1 bg-white rounded-b-[2rem]">
                       <p className="text-lg text-gray-600 leading-relaxed">{tab.description}</p>
                       <div className="flex gap-4 mt-6">
-                         <Button className="rounded-full px-6" onClick={() => window.location.href = '/auth/signup'}>Try for free</Button>
-                         <Button variant="ghost" className="rounded-full px-6 text-gray-600">Learn more</Button>
+                        <Button className="rounded-full px-6" onClick={() => (window.location.href = "/auth/signup")}>
+                          Try for free
+                        </Button>
+                        <Button variant="ghost" className="rounded-full px-6 text-gray-600">
+                          Learn more
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -504,31 +531,43 @@ export default function Home() {
       {/* Reviews Marquee Section */}
       <section className="py-24 bg-slate-50 overflow-hidden">
         <RevealOnScroll className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12 flex items-end justify-between">
-           <div>
-             <h2 className="text-4xl font-bold text-gray-900 mb-2">Learner Stories</h2>
-             <div className="flex items-center gap-2">
-               <div className="flex text-yellow-400">
-                 {[...Array(5)].map((_, i) => <Star key={i} className="w-5 h-5 fill-current" />)}
-               </div>
-               <span className="font-medium text-gray-600">4.8/5 average rating</span>
-             </div>
-           </div>
-           <Button variant="outline" className="hidden sm:flex">View all reviews</Button>
+          <div>
+            <h2 className="text-4xl font-bold text-gray-900 mb-2">Learner Stories</h2>
+            <div className="flex items-center gap-2">
+              <div className="flex text-yellow-400">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-5 h-5 fill-current" />
+                ))}
+              </div>
+              <span className="font-medium text-gray-600">4.8/5 average rating</span>
+            </div>
+          </div>
+          <Button variant="outline" className="hidden sm:flex bg-transparent">
+            View all reviews
+          </Button>
         </RevealOnScroll>
 
         <div className="relative w-full">
           {/* Fade masks for smooth scrolling edges */}
           <div className="absolute top-0 left-0 right-0 h-12 bg-gradient-to-b from-slate-50 to-transparent z-10 pointer-events-none" />
           <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-slate-50 to-transparent z-10 pointer-events-none" />
-          
-          <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-6 h-[500px] overflow-hidden" style={{maskImage: "linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)"}}>
+
+          <div
+            className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-6 h-[500px] overflow-hidden"
+            style={{ maskImage: "linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)" }}
+          >
             {/* Column 1 - Scroll Up */}
             <div className="space-y-6 animate-scroll-up hover:[animation-play-state:paused]">
               {[...reviews, ...reviews].map((review, idx) => (
                 <Card key={`col1-${idx}`} className="p-6 border-0 shadow-sm bg-white rounded-2xl">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden relative">
-                      <Image src={review.avatar} alt={review.name} fill className="object-cover" />
+                      <Image
+                        src={review.avatar || "/placeholder.svg"}
+                        alt={review.name}
+                        fill
+                        className="object-cover"
+                      />
                     </div>
                     <div>
                       <p className="font-semibold text-sm text-gray-900">{review.name}</p>
@@ -545,25 +584,32 @@ export default function Home() {
               {[...reviews.reverse(), ...reviews].map((review, idx) => (
                 <Card key={`col2-${idx}`} className="p-6 border-0 shadow-sm bg-white rounded-2xl">
                   <div className="flex items-center gap-3 mb-4">
-                     <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-400 flex items-center justify-center font-bold text-sm">
-                        {review.name.charAt(0)}
-                     </div>
+                    <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-400 flex items-center justify-center font-bold text-sm">
+                      {review.name.charAt(0)}
+                    </div>
                     <div>
                       <p className="font-semibold text-sm text-gray-900">{review.name}</p>
-                      <p className="text-xs text-blue-400 bg-blue-50 px-2 py-0.5 rounded-full inline-block">Verified Student</p>
+                      <p className="text-xs text-blue-400 bg-blue-50 px-2 py-0.5 rounded-full inline-block">
+                        Verified Student
+                      </p>
                     </div>
                   </div>
                   <p className="text-gray-600 text-sm leading-relaxed">"{review.content}"</p>
                 </Card>
               ))}
             </div>
-             {/* Column 3 - Scroll Up */}
-             <div className="space-y-6 animate-scroll-up hover:[animation-play-state:paused] hidden lg:block">
+            {/* Column 3 - Scroll Up */}
+            <div className="space-y-6 animate-scroll-up hover:[animation-play-state:paused] hidden lg:block">
               {[...reviews, ...reviews].map((review, idx) => (
                 <Card key={`col3-${idx}`} className="p-6 border-0 shadow-sm bg-white rounded-2xl">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden relative">
-                      <Image src={review.avatar} alt={review.name} fill className="object-cover" />
+                      <Image
+                        src={review.avatar || "/placeholder.svg"}
+                        alt={review.name}
+                        fill
+                        className="object-cover"
+                      />
                     </div>
                     <div>
                       <p className="font-semibold text-sm text-gray-900">{review.name}</p>
@@ -581,10 +627,13 @@ export default function Home() {
       {/* Final CTA Section */}
       <section className="relative py-28 overflow-hidden">
         <div className="absolute inset-0 bg-blue-400">
-           {/* Decorative pattern overlay */}
-           <div className="absolute inset-0 opacity-10" style={{backgroundImage: "radial-gradient(#fff 1px, transparent 1px)", backgroundSize: "24px 24px"}}></div>
+          {/* Decorative pattern overlay */}
+          <div
+            className="absolute inset-0 opacity-10"
+            style={{ backgroundImage: "radial-gradient(#fff 1px, transparent 1px)", backgroundSize: "24px 24px" }}
+          ></div>
         </div>
-        
+
         <RevealOnScroll className="max-w-4xl mx-auto text-center px-4 relative z-10">
           <h2 className="text-4xl sm:text-5xl font-bold mb-8 text-white tracking-tight">
             Ready to speak English with confidence?
@@ -660,7 +709,7 @@ export default function Home() {
             scrollbar-width: none;
         }
       `}</style>
-      
+
       <div className="hidden">
         <UsersIcon className="w-0 h-0" />
       </div>
@@ -670,14 +719,14 @@ export default function Home() {
 
 function UsersIcon({ className }: { className?: string }) {
   return (
-    <svg 
-      xmlns="http://www.w3.org/2000/svg" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       className={className}
     >
       <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
