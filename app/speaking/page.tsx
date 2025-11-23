@@ -1,18 +1,8 @@
 "use client"
 
-import { SelectItem } from "@/components/ui/select"
-
-import { SelectContent } from "@/components/ui/select"
-
-import { SelectValue } from "@/components/ui/select"
-
-import { SelectTrigger } from "@/components/ui/select"
-
-import { Select } from "@/components/ui/select"
-
 import type React from "react"
 
-import { useState, useEffect, useRef } from "react"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -29,8 +19,11 @@ import {
   Sparkles,
   Clock,
   Star,
+  Trash2,
+  Plus,
 } from "lucide-react"
 import { RadarChart } from "@/components/speaking/radar-chart"
+import { useState, useEffect, useRef } from "react"
 
 const CEFR_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"]
 
@@ -241,9 +234,9 @@ export default function SpeakingRoomPage() {
           </div>
         </div>
         <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-br from-blue-200/50 to-blue-400/30 rounded-lg pointer-events-none">
-          <div className="absolute right-12 top-12 text-blue-400/20 text-6xl font-bold rotate-12">speaking</div>
-          <div className="absolute right-24 top-32 text-blue-400/20 text-5xl font-bold -rotate-6">fluency</div>
-          <div className="absolute right-8 top-52 text-blue-400/20 text-4xl font-bold rotate-3">practice</div>
+          <div className="absolute right-12 top-12 text-blue-600/20 text-6xl font-bold rotate-12">speaking</div>
+          <div className="absolute right-24 top-32 text-blue-600/20 text-5xl font-bold -rotate-6">fluency</div>
+          <div className="absolute right-8 top-52 text-blue-600/20 text-4xl font-bold rotate-3">practice</div>
         </div>
       </Card>
 
@@ -302,8 +295,8 @@ export default function SpeakingRoomPage() {
                     }}
                     className={`w-full text-left px-3 py-2.5 rounded-md text-sm transition-colors flex items-center gap-3 ${
                       selectedGroup === group.name
-                        ? "bg-white font-semibold text-blue-400 shadow-sm border border-blue-100"
-                        : "text-slate-600 hover:bg-blue-50 hover:text-blue-400"
+                        ? "bg-white font-semibold text-blue-700 shadow-sm border border-blue-100"
+                        : "text-slate-600 hover:bg-blue-50 hover:text-blue-700"
                     }`}
                   >
                     {selectedGroup === group.name && <div className="h-2 w-2 rounded-full bg-blue-500 flex-shrink-0" />}
@@ -333,14 +326,14 @@ export default function SpeakingRoomPage() {
                 {CEFR_LEVELS.map((level) => (
                   <label
                     key={level}
-                    className="flex items-center gap-3 cursor-pointer group hover:bg-blue-50 p-1.5 rounded-md transition-colors -mx-1.5"
+                    className="flex items-center gap-3 cursor-pointer group hover:bg-blue-50 p-1.5 rounded-md text-sm transition-colors -mx-1.5"
                   >
                     <div className="relative flex items-center">
                       <input
                         type="checkbox"
                         checked={selectedLevels.includes(level)}
                         onChange={() => toggleLevel(level)}
-                        className="peer h-4 w-4 rounded border-gray-300 text-blue-400 focus:ring-blue-500"
+                        className="peer h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       />
                     </div>
                     <span className="text-sm font-medium text-slate-700 group-hover:text-blue-800">{level} Level</span>
@@ -358,8 +351,8 @@ export default function SpeakingRoomPage() {
                   onClick={() => setSelectedSubcategory(subcat)}
                   className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all border ${
                     selectedSubcategory === subcat
-                      ? "bg-blue-400 text-white border-blue-400 shadow-sm"
-                      : "bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-400 hover:bg-blue-50"
+                      ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                      : "bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-700 hover:bg-blue-50"
                   }`}
                 >
                   {subcat}
@@ -374,7 +367,7 @@ export default function SpeakingRoomPage() {
                   className="group relative overflow-hidden rounded-2xl border-slate-100 bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl dark:border-slate-800 dark:bg-slate-950"
                 >
                   <div className="absolute right-3 top-3 z-10">
-                    <Badge className="bg-white/90 font-bold text-blue-400 shadow-sm backdrop-blur-sm hover:bg-white/90">
+                    <Badge className="bg-white/90 font-bold text-blue-600 shadow-sm backdrop-blur-sm hover:bg-white/90">
                       {topic.level}
                     </Badge>
                   </div>
@@ -388,7 +381,7 @@ export default function SpeakingRoomPage() {
                     <div className="mb-3 flex items-center gap-2">
                       <Badge
                         variant="secondary"
-                        className="rounded-lg bg-blue-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-400"
+                        className="rounded-lg bg-blue-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-600"
                       >
                         {topic.category}
                       </Badge>
@@ -397,19 +390,19 @@ export default function SpeakingRoomPage() {
                         5-7 min
                       </span>
                     </div>
-                    <h4 className="mb-2 line-clamp-1 text-base font-bold text-slate-900 group-hover:text-blue-400 transition-colors">
+                    <h4 className="mb-2 line-clamp-1 text-base font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
                       {topic.title}
                     </h4>
                     <p className="mb-4 line-clamp-2 text-xs text-slate-500">{topic.description}</p>
                     <div className="flex gap-2">
-                      <Button className="h-9 flex-1 rounded-xl bg-blue-400 text-xs font-semibold shadow-lg shadow-blue-200 transition-all hover:bg-blue-500 hover:shadow-blue-300">
+                      <Button className="h-9 flex-1 rounded-xl bg-blue-600 text-xs font-semibold shadow-lg shadow-blue-200 transition-all hover:bg-blue-700 hover:shadow-blue-300">
                         <Play className="mr-1.5 h-3.5 w-3.5" />
                         Start Speaking
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-9 w-9 rounded-xl text-slate-400 hover:text-blue-400"
+                        className="h-9 w-9 rounded-xl text-slate-400 hover:text-blue-600"
                       >
                         <Star className="h-4 w-4" />
                       </Button>
@@ -423,81 +416,122 @@ export default function SpeakingRoomPage() {
       )}
 
       {activeTab === "custom" && (
-        <Card className="p-12">
+        <Card className="p-8 md:p-12 border-none shadow-none bg-transparent">
           <div className="max-w-5xl mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-12">Create custom role-play speaking rooms</h2>
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-slate-900 mb-4">Create Your Own Speaking Scenario</h2>
+              <p className="text-slate-500 max-w-2xl mx-auto">
+                Customize your learning experience by creating unique role-play scenarios or let AI surprise you with a
+                random topic tailored to your level.
+              </p>
+            </div>
 
-            <div className="grid md:grid-cols-2 gap-8 mb-16">
-              <button className="group">
-                <Card className="p-12 bg-[#C2E2FA]/40 hover:bg-[#C2E2FA]/60 transition-all hover:shadow-lg border-2 border-transparent hover:border-primary">
-                  <div className="flex flex-col items-center gap-6">
-                    <div className="w-24 h-24 rounded-2xl bg-primary/20 flex items-center justify-center">
-                      <Gift className="h-12 w-12 text-primary" />
-                    </div>
-                    <h3 className="text-2xl font-bold">Surprise me</h3>
+            <div className="grid md:grid-cols-2 gap-6 mb-16">
+              <button className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-400 to-blue-600 p-1 text-left transition-all hover:shadow-2xl hover:shadow-violet-200 hover:-translate-y-1">
+                <div className="relative h-full rounded-[20px] bg-white/10 p-8 backdrop-blur-sm transition-colors group-hover:bg-white/20">
+                  <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 shadow-lg backdrop-blur-md">
+                    <Gift className="h-8 w-8 text-white" />
                   </div>
-                </Card>
+                  <h3 className="mb-2 text-2xl font-bold text-white">Surprise Me</h3>
+                  <p className="text-blue-100">
+                    Let AI generate a random, exciting scenario for you to practice immediately.
+                  </p>
+                </div>
               </button>
 
-              <button className="group">
-                <Card className="p-12 bg-[#C2E2FA]/40 hover:bg-[#C2E2FA]/60 transition-all hover:shadow-lg border-2 border-transparent hover:border-primary">
-                  <div className="flex flex-col items-center gap-6">
-                    <div className="w-24 h-24 rounded-2xl bg-primary/20 flex items-center justify-center">
-                      <MessageSquarePlus className="h-12 w-12 text-primary" />
-                    </div>
-                    <h3 className="text-2xl font-bold">Create my own</h3>
+              <button className="group relative overflow-hidden rounded-3xl bg-white p-1 text-left shadow-lg shadow-slate-200/50 transition-all hover:shadow-2xl hover:shadow-blue-200/50 hover:-translate-y-1 ring-1 ring-slate-100">
+                <div className="relative h-full rounded-[20px] bg-gradient-to-br from-blue-50 to-indigo-50/50 p-8 transition-colors group-hover:from-blue-100/50 group-hover:to-indigo-100/50">
+                  <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 shadow-lg shadow-blue-200">
+                    <MessageSquarePlus className="h-8 w-8 text-white" />
                   </div>
-                </Card>
+                  <h3 className="mb-2 text-2xl font-bold text-slate-900">Create Custom Topic</h3>
+                  <p className="text-slate-500">
+                    Design your own scenario, choose the characters, and set the difficulty level.
+                  </p>
+                </div>
               </button>
             </div>
 
-            <div className="border-t-2 border-dashed border-gray-300 my-12" />
-
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-2xl font-bold">Topics you've created</h3>
-              <div className="relative max-w-sm">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input placeholder="Search for topics you created" className="pl-10 bg-[#C2E2FA]/20" />
+            <div className="relative mb-12">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-200" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-[#F8FAFC] px-4 text-slate-400 font-semibold tracking-wider">Your Library</span>
               </div>
             </div>
 
-            <div className="grid md:grid-cols-4 gap-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4">
+              <h3 className="text-xl font-bold text-slate-900">Topics you've created</h3>
+              <div className="relative w-full sm:w-72">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  placeholder="Search your topics..."
+                  className="pl-10 bg-white border-slate-200 focus:border-blue-500 focus:ring-blue-500 rounded-xl"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {[
-                { title: "Space", level: "A1" },
-                { title: "Magic", level: "A2" },
-                { title: "World War II", level: "A1" },
-                { title: "Samurai", level: "A2" },
+                { title: "Space Adventure", level: "A1", category: "Sci-Fi" },
+                { title: "Magic School", level: "A2", category: "Fantasy" },
+                { title: "Job Interview", level: "B1", category: "Business" },
+                { title: "Cooking Class", level: "A2", category: "Lifestyle" },
               ].map((topic, index) => (
-                <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow border-2">
-                  <div className="aspect-[4/3] bg-gradient-to-br from-blue-200 to-blue-300" />
-                  <div className="p-3">
-                    <h4 className="font-semibold text-base mb-1.5">{topic.title}</h4>
-                    <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
-                      Learn vocabulary used in everyday eating, cooking, and ordering food in real situations.
-                    </p>
-                    <div className="flex items-center gap-1.5 mb-3">
-                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-900 text-[10px] font-medium">
-                        Daily Life
-                      </span>
-                      <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-medium">
-                        {topic.level}
-                      </span>
-                      <span className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-900 text-[10px] font-medium">
-                        A2
-                      </span>
+                <Card
+                  key={index}
+                  className="group relative overflow-hidden rounded-2xl border-slate-100 bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl"
+                >
+                  <div className="absolute right-3 top-3 z-10">
+                    <Badge className="bg-white/90 font-bold text-blue-600 shadow-sm backdrop-blur-sm">
+                      {topic.level}
+                    </Badge>
+                  </div>
+                  <div className="relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 to-blue-100 p-6">
+                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+                    <div className="relative flex h-14 w-14 items-center justify-center rounded-xl bg-white shadow-lg shadow-violet-100/50 ring-1 ring-slate-100">
+                      <Sparkles className="h-7 w-7 text-blue-500" />
                     </div>
-                    <div className="flex gap-1.5">
-                      <Button className="flex-1 text-xs h-7" size="sm">
-                        <Play className="h-3 w-3 mr-1" />
+                  </div>
+                  <div className="p-4">
+                    <div className="mb-3 flex items-center gap-2">
+                      <Badge
+                        variant="secondary"
+                        className="rounded-lg bg-blue-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-600"
+                      >
+                        {topic.category}
+                      </Badge>
+                      <span className="flex items-center text-[10px] font-medium text-slate-400">Custom</span>
+                    </div>
+                    <h4 className="mb-1 line-clamp-1 text-base font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                      {topic.title}
+                    </h4>
+                    <p className="mb-4 text-xs text-slate-500">Created 2 days ago</p>
+                    <div className="flex gap-2">
+                      <Button className="h-8 flex-1 rounded-lg bg-slate-200 text-xs font-semibold shadow-md transition-all hover:bg-slate-800">
+                        <Play className="mr-1.5 h-3 w-3" />
                         Start
                       </Button>
-                      <Button variant="outline" size="sm" className="text-xs h-7 px-2 bg-transparent">
-                        Edit
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
                   </div>
                 </Card>
               ))}
+
+              {/* Empty State / Add New Placeholder */}
+              <button className="group relative flex aspect-[3/4] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 transition-all hover:border-blue-400 hover:bg-blue-50/50">
+                <div className="mb-3 rounded-full bg-white p-3 shadow-sm ring-1 ring-slate-100 transition-transform group-hover:scale-110">
+                  <Plus className="h-6 w-6 text-slate-400 group-hover:text-blue-500" />
+                </div>
+                <span className="text-sm font-semibold text-slate-500 group-hover:text-blue-600">Create New</span>
+              </button>
             </div>
           </div>
         </Card>
