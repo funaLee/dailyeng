@@ -1,11 +1,35 @@
 "use client"
 
+import { SelectItem } from "@/components/ui/select"
+
+import { SelectContent } from "@/components/ui/select"
+
+import { SelectValue } from "@/components/ui/select"
+
+import { SelectTrigger } from "@/components/ui/select"
+
+import { Select } from "@/components/ui/select"
+
+import type React from "react"
+
 import { useState, useEffect, useRef } from "react"
-import Link from "next/link"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Mic, Play, Gift, MessageSquarePlus, Search, ChevronRight, Eye, RotateCcw } from 'lucide-react'
+import { Badge } from "@/components/ui/badge"
+import {
+  Play,
+  Gift,
+  MessageSquarePlus,
+  Search,
+  ChevronRight,
+  Eye,
+  RotateCcw,
+  MessageCircle,
+  Sparkles,
+  Clock,
+  Star,
+} from "lucide-react"
 import { RadarChart } from "@/components/speaking/radar-chart"
 
 const CEFR_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"]
@@ -120,6 +144,21 @@ const mockScenarios: Scenario[] = [
   },
 ]
 
+const DEMO_TOPICS = [
+  { title: "Space", score: 95 },
+  { title: "Magic", score: 92 },
+  { title: "Future Tech", score: 93 },
+  { title: "Shopping", score: 85 },
+  { title: "Travel", score: 83 },
+  { title: "Business", score: 88 },
+  { title: "Healthcare", score: 72 },
+  { title: "Education", score: 68 },
+  { title: "Sports", score: 75 },
+  { title: "Interviews", score: 52 },
+  { title: "Presentations", score: 48 },
+  { title: "Negotiations", score: 55 },
+]
+
 export default function SpeakingRoomPage() {
   const [scenarios, setScenarios] = useState<Scenario[]>([])
   const [loading, setLoading] = useState(true)
@@ -156,13 +195,13 @@ export default function SpeakingRoomPage() {
     if (ref.current) {
       const { scrollLeft, scrollWidth, clientWidth } = ref.current
       const isAtEnd = scrollLeft + clientWidth >= scrollWidth - 10 // 10px threshold
-      
+
       if (isAtEnd) {
         // Loop back to start
-        ref.current.scrollTo({ left: 0, behavior: 'smooth' })
+        ref.current.scrollTo({ left: 0, behavior: "smooth" })
       } else {
         // Scroll right normally
-        ref.current.scrollBy({ left: 300, behavior: 'smooth' })
+        ref.current.scrollBy({ left: 300, behavior: "smooth" })
       }
     }
   }
@@ -185,8 +224,8 @@ export default function SpeakingRoomPage() {
         <div className="relative z-10">
           <h1 className="text-4xl font-bold mb-2">SPEAKING ROOM</h1>
           <p className="text-muted-foreground mb-6">
-            Practice real conversations with AI tutors and get instant feedback on your pronunciation, fluency,
-            grammar, and content.
+            Practice real conversations with AI tutors and get instant feedback on your pronunciation, fluency, grammar,
+            and content.
           </p>
           <div className="flex flex-wrap gap-3 mb-4">
             <Button className="gap-2">Start Practice</Button>
@@ -202,44 +241,57 @@ export default function SpeakingRoomPage() {
           </div>
         </div>
         <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-br from-blue-200/50 to-blue-400/30 rounded-lg pointer-events-none">
-          <div className="absolute right-12 top-12 text-blue-600/20 text-6xl font-bold rotate-12">speaking</div>
-          <div className="absolute right-24 top-32 text-blue-600/20 text-5xl font-bold -rotate-6">fluency</div>
-          <div className="absolute right-8 top-52 text-blue-600/20 text-4xl font-bold rotate-3">practice</div>
+          <div className="absolute right-12 top-12 text-blue-400/20 text-6xl font-bold rotate-12">speaking</div>
+          <div className="absolute right-24 top-32 text-blue-400/20 text-5xl font-bold -rotate-6">fluency</div>
+          <div className="absolute right-8 top-52 text-blue-400/20 text-4xl font-bold rotate-3">practice</div>
         </div>
       </Card>
 
-      <div className="mb-6 flex gap-2">
+      <div className="mb-8 flex gap-8 border-b border-gray-200">
         <button
           onClick={() => setActiveTab("available")}
-          className={`px-6 py-2.5 font-medium text-sm rounded-lg transition-colors ${
-            activeTab === "available" ? "bg-primary text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          className={`pb-3 px-2 text-lg font-bold transition-colors border-b-2 ${
+            activeTab === "available"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-gray-900"
           }`}
         >
           Available Topics
         </button>
         <button
           onClick={() => setActiveTab("custom")}
-          className={`px-6 py-2.5 font-medium text-sm rounded-lg transition-colors ${
-            activeTab === "custom" ? "bg-primary text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          className={`pb-3 px-2 text-lg font-bold transition-colors border-b-2 ${
+            activeTab === "custom"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-gray-900"
           }`}
         >
           Custom Topics
         </button>
         <button
           onClick={() => setActiveTab("history")}
-          className={`px-6 py-2.5 font-medium text-sm rounded-lg transition-colors ${
-            activeTab === "history" ? "bg-primary text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          className={`pb-3 px-2 text-lg font-bold transition-colors border-b-2 ${
+            activeTab === "history"
+              ? "border-primary text-primary"
+              : "border-transparent text-muted-foreground hover:text-gray-900"
           }`}
         >
           History
         </button>
+        <div className="flex-1" />
+        <Input
+          placeholder="Search"
+          className="max-w-xs"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
       </div>
 
       {activeTab === "available" && (
-        <div className="grid lg:grid-cols-5 gap-6">
-          <div className="lg:col-span-1 space-y-6">
-            <Card className="p-6 bg-[#C2E2FA]/30">
-              <h3 className="font-bold text-lg mb-4">Topic Groups</h3>
+        <div className="grid lg:grid-cols-5 gap-8">
+          <div className="lg:col-span-1 space-y-8">
+            <Card className="p-5 bg-[#F0F9FF] border-blue-100 shadow-sm">
+              <h3 className="font-bold text-base mb-4 text-blue-900">Topic Groups</h3>
               <div className="space-y-1">
                 {TOPIC_GROUPS.map((group) => (
                   <button
@@ -248,15 +300,15 @@ export default function SpeakingRoomPage() {
                       setSelectedGroup(group.name)
                       setSelectedSubcategory(group.subcategories[0])
                     }}
-                    className={`w-full text-left px-4 py-3 rounded-lg text-sm transition-colors flex items-center gap-3 ${
-                      selectedGroup === group.name ? "bg-white font-semibold shadow-sm" : "hover:bg-white/50"
+                    className={`w-full text-left px-3 py-2.5 rounded-md text-sm transition-colors flex items-center gap-3 ${
+                      selectedGroup === group.name
+                        ? "bg-white font-semibold text-blue-400 shadow-sm border border-blue-100"
+                        : "text-slate-600 hover:bg-blue-50 hover:text-blue-400"
                     }`}
                   >
-                    {selectedGroup === group.name && (
-                      <div className="h-4 w-4 rounded-full border-4 border-primary flex-shrink-0" />
-                    )}
+                    {selectedGroup === group.name && <div className="h-2 w-2 rounded-full bg-blue-500 flex-shrink-0" />}
                     {selectedGroup !== group.name && (
-                      <div className="h-4 w-4 rounded-full border-2 border-gray-400 flex-shrink-0" />
+                      <div className="h-2 w-2 rounded-full bg-slate-300 flex-shrink-0" />
                     )}
                     <span>{group.name}</span>
                   </button>
@@ -264,21 +316,34 @@ export default function SpeakingRoomPage() {
               </div>
             </Card>
 
-            <Card className="p-6 bg-[#C2E2FA]/30">
-              <h3 className="font-bold text-lg mb-4">Levels</h3>
-              <Button variant="outline" size="sm" className="w-full justify-center text-xs mb-3 bg-white">
-                CEFR
-              </Button>
-              <div className="space-y-2">
+            <Card className="p-5 bg-[#F0F9FF] border-blue-100 shadow-sm">
+              <h3 className="font-bold text-base mb-4 text-blue-900">Levels</h3>
+              <Select defaultValue="CEFR">
+                <SelectTrigger className="w-full mb-4 bg-white border-blue-200">
+                  <SelectValue placeholder="Select Level System" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="CEFR">CEFR</SelectItem>
+                  <SelectItem value="IELTS">IELTS</SelectItem>
+                  <SelectItem value="TOEFL">TOEFL</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <div className="space-y-2.5">
                 {CEFR_LEVELS.map((level) => (
-                  <label key={level} className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedLevels.includes(level)}
-                      onChange={() => toggleLevel(level)}
-                      className="h-4 w-4 rounded border-gray-300"
-                    />
-                    <span className="text-sm">{level} CEFR</span>
+                  <label
+                    key={level}
+                    className="flex items-center gap-3 cursor-pointer group hover:bg-blue-50 p-1.5 rounded-md transition-colors -mx-1.5"
+                  >
+                    <div className="relative flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedLevels.includes(level)}
+                        onChange={() => toggleLevel(level)}
+                        className="peer h-4 w-4 rounded border-gray-300 text-blue-400 focus:ring-blue-500"
+                      />
+                    </div>
+                    <span className="text-sm font-medium text-slate-700 group-hover:text-blue-800">{level} Level</span>
                   </label>
                 ))}
               </div>
@@ -286,15 +351,15 @@ export default function SpeakingRoomPage() {
           </div>
 
           <div className="lg:col-span-4">
-            <div className="flex flex-wrap gap-3 mb-6">
+            <div className="flex flex-wrap gap-2 mb-6">
               {currentSubcategories.map((subcat) => (
                 <button
                   key={subcat}
                   onClick={() => setSelectedSubcategory(subcat)}
-                  className={`px-6 py-3 rounded-lg text-base font-semibold whitespace-nowrap transition-colors shadow-sm ${
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all border ${
                     selectedSubcategory === subcat
-                      ? "bg-blue-800 text-white"
-                      : "bg-[#C2E2FA] text-blue-900 hover:bg-blue-300"
+                      ? "bg-blue-400 text-white border-blue-400 shadow-sm"
+                      : "bg-white text-slate-600 border-slate-200 hover:border-blue-300 hover:text-blue-400 hover:bg-blue-50"
                   }`}
                 >
                   {subcat}
@@ -302,41 +367,51 @@ export default function SpeakingRoomPage() {
               ))}
             </div>
 
-            <div className="grid md:grid-cols-4 gap-4">
-              {filteredScenarios.map((scenario) => (
-                <Card key={scenario.id} className="overflow-hidden hover:shadow-lg transition-shadow border-2">
-                  <div className="aspect-[4/3] bg-gradient-to-br from-blue-200 to-blue-300 relative flex items-center justify-center">
-                    <span className="text-blue-600/40 text-3xl font-bold">{scenario.image}</span>
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredScenarios.map((topic, index) => (
+                <Card
+                  key={index}
+                  className="group relative overflow-hidden rounded-2xl border-slate-100 bg-white shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl dark:border-slate-800 dark:bg-slate-950"
+                >
+                  <div className="absolute right-3 top-3 z-10">
+                    <Badge className="bg-white/90 font-bold text-blue-400 shadow-sm backdrop-blur-sm hover:bg-white/90">
+                      {topic.level}
+                    </Badge>
                   </div>
-                  <div className="p-3">
-                    <h3 className="font-semibold text-base mb-1.5 line-clamp-2">{scenario.title}</h3>
-                    <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{scenario.description}</p>
-                    <div className="flex items-center gap-1.5 mb-3">
-                      <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-900 text-[10px] font-medium">
-                        {scenario.category}
+                  <div className="relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 p-6">
+                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
+                    <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-lg shadow-blue-100/50 ring-1 ring-slate-100">
+                      <MessageCircle className="h-8 w-8 text-blue-500" />
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <div className="mb-3 flex items-center gap-2">
+                      <Badge
+                        variant="secondary"
+                        className="rounded-lg bg-blue-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-400"
+                      >
+                        {topic.category}
+                      </Badge>
+                      <span className="flex items-center text-[10px] font-medium text-slate-400">
+                        <Clock className="mr-1 h-3 w-3" />
+                        5-7 min
                       </span>
-                      <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-medium">
-                        {scenario.level}
-                      </span>
                     </div>
-                    <div className="text-[10px] text-muted-foreground mb-2">
-                      {scenario.sessionsCompleted} / {scenario.totalSessions} sessions
-                    </div>
-                    <div className="h-1 bg-secondary rounded-full mb-3">
-                      <div
-                        className="h-full bg-green-500 rounded-full transition-all"
-                        style={{ width: `${scenario.progress}%` }}
-                      />
-                    </div>
-                    <div className="flex gap-1.5">
-                      <Link href={`/speaking/session/${scenario.id}`} className="flex-1">
-                        <Button className="w-full gap-1.5 text-xs h-7" size="sm">
-                          <Play className="h-3 w-3" />
-                          {scenario.progress > 0 ? "Continue" : "Start"}
-                        </Button>
-                      </Link>
-                      <Button variant="outline" size="sm" className="text-xs h-7 px-2 bg-transparent">
-                        Info
+                    <h4 className="mb-2 line-clamp-1 text-base font-bold text-slate-900 group-hover:text-blue-400 transition-colors">
+                      {topic.title}
+                    </h4>
+                    <p className="mb-4 line-clamp-2 text-xs text-slate-500">{topic.description}</p>
+                    <div className="flex gap-2">
+                      <Button className="h-9 flex-1 rounded-xl bg-blue-400 text-xs font-semibold shadow-lg shadow-blue-200 transition-all hover:bg-blue-500 hover:shadow-blue-300">
+                        <Play className="mr-1.5 h-3.5 w-3.5" />
+                        Start Speaking
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 rounded-xl text-slate-400 hover:text-blue-400"
+                      >
+                        <Star className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
@@ -476,47 +551,47 @@ export default function SpeakingRoomPage() {
                       <ChevronRight className="h-5 w-5 text-primary" />
                     </button>
                   </div>
-                  <div 
-                    ref={excellentScrollRef}
-                    className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
-                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                  >
-                    {[
-                      { title: "Space", score: 95 },
-                      { title: "Magic", score: 92 },
-                      { title: "Future Tech", score: 93 },
-                    ].map((topic, index) => (
-                      <Card key={index} className="flex-shrink-0 w-64 overflow-hidden border-2">
-                        <div className="aspect-[4/3] bg-gradient-to-br from-blue-200 to-blue-300" />
-                        <div className="p-3">
-                          <h4 className="font-semibold text-base mb-1.5">{topic.title}</h4>
-                          <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
-                            Learn vocabulary used in everyday eating, cooking, and ordering food in real situations.
-                          </p>
-                          <div className="flex items-center gap-1.5 mb-3">
-                            <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-900 text-[10px] font-medium">
-                              Daily Life
-                            </span>
-                            <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-medium">
-                              A1
-                            </span>
-                            <span className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-900 text-[10px] font-medium">
+                  <div ref={excellentScrollRef} className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                    {[...Array(5)].map((_, index) => {
+                      const topic = DEMO_TOPICS[index % DEMO_TOPICS.length]
+                      return (
+                        <Card
+                          key={index}
+                          className="group relative w-72 flex-shrink-0 overflow-hidden rounded-2xl border-slate-100 bg-white shadow-sm transition-all hover:shadow-xl dark:border-slate-800 dark:bg-slate-950"
+                        >
+                          <div className="absolute right-3 top-3 z-10">
+                            <Badge className="bg-green-500 font-bold text-white shadow-sm hover:bg-green-600">
                               Score: {topic.score}
-                            </span>
+                            </Badge>
                           </div>
-                          <div className="flex gap-1.5">
-                            <Button variant="outline" size="sm" className="flex-1 text-xs h-7 gap-1">
-                              <Eye className="h-3 w-3" />
-                              View result
-                            </Button>
-                            <Button size="sm" className="flex-1 text-xs h-7 gap-1">
-                              <RotateCcw className="h-3 w-3" />
-                              Speak again
-                            </Button>
+                          <div className="relative flex aspect-[2/1] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-green-50 to-emerald-50">
+                            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:16px_16px]" />
+                            <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-lg shadow-green-100/50 ring-1 ring-slate-100">
+                              <Sparkles className="h-6 w-6 text-green-500" />
+                            </div>
                           </div>
-                        </div>
-                      </Card>
-                    ))}
+                          <div className="p-4">
+                            <h4 className="mb-1 line-clamp-1 text-sm font-bold text-slate-900 group-hover:text-green-600 transition-colors">
+                              {topic.title}
+                            </h4>
+                            <p className="mb-3 text-xs text-slate-500">Completed 2 days ago</p>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                className="h-8 flex-1 rounded-lg text-xs font-semibold hover:bg-slate-50 bg-transparent"
+                              >
+                                <Eye className="mr-1.5 h-3.5 w-3.5" />
+                                Result
+                              </Button>
+                              <Button className="h-8 flex-1 rounded-lg bg-green-600 text-xs font-semibold text-white shadow-green-200 hover:bg-green-700 hover:shadow-green-300">
+                                <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+                                Retry
+                              </Button>
+                            </div>
+                          </div>
+                        </Card>
+                      )
+                    })}
                   </div>
                 </div>
 
@@ -530,47 +605,47 @@ export default function SpeakingRoomPage() {
                       <ChevronRight className="h-5 w-5 text-primary" />
                     </button>
                   </div>
-                  <div 
-                    ref={goodScrollRef}
-                    className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
-                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                  >
-                    {[
-                      { title: "Shopping", score: 85 },
-                      { title: "Travel", score: 83 },
-                      { title: "Business", score: 88 },
-                    ].map((topic, index) => (
-                      <Card key={index} className="flex-shrink-0 w-64 overflow-hidden border-2">
-                        <div className="aspect-[4/3] bg-gradient-to-br from-green-200 to-green-300" />
-                        <div className="p-3">
-                          <h4 className="font-semibold text-base mb-1.5">{topic.title}</h4>
-                          <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
-                            Learn vocabulary used in everyday eating, cooking, and ordering food in real situations.
-                          </p>
-                          <div className="flex items-center gap-1.5 mb-3">
-                            <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-900 text-[10px] font-medium">
-                              Daily Life
-                            </span>
-                            <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-medium">
-                              A2
-                            </span>
-                            <span className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-900 text-[10px] font-medium">
+                  <div ref={goodScrollRef} className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                    {[...Array(5)].map((_, index) => {
+                      const topic = DEMO_TOPICS[(index + 2) % DEMO_TOPICS.length]
+                      return (
+                        <Card
+                          key={index}
+                          className="group relative w-72 flex-shrink-0 overflow-hidden rounded-2xl border-slate-100 bg-white shadow-sm transition-all hover:shadow-xl dark:border-slate-800 dark:bg-slate-950"
+                        >
+                          <div className="absolute right-3 top-3 z-10">
+                            <Badge className="bg-green-500 font-bold text-white shadow-sm hover:bg-green-600">
                               Score: {topic.score}
-                            </span>
+                            </Badge>
                           </div>
-                          <div className="flex gap-1.5">
-                            <Button variant="outline" size="sm" className="flex-1 text-xs h-7 gap-1">
-                              <Eye className="h-3 w-3" />
-                              View result
-                            </Button>
-                            <Button size="sm" className="flex-1 text-xs h-7 gap-1">
-                              <RotateCcw className="h-3 w-3" />
-                              Speak again
-                            </Button>
+                          <div className="relative flex aspect-[2/1] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-green-50 to-emerald-50">
+                            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:16px_16px]" />
+                            <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-lg shadow-green-100/50 ring-1 ring-slate-100">
+                              <Sparkles className="h-6 w-6 text-green-500" />
+                            </div>
                           </div>
-                        </div>
-                      </Card>
-                    ))}
+                          <div className="p-4">
+                            <h4 className="mb-1 line-clamp-1 text-sm font-bold text-slate-900 group-hover:text-green-600 transition-colors">
+                              {topic.title}
+                            </h4>
+                            <p className="mb-3 text-xs text-slate-500">Completed 2 days ago</p>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                className="h-8 flex-1 rounded-lg text-xs font-semibold hover:bg-slate-50 bg-transparent"
+                              >
+                                <Eye className="mr-1.5 h-3.5 w-3.5" />
+                                Result
+                              </Button>
+                              <Button className="h-8 flex-1 rounded-lg bg-green-600 text-xs font-semibold text-white shadow-green-200 hover:bg-green-700 hover:shadow-green-300">
+                                <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+                                Retry
+                              </Button>
+                            </div>
+                          </div>
+                        </Card>
+                      )
+                    })}
                   </div>
                 </div>
 
@@ -584,47 +659,47 @@ export default function SpeakingRoomPage() {
                       <ChevronRight className="h-5 w-5 text-primary" />
                     </button>
                   </div>
-                  <div 
-                    ref={averageScrollRef}
-                    className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
-                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                  >
-                    {[
-                      { title: "Healthcare", score: 72 },
-                      { title: "Education", score: 68 },
-                      { title: "Sports", score: 75 },
-                    ].map((topic, index) => (
-                      <Card key={index} className="flex-shrink-0 w-64 overflow-hidden border-2">
-                        <div className="aspect-[4/3] bg-gradient-to-br from-yellow-200 to-yellow-300" />
-                        <div className="p-3">
-                          <h4 className="font-semibold text-base mb-1.5">{topic.title}</h4>
-                          <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
-                            Learn vocabulary used in everyday eating, cooking, and ordering food in real situations.
-                          </p>
-                          <div className="flex items-center gap-1.5 mb-3">
-                            <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-900 text-[10px] font-medium">
-                              Daily Life
-                            </span>
-                            <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-medium">
-                              B1
-                            </span>
-                            <span className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-900 text-[10px] font-medium">
+                  <div ref={averageScrollRef} className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                    {[...Array(5)].map((_, index) => {
+                      const topic = DEMO_TOPICS[(index + 4) % DEMO_TOPICS.length]
+                      return (
+                        <Card
+                          key={index}
+                          className="group relative w-72 flex-shrink-0 overflow-hidden rounded-2xl border-slate-100 bg-white shadow-sm transition-all hover:shadow-xl dark:border-slate-800 dark:bg-slate-950"
+                        >
+                          <div className="absolute right-3 top-3 z-10">
+                            <Badge className="bg-green-500 font-bold text-white shadow-sm hover:bg-green-600">
                               Score: {topic.score}
-                            </span>
+                            </Badge>
                           </div>
-                          <div className="flex gap-1.5">
-                            <Button variant="outline" size="sm" className="flex-1 text-xs h-7 gap-1">
-                              <Eye className="h-3 w-3" />
-                              View result
-                            </Button>
-                            <Button size="sm" className="flex-1 text-xs h-7 gap-1">
-                              <RotateCcw className="h-3 w-3" />
-                              Speak again
-                            </Button>
+                          <div className="relative flex aspect-[2/1] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-green-50 to-emerald-50">
+                            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:16px_16px]" />
+                            <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-lg shadow-green-100/50 ring-1 ring-slate-100">
+                              <Sparkles className="h-6 w-6 text-green-500" />
+                            </div>
                           </div>
-                        </div>
-                      </Card>
-                    ))}
+                          <div className="p-4">
+                            <h4 className="mb-1 line-clamp-1 text-sm font-bold text-slate-900 group-hover:text-green-600 transition-colors">
+                              {topic.title}
+                            </h4>
+                            <p className="mb-3 text-xs text-slate-500">Completed 2 days ago</p>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                className="h-8 flex-1 rounded-lg text-xs font-semibold hover:bg-slate-50 bg-transparent"
+                              >
+                                <Eye className="mr-1.5 h-3.5 w-3.5" />
+                                Result
+                              </Button>
+                              <Button className="h-8 flex-1 rounded-lg bg-green-600 text-xs font-semibold text-white shadow-green-200 hover:bg-green-700 hover:shadow-green-300">
+                                <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+                                Retry
+                              </Button>
+                            </div>
+                          </div>
+                        </Card>
+                      )
+                    })}
                   </div>
                 </div>
 
@@ -638,47 +713,47 @@ export default function SpeakingRoomPage() {
                       <ChevronRight className="h-5 w-5 text-primary" />
                     </button>
                   </div>
-                  <div 
-                    ref={poorScrollRef}
-                    className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
-                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                  >
-                    {[
-                      { title: "Interviews", score: 52 },
-                      { title: "Presentations", score: 48 },
-                      { title: "Negotiations", score: 55 },
-                    ].map((topic, index) => (
-                      <Card key={index} className="flex-shrink-0 w-64 overflow-hidden border-2">
-                        <div className="aspect-[4/3] bg-gradient-to-br from-red-200 to-red-300" />
-                        <div className="p-3">
-                          <h4 className="font-semibold text-base mb-1.5">{topic.title}</h4>
-                          <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
-                            Learn vocabulary used in everyday eating, cooking, and ordering food in real situations.
-                          </p>
-                          <div className="flex items-center gap-1.5 mb-3">
-                            <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-900 text-[10px] font-medium">
-                              Professional
-                            </span>
-                            <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-medium">
-                              B2
-                            </span>
-                            <span className="px-1.5 py-0.5 rounded bg-gray-100 text-gray-900 text-[10px] font-medium">
+                  <div ref={poorScrollRef} className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+                    {[...Array(5)].map((_, index) => {
+                      const topic = DEMO_TOPICS[(index + 7) % DEMO_TOPICS.length]
+                      return (
+                        <Card
+                          key={index}
+                          className="group relative w-72 flex-shrink-0 overflow-hidden rounded-2xl border-slate-100 bg-white shadow-sm transition-all hover:shadow-xl dark:border-slate-800 dark:bg-slate-950"
+                        >
+                          <div className="absolute right-3 top-3 z-10">
+                            <Badge className="bg-green-500 font-bold text-white shadow-sm hover:bg-green-600">
                               Score: {topic.score}
-                            </span>
+                            </Badge>
                           </div>
-                          <div className="flex gap-1.5">
-                            <Button variant="outline" size="sm" className="flex-1 text-xs h-7 gap-1">
-                              <Eye className="h-3 w-3" />
-                              View result
-                            </Button>
-                            <Button size="sm" className="flex-1 text-xs h-7 gap-1">
-                              <RotateCcw className="h-3 w-3" />
-                              Speak again
-                            </Button>
+                          <div className="relative flex aspect-[2/1] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-green-50 to-emerald-50">
+                            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:16px_16px]" />
+                            <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-white shadow-lg shadow-green-100/50 ring-1 ring-slate-100">
+                              <Sparkles className="h-6 w-6 text-green-500" />
+                            </div>
                           </div>
-                        </div>
-                      </Card>
-                    ))}
+                          <div className="p-4">
+                            <h4 className="mb-1 line-clamp-1 text-sm font-bold text-slate-900 group-hover:text-green-600 transition-colors">
+                              {topic.title}
+                            </h4>
+                            <p className="mb-3 text-xs text-slate-500">Completed 2 days ago</p>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                className="h-8 flex-1 rounded-lg text-xs font-semibold hover:bg-slate-50 bg-transparent"
+                              >
+                                <Eye className="mr-1.5 h-3.5 w-3.5" />
+                                Result
+                              </Button>
+                              <Button className="h-8 flex-1 rounded-lg bg-green-600 text-xs font-semibold text-white shadow-green-200 hover:bg-green-700 hover:shadow-green-300">
+                                <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
+                                Retry
+                              </Button>
+                            </div>
+                          </div>
+                        </Card>
+                      )
+                    })}
                   </div>
                 </div>
               </div>
