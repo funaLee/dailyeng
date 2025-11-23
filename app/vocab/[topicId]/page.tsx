@@ -188,7 +188,7 @@ export default function TopicDetailPage() {
             const isUnlocked = isStepUnlocked(step.id)
 
             return (
-              <div key={step.id} className="flex flex-col items-center gap-2">
+              <div key={step.id} className="flex flex-col items-center gap-2 pt-5">
                 <button
                   onClick={() => isUnlocked && setActiveTab(step.id)}
                   disabled={!isUnlocked}

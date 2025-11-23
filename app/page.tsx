@@ -271,7 +271,9 @@ export default function Home() {
       {/* Social Proof Section */}
       <section className="py-15 bg-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          
           <div className="grid md:grid-cols-2 gap-6">
+            
             {/* Rating Card */}
             <RevealOnScroll>
               <Card className="bg-blue-400 text-white border-0 p-6 shadow-xl rounded-2xl relative overflow-hidden group transition-transform hover:scale-[1.02] h-full">
@@ -448,7 +450,9 @@ export default function Home() {
 
       {/* Comprehensive Features Tabs */}
       <section className="py-24 bg-white">
+        
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
           <RevealOnScroll className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">Everything You Need to Fluency</h2>
             <p className="text-xl text-gray-600">A complete ecosystem for English mastery</p>

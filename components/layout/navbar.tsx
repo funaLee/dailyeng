@@ -7,6 +7,7 @@ import { Menu, X, ChevronDown, User, LayoutDashboard } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useAppStore } from "@/lib/store"
+import { ModeToggle } from "@/components/mode-toggle"
 
 const navItems = [
   { href: "/", label: "Home" },
@@ -94,6 +95,7 @@ export function Navbar() {
 
           {/* Right Section */}
           <div className="flex items-center gap-2">
+            <ModeToggle />
             {isAuthenticated ? (
               <>
                 <Link href="/dashboard">

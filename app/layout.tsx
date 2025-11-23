@@ -7,12 +7,7 @@ import { KittyTutor } from "@/components/layout/kitty-tutor"
 import { SearchCommand } from "@/components/layout/search-command"
 import "@/app/globals.css"
 import { Suspense } from "react"
-
-// const montserrat = Montserrat({
-//   subsets: ["latin"],
-//   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
-//   variable: "--font-montserrat",
-// })
+import { ThemeProvider } from "@/components/theme-provider"
 
 const nunito = Nunito({
   subsets: ["latin"],
@@ -39,13 +34,15 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${nunito.className} bg-background text-foreground`}>
-        <Navbar />
-        <Suspense fallback={<div>Loading...</div>}>
-          <main className="min-h-screen">{children}</main>
-          <KittyTutor />
-          <SearchCommand />
-        </Suspense>
-        <Footer />
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <Navbar />
+          <Suspense fallback={<div>Loading...</div>}>
+            <main className="min-h-screen">{children}</main>
+            <KittyTutor />
+            <SearchCommand />
+          </Suspense>
+          <Footer />
+        </ThemeProvider>
       </body>
     </html>
   )
