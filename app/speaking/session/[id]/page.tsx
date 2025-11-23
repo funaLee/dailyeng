@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card"
 import { SessionChat } from "@/components/speaking/session-chat"
 import { SessionTranscript } from "@/components/speaking/session-transcript"
 import { RadarChart } from "@/components/speaking/radar-chart"
-import { mockSpeakingScenarios, mockSpeakingTurns, mockCustomScenarios } from "@/lib/mock-data"
+// Removed mock data import - now fetching from API
 import { useAppStore } from "@/lib/store"
 import { ArrowLeft, BarChart3, BookOpen, Download, Play, RotateCcw, User, Bot, Volume2, Copy, Check, Mic, MoreVertical, RefreshCw } from 'lucide-react'
 import Link from "next/link"
@@ -50,46 +50,41 @@ export default function SpeakingSessionPage() {
   const TURNS_FOR_COMPLETION = 6
 
   useEffect(() => {
-    // Flatten all scenarios from all categories
-    const allScenarios = Object.values(mockSpeakingScenarios)
-      .reduce((acc, curr) => [...acc, ...curr], [])
-      .concat(mockCustomScenarios)
+    const fetchScenario = async () => {
+      try {
+        // Fetch scenario from API
+        const response = await fetch(`/api/speaking/scenarios`)
+        if (!response.ok) {
+          throw new Error('Failed to fetch scenarios')
+        }
+        
+        const allScenarios = await response.json()
+        console.log("Looking for scenarioId:", scenarioId)
+        console.log("Available scenarios:", allScenarios.map((s: any) => s.id))
 
-    console.log("Looking for scenarioId:", scenarioId)
-    console.log("Available scenarios:", allScenarios.map(s => s.id))
+        let found = allScenarios.find((s: any) => s.id === scenarioId)
 
-    let found = allScenarios.find((s) => s.id === scenarioId)
+        if (!found) {
+          console.warn("Speaking scenario not found for id:", scenarioId)
+        } else {
+          console.log("Successfully found scenario:", found.title)
+        }
 
-    // Fallbacks for mismatched ids (numeric ids or slight formatting differences)
-    if (!found) {
-      const numeric = parseInt(scenarioId, 10)
-      if (!isNaN(numeric) && numeric > 0 && numeric <= allScenarios.length) {
-        found = allScenarios[numeric - 1]
-        console.log("Found by numeric index:", numeric - 1, found?.id)
+        setScenario(found)
+
+        // Fetch session turns if scenario exists
+        if (found) {
+          // For now, start with empty turns - will be populated when user starts speaking
+          setTurns([])
+          calculateStats([])
+        }
+      } catch (error) {
+        console.error('Error fetching scenario:', error)
+        setScenario(null)
       }
     }
 
-    if (!found) {
-      // try loose match ignoring hyphens/underscores
-      const normalized = (id: string) => id.replace(/[-_]/g, "").toLowerCase()
-      const normalizedScenarioId = normalized(scenarioId)
-      found = allScenarios.find((s) => {
-        const match = normalized(s.id) === normalizedScenarioId
-        if (match) console.log("Found by loose match:", s.id)
-        return match
-      })
-    }
-
-    if (!found) {
-      console.warn("Speaking scenario not found for id:", scenarioId, "available:", allScenarios.map(s => s.id))
-    } else {
-      console.log("Successfully found scenario:", found.title)
-    }
-
-    setScenario(found)
-
-    setTurns(mockSpeakingTurns.session1 as Turn[])
-    calculateStats(mockSpeakingTurns.session1 as Turn[])
+    fetchScenario()
   }, [scenarioId])
 
   const calculateStats = (allTurns: Turn[]) => {
