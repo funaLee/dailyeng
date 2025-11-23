@@ -131,6 +131,30 @@ export const ProfileStatsSchema = z.object({
   }),
 })
 
+export const ScenarioSchema = z
+  .object({
+    id: z.string(),
+    title: z.string(),
+    description: z.string(),
+    category: z.string(),
+    level: z.string(),
+    image: z.string(),
+    sessions_completed: z.number(),
+    total_sessions: z.number(),
+    progress: z.number(),
+  })
+  .transform((data) => ({
+    id: data.id,
+    title: data.title,
+    description: data.description,
+    category: data.category,
+    level: data.level,
+    image: data.image,
+    sessionsCompleted: data.sessions_completed,
+    totalSessions: data.total_sessions,
+    progress: data.progress,
+  }))
+
 // Types
 export type Topic = z.infer<typeof TopicSchema>
 export type VocabItem = z.infer<typeof VocabItemSchema>
@@ -143,3 +167,4 @@ export type SpeakingTurn = z.infer<typeof SpeakingTurnSchema>
 export type StudyPlan = z.infer<typeof StudyPlanSchema>
 export type StudyPlanData = z.infer<typeof StudyPlanDataSchema>
 export type ProfileStats = z.infer<typeof ProfileStatsSchema>
+export type Scenario = z.infer<typeof ScenarioSchema>

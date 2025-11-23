@@ -6,7 +6,9 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Mic, Play, Gift, MessageSquarePlus, Search, ChevronRight, Eye, RotateCcw } from 'lucide-react'
+import { z } from "zod"
 import { RadarChart } from "@/components/speaking/radar-chart"
+import { Scenario, ScenarioSchema } from "@/types"
 
 const CEFR_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"]
 
@@ -39,90 +41,12 @@ const TOPIC_GROUPS = [
 
 type TabType = "available" | "custom" | "history"
 
-interface Scenario {
-  id: string
-  title: string
-  description: string
-  category: string
-  level: string
-  image: string
-  sessionsCompleted: number
-  totalSessions: number
-  progress: number
-}
 
-const mockScenarios: Scenario[] = [
-  {
-    id: "1",
-    title: "Ordering at a Café",
-    description: "Learn vocabulary used in everyday eating, cooking, and ordering food in real situations.",
-    category: "Daily Life",
-    level: "A1",
-    image: "png1",
-    sessionsCompleted: 2,
-    totalSessions: 5,
-    progress: 40,
-  },
-  {
-    id: "2",
-    title: "Visiting the doctor",
-    description: "Learn vocabulary used in everyday eating, cooking, and ordering food in real situations.",
-    category: "Daily Life",
-    level: "A2",
-    image: "png2",
-    sessionsCompleted: 0,
-    totalSessions: 4,
-    progress: 0,
-  },
-  {
-    id: "3",
-    title: "Artificial Intelligence",
-    description: "Learn vocabulary used in everyday eating, cooking, and ordering food in real situations.",
-    category: "Daily Life",
-    level: "B1",
-    image: "png3",
-    sessionsCompleted: 3,
-    totalSessions: 6,
-    progress: 50,
-  },
-  {
-    id: "4",
-    title: "Shopping for Clothes",
-    description: "Learn vocabulary used in everyday eating, cooking, and ordering food in real situations.",
-    category: "Daily Life",
-    level: "A2",
-    image: "png4",
-    sessionsCompleted: 1,
-    totalSessions: 4,
-    progress: 25,
-  },
-  {
-    id: "5",
-    title: "Job Interview",
-    description: "Practice professional conversations and learn how to present yourself confidently.",
-    category: "Professional English",
-    level: "B2",
-    image: "png5",
-    sessionsCompleted: 0,
-    totalSessions: 8,
-    progress: 0,
-  },
-  {
-    id: "6",
-    title: "Hotel Check-in",
-    description: "Learn essential phrases for traveling and staying at hotels.",
-    category: "Travel",
-    level: "A2",
-    image: "png6",
-    sessionsCompleted: 2,
-    totalSessions: 5,
-    progress: 40,
-  },
-]
 
 export default function SpeakingRoomPage() {
   const [scenarios, setScenarios] = useState<Scenario[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedLevels, setSelectedLevels] = useState<string[]>(["A1", "A2"])
   const [selectedGroup, setSelectedGroup] = useState<string>("Daily Life")
@@ -134,8 +58,30 @@ export default function SpeakingRoomPage() {
   const poorScrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    setScenarios(mockScenarios)
-    setLoading(false)
+    async function fetchScenarios() {
+      try {
+        const response = await fetch('http://localhost:3001/api/scenarios');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        // Validate and transform the data using the Zod schema
+        const parsedScenarios = z.array(ScenarioSchema).parse(data);
+        setScenarios(parsedScenarios);
+      } catch (err) {
+        if (err instanceof z.ZodError) {
+          setError(`Data validation failed: ${err.errors.map(e => e.message).join(', ')}`);
+        } else if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('An unknown error occurred');
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchScenarios();
   }, [])
 
   const filteredScenarios = scenarios.filter((scenario) => {
@@ -174,6 +120,19 @@ export default function SpeakingRoomPage() {
           {[1, 2, 3].map((i) => (
             <div key={i} className="h-32 rounded-2xl bg-secondary animate-pulse" />
           ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-red-600">Failed to load scenarios</h2>
+          <p className="mt-2 text-muted-foreground">
+            Error: {error}. Please try again later.
+          </p>
         </div>
       </div>
     )
