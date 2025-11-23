@@ -1,13 +1,49 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Star, MessageSquare, BookOpen, Target, Sparkles, Quote, ArrowRight } from 'lucide-react'
+import { Star, MessageSquare, BookOpen, Target, Sparkles, Quote, ArrowRight, CheckCircle2, Zap, Mic, Users, ChevronRight } from 'lucide-react'
 import { InteractiveGridBackground } from "@/components/ui/interactive-grid-background"
 import { StackedCardCarousel } from "@/components/home/stacked-card-carousel"
+
+// Scroll Animation Component
+function RevealOnScroll({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+  const [isVisible, setIsVisible] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true)
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.15, rootMargin: "0px 0px -50px 0px" }
+    )
+
+    if (ref.current) {
+      observer.observe(ref.current)
+    }
+
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <div
+      ref={ref}
+      className={`transition-all duration-1000 ease-out transform ${className} ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
+      }`}
+      style={{ transitionDelay: `${delay}ms` }}
+    >
+      {children}
+    </div>
+  )
+}
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("language-hub")
@@ -20,6 +56,7 @@ export default function Home() {
       description:
         "No more rote memorization. Every word and rule you learn is reinforced through exercises, conversations, and real applications.",
       image: "/learning.png",
+      icon: <BookOpen className="w-5 h-5" />,
     },
     {
       id: "speaking-room",
@@ -28,6 +65,7 @@ export default function Home() {
       description:
         "Practice speaking in real-life contexts with AI tutors. Get instant feedback and interactive speaking sessions. Build confidence step by step.",
       image: "/learning.png",
+      icon: <MessageSquare className="w-5 h-5" />,
     },
     {
       id: "study-plan",
@@ -36,6 +74,7 @@ export default function Home() {
       description:
         "DailyEng adapts to your goals. Whether you're practicing for school, work, or exams — we guide your progress with a personalized learning roadmap.",
       image: "/learning.png",
+      icon: <Target className="w-5 h-5" />,
     },
     {
       id: "learning-profile",
@@ -44,6 +83,7 @@ export default function Home() {
       description:
         "Track your achievements, streaks, strengths, and areas to improve. Grow with your own learning journey.",
       image: "/learning.png",
+      icon: <Sparkles className="w-5 h-5" />,
     },
   ]
 
@@ -92,442 +132,558 @@ export default function Home() {
     },
   ]
 
+  const partnerLogos = [
+    { src: "/bc-logo.png", alt: "British Council" },
+    { src: "/idp-logo.png", alt: "IDP" },
+    { src: "/cambridge-logo.png", alt: "Cambridge" },
+    { src: "/toefl-logo.png", alt: "TOEFL" },
+    { src: "/ielts-logo.png", alt: "IELTS" },
+  ]
+
   return (
-    <div className="min-h-screen bg-white">
-      {/* Hero Section: left content + two images on right */}
-      <section className="relative">
-        <InteractiveGridBackground rows={12} cols={12} className="z-0" />
+    <div className="min-h-screen bg-white font-sans selection:bg-[#C2E2FA] selection:text-blue-900">
+      {/* Hero Section - Reduced padding to show logos above fold */}
+      <section className="relative overflow-hidden pt-12 pb-8 sm:pt-12 sm:pb-12 lg:pt-16 lg:pb-16">
+        <InteractiveGridBackground rows={12} cols={20} className="z-0 opacity-80" />
 
-        <div className="pointer-events-none max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-18 lg:py-22 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            {/* Cột trái */}
-            <div className="pointer-events-none">
-              <div className="inline-flex items-center gap-2 bg-[#C2E2FA] text-gray-900 text-sm font-medium px-4 py-2 rounded-full mb-6 border border-[#C2E2FA]/50">
-                <Sparkles className="w-4 h-4" />
-                The best English learning website ever you can find
-              </div>
+        <div className="pointer-events-none max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+            {/* Left Content */}
+            <div className="pointer-events-none flex flex-col items-center lg:items-start text-center lg:text-left">
+              <RevealOnScroll className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 text-sm font-semibold px-4 py-1.5 rounded-full mb-6 border border-blue-100 shadow-sm">
+                <Sparkles className="w-4 h-4 fill-blue-400 text-blue-500" />
+                <span>The #1 AI-Powered English Platform</span>
+              </RevealOnScroll>
 
-              <h1 className="text-7xl sm:text-8xl lg:text-9xl font-bold mb-6 leading-tight text-primary">
-                DailyEng
-              </h1>
+              <RevealOnScroll delay={100}>
+                {/* Updated Title: Plain Blue "Eng" */}
+                <h1 className="text-6xl sm:text-7xl lg:text-7xl xl:text-8xl font-bold mb-6 leading-[1.1] tracking-tight text-gray-700">
+                  Daily<span className="text-blue-400">Eng</span>
+                </h1>
+              </RevealOnScroll>
 
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-medium mb-6 leading-relaxed text-gray-400">
-                Learn English the Smart 
-                <br />
-                &amp; Fun Way!
-              </h2>
+              <RevealOnScroll delay={200}>
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-medium mb-6 leading-relaxed text-gray-500">
+                  Master English the <br className="hidden lg:block" />
+                  <span className="text-blue-400 font-semibold">Smart & Fun Way!</span>
+                </h2>
+              </RevealOnScroll>
 
-              <p className="text-lg text-gray-600 mb-8 max-w-xl">
-                Here, you don't just memorize words — you use them. Practice with interactive exercises, AI tutors, and
-                a personalized study plan.
-              </p>
+              <RevealOnScroll delay={300}>
+                <p className="text-lg sm:text-xl text-gray-400 mb-8 max-w-xl leading-relaxed">
+                  Stop memorizing lists. Start using the language. Practice with real-world scenarios, AI tutors, and personalized roadmaps.
+                </p>
+              </RevealOnScroll>
 
-              {/* Chỗ này cần click được → bật lại pointer-events-auto */}
-              <div className="flex flex-col sm:flex-row gap-4 pointer-events-auto">
-                <Link href="/auth/signup" className="pointer-events-auto">
+              <RevealOnScroll delay={400} className="flex flex-col sm:flex-row gap-4 pointer-events-auto w-full sm:w-auto">
+                <Link href="/auth/signup" className="pointer-events-auto w-full sm:w-auto">
                   <Button
                     size="lg"
-                    className="pointer-events-auto bg-[#C2E2FA] hover:bg-[#A8D5F7] text-gray-900 px-6 py-3 rounded-full shadow font-semibold"
+                    className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 text-white px-8 py-6 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-lg font-semibold"
                   >
-                    Join now
+                    Start Learning Free
                   </Button>
                 </Link>
-                <Link href="/help" className="pointer-events-auto">
+                <Link href="/help" className="pointer-events-auto w-full sm:w-auto">
                   <Button
                     size="lg"
                     variant="outline"
-                    className="pointer-events-auto border-2 border-[#C2E2FA] text-gray-900 hover:bg-[#C2E2FA]/10 px-6 py-3 rounded-full bg-transparent"
+                    className="w-full sm:w-auto border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50 px-8 py-6 rounded-full text-lg"
                   >
-                    Learn more
+                    How it works
                   </Button>
                 </Link>
-              </div>
+              </RevealOnScroll>
+              
+              <RevealOnScroll delay={500} className="mt-8 flex items-center gap-4 text-sm text-gray-500">
+                <div className="flex -space-x-2">
+                   {[1,2,3,4].map(i => (
+                     <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 overflow-hidden">
+                        <Image src={`/placeholder-user.jpg`} width={32} height={32} alt="User" />
+                     </div>
+                   ))}
+                </div>
+                <p>Trusted by 10,000+ learners</p>
+              </RevealOnScroll>
             </div>
 
-            <div className="relative w-full pointer-events-auto">
+            {/* Right Visual - StackedCardCarousel */}
+            <div className="relative w-full pointer-events-auto lg:pl-10 animate-fade-in-up" style={{animationDelay: '600ms'}}>
+              <div className="absolute -inset-4 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full opacity-30 blur-3xl -z-10" />
               <StackedCardCarousel
                 images={[
                   "/learning.png",
-                  "/learning.png",
-                  "/learning.png",
-                  "/learning.png",
+                  "/abstract-job-concept.png",
+                  "/diverse-travelers-world-map.png",
+                  "/diverse-food-spread.png",
                 ]}
-                autoPlayInterval={5000}
+                autoPlayInterval={3000}
               />
             </div>
           </div>
         </div>
       </section>
 
-
-      {/* Logos Marquee */}
-      <section className="py-8 bg-white border-y border-gray-100 overflow-hidden">
-        <div className="flex animate-scroll-left whitespace-nowrap">
-          {[...Array(3)].map((_, setIndex) => (
-            <div key={setIndex} className="flex gap-12 items-center px-6">
-              <div className="w-50 h-30 relative transition-all inline-block">
-                <Image src="/bc-logo.png" alt="British Council" fill className="object-contain" />
+      {/* Logos Marquee - Infinite Loop, No Grayscale */}
+      <section className="py-8 bg-white border-y border-slate-200 overflow-hidden">
+        <div className="max-w-7xl mx-auto px-6 mb-6 text-center">
+          <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Prepared for success with</p>
+        </div>
+        
+        <div className="relative flex overflow-hidden">
+          {/* First set of logos */}
+          <div className="flex animate-scroll-left whitespace-nowrap py-2">
+            {[...partnerLogos, ...partnerLogos].map((logo, index) => (
+              <div key={`logo-1-${index}`} className="flex items-center justify-center mx-12 w-32 h-16 relative">
+                 <Image src={logo.src} alt={logo.alt} fill className="object-contain" />
               </div>
-              <div className="w-50 h-30 relative transition-all inline-block">
-                <Image src="/idp-logo.png" alt="IDP" fill className="object-contain" />
-              </div>
-              <div className="w-50 h-30 relative transition-all inline-block">
-                <Image src="/cambridge-logo.png" alt="Cambridge" fill className="object-contain" />
-              </div>
-              <div className="w-50 h-30 relative transition-all inline-block">
-                <Image src="/toefl-logo.png" alt="TOEFL" fill className="object-contain" />
-              </div>
-              <div className="w-50 h-30 relative transition-all inline-block">
-                <Image src="/ielts-logo.png" alt="IELTS" fill className="object-contain" />
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
+          {/* Second set for seamless loop (absolute positioned or just doubled in the flex container usually works best with CSS anim, here I doubled the array above which is often safer for width calculation) */}
         </div>
       </section>
 
-      {/* Social Proof Section - Redesigned */}
-      <section className="py-16 bg-gradient-to-b from-white to-[#C2E2FA]/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-2 gap-8">
+      {/* Social Proof Section */}
+      <section className="py-24 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
             {/* Rating Card */}
-            <Card className="bg-[#C2E2FA] text-gray-900 border-0 p-8 shadow-xl rounded-3xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-40 h-40 bg-white/20 rounded-full -mr-20 -mt-20"></div>
-              <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/20 rounded-full -ml-16 -mb-16"></div>
-              <div className="relative z-10">
-                <div className="text-6xl font-bold mb-2">100,000+</div>
-                <div className="text-gray-700 text-lg mb-6">people using it</div>
-                <div className="flex items-center gap-2 bg-white/40 backdrop-blur-sm rounded-full px-4 py-2 inline-flex">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                  ))}
-                  <span className="ml-2 font-semibold">5.0 Rating</span>
-                </div>
-              </div>
-            </Card>
-
-            {/* Quote Card */}
-            <Card className="bg-white border-2 border-[#C2E2FA] p-8 shadow-lg rounded-3xl relative">
-              <Quote className="absolute top-6 right-6 w-16 h-16 text-[#C2E2FA]" />
-              <div className="relative z-10">
-                <p className="text-gray-700 text-xl leading-relaxed mb-6 italic">
-                  "Some quote about learning (especially in English) here, for nothing but it seems quite fun"
-                </p>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-[#C2E2FA] rounded-full flex items-center justify-center text-gray-900 font-bold">
-                    TT
-                  </div>
+            <RevealOnScroll>
+              <Card className="bg-blue-400 text-white border-0 p-10 shadow-2xl rounded-[2.5rem] relative overflow-hidden group transition-transform hover:scale-[1.02] h-full">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-24 -mt-24 blur-3xl group-hover:bg-white/20 transition-colors"></div>
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-400/20 rounded-full -ml-20 -mb-20 blur-2xl"></div>
+                
+                <div className="relative z-10 h-full flex flex-col justify-between">
                   <div>
-                    <div className="font-semibold text-gray-900">T.Truc</div>
-                    <div className="text-sm text-gray-500">University of Information Technology</div>
+                    <div className="flex items-center gap-2 mb-2 text-blue-100 font-medium">
+                      <Users className="w-5 h-5" />
+                      <span>Our Community</span>
+                    </div>
+                    <div className="text-7xl font-bold mb-2 tracking-tighter">100k+</div>
+                    <div className="text-blue-100 text-xl mb-8">active learners worldwide</div>
                   </div>
-                </div>
-              </div>
-            </Card>
-          </div>
-
-          <div className="text-center mt-8">
-            <Button
-              variant="outline"
-              className="border-2 border-[#C2E2FA] text-gray-900 hover:bg-[#C2E2FA]/20 rounded-full px-8 py-3 bg-transparent"
-            >
-              See all reviews here <ArrowRight className="ml-2 w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      {/* What Makes DailyEng Different Section */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">What Makes DailyEng Different?</h2>
-            <p className="text-xl text-gray-600">Four powerful features that transform your learning experience</p>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            {[
-              {
-                title: "Speak First",
-                description: "Practice real-life conversations with AI tutors and get instant feedback.",
-              },
-              {
-                title: "Learn by Using",
-                description: "Apply vocabulary & grammar through listening, reading, and writing exercises.",
-              },
-              {
-                title: "Stay Motivated",
-                description: "Track progress with points, streaks, and leaderboards that keep learning fun.",
-              },
-              {
-                title: "Smart Companion",
-                description: "Get personalized guidance from Kitty Tutor, your AI learning assistant.",
-              },
-            ].map((feature, idx) => (
-              <Card
-                key={idx}
-                className="bg-gradient-to-br from-[#C2E2FA]/30 to-white border-2 border-[#C2E2FA]/50 overflow-hidden hover:shadow-lg transition-all duration-300 group rounded-3xl aspect-square flex flex-col"
-              >
-                {/* Decorative illustration area with learning.png */}
-                <div className="relative h-40 overflow-hidden bg-gradient-to-br from-[#C2E2FA]/40 to-[#C2E2FA]/20 rounded-t-3xl">
-                  <Image 
-                    src="/learning.png" 
-                    alt={feature.title}
-                    fill
-                    className="object-cover opacity-60 rounded-t-3xl"
-                  />
-                  {/* Decorative elements */}
-                  <div className="absolute top-3 left-3 w-12 h-12 bg-white/40 rounded-full"></div>
-                  <div className="absolute bottom-3 right-3 w-8 h-8 bg-white/40 rounded-full"></div>
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 flex flex-col items-center justify-center text-center p-6">
-                  <h3 className="font-bold text-2xl mb-3 text-gray-900">{feature.title}</h3>
-                  <p className="text-gray-600 text-base leading-relaxed">{feature.description}</p>
+                  
+                  <div className="flex items-center gap-4 bg-white/10 backdrop-blur-md rounded-2xl p-4 w-fit border border-white/10">
+                    <div className="flex -space-x-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="h-6 w-6 fill-yellow-400 text-yellow-400 drop-shadow-sm" />
+                      ))}
+                    </div>
+                    <div className="h-8 w-px bg-white/20"></div>
+                    <div>
+                      <span className="font-bold text-lg">4.9</span>
+                      <span className="text-blue-100 text-sm ml-1">/ 5.0 Rating</span>
+                    </div>
+                  </div>
                 </div>
               </Card>
-            ))}
-          </div>
-        </div>
-      </section>
+            </RevealOnScroll>
 
-      {/* What You Can Do on DailyEng Section */}
-      <section className="py-20 bg-gradient-to-b from-white to-[#C2E2FA]/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">What You Can Do on DailyEng</h2>
-            <p className="text-xl text-gray-600">Explore our comprehensive learning features</p>
-          </div>
-
-          <div className="flex flex-wrap gap-3 mb-10 justify-center">
-            {featureTabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`px-8 py-4 rounded-full text-sm font-semibold transition-all duration-300 ${
-                  activeTab === tab.id
-                    ? "bg-[#C2E2FA] text-gray-900 shadow-lg scale-105"
-                    : "bg-white text-gray-700 hover:bg-[#C2E2FA]/50 border border-[#C2E2FA]"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          <Card className="bg-white border-2 border-[#C2E2FA] p-12 shadow-xl rounded-3xl">
-            {featureTabs.map((tab) => (
-              <div key={tab.id} className={activeTab === tab.id ? "block" : "hidden"}>
-                <div className="grid md:grid-cols-2 gap-12 items-center">
-                  <div className="relative rounded-3xl h-80 overflow-hidden shadow-2xl">
-                    <Image src={tab.image || "/placeholder.svg"} alt={tab.title} fill className="object-cover" />
-                  </div>
-                  <div>
-                    <h3 className="text-3xl font-bold mb-6 text-gray-900">{tab.title}</h3>
-                    <p className="text-gray-600 leading-relaxed text-lg mb-8">{tab.description}</p>
-                    <Button className="bg-[#C2E2FA] hover:bg-[#A8D5F7] text-gray-900 rounded-full px-8 font-semibold">
-                      Try it now <ArrowRight className="ml-2 w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </Card>
-        </div>
-      </section>
-
-      {/* Review From Learner Section */}
-      <section className="py-20 bg-white overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Card className="rounded-3xl p-8 sm:p-12 border-2 border-[#C2E2FA]">
-            <div className="grid md:grid-cols-5 gap-6">
-              <div className="md:col-span-2 flex items-center justify-center">
-                <div>
-                  <h2 className="text-5xl font-bold text-gray-900 leading-tight mb-4">
-                    REVIEW
-                    <br />
-                    FROM
-                    <br />
-                    LEARNER
-                  </h2>
-                  <div className="flex items-center gap-1">
+            {/* Quote Card */}
+            <RevealOnScroll delay={200}>
+              <Card className="bg-slate-50 border border-slate-200 p-10 shadow-xl rounded-[2.5rem] relative flex flex-col justify-center group hover:border-blue-200 transition-colors h-full">
+                <Quote className="absolute top-10 right-10 w-20 h-20 text-blue-100 -z-0 rotate-12" />
+                <div className="relative z-10">
+                  <div className="mb-6 flex gap-1">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-6 w-6 fill-[#C2E2FA] text-[#C2E2FA]" />
+                      <Star key={i} className="h-5 w-5 fill-blue-500 text-blue-500" />
                     ))}
                   </div>
+                  <p className="text-gray-900 text-2xl sm:text-3xl font-medium leading-relaxed mb-8">
+                    "This app completely changed how I prepare for my interviews. The AI speaking partner feels incredibly realistic."
+                  </p>
+                  <div className="flex items-center gap-5">
+                    <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl font-bold shadow-lg">
+                      TT
+                    </div>
+                    <div>
+                      <div className="font-bold text-gray-900 text-lg">Thanh Truc</div>
+                      <div className="text-blue-400 font-medium">Software Engineer</div>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              </Card>
+            </RevealOnScroll>
+          </div>
 
-              <div className="md:col-span-3 grid grid-cols-2 gap-4 max-h-[600px] overflow-hidden">
-                {/* Left Column - Scroll Up */}
-                <div className="space-y-4 animate-scroll-up">
-                  {[...reviews.filter((r) => r.direction === "up"), ...reviews.filter((r) => r.direction === "up")].map(
-                    (review, idx) => (
-                      <Card
-                        key={idx}
-                        className="bg-[#C2E2FA]/30 border border-[#C2E2FA] p-4 rounded-xl hover:shadow-md transition-shadow"
-                      >
-                        <div className="flex items-start gap-3 mb-3">
-                          <div className="w-10 h-10 bg-[#C2E2FA] rounded-full flex items-center justify-center text-gray-900 font-bold text-sm flex-shrink-0">
-                            {review.name.charAt(0)}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-gray-900 text-sm truncate">{review.name}</div>
-                            <span className="text-xs font-medium text-gray-900 bg-[#C2E2FA] px-2 py-0.5 rounded-full inline-block mt-1">
-                              IELTS {review.ielts}
-                            </span>
-                          </div>
-                          <div className="flex gap-0.5">
-                            {[...Array(5)].map((_, i) => (
-                              <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                            ))}
-                          </div>
-                        </div>
-                        <p className="text-gray-700 text-sm leading-relaxed">{review.content}</p>
-                      </Card>
-                    ),
-                  )}
-                </div>
-
-                {/* Right Column - Scroll Down */}
-                <div className="space-y-4 animate-scroll-down">
-                  {[
-                    ...reviews.filter((r) => r.direction === "down"),
-                    ...reviews.filter((r) => r.direction === "down"),
-                  ].map((review, idx) => (
-                    <Card
-                      key={idx}
-                      className="bg-[#C2E2FA]/30 border border-[#C2E2FA] p-4 rounded-xl hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex items-start gap-3 mb-3">
-                        <div className="w-10 h-10 bg-[#C2E2FA] rounded-full flex items-center justify-center text-gray-900 font-bold text-sm flex-shrink-0">
-                          {review.name.charAt(0)}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-gray-900 text-sm truncate">{review.name}</div>
-                          <span className="text-xs font-medium text-gray-900 bg-[#C2E2FA] px-2 py-0.5 rounded-full inline-block mt-1">
-                            IELTS {review.ielts}
-                          </span>
-                        </div>
-                        <div className="flex gap-0.5">
-                          {[...Array(5)].map((_, i) => (
-                            <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                          ))}
-                        </div>
-                      </div>
-                      <p className="text-gray-700 text-sm leading-relaxed">{review.content}</p>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </Card>
+          <RevealOnScroll delay={300} className="text-center mt-12">
+            <Link href="/reviews">
+              <Button
+                variant="ghost"
+                className="text-gray-600 hover:text-blue-400 hover:bg-blue-50 rounded-full px-6 py-2 group"
+              >
+                See all success stories <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </Link>
+          </RevealOnScroll>
         </div>
       </section>
 
-      {/* Starting Journey Section - Redesigned */}
-      <section className="py-20 bg-[#C2E2FA]/30">
+      {/* Features Section - Bento Grid */}
+      <section className="py-24 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Card className="bg-white border-2 border-[#C2E2FA] rounded-3xl overflow-hidden shadow-2xl">
-            <div className="grid md:grid-cols-2">
-              <div className="relative h-full min-h-[400px]">
-                <Image src="/learning.png" alt="Start Learning" fill className="object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-r from-[#C2E2FA]/20 to-transparent"></div>
-              </div>
-              <div className="p-12 flex flex-col justify-center">
-                <h2 className="text-4xl font-bold mb-4 text-gray-900">Starting your Learning Journey right now!</h2>
-                <p className="text-xl text-gray-600 mb-8">How comfortable are you speaking English?</p>
-                <div className="space-y-4">
-                  {[
-                    { text: "I'm just starting", icon: "🌱", color: "bg-green-100" },
-                    { text: "I can speak with effort", icon: "🚀", color: "bg-[#C2E2FA]" },
-                    { text: "I want to sound more natural", icon: "⭐", color: "bg-purple-100" },
-                  ].map((option, idx) => (
-                    <Link key={idx} href="/plan">
-                      <Card className="border-2 border-[#C2E2FA] hover:border-[#A8D5F7] hover:shadow-lg transition-all duration-300 p-6 rounded-2xl cursor-pointer group">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div
-                              className={`w-12 h-12 ${option.color} rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform`}
-                            >
-                              {option.icon}
-                            </div>
-                            <span className="text-lg font-semibold text-gray-900">{option.text}</span>
-                          </div>
-                          <ArrowRight className="w-6 h-6 text-gray-600 group-hover:translate-x-2 transition-transform" />
-                        </div>
-                      </Card>
-                    </Link>
-                  ))}
+          <RevealOnScroll className="text-center mb-16">
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">Why Learners Choose DailyEng</h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              We combine advanced AI with proven learning methods to help you achieve fluency faster.
+            </p>
+          </RevealOnScroll>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[minmax(250px,auto)]">
+            {/* Large Feature - Speak First */}
+            <RevealOnScroll className="md:col-span-2">
+              <Card className="h-full bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all p-8 rounded-3xl flex flex-col md:flex-row items-center gap-8 overflow-hidden group">
+                <div className="flex-1 z-10">
+                  <div className="w-12 h-12 bg-blue-100 text-blue-400 rounded-2xl flex items-center justify-center mb-6">
+                    <Mic className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-4">Speak From Day One</h3>
+                  <p className="text-gray-600 leading-relaxed mb-6">
+                    Don't just read about English. Practice real-life conversations with our AI tutor who listens, corrects your pronunciation, and helps you sound natural.
+                  </p>
+                  <ul className="space-y-2">
+                    <li className="flex items-center gap-2 text-sm text-gray-700">
+                      <CheckCircle2 className="w-4 h-4 text-green-500" /> Real-time pronunciation scoring
+                    </li>
+                    <li className="flex items-center gap-2 text-sm text-gray-700">
+                      <CheckCircle2 className="w-4 h-4 text-green-500" /> Context-based roleplays
+                    </li>
+                  </ul>
                 </div>
+                <div className="flex-1 relative h-64 w-full md:h-full bg-blue-50 rounded-2xl overflow-hidden group-hover:scale-[1.02] transition-transform duration-500">
+                  <Image src="/learning.png" alt="Speaking Practice" fill className="object-cover" />
+                </div>
+              </Card>
+            </RevealOnScroll>
+
+            {/* Feature 2 - Context Learning */}
+            <RevealOnScroll delay={100}>
+              <Card className="h-full bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all p-8 rounded-3xl flex flex-col justify-between group">
+                <div>
+                  <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mb-6">
+                    <BookOpen className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-3">Contextual Learning</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    Learn vocabulary and grammar in the context of stories and articles, not isolated lists.
+                  </p>
+                </div>
+                <div className="mt-6 h-32 relative rounded-xl overflow-hidden bg-purple-50">
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-4xl font-bold text-purple-200 select-none">A+</span>
+                  </div>
+                </div>
+              </Card>
+            </RevealOnScroll>
+
+            {/* Feature 3 - Gamification */}
+            <RevealOnScroll delay={200}>
+              <Card className="h-full bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all p-8 rounded-3xl flex flex-col justify-between group">
+                <div>
+                  <div className="w-12 h-12 bg-yellow-100 text-yellow-600 rounded-2xl flex items-center justify-center mb-6">
+                    <Zap className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-3">Stay Motivated</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    Daily streaks, XP rewards, and leaderboards designed to keep you coming back every day.
+                  </p>
+                </div>
+                <div className="mt-6 flex justify-center gap-2">
+                  <div className="bg-yellow-50 px-3 py-1 rounded-lg text-yellow-700 font-bold text-xs border border-yellow-100">🔥 12 Day Streak</div>
+                  <div className="bg-blue-50 px-3 py-1 rounded-lg text-blue-700 font-bold text-xs border border-blue-100">🏆 Top 10</div>
+                </div>
+              </Card>
+            </RevealOnScroll>
+
+            {/* Large Feature - AI Companion */}
+            <RevealOnScroll className="md:col-span-2" delay={300}>
+              <Card className="h-full bg-white border border-purple-100 shadow-sm hover:shadow-lg transition-all p-8 rounded-3xl flex flex-col md:flex-row-reverse items-center gap-8 overflow-hidden group">
+                <div className="flex-1 z-10">
+                  <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center mb-6 border border-purple-100">
+                    <Sparkles className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-4 text-gray-900">Kitty Tutor Companion</h3>
+                  <p className="text-gray-600 leading-relaxed mb-6">
+                    Stuck on a word? Need grammar help? Kitty is your 24/7 AI companion ready to explain concepts instantly inside any lesson.
+                  </p>
+                  <Button variant="default" className="bg-purple-600 hover:bg-purple-700 text-white rounded-full">
+                    Chat with Kitty
+                  </Button>
+                </div>
+                <div className="flex-1 relative h-64 w-full md:h-full rounded-2xl overflow-hidden bg-purple-50/50">
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/40 to-transparent z-10" />
+                  <Image 
+                    src="/abstract-job-concept.png" 
+                    alt="AI Companion" 
+                    fill 
+                    className="object-cover opacity-80 mix-blend-multiply group-hover:scale-105 transition-transform duration-700" 
+                  />
+                </div>
+              </Card>
+            </RevealOnScroll>
+          </div>
+        </div>
+      </section>
+
+      {/* Comprehensive Features Tabs */}
+      <section className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <RevealOnScroll className="text-center mb-12">
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">Everything You Need to Fluency</h2>
+            <p className="text-xl text-gray-600">A complete ecosystem for English mastery</p>
+          </RevealOnScroll>
+
+          <RevealOnScroll className="flex flex-col lg:flex-row gap-8">
+            {/* Tabs Navigation */}
+            <div className="lg:w-1/3 flex flex-col gap-3">
+              {featureTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`group flex items-center gap-4 p-4 rounded-2xl text-left transition-all duration-300 ${
+                    activeTab === tab.id
+                      ? "bg-blue-50 ring-1 ring-blue-200 shadow-sm"
+                      : "hover:bg-gray-50"
+                  }`}
+                >
+                  <div
+                    className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
+                      activeTab === tab.id
+                        ? "bg-blue-400 text-white shadow-md"
+                        : "bg-white text-gray-400 border border-gray-200 group-hover:border-blue-200 group-hover:text-blue-500"
+                    }`}
+                  >
+                    {tab.icon}
+                  </div>
+                  <div>
+                    <h3 className={`font-semibold text-lg ${activeTab === tab.id ? "text-blue-900" : "text-gray-700"}`}>
+                      {tab.label}
+                    </h3>
+                    {activeTab === tab.id && (
+                       <p className="text-sm text-blue-400 mt-1 font-medium animate-fade-in">Active Feature</p>
+                    )}
+                  </div>
+                  {activeTab === tab.id && <ChevronRight className="ml-auto w-5 h-5 text-blue-500" />}
+                </button>
+              ))}
+            </div>
+
+            {/* Tab Content Display */}
+            <div className="lg:w-2/3">
+              <div className="relative h-[500px] w-full bg-gray-50 rounded-[2.5rem] border border-gray-100 p-2 overflow-hidden shadow-lg">
+                {featureTabs.map((tab) => (
+                  <div
+                    key={tab.id}
+                    className={`absolute inset-2 bg-white rounded-[2rem] flex flex-col transition-all duration-500 ease-in-out ${
+                      activeTab === tab.id ? "opacity-100 translate-y-0 z-10" : "opacity-0 translate-y-8 z-0 pointer-events-none"
+                    }`}
+                  >
+                    <div className="relative h-64 w-full overflow-hidden rounded-t-[2rem]">
+                       <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 z-10" />
+                       <Image src={tab.image} alt={tab.title} fill className="object-cover" />
+                       <div className="absolute bottom-6 left-8 z-20">
+                         <div className="inline-block bg-blue-400 text-white text-xs font-bold px-3 py-1 rounded-full mb-2">FEATURE</div>
+                         <h3 className="text-3xl font-bold text-white">{tab.title}</h3>
+                       </div>
+                    </div>
+                    <div className="p-8 flex flex-col justify-between flex-1 bg-white rounded-b-[2rem]">
+                      <p className="text-lg text-gray-600 leading-relaxed">{tab.description}</p>
+                      <div className="flex gap-4 mt-6">
+                         <Button className="rounded-full px-6" onClick={() => window.location.href = '/auth/signup'}>Try for free</Button>
+                         <Button variant="ghost" className="rounded-full px-6 text-gray-600">Learn more</Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          </Card>
+          </RevealOnScroll>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="bg-[#C2E2FA] py-24 relative overflow-hidden">
-        <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
-        <div className="max-w-4xl mx-auto text-center px-4 relative z-10">
-          <h2 className="text-4xl sm:text-5xl font-bold mb-6 text-gray-900">Ready to start your journey?</h2>
-          <p className="text-xl text-gray-700 mb-10">Join thousands of learners improving their English every day.</p>
-          <Link href="/auth/signup">
-            <Button
-              size="lg"
-              className="bg-white text-gray-900 hover:bg-gray-50 rounded-full px-12 py-7 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all hover:scale-105"
-            >
-              Get Started Now
-            </Button>
-          </Link>
+      {/* Reviews Marquee Section */}
+      <section className="py-24 bg-slate-50 overflow-hidden">
+        <RevealOnScroll className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12 flex items-end justify-between">
+           <div>
+             <h2 className="text-4xl font-bold text-gray-900 mb-2">Learner Stories</h2>
+             <div className="flex items-center gap-2">
+               <div className="flex text-yellow-400">
+                 {[...Array(5)].map((_, i) => <Star key={i} className="w-5 h-5 fill-current" />)}
+               </div>
+               <span className="font-medium text-gray-600">4.8/5 average rating</span>
+             </div>
+           </div>
+           <Button variant="outline" className="hidden sm:flex">View all reviews</Button>
+        </RevealOnScroll>
+
+        <div className="relative w-full">
+          {/* Fade masks for smooth scrolling edges */}
+          <div className="absolute top-0 left-0 right-0 h-12 bg-gradient-to-b from-slate-50 to-transparent z-10 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-slate-50 to-transparent z-10 pointer-events-none" />
+          
+          <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-6 h-[500px] overflow-hidden" style={{maskImage: "linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)"}}>
+            {/* Column 1 - Scroll Up */}
+            <div className="space-y-6 animate-scroll-up hover:[animation-play-state:paused]">
+              {[...reviews, ...reviews].map((review, idx) => (
+                <Card key={`col1-${idx}`} className="p-6 border-0 shadow-sm bg-white rounded-2xl">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden relative">
+                      <Image src={review.avatar} alt={review.name} fill className="object-cover" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm text-gray-900">{review.name}</p>
+                      <p className="text-xs text-gray-500">IELTS {review.ielts}</p>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 text-sm leading-relaxed">"{review.content}"</p>
+                </Card>
+              ))}
+            </div>
+
+            {/* Column 2 - Scroll Down */}
+            <div className="space-y-6 animate-scroll-down hover:[animation-play-state:paused] hidden md:block">
+              {[...reviews.reverse(), ...reviews].map((review, idx) => (
+                <Card key={`col2-${idx}`} className="p-6 border-0 shadow-sm bg-white rounded-2xl">
+                  <div className="flex items-center gap-3 mb-4">
+                     <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-400 flex items-center justify-center font-bold text-sm">
+                        {review.name.charAt(0)}
+                     </div>
+                    <div>
+                      <p className="font-semibold text-sm text-gray-900">{review.name}</p>
+                      <p className="text-xs text-blue-400 bg-blue-50 px-2 py-0.5 rounded-full inline-block">Verified Student</p>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 text-sm leading-relaxed">"{review.content}"</p>
+                </Card>
+              ))}
+            </div>
+             {/* Column 3 - Scroll Up */}
+             <div className="space-y-6 animate-scroll-up hover:[animation-play-state:paused] hidden lg:block">
+              {[...reviews, ...reviews].map((review, idx) => (
+                <Card key={`col3-${idx}`} className="p-6 border-0 shadow-sm bg-white rounded-2xl">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden relative">
+                      <Image src={review.avatar} alt={review.name} fill className="object-cover" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm text-gray-900">{review.name}</p>
+                      <p className="text-xs text-gray-500">TOEFL 105</p>
+                    </div>
+                  </div>
+                  <p className="text-gray-600 text-sm leading-relaxed">"{review.content}"</p>
+                </Card>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
-      <style jsx>{`
+      {/* Final CTA Section */}
+      <section className="relative py-28 overflow-hidden">
+        <div className="absolute inset-0 bg-blue-400">
+           {/* Decorative pattern overlay */}
+           <div className="absolute inset-0 opacity-10" style={{backgroundImage: "radial-gradient(#fff 1px, transparent 1px)", backgroundSize: "24px 24px"}}></div>
+        </div>
+        
+        <RevealOnScroll className="max-w-4xl mx-auto text-center px-4 relative z-10">
+          <h2 className="text-4xl sm:text-5xl font-bold mb-8 text-white tracking-tight">
+            Ready to speak English with confidence?
+          </h2>
+          <p className="text-xl text-blue-100 mb-12 max-w-2xl mx-auto">
+            Join thousands of learners who are already improving their careers and lives with DailyEng.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/auth/signup">
+              <Button
+                size="lg"
+                className="bg-white text-blue-400 hover:bg-blue-50 rounded-full px-10 py-7 text-lg font-bold shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 w-full sm:w-auto"
+              >
+                Get Started for Free
+              </Button>
+            </Link>
+            <Link href="/plan">
+              <Button
+                size="lg"
+                variant="outline"
+                className="border-2 border-blue-400 text-white hover:bg-blue-700/50 hover:border-blue-300 bg-transparent rounded-full px-10 py-7 text-lg font-semibold w-full sm:w-auto"
+              >
+                Take Placement Test
+              </Button>
+            </Link>
+          </div>
+          <p className="mt-6 text-sm text-blue-200 opacity-80">No credit card required • Cancel anytime</p>
+        </RevealOnScroll>
+      </section>
+
+      {/* Custom CSS for animations */}
+      <style jsx global>{`
         @keyframes scroll-left {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(calc(-100% / 3));
-          }
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
         }
-
         @keyframes scroll-up {
-          0% {
-            transform: translateY(0);
-          }
-          100% {
-            transform: translateY(-50%);
-          }
+          0% { transform: translateY(0); }
+          100% { transform: translateY(-50%); }
         }
-
         @keyframes scroll-down {
-          0% {
-            transform: translateY(-50%);
-          }
-          100% {
-            transform: translateY(0);
-          }
+          0% { transform: translateY(-50%); }
+          100% { transform: translateY(0); }
         }
-
+        @keyframes fade-in-up {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
         .animate-scroll-left {
-          animation: scroll-left 10s linear infinite;
+          animation: scroll-left 40s linear infinite;
         }
-
         .animate-scroll-up {
-          animation: scroll-up 30s linear infinite;
+          animation: scroll-up 40s linear infinite;
         }
-
         .animate-scroll-down {
-          animation: scroll-down 30s linear infinite;
+          animation: scroll-down 40s linear infinite;
         }
-
-        .animate-scroll-up:hover,
-        .animate-scroll-down:hover {
-          animation-play-state: paused;
+        .animate-fade-in-up {
+          animation: fade-in-up 0.6s ease-out forwards;
+        }
+        
+        /* Mask for marquee edges */
+        .mask-linear-fade {
+          mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+        }
+        
+        /* Hide scrollbar for cleaner UI */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
       `}</style>
+      
+      <div className="hidden">
+        <UsersIcon className="w-0 h-0" />
+      </div>
     </div>
+  )
+}
+
+function UsersIcon({ className }: { className?: string }) {
+  return (
+    <svg 
+      xmlns="http://www.w3.org/2000/svg" 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+      className={className}
+    >
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
   )
 }

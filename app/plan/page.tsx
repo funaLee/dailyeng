@@ -1,520 +1,599 @@
 "use client"
-import { useState, useEffect } from "react"
+
+import { useState } from "react"
+import Link from "next/link" // Added Link for navigation
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { useAppStore } from "@/lib/store"
-import { Calendar, Plus, ChevronRight, Clock, Target, TrendingUp, BookOpen, Mic, Headphones, PenTool, CheckCircle2, Circle, Settings, List, Network, Sparkles, BarChart3, ArrowRight } from 'lucide-react'
-import Link from "next/link"
-import { mockTopics } from "@/lib/mock-data"
+import { Gift, Check, Edit2, PlayCircle, BookOpen, Mic, Brain, Target } from "lucide-react"
+import Image from "next/image"
 
 interface StudyPlan {
   id: string
   name: string
   goal: string
   level: string
-  startDate: Date
-  endDate: Date
-  totalHours: number
-  studiedHours: number
   progress: number
-  units: StudyUnit[]
   status: "active" | "completed" | "paused"
+  studiedHours: number
+  totalHours: number
+  remainHours: number
 }
 
-interface StudyUnit {
+interface Mission {
   id: string
   title: string
-  type: "vocab" | "grammar" | "listening" | "reading" | "speaking" | "writing"
+  points: number
   completed: boolean
-  estimatedMinutes: number
-  topicId?: string
 }
 
-interface DailyTask {
+interface TodayLesson {
   id: string
-  type: "vocab" | "grammar" | "listening" | "reading" | "speaking" | "writing"
+  type: "vocab" | "grammar" | "speaking"
   title: string
-  link: string
+  topic: string
+  duration: string
   completed: boolean
-  planId: string
-}
-
-interface TimeBlock {
-  id: string
-  day: string
-  startTime: string
-  endTime: string
-  planId: string
-  planName: string
+  link?: string // Added link property for navigation
 }
 
 export default function StudyPlanPage() {
-  const { stats } = useAppStore()
-  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null)
-  const [showSettings, setShowSettings] = useState(false)
+  const [selectedPlanId, setSelectedPlanId] = useState<string>("plan1")
+  const [activeMissionTab, setActiveMissionTab] = useState<"today" | "weekly" | "monthly">("today")
+  const [isEditing, setIsEditing] = useState(false)
+  const [completedLessons, setCompletedLessons] = useState<string[]>([])
+  const [completedMissions, setCompletedMissions] = useState<string[]>([])
 
-  const [studyPlans, setStudyPlans] = useState<StudyPlan[]>([
+  // Mock Data
+  const studyPlans: StudyPlan[] = [
     {
       id: "plan1",
       name: "IELTS Preparation",
-      goal: "Achieve IELTS band 7.0",
-      level: "B2",
-      startDate: new Date("2024-01-01"),
-      endDate: new Date("2024-06-30"),
-      totalHours: 200,
-      studiedHours: 87,
-      progress: 43.5,
+      goal: "Achieve IELTS Band 7.0",
+      level: "C1",
+      progress: 44,
       status: "active",
-      units: [
-        {
-          id: "u1",
-          title: "Travel Vocabulary",
-          type: "vocab",
-          completed: true,
-          estimatedMinutes: 45,
-          topicId: "1",
-        },
-        {
-          id: "u2",
-          title: "Food & Dining",
-          type: "vocab",
-          completed: true,
-          estimatedMinutes: 50,
-          topicId: "2",
-        },
-        {
-          id: "u3",
-          title: "Job Interview",
-          type: "vocab",
-          completed: false,
-          estimatedMinutes: 60,
-          topicId: "3",
-        },
-        { id: "u4", title: "Present Perfect Practice", type: "grammar", completed: false, estimatedMinutes: 40 },
-        { id: "u5", title: "Listening Comprehension", type: "listening", completed: false, estimatedMinutes: 30 },
-        { id: "u6", title: "Reading Practice", type: "reading", completed: false, estimatedMinutes: 35 },
-      ],
+      studiedHours: 72,
+      totalHours: 104,
+      remainHours: 32,
     },
     {
       id: "plan2",
       name: "Business English",
-      goal: "Master professional communication",
-      level: "B1",
-      startDate: new Date("2024-02-01"),
-      endDate: new Date("2024-05-31"),
-      totalHours: 120,
-      studiedHours: 34,
-      progress: 28.3,
+      goal: "Achieve IELTS Band 6.0",
+      level: "B2",
+      progress: 44,
       status: "active",
-      units: [
-        {
-          id: "u7",
-          title: "Business Vocabulary",
-          type: "vocab",
-          completed: true,
-          estimatedMinutes: 45,
-          topicId: "3",
-        },
-        { id: "u8", title: "Email Writing", type: "writing", completed: false, estimatedMinutes: 40 },
-        { id: "u9", title: "Presentation Skills", type: "speaking", completed: false, estimatedMinutes: 50 },
-      ],
+      studiedHours: 45,
+      totalHours: 120,
+      remainHours: 75,
     },
-  ])
+  ]
 
-  const [timeBlocks, setTimeBlocks] = useState<TimeBlock[]>([
+  const todayLessons: TodayLesson[] = [
     {
-      id: "tb1",
-      day: "Monday",
-      startTime: "18:00",
-      endTime: "19:00",
-      planId: "plan1",
-      planName: "IELTS Preparation",
+      id: "l1",
+      type: "vocab",
+      title: "Vocabulary Topic: Animals",
+      topic: "Từ mới: 13 • Khóa học: IELTS Preparation",
+      duration: "Thời gian học: 20 phút",
+      completed: false,
+      link: "/vocab/animals", // Added mock link
     },
     {
-      id: "tb2",
-      day: "Wednesday",
-      startTime: "18:00",
-      endTime: "19:00",
-      planId: "plan1",
-      planName: "IELTS Preparation",
-    },
-    {
-      id: "tb3",
-      day: "Friday",
-      startTime: "18:00",
-      endTime: "19:00",
-      planId: "plan2",
-      planName: "Business English",
-    },
-  ])
-
-  const [dailyTasks, setDailyTasks] = useState<DailyTask[]>([
-    { id: "dt1", type: "vocab", title: "Learn 10 new words", link: "/vocab", completed: false, planId: "plan1" },
-    {
-      id: "dt2",
+      id: "l2",
       type: "grammar",
-      title: "Present Perfect exercises",
-      link: "/grammar",
-      completed: true,
-      planId: "plan1",
+      title: "Grammar Topic: Present Simple",
+      topic: "Ngữ pháp mới: 4 • Khóa học: IELTS Preparation",
+      duration: "Thời gian học: 10 phút",
+      completed: false,
+      link: "/grammar/present-simple",
     },
     {
-      id: "dt3",
-      type: "listening",
-      title: "Listen to podcast",
-      link: "/vocab/1",
+      id: "l3",
+      type: "grammar",
+      title: "Grammar Topic: Could/Should",
+      topic: "Ngữ pháp mới: 4 • Khóa học: IELTS Preparation",
+      duration: "Thời gian học: 10 phút",
       completed: false,
-      planId: "plan1",
+      link: "/grammar/modals",
     },
-    {
-      id: "dt4",
-      type: "speaking",
-      title: "Practice presentation",
-      link: "/speaking",
-      completed: false,
-      planId: "plan2",
-    },
-  ])
+  ]
+
+  const missions: Mission[] = [
+    { id: "m1", title: "Enter today", points: 5, completed: false },
+    { id: "m2", title: "Study 30 minutes", points: 10, completed: false },
+    { id: "m3", title: "Learn 10 new flashcard", points: 10, completed: false },
+    { id: "m4", title: "Complete today lesson", points: 40, completed: false },
+    { id: "m5", title: "Speaking 1 time", points: 30, completed: false },
+    { id: "m6", title: "Review all notebook", points: 30, completed: false },
+    { id: "m7", title: "Complete all tasks", points: 30, completed: false },
+  ]
+
+  const toggleLesson = (id: string) => {
+    setCompletedLessons((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]))
+  }
+
+  const toggleMission = (id: string) => {
+    setCompletedMissions((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]))
+  }
 
   const selectedPlan = studyPlans.find((p) => p.id === selectedPlanId) || studyPlans[0]
-  const completedToday = dailyTasks.filter((t) => t.completed).length
-  const totalToday = dailyTasks.length
 
-  const typeIcons = {
-    vocab: <BookOpen className="h-4 w-4" />,
-    grammar: <PenTool className="h-4 w-4" />,
-    listening: <Headphones className="h-4 w-4" />,
-    reading: <BookOpen className="h-4 w-4" />,
-    speaking: <Mic className="h-4 w-4" />,
-    writing: <PenTool className="h-4 w-4" />,
-  }
-
-  const typeColors: Record<string, string> = {
-    vocab: "bg-blue-100 text-blue-700",
-    grammar: "bg-purple-100 text-purple-700",
-    listening: "bg-orange-100 text-orange-700",
-    reading: "bg-green-100 text-green-700",
-    speaking: "bg-pink-100 text-pink-700",
-    writing: "bg-indigo-100 text-indigo-700",
-  }
+  const displayedMissions = missions.map((m) => ({
+    ...m,
+    // Add some variation for other tabs just for demo
+    title:
+      activeMissionTab === "today"
+        ? m.title
+        : activeMissionTab === "weekly"
+          ? m.title.replace("today", "this week")
+          : m.title.replace("today", "this month"),
+    points: activeMissionTab === "today" ? m.points : m.points * 5,
+  }))
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Calendar className="h-8 w-8 text-[#C2E2FA]" />
-          Study Plans
-        </h1>
-        <p className="text-muted-foreground mt-1">Manage your personalized learning paths</p>
-      </div>
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8 bg-blue-50/30 min-h-screen">
+      {/* 1. Header Section */}
+      <Card className="p-8 mb-8 relative overflow-hidden bg-white border-blue-100 shadow-sm">
+        <div className="relative z-10 max-w-2xl">
+          <h1 className="text-4xl font-black uppercase tracking-tight text-blue-950 mb-4">Your Study Plan</h1>
+          <p className="text-lg text-slate-600 mb-6">
+            Practice real conversations with AI tutors and get instant feedback on your pronunciation, fluency, grammar,
+            and content.
+          </p>
+        </div>
+        <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-br from-blue-200/50 to-blue-400/30 rounded-lg pointer-events-none">
+          <div className="absolute right-12 top-12 text-blue-600/20 text-6xl font-bold rotate-12">goals</div>
+          <div className="absolute right-24 top-32 text-blue-600/20 text-5xl font-bold -rotate-6">habit</div>
+          <div className="absolute right-8 top-52 text-blue-600/20 text-4xl font-bold rotate-3">success</div>
+        </div>
+      </Card>
 
-      <div className="grid lg:grid-cols-2 gap-6 mb-6">
-        {/* Weekly Study Schedule */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Weekly Study Schedule</h2>
-            <Button variant="outline" size="sm">
-              <Settings className="h-4 w-4 mr-2" />
-              Edit
-            </Button>
+      {/* 2. This week's plan Section */}
+      <Card className="p-6 border-blue-100 shadow-md">
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-slate-800">This week&apos;s plan</h2>
+          <Button
+            variant={isEditing ? "default" : "outline"}
+            size="sm"
+            onClick={() => setIsEditing(!isEditing)}
+            className={isEditing ? "bg-blue-600 text-white" : "border-blue-200 text-blue-700 hover:bg-blue-50"}
+          >
+            {isEditing ? <Check className="w-4 h-4 mr-1" /> : <Edit2 className="w-4 h-4 mr-1" />}
+            {isEditing ? "Done" : "Edit"}
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Left Side: Stats & Calendar (8 cols) */}
+          <div className="lg:col-span-7 space-y-8">
+            {/* Stats Row */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-center">
+                <p className="text-xs text-blue-600 font-medium mb-1">Số giờ học trong ngày</p>
+                <p className="text-xl font-bold text-slate-800">1.5h</p>
+              </div>
+              <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-center">
+                <p className="text-xs text-blue-600 font-medium mb-1">Số giờ học trong tuần</p>
+                <p className="text-xl font-bold text-slate-800">13h</p>
+              </div>
+              <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-center">
+                <p className="text-xs text-blue-600 font-medium mb-1">Total Hours</p>
+                <p className="text-xl font-bold text-slate-800">70h</p>
+              </div>
+            </div>
+
+            {/* Calendar Grid */}
+            <div className="rounded-xl border border-blue-100 overflow-hidden shadow-sm bg-white">
+              <div className="grid grid-cols-8 border-b border-blue-100 text-center text-xs font-semibold text-slate-500 bg-blue-50/30">
+                <div className="p-3 border-r border-blue-100">time</div>
+                {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+                  <div key={day} className="p-3 border-r border-blue-100 last:border-r-0 text-blue-900">
+                    {day}
+                  </div>
+                ))}
+              </div>
+              {/* Simplified Time Blocks for visual matching */}
+              <div className="grid grid-cols-8 text-xs min-h-[60px] border-b border-blue-50">
+                <div className="p-2 border-r border-blue-50 text-center text-slate-400 font-mono font-bold text-sm">
+                  6:00
+                </div>
+                <div className="border-r border-blue-50"></div>
+                <div className="border-r border-blue-50 p-1">
+                  <div
+                    className={`w-full h-full rounded-lg ${isEditing ? "animate-pulse ring-1 ring-blue-300" : ""} bg-[#C2E2FA] text-blue-900 font-medium flex items-center justify-center text-[10px] shadow-sm`}
+                  >
+                    Speaking
+                  </div>
+                </div>
+                <div className="border-r border-blue-50 p-1">
+                  <div
+                    className={`w-full h-full rounded-lg ${isEditing ? "animate-pulse ring-1 ring-blue-300" : ""} bg-[#C2E2FA] text-blue-900 font-medium flex items-center justify-center text-[10px] shadow-sm`}
+                  >
+                    Speaking
+                  </div>
+                </div>
+                <div className="border-r border-blue-50"></div>
+                <div className="border-r border-blue-50 p-1">
+                  <div
+                    className={`w-full h-full rounded-lg ${isEditing ? "animate-pulse ring-1 ring-blue-300" : ""} bg-[#C2E2FA] text-blue-900 font-medium flex items-center justify-center text-[10px] shadow-sm`}
+                  >
+                    Speaking
+                  </div>
+                </div>
+                <div className="border-r border-blue-50"></div>
+                <div className="border-r border-blue-50"></div>
+              </div>
+              <div className="grid grid-cols-8 text-xs min-h-[60px] border-b border-blue-50">
+                <div className="p-2 border-r border-blue-50 text-center text-slate-400 font-mono font-bold text-sm">
+                  12:00
+                </div>
+                <div className="border-r border-blue-50 p-1">
+                  <div className="w-full h-full rounded-lg bg-[#C2E2FA] text-blue-900 font-medium flex items-center justify-center text-[10px] shadow-sm">
+                    Speaking
+                  </div>
+                </div>
+                {/* ... existing empty cells ... */}
+                <div className="border-r border-blue-50"></div>
+                <div className="border-r border-blue-50"></div>
+                <div className="border-r border-blue-50"></div>
+                <div className="border-r border-blue-50"></div>
+                <div className="border-r border-blue-50"></div>
+                <div className="border-r border-blue-50"></div>
+              </div>
+              <div className="grid grid-cols-8 text-xs min-h-[60px] border-b border-blue-50">
+                <div className="p-2 border-r border-blue-50 text-center text-slate-400 font-mono font-bold text-sm">
+                  1:00
+                </div>
+                <div className="border-r border-blue-50 p-1">
+                  <div className="w-full h-full rounded-lg bg-indigo-100 text-indigo-900 font-medium flex items-center justify-center text-[10px] shadow-sm">
+                    Vocabulary
+                  </div>
+                </div>
+                <div className="border-r border-blue-50"></div>
+                <div className="border-r border-blue-50 p-1">
+                  <div className="w-full h-full rounded-lg bg-[#C2E2FA] text-blue-900 font-medium flex items-center justify-center text-[10px] shadow-sm">
+                    Speaking
+                  </div>
+                </div>
+                <div className="border-r border-blue-50"></div>
+                <div className="border-r border-blue-50"></div>
+                <div className="border-r border-blue-50 p-1">
+                  <div className="w-full h-full rounded-lg bg-[#C2E2FA] text-blue-900 font-medium flex items-center justify-center text-[10px] shadow-sm">
+                    Speaking
+                  </div>
+                </div>
+                <div className="border-r border-blue-50"></div>
+              </div>
+              <div className="grid grid-cols-8 text-xs min-h-[60px]">
+                <div className="p-2 border-r border-blue-50 text-center text-slate-400 font-mono font-bold text-sm">
+                  5:00
+                </div>
+                <div className="border-r border-blue-50 p-1">
+                  <div className="w-full h-full rounded-lg bg-orange-100 text-orange-900 font-medium flex items-center justify-center text-[10px] shadow-sm">
+                    Grammar
+                  </div>
+                </div>
+                {/* ... existing empty cells ... */}
+                <div className="border-r border-blue-50"></div>
+                <div className="border-r border-blue-50"></div>
+                <div className="border-r border-blue-50"></div>
+                <div className="border-r border-blue-50"></div>
+                <div className="border-r border-blue-50"></div>
+                <div className="border-r border-blue-50"></div>
+              </div>
+            </div>
           </div>
 
-          {/* Weekly Overview Stats */}
-          <div className="grid grid-cols-4 gap-2 mb-4">
-            <div className="text-center p-2 bg-blue-50 rounded">
-              <p className="text-lg font-bold text-blue-600">8.5h</p>
-              <p className="text-xs text-muted-foreground">Hours</p>
+          {/* Right Side: Today's Lesson (4 cols) */}
+          <div className="lg:col-span-5 flex flex-col">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-slate-800">Today&apos;s lesson</h3>
+              <span className="bg-blue-100 text-blue-700 font-semibold text-xs px-2.5 py-1 rounded-full">
+                Complete {completedLessons.length}/{todayLessons.length}
+              </span>
             </div>
-            <div className="text-center p-2 bg-yellow-50 rounded">
-              <p className="text-lg font-bold text-yellow-600">240</p>
-              <p className="text-xs text-muted-foreground">XP</p>
+
+            <div className="space-y-4 flex-1">
+              {todayLessons.map((lesson) => {
+                const isCompleted = completedLessons.includes(lesson.id)
+                return (
+                  <div
+                    key={lesson.id}
+                    onClick={() => toggleLesson(lesson.id)}
+                    className={`relative flex items-start gap-4 p-4 border rounded-xl transition-all cursor-pointer group ${
+                      isCompleted
+                        ? "bg-blue-50 border-blue-200"
+                        : "bg-white border-gray-100 hover:border-blue-300 hover:shadow-md"
+                    }`}
+                  >
+                    <div className="mt-1">
+                      <div
+                        className={`h-5 w-5 rounded border flex items-center justify-center transition-colors ${
+                          isCompleted ? "bg-blue-500 border-blue-500" : "border-gray-300 group-hover:border-blue-400"
+                        }`}
+                      >
+                        {isCompleted && <Check className="h-3 w-3 text-white" />}
+                      </div>
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <h4 className={`font-bold text-sm ${isCompleted ? "text-blue-900" : "text-slate-800"}`}>
+                        {lesson.title}
+                      </h4>
+                      <p className="text-xs text-slate-500 whitespace-pre-line">{lesson.topic}</p>
+                      <p className="text-xs text-slate-400 flex items-center gap-1">
+                        <PlayCircle className="w-3 h-3" /> {lesson.duration}
+                      </p>
+                    </div>
+                    <div className="absolute bottom-4 right-4">
+                      <Button
+                        asChild
+                        variant="secondary"
+                        size="sm"
+                        className="h-7 text-xs bg-blue-100 text-blue-700 hover:bg-blue-200"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Link href={lesson.link || "#"}>học ngay</Link>
+                      </Button>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
-            <div className="text-center p-2 bg-green-50 rounded">
-              <p className="text-lg font-bold text-green-600">18</p>
-              <p className="text-xs text-muted-foreground">Lessons</p>
-            </div>
-            <div className="text-center p-2 bg-red-50 rounded">
-              <p className="text-lg font-bold text-red-600">1</p>
-              <p className="text-xs text-muted-foreground">Missed</p>
+
+            <div className="flex justify-center gap-2 mt-4 text-xs font-medium text-slate-500">
+              <span className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-sm">
+                1
+              </span>
+              <span className="w-6 h-6 rounded-full hover:bg-blue-100 hover:text-blue-700 flex items-center justify-center cursor-pointer transition-colors">
+                2
+              </span>
+              <span className="w-6 h-6 rounded-full hover:bg-blue-100 hover:text-blue-700 flex items-center justify-center cursor-pointer transition-colors">
+                &gt;
+              </span>
             </div>
           </div>
+        </div>
+      </Card>
 
-          {/* Calendar View */}
-          <div className="border rounded-lg overflow-hidden">
-            {/* Time slots */}
-            <div className="grid grid-cols-8 border-b bg-secondary/30">
-              <div className="p-2 text-xs font-semibold text-center">Time</div>
-              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-                <div key={day} className="p-2 text-xs font-semibold text-center border-l">
-                  {day}
+      {/* 3. Missions & Reminders Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Missions (2 cols) */}
+        <Card className="lg:col-span-2 p-6 border-blue-100 shadow-md">
+          <h2 className="text-xl font-bold mb-6 text-slate-800">Mission</h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+            {/* Sidebar Tabs */}
+            <div className="md:col-span-3 space-y-6">
+              <div className="flex flex-col border border-blue-100 rounded-xl overflow-hidden shadow-sm">
+                {(["today", "weekly", "monthly"] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveMissionTab(tab)}
+                    className={`p-3 text-sm font-medium text-left border-b border-blue-50 last:border-b-0 transition-all capitalize flex items-center justify-between ${
+                      activeMissionTab === tab
+                        ? "bg-[#C2E2FA] text-blue-900"
+                        : "bg-white text-slate-600 hover:bg-blue-50"
+                    }`}
+                  >
+                    {tab}
+                    {activeMissionTab === tab && <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />}
+                  </button>
+                ))}
+              </div>
+
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 text-center space-y-2 border border-blue-100">
+                <h4 className="font-bold text-sm text-slate-700">Countdown</h4>
+                <div className="bg-white/80 py-2 px-4 rounded-lg font-mono font-bold text-sm text-blue-600 shadow-sm border border-blue-100">
+                  Còn 14:59 tiếng nữa
                 </div>
-              ))}
+                <p className="text-[10px] text-slate-500">Kết thúc lúc 11:59PM ngày 23/11/2025</p>
+              </div>
             </div>
 
-            {/* Time rows */}
-            {["06:00", "09:00", "12:00", "15:00", "18:00", "21:00"].map((time) => (
-              <div key={time} className="grid grid-cols-8 border-b min-h-[60px]">
-                <div className="p-2 text-xs text-muted-foreground flex items-center justify-center bg-secondary/10">
-                  {time}
-                </div>
-                {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => {
-                  const block = timeBlocks.find((tb) => tb.day === day && tb.startTime === time)
+            {/* Mission List */}
+            <div className="md:col-span-5">
+              <h3 className="font-bold mb-4 text-slate-800 capitalize">{activeMissionTab} Mission</h3>
+              <div className="space-y-3">
+                {displayedMissions.map((mission) => {
+                  const isDone = completedMissions.includes(mission.id)
                   return (
-                    <div key={day} className="border-l p-1 hover:bg-secondary/20 cursor-pointer">
-                      {block ? (
-                        <div className="bg-[#C2E2FA]/40 border border-[#C2E2FA] rounded p-2 h-full">
-                          <p className="text-xs font-medium truncate">{block.planName}</p>
-                          <p className="text-xs text-muted-foreground">{block.startTime} - {block.endTime}</p>
-                        </div>
-                      ) : null}
+                    <div
+                      key={mission.id}
+                      className="flex items-center gap-3 group cursor-pointer"
+                      onClick={() => toggleMission(mission.id)}
+                    >
+                      <div
+                        className={`h-5 w-5 rounded border flex items-center justify-center transition-colors ${
+                          isDone ? "bg-green-500 border-green-500" : "border-slate-300 group-hover:border-blue-400"
+                        }`}
+                      >
+                        {isDone && <Check className="h-3 w-3 text-white" />}
+                      </div>
+                      <span
+                        className={`text-sm flex-1 transition-colors ${isDone ? "text-slate-400 line-through" : "text-slate-700"}`}
+                      >
+                        {mission.title}
+                      </span>
+                      <span className="text-xs font-bold text-orange-500 bg-orange-50 px-1.5 py-0.5 rounded border border-orange-100">
+                        +{mission.points}
+                      </span>
                     </div>
                   )
                 })}
               </div>
-            ))}
+            </div>
+
+            {/* Gift/Reward */}
+            <div className="md:col-span-4 flex flex-col items-center">
+              <h3 className="font-bold mb-4 self-start text-slate-800">Quà tặng</h3>
+              <div className="w-full aspect-square border-2 border-dashed border-blue-200 rounded-2xl flex flex-col items-center justify-center mb-4 bg-blue-50/50 hover:bg-blue-50 transition-colors cursor-pointer group">
+                <Gift className="h-12 w-12 text-blue-300 group-hover:text-blue-500 transition-colors mb-2" />
+                <span className="text-xs text-blue-400 font-medium">Open Rewards</span>
+              </div>
+              <div className="text-center text-sm bg-white px-4 py-2 rounded-lg border border-gray-100 shadow-sm">
+                <p className="font-bold text-blue-900">110 điểm thưởng</p>
+                <p className="text-slate-500">30 card</p>
+              </div>
+            </div>
           </div>
         </Card>
 
-        {/* Today's Tasks */}
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Today's Tasks</h3>
-          <div className="space-y-2">
-            {dailyTasks.map((task) => (
-              <Link key={task.id} href={task.link}>
-                <div className={`flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/50 ${
-                  task.completed ? "bg-secondary/30" : ""
-                }`}>
-                  {task.completed ? (
-                    <CheckCircle2 className="h-5 w-5 text-green-500" />
-                  ) : (
-                    <Circle className="h-5 w-5 text-muted-foreground" />
-                  )}
-                  <div className="flex-1">
-                    <p className={`font-medium ${task.completed ? "line-through text-muted-foreground" : ""}`}>
-                      {task.title}
-                    </p>
-                  </div>
-                  <span className={`text-xs px-2 py-1 rounded ${typeColors[task.type]}`}>
-                    {typeIcons[task.type]}
-                  </span>
-                </div>
-              </Link>
-            ))}
-          </div>
+        {/* Reminders (1 col) */}
+        <Card className="lg:col-span-1 p-6 border-blue-100 shadow-md flex flex-col">
+          <h2 className="text-xl font-bold mb-6 text-slate-800">Lời nhắc</h2>
 
-          <div className="mt-4 pt-4 border-t">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Progress</span>
-              <span className="font-semibold">{completedToday}/{totalToday} completed</span>
-            </div>
-            <Progress value={(completedToday / totalToday) * 100} className="mt-2" />
-          </div>
-
-          {/* Daily Review SRS */}
-          <div className="mt-6 pt-6 border-t">
-            <h4 className="font-semibold mb-3">Daily Review (SRS)</h4>
-            <div className="text-center py-6 bg-[#C2E2FA]/10 rounded-lg">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#C2E2FA]/30 mb-3">
-                <BookOpen className="h-6 w-6 text-blue-600" />
+          <div className="space-y-4 flex-1">
+            <div className="border border-indigo-100 bg-indigo-50/30 rounded-xl p-4 text-center space-y-3">
+              <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mx-auto text-indigo-600">
+                <Mic className="w-5 h-5" />
               </div>
-              <p className="text-2xl font-bold mb-1">12</p>
-              <p className="text-sm text-muted-foreground mb-3">cards due for review</p>
-              <Link href="/notebook">
-                <Button size="sm">
-                  Start Review
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </Link>
+              <h3 className="font-bold text-sm text-indigo-900">Speaking Room</h3>
+              <p className="text-xs text-slate-500 px-4">Bạn chưa luyện nói lần nào</p>
+              <Button
+                asChild
+                variant="secondary"
+                size="sm"
+                className="w-full bg-indigo-100 hover:bg-indigo-200 text-indigo-700"
+              >
+                <Link href="/speaking">Luyện ngay</Link>
+              </Button>
+            </div>
+
+            <div className="border border-emerald-100 bg-emerald-50/30 rounded-xl p-4 text-center space-y-3">
+              <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-600">
+                <BookOpen className="w-5 h-5" />
+              </div>
+              <h3 className="font-bold text-sm text-emerald-900">Notebook</h3>
+              <p className="text-xs text-slate-500 px-4">Bạn có 34 từ đang đợi ôn tập</p>
+              <Button
+                asChild
+                variant="secondary"
+                size="sm"
+                className="w-full bg-emerald-100 hover:bg-emerald-200 text-emerald-700"
+              >
+                <Link href="/notebook">ôn tập ngay</Link>
+              </Button>
             </div>
           </div>
         </Card>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Left Column: My Study Plans */}
-        <Card className="p-6 col-span-1">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">My Study Plans</h2>
-            <Button size="sm">
-              <Plus className="h-4 w-4 mr-1" />
-              New Plan
+      {/* 4. Plans Grid Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* My Study Plan (1 col) */}
+        <Card className="lg:col-span-1 p-6 h-full border-blue-100 shadow-md">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-slate-800">My Study Plan</h2>
+            <Button variant="secondary" size="sm" className="bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs">
+              New plan
             </Button>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             {studyPlans.map((plan) => (
               <div
                 key={plan.id}
-                className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${
-                  selectedPlanId === plan.id || (!selectedPlanId && plan.id === studyPlans[0].id)
-                    ? "border-[#C2E2FA] border-2 bg-[#C2E2FA]/5" 
-                    : "hover:border-[#C2E2FA]/50"
-                }`}
                 onClick={() => setSelectedPlanId(plan.id)}
+                className={`rounded-xl border p-4 cursor-pointer transition-all ${
+                  selectedPlanId === plan.id
+                    ? "ring-2 ring-blue-500 border-transparent bg-blue-50 shadow-sm"
+                    : "border-gray-200 hover:border-blue-300 hover:shadow-sm bg-white"
+                }`}
               >
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-semibold text-sm">{plan.name}</h3>
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded ${
-                      plan.status === "active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"
-                    }`}
+                <div className="flex items-center justify-between mb-3">
+                  <h3
+                    className={`font-bold text-sm ${selectedPlanId === plan.id ? "text-blue-900" : "text-slate-700"}`}
                   >
-                    {plan.status}
-                  </span>
+                    {plan.name}
+                  </h3>
+                  {plan.status === "active" && (
+                    <span className="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">
+                      active
+                    </span>
+                  )}
                 </div>
-                <p className="text-xs text-muted-foreground mb-3">{plan.goal}</p>
+                <p className="text-xs text-slate-500 mb-4">{plan.goal}</p>
 
-                <div className="space-y-2 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Progress</span>
-                    <span className="font-semibold">{Math.round(plan.progress)}%</span>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs font-bold text-slate-700">
+                    <span>Progress</span>
+                    <span>{plan.progress}%</span>
                   </div>
-                  <Progress value={plan.progress} className="h-1.5" />
-
-                  <div className="flex items-center justify-between text-muted-foreground pt-1">
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      <span>{plan.studiedHours}h / {plan.totalHours}h</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Target className="h-3 w-3" />
-                      <span>{plan.level}</span>
-                    </div>
-                  </div>
+                  <Progress value={plan.progress} className="h-1.5 bg-blue-100" />{" "}
+                  {/* Custom progress color not available directly via props if utilizing shadcn default but works with classname overriding in global css or custom component. Assuming standard Progress works. */}
+                  <p className="text-[10px] text-slate-400 mt-1">Remain: {plan.remainHours}h to complete</p>
                 </div>
               </div>
             ))}
           </div>
         </Card>
 
-        {/* Right Column: Study Plan Detail */}
-        <Card className="p-6 col-span-2">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">Study Plan Detail</h2>
-            <Button variant="outline" size="sm" onClick={() => setShowSettings(!showSettings)}>
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
+        {/* Detail Study Plan (2 cols) */}
+        <Card className="lg:col-span-2 p-6 border-blue-100 shadow-md">
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="text-xl font-bold text-slate-800">Detail Study Plan</h2>
+            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-blue-600">
+              <Brain className="w-5 h-5" />
             </Button>
           </div>
 
-          <div className="mb-6">
-            <h3 className="text-2xl font-bold">{selectedPlan.name}</h3>
-            <p className="text-muted-foreground text-sm mt-1">{selectedPlan.goal}</p>
+          <h3 className="text-lg font-bold mb-4 text-blue-900">{selectedPlan.name}</h3>
+          <p className="text-sm text-slate-500 mb-6 border-b border-gray-100 pb-4">{selectedPlan.goal}</p>
+
+          {/* Detailed Stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+            <div className="border border-blue-100 bg-blue-50/50 rounded-xl p-3 text-center">
+              <p className="text-xs text-blue-600 font-medium mb-1">Progress</p>
+              <p className="font-bold text-slate-800">{selectedPlan.progress}%</p>
+            </div>
+            <div className="border border-blue-100 bg-blue-50/50 rounded-xl p-3 text-center">
+              <p className="text-xs text-blue-600 font-medium mb-1">Studied</p>
+              <p className="font-bold text-slate-800">{selectedPlan.studiedHours}h</p>
+            </div>
+            <div className="border border-blue-100 bg-blue-50/50 rounded-xl p-3 text-center">
+              <p className="text-xs text-blue-600 font-medium mb-1">Remain</p>
+              <p className="font-bold text-slate-800">{selectedPlan.remainHours}h</p>
+            </div>
+            <div className="border border-blue-100 bg-blue-50/50 rounded-xl p-3 text-center">
+              <p className="text-xs text-blue-600 font-medium mb-1">Level</p>
+              <p className="font-bold text-slate-800">{selectedPlan.level}</p>
+            </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-4 mb-6 pb-6 border-b">
-            <div>
-              <p className="text-2xl font-bold text-[#C2E2FA]">{Math.round(selectedPlan.progress)}%</p>
-              <p className="text-xs text-muted-foreground">Progress</p>
+          {/* Gamification Placeholders */}
+          <div className="space-y-6">
+            <div className="w-full h-48 bg-gradient-to-r from-blue-100 to-indigo-50 rounded-2xl flex flex-col items-center justify-center text-center p-6 border border-blue-200 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full -mr-10 -mt-10" />
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/20 rounded-full -ml-8 -mb-8" />
+              <Target className="w-12 h-12 text-blue-500 mb-2 group-hover:scale-110 transition-transform" />
+              <p className="font-bold text-blue-900 text-sm">Gamification Map Overview</p>
+              <p className="text-xs text-blue-600 mt-1">Unlock new islands as you progress!</p>
             </div>
-            <div>
-              <p className="text-2xl font-bold">{selectedPlan.studiedHours}h</p>
-              <p className="text-xs text-muted-foreground">Studied</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{selectedPlan.totalHours - selectedPlan.studiedHours}h</p>
-              <p className="text-xs text-muted-foreground">Remaining</p>
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{selectedPlan.level}</p>
-              <p className="text-xs text-muted-foreground">Level</p>
-            </div>
-          </div>
 
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Study Content</h3>
-            
-            <div className="space-y-3">
-              {selectedPlan.units.map((unit, index) => (
-                <div
-                  key={unit.id}
-                  className={`flex items-start justify-between p-4 rounded-lg border ${
-                    unit.completed ? "bg-green-50 border-green-200" : "bg-white hover:bg-secondary/30"
-                  }`}
-                >
-                  <div className="flex items-start gap-4 flex-1">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-secondary text-sm font-semibold">
-                      {index + 1}
-                    </div>
-                    
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className={`font-semibold ${unit.completed ? "text-green-700" : ""}`}>
-                          {unit.title}
-                        </h4>
-                        {unit.completed && (
-                          <CheckCircle2 className="h-5 w-5 text-green-600" />
-                        )}
-                      </div>
-                      
-                      <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                        <span className={`flex items-center gap-1 px-2 py-1 rounded text-xs ${typeColors[unit.type]}`}>
-                          {typeIcons[unit.type]}
-                          {unit.type.charAt(0).toUpperCase() + unit.type.slice(1)}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {unit.estimatedMinutes} min
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {!unit.completed && (
-                    <Link href={unit.topicId ? `/vocab/${unit.topicId}` : "/vocab"}>
-                      <Button size="sm">
-                        Start
-                        <ArrowRight className="h-4 w-4 ml-1" />
-                      </Button>
-                    </Link>
-                  )}
-                  
-                  {unit.completed && (
-                    <Link href={unit.topicId ? `/vocab/${unit.topicId}` : "/vocab"}>
-                      <Button variant="outline" size="sm">
-                        Review
-                      </Button>
-                    </Link>
-                  )}
-                </div>
-              ))}
+            <div className="space-y-2">
+              <h4 className="font-bold text-sm text-slate-800 flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">
+                  1
+                </span>
+                Chặng 1: Foundation
+              </h4>
+              <div className="w-full h-64 bg-slate-50 rounded-2xl border border-dashed border-slate-300 flex items-center justify-center text-xs text-slate-400 relative">
+                <Image
+                  src="/placeholder.svg?height=400&width=800"
+                  alt="Gamification Path"
+                  fill
+                  className="object-cover opacity-50 rounded-2xl"
+                />
+                <span className="relative z-10 bg-white/80 px-4 py-2 rounded-full backdrop-blur-sm font-medium">
+                  Map Visualization Loading...
+                </span>
+              </div>
             </div>
           </div>
         </Card>
       </div>
-
-      {showSettings && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <Card className="p-6 max-w-md w-full mx-4">
-            <h3 className="text-xl font-semibold mb-4">Study Plan Settings</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium block mb-2">Plan Name</label>
-                <input
-                  type="text"
-                  defaultValue={selectedPlan.name}
-                  className="w-full px-3 py-2 rounded-lg border"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-2">Daily Study Duration (minutes)</label>
-                <input type="number" defaultValue={60} className="w-full px-3 py-2 rounded-lg border" />
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-2">New Lessons Per Week</label>
-                <input type="number" defaultValue={5} className="w-full px-3 py-2 rounded-lg border" />
-              </div>
-              <div className="flex items-center justify-between pt-4 border-t">
-                <Button variant="outline" onClick={() => setShowSettings(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={() => setShowSettings(false)}>Save Changes</Button>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
     </div>
   )
 }

@@ -2,8 +2,8 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { usePathname } from 'next/navigation'
-import { Menu, X, ChevronDown, User, LayoutDashboard } from 'lucide-react'
+import { usePathname } from "next/navigation"
+import { Menu, X, ChevronDown, User, LayoutDashboard } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useAppStore } from "@/lib/store"
@@ -15,7 +15,7 @@ const navItems = [
     label: "Language Lab",
     dropdown: [
       { href: "/vocab", label: "Vocabulary Hub" },
-      { href: "/grammar", label: "Grammar" },
+      { href: "/grammar", label: "Grammar Hub" },
     ],
   },
   { href: "/notebook", label: "Notebook" },
@@ -26,6 +26,10 @@ export function Navbar() {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
   const { user, logout, stats, setSearchOpen, isAuthenticated } = useAppStore()
+
+  if (pathname?.startsWith("/speaking/session/")) {
+    return null
+  }
 
   return (
     <nav className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

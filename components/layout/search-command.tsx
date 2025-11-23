@@ -1,18 +1,27 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { usePathname } from "next/navigation"
 import { Search, X } from "lucide-react"
 import { useAppStore } from "@/lib/store"
 
 export function SearchCommand() {
+  const pathname = usePathname()
   const { searchOpen, setSearchOpen } = useAppStore()
   const [query, setQuery] = useState("")
+
+  const isImmersivePage =
+    pathname?.startsWith("/speaking/session/") ||
+    (pathname?.startsWith("/vocab/") && pathname !== "/vocab") ||
+    (pathname?.startsWith("/grammar/") && pathname !== "/grammar")
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault()
-        setSearchOpen(!searchOpen)
+        if (!isImmersivePage) {
+          setSearchOpen(!searchOpen)
+        }
       }
       if (e.key === "Escape") {
         setSearchOpen(false)
@@ -21,7 +30,11 @@ export function SearchCommand() {
 
     window.addEventListener("keydown", handleKeyDown)
     return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [searchOpen, setSearchOpen])
+  }, [searchOpen, setSearchOpen, isImmersivePage])
+
+  if (isImmersivePage) {
+    return null
+  }
 
   if (!searchOpen) return null
 

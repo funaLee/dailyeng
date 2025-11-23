@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import Image from "next/image"
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from "@/components/ui/button"
@@ -10,133 +10,113 @@ interface StackedCardCarouselProps {
   autoPlayInterval?: number
 }
 
-export function StackedCardCarousel({ images, autoPlayInterval = 5000 }: StackedCardCarouselProps) {
+export function StackedCardCarousel({ images, autoPlayInterval = 4000 }: StackedCardCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isAutoPlaying, setIsAutoPlaying] = useState(true)
-  const [isShuffling, setIsShuffling] = useState(false)
+  const [isFlipping, setIsFlipping] = useState(false)
+  const [flipDirection, setFlipDirection] = useState<'next' | 'prev'>('next')
+  const timerRef = useRef<NodeJS.Timeout | null>(null)
 
-  const nextSlide = useCallback(() => {
-    setIsShuffling(true)
-    setTimeout(() => {
-      setCurrentIndex((prev) => (prev + 1) % images.length)
-      setIsShuffling(false)
-    }, 600)
-  }, [images.length])
+  // Calculate which image should be on the back face based on direction
+  const backIndex = flipDirection === 'next' 
+    ? (currentIndex + 1) % images.length 
+    : (currentIndex - 1 + images.length) % images.length
 
-  const prevSlide = useCallback(() => {
-    setIsShuffling(true)
+  const handleFlip = useCallback((direction: 'next' | 'prev') => {
+    if (isFlipping) return
+
+    setIsFlipping(true)
+    setFlipDirection(direction)
+
+    // Wait for animation to finish before updating state
     setTimeout(() => {
-      setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)
-      setIsShuffling(false)
-    }, 600)
-  }, [images.length])
+      setCurrentIndex((prev) => {
+        if (direction === 'next') return (prev + 1) % images.length
+        return (prev - 1 + images.length) % images.length
+      })
+      setIsFlipping(false)
+    }, 600) // Match this with CSS transition duration
+  }, [images.length, isFlipping])
 
   // Auto-play functionality
   useEffect(() => {
-    if (!isAutoPlaying) return
-
-    const interval = setInterval(() => {
-      nextSlide()
-    }, autoPlayInterval)
-
-    return () => clearInterval(interval)
-  }, [isAutoPlaying, autoPlayInterval, nextSlide])
-
-  // Reset auto-play when user manually navigates
-  const handleManualNavigation = (direction: "next" | "prev") => {
-    setIsAutoPlaying(false)
-    if (direction === "next") {
-      nextSlide()
-    } else {
-      prevSlide()
+    if (isAutoPlaying && !isFlipping) {
+      timerRef.current = setInterval(() => {
+        handleFlip('next')
+      }, autoPlayInterval)
     }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current)
+    }
+  }, [isAutoPlaying, isFlipping, handleFlip, autoPlayInterval])
+
+  const handleManualNavigation = (direction: 'next' | 'prev') => {
+    setIsAutoPlaying(false)
+    handleFlip(direction)
+    
     // Resume auto-play after 10 seconds of inactivity
     setTimeout(() => setIsAutoPlaying(true), 10000)
   }
 
-  // Get the visible card indices for stacking effect
-  const getVisibleIndices = () => {
-    const indices = []
-    for (let i = 0; i < Math.min(4, images.length); i++) {
-      indices.push((currentIndex + i) % images.length)
-    }
-    return indices
-  }
-
-  const visibleIndices = getVisibleIndices()
+  // Determine the rotation transform
+  // When flipping 'next', rotate to -180deg
+  // When flipping 'prev', rotate to 180deg
+  // When stable, stay at 0deg
+  const rotationTransform = isFlipping 
+    ? (flipDirection === 'next' ? 'rotateY(-180deg)' : 'rotateY(180deg)')
+    : 'rotateY(0deg)'
 
   return (
-    <div className="relative w-full flex flex-col items-center justify-center py-8">
-      {/* Stacked Cards Container */}
-      <div className="relative w-full max-w-3xl h-[500px] mb-8">
-        {visibleIndices.map((imageIndex, stackPosition) => {
-          const isActive = stackPosition === 0
-          let scale, translateY, translateX, rotate, zIndex, opacity
-          
-          if (isShuffling && isActive) {
-            scale = 0.7
-            translateY = 400
-            translateX = 120
-            rotate = 15
-            zIndex = 0
-            opacity = 0.3
-          } else if (isShuffling && stackPosition > 0) {
-            const targetPosition = stackPosition - 1
-            scale = 1 - targetPosition * 0.05
-            translateY = targetPosition * 20
-            translateX = targetPosition * 30
-            rotate = targetPosition * 3
-            zIndex = 10 - targetPosition
-            opacity = targetPosition === 0 ? 1 : 0.7
-          } else {
-            scale = 1 - stackPosition * 0.05
-            translateY = stackPosition * 20
-            translateX = stackPosition * 30
-            rotate = stackPosition * 3
-            zIndex = 10 - stackPosition
-            opacity = isActive ? 1 : 0.7
-          }
+    <div className="relative w-full h-full flex flex-col items-center justify-center py-8">
+      {/* 3D Card Container */}
+      <div className="relative w-full max-w-2xl aspect-[16/10] group [perspective:1000px] mb-8">
+        
+        {/* Flipping Element */}
+        <div 
+          className="w-full h-full relative [transform-style:preserve-3d] transition-transform duration-600 ease-in-out"
+          style={{ transform: rotationTransform }}
+        >
+          {/* Front Face */}
+          <div className="absolute inset-0 [backface-visibility:hidden] rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-white">
+             <Image
+              src={images[currentIndex] || "/placeholder.svg"}
+              alt={`Slide ${currentIndex + 1}`}
+              fill
+              className="object-cover"
+              priority
+            />
+            {/* Subtle gradient overlay for depth */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
+          </div>
 
-          return (
-            <div
-              key={`${imageIndex}-${stackPosition}`}
-              className="absolute inset-0 transition-all duration-600 ease-out"
-              style={{
-                transform: `
-                  translateX(${translateX}px) 
-                  translateY(${translateY}px) 
-                  scale(${scale}) 
-                  rotate(${rotate}deg)
-                `,
-                zIndex,
-                opacity,
-              }}
-            >
-              <div
-                className={`w-full h-full rounded-3xl overflow-hidden shadow-2xl border-4 border-white transition-all duration-600 ${
-                  isActive ? "ring-4 ring-[#C2E2FA]" : ""
-                }`}
-              >
-                <Image
-                  src={images[imageIndex] || "/placeholder.svg"}
-                  alt={`Slide ${imageIndex + 1}`}
-                  fill
-                  className="object-cover rounded-3xl"
-                  priority={isActive}
-                />
-              </div>
-            </div>
-          )
-        })}
+          {/* Back Face */}
+          <div 
+            className="absolute inset-0 [backface-visibility:hidden] rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-white"
+            style={{ transform: 'rotateY(180deg)' }}
+          >
+             <Image
+              src={images[backIndex] || "/placeholder.svg"}
+              alt={`Slide ${backIndex + 1}`}
+              fill
+              className="object-cover"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
+          </div>
+        </div>
+        
+        {/* Decorative Elements (Static Backgrounds) */}
+        <div className="absolute -inset-4 bg-[#C2E2FA] rounded-[2.5rem] -z-10 rotate-3 opacity-40 transition-transform duration-500 group-hover:rotate-6"></div>
+        <div className="absolute -inset-4 bg-blue-100 rounded-[2.5rem] -z-20 -rotate-2 opacity-40 transition-transform duration-500 group-hover:-rotate-4"></div>
       </div>
 
-      {/* Navigation Buttons */}
-      <div className="flex items-center gap-4">
+      {/* Navigation Controls */}
+      <div className="flex items-center gap-6">
         <Button
           variant="outline"
           size="icon"
           onClick={() => handleManualNavigation("prev")}
-          className="w-12 h-12 rounded-full border-2 border-[#C2E2FA] hover:bg-[#C2E2FA] hover:text-white transition-all"
+          className="w-12 h-12 rounded-full border-2 border-gray-200 hover:border-[#C2E2FA] hover:bg-[#C2E2FA] hover:text-blue-900 transition-all bg-white"
         >
           <ChevronLeft className="w-6 h-6" />
         </Button>
@@ -147,12 +127,14 @@ export function StackedCardCarousel({ images, autoPlayInterval = 5000 }: Stacked
             <button
               key={index}
               onClick={() => {
-                setCurrentIndex(index)
-                setIsAutoPlaying(false)
-                setTimeout(() => setIsAutoPlaying(true), 10000)
+                // Determine direction based on click
+                const direction = index > currentIndex ? 'next' : 'prev'
+                if (index !== currentIndex) handleManualNavigation(direction)
               }}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                index === currentIndex ? "w-8 bg-[#C2E2FA]" : "w-2 bg-gray-300 hover:bg-gray-400"
+              className={`h-2.5 rounded-full transition-all duration-500 ${
+                index === currentIndex 
+                  ? "w-8 bg-blue-600" 
+                  : "w-2.5 bg-gray-300 hover:bg-blue-300"
               }`}
               aria-label={`Go to slide ${index + 1}`}
             />
@@ -163,15 +145,10 @@ export function StackedCardCarousel({ images, autoPlayInterval = 5000 }: Stacked
           variant="outline"
           size="icon"
           onClick={() => handleManualNavigation("next")}
-          className="w-12 h-12 rounded-full border-2 border-[#C2E2FA] hover:bg-[#C2E2FA] hover:text-white transition-all"
+          className="w-12 h-12 rounded-full border-2 border-gray-200 hover:border-[#C2E2FA] hover:bg-[#C2E2FA] hover:text-blue-900 transition-all bg-white"
         >
           <ChevronRight className="w-6 h-6" />
         </Button>
-      </div>
-
-      {/* Auto-play indicator */}
-      <div className="mt-4 text-sm text-gray-500">
-        {isAutoPlaying ? "Auto-playing..." : "Manual control"}
       </div>
     </div>
   )

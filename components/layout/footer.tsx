@@ -1,6 +1,20 @@
+"use client"
+
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 export function Footer() {
+  const pathname = usePathname()
+
+  const isImmersivePage =
+    pathname?.startsWith("/speaking/session/") ||
+    (pathname?.startsWith("/vocab/") && pathname !== "/vocab") ||
+    (pathname?.startsWith("/grammar/") && pathname !== "/grammar")
+
+  if (isImmersivePage) {
+    return null
+  }
+
   return (
     <footer className="border-t border-border bg-background/50 backdrop-blur">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">

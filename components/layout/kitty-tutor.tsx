@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { usePathname } from "next/navigation"
 import { MessageCircle, X, Send } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useAppStore } from "@/lib/store"
@@ -13,6 +14,7 @@ interface Message {
 
 export function KittyTutor() {
   const { kittyOpen, setKittyOpen } = useAppStore()
+  const pathname = usePathname()
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
@@ -21,6 +23,15 @@ export function KittyTutor() {
     },
   ])
   const [input, setInput] = useState("")
+
+  const isImmersivePage =
+    pathname?.startsWith("/speaking/session/") ||
+    (pathname?.startsWith("/vocab/") && pathname !== "/vocab") ||
+    (pathname?.startsWith("/grammar/") && pathname !== "/grammar")
+
+  if (isImmersivePage) {
+    return null
+  }
 
   const handleSend = () => {
     if (!input.trim()) return
