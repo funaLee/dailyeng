@@ -15,7 +15,7 @@ const navItems = [
     label: "Language Lab",
     dropdown: [
       { href: "/vocab", label: "Vocabulary Hub" },
-      { href: "/grammar", label: "Grammar Hub" },
+      { href: "/grammar", label: "Grammar" },
     ],
   },
   { href: "/notebook", label: "Notebook" },
@@ -27,7 +27,12 @@ export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { user, logout, stats, setSearchOpen, isAuthenticated } = useAppStore()
 
-  if (pathname?.startsWith("/speaking/session/")) {
+  const isImmersivePage =
+    pathname?.startsWith("/speaking/session/") ||
+    (pathname?.startsWith("/vocab/") && pathname !== "/vocab") ||
+    (pathname?.startsWith("/grammar/") && pathname !== "/grammar")
+
+  if (isImmersivePage) {
     return null
   }
 
@@ -91,7 +96,7 @@ export function Navbar() {
           <div className="flex items-center gap-2">
             {isAuthenticated ? (
               <>
-                <Link href="/plan">
+                <Link href="/dashboard">
                   <Button variant="ghost" size="icon" className="hidden sm:flex" title="Dashboard">
                     <LayoutDashboard className="h-5 w-5" />
                   </Button>
