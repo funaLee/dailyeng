@@ -12,6 +12,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Edit } from "lucide-react"
 import { MindMap } from "@/components/vocab/mind-map"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import Image from "next/image"
 
 const CEFR_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"]
 
@@ -152,17 +154,17 @@ export default function VocabPage() {
             </Button>
           </div>
         </div>
-        <div className="absolute right-0 top-0 h-full w-1/2 bg-linear-to-br from-blue-200/50 to-blue-400/30 rounded-lg pointer-events-none">
+        <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-br from-blue-200/50 to-blue-400/30 rounded-lg pointer-events-none">
           <div className="absolute right-12 top-12 text-blue-600/20 text-6xl font-bold rotate-12">appointment</div>
           <div className="absolute right-24 top-32 text-blue-600/20 text-5xl font-bold -rotate-6">outcome</div>
           <div className="absolute right-8 top-52 text-blue-600/20 text-4xl font-bold rotate-3">curiosity</div>
         </div>
       </Card>
 
-      <div className="mb-6 flex gap-2 border-b border-border">
+      <div className="mb-8 flex items-center border-b">
         <button
           onClick={() => setActiveTab("popular")}
-          className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+          className={`px-6 py-3 font-bold text-sm border-b-2 transition-colors ${
             activeTab === "popular"
               ? "border-primary text-primary"
               : "border-transparent text-muted-foreground hover:text-foreground"
@@ -172,7 +174,7 @@ export default function VocabPage() {
         </button>
         <button
           onClick={() => setActiveTab("dictionary")}
-          className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+          className={`px-6 py-3 font-bold text-sm border-b-2 transition-colors ${
             activeTab === "dictionary"
               ? "border-primary text-primary"
               : "border-transparent text-muted-foreground hover:text-foreground"
@@ -182,7 +184,7 @@ export default function VocabPage() {
         </button>
         <button
           onClick={() => setActiveTab("mindmap")}
-          className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+          className={`px-6 py-3 font-bold text-sm border-b-2 transition-colors ${
             activeTab === "mindmap"
               ? "border-primary text-primary"
               : "border-transparent text-muted-foreground hover:text-foreground"
@@ -192,17 +194,17 @@ export default function VocabPage() {
         </button>
         <div className="flex-1" />
         <Input
-          placeholder="Search"
+          placeholder="Search topics..."
           className="max-w-xs"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
 
-      <div className="grid lg:grid-cols-5 gap-6">
+      <div className="grid lg:grid-cols-5 gap-8">
         <div className="lg:col-span-1 space-y-6">
-          <Card className="p-6 bg-[#C2E2FA]/30">
-            <h3 className="font-bold text-lg mb-4">Topic Groups</h3>
+          <Card className="p-4 bg-slate-50 border-none shadow-sm">
+            <h3 className="font-bold text-sm text-slate-900 mb-3 px-2">Topic Groups</h3>
             <div className="space-y-1">
               {TOPIC_GROUPS.map((group) => (
                 <button
@@ -211,44 +213,73 @@ export default function VocabPage() {
                     setSelectedGroup(group.name)
                     setSelectedSubcategory(group.subcategories[0])
                   }}
-                  className={`w-full text-left px-4 py-3 rounded-lg text-sm transition-colors flex items-center gap-3 ${
-                    selectedGroup === group.name ? "bg-white font-semibold shadow-sm" : "hover:bg-white/50"
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex items-center gap-3 ${
+                    selectedGroup === group.name
+                      ? "bg-white font-semibold text-primary shadow-sm ring-1 ring-black/5"
+                      : "text-slate-600 hover:bg-white/50 hover:text-slate-900"
                   }`}
                 >
-                  {selectedGroup === group.name && (
-                    <div className="h-4 w-4 rounded-full border-4 border-primary shrink-0" />
+                  {selectedGroup === group.name ? (
+                    <div className="h-2 w-2 rounded-full bg-primary flex-shrink-0" />
+                  ) : (
+                    <div className="h-2 w-2 rounded-full bg-slate-300 flex-shrink-0" />
                   )}
-                  {selectedGroup !== group.name && (
-                    <div className="h-4 w-4 rounded-full border-2 border-gray-400 shrink-0" />
-                  )}
-                  <span>{group.name}</span>
+                  <span className="truncate">{group.name}</span>
                 </button>
               ))}
               <Button
                 variant="ghost"
                 size="sm"
-                className="w-full justify-center text-xs mt-2 bg-gray-400 text-white hover:bg-gray-500 hover:text-white"
+                className="w-full justify-start text-xs text-muted-foreground mt-2 px-2 hover:bg-transparent hover:text-primary"
               >
-                More
+                + View more groups
               </Button>
             </div>
           </Card>
 
-          <Card className="p-6 bg-[#C2E2FA]/30">
-            <h3 className="font-bold text-lg mb-4">Levels</h3>
-            <Button variant="outline" size="sm" className="w-full justify-center text-xs mb-3 bg-white">
-              CEFR
-            </Button>
-            <div className="space-y-2">
+          <Card className="p-4 bg-slate-50 border-none shadow-sm">
+            <div className="flex items-center justify-between mb-3 px-2">
+              <h3 className="font-bold text-sm text-slate-900">Levels</h3>
+            </div>
+
+            <Select defaultValue="cefr">
+              <SelectTrigger className="w-full bg-white mb-4 h-9 text-xs">
+                <SelectValue placeholder="Select system" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cefr">CEFR (European)</SelectItem>
+                <SelectItem value="ielts">IELTS</SelectItem>
+                <SelectItem value="toefl">TOEFL</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <div className="space-y-2 px-1">
               {CEFR_LEVELS.map((level) => (
-                <label key={level} className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={selectedLevels.includes(level)}
-                    onChange={() => toggleLevel(level)}
-                    className="h-4 w-4 rounded border-gray-300"
-                  />
-                  <span className="text-sm">{level} CEFR</span>
+                <label key={level} className="flex items-center gap-3 cursor-pointer group">
+                  <div
+                    className={`flex items-center justify-center h-5 w-5 rounded border transition-colors ${
+                      selectedLevels.includes(level)
+                        ? "bg-primary border-primary text-white"
+                        : "border-slate-300 bg-white group-hover:border-primary"
+                    }`}
+                  >
+                    {selectedLevels.includes(level) && (
+                      <svg className="w-3 h-3 fill-current" viewBox="0 0 20 20">
+                        <path d="M0 11l2-2 5 5L18 3l2 2L7 18z" />
+                      </svg>
+                    )}
+                    <input
+                      type="checkbox"
+                      className="hidden"
+                      checked={selectedLevels.includes(level)}
+                      onChange={() => toggleLevel(level)}
+                    />
+                  </div>
+                  <span
+                    className={`text-sm transition-colors ${selectedLevels.includes(level) ? "font-medium text-slate-900" : "text-slate-600"}`}
+                  >
+                    {level}
+                  </span>
                 </label>
               ))}
             </div>
@@ -258,15 +289,15 @@ export default function VocabPage() {
         <div className="lg:col-span-4">
           {activeTab === "popular" && (
             <>
-              <div className="flex flex-wrap gap-3 mb-6">
+              <div className="flex flex-wrap gap-2 mb-8">
                 {currentSubcategories.map((subcat) => (
                   <button
                     key={subcat}
                     onClick={() => setSelectedSubcategory(subcat)}
-                    className={`px-6 py-3 rounded-lg text-base font-semibold whitespace-nowrap transition-colors shadow-sm ${
+                    className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all ${
                       selectedSubcategory === subcat
-                        ? "bg-blue-800 text-white"
-                        : "bg-[#C2E2FA] text-blue-900 hover:bg-blue-300"
+                        ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/20"
+                        : "bg-white border border-slate-200 text-slate-600 hover:border-primary/50 hover:text-primary hover:bg-slate-50"
                     }`}
                   >
                     {subcat}
@@ -274,41 +305,66 @@ export default function VocabPage() {
                 ))}
               </div>
 
-              <div className="grid md:grid-cols-4 gap-4">
+              <div className="grid md:grid-cols-4 gap-6">
                 {filteredTopics.map((topic) => (
-                  <Card key={topic.id} className="overflow-hidden hover:shadow-lg transition-shadow border-2">
-                    <div className="aspect-[4/3] bg-linear-to-br from-blue-200 to-blue-300 relative">
-                      <img
-                        src={topic.thumbnail || "/placeholder.svg?height=150&width=200"}
+                  <Card
+                    key={topic.id}
+                    className="group overflow-hidden rounded-2xl border-0 shadow-sm hover:shadow-xl transition-all duration-300 bg-white"
+                  >
+                    <div className="aspect-[4/3] relative bg-slate-100 overflow-hidden">
+                      <Image
+                        src="/learning.png"
                         alt={topic.title}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
                       />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
+
+                      <div className="absolute bottom-3 left-3 right-3 text-white">
+                        <div className="flex gap-2 mb-1">
+                          <Badge
+                            variant="secondary"
+                            className="bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-md text-[10px] h-5 px-1.5"
+                          >
+                            {topic.level}
+                          </Badge>
+                          <Badge
+                            variant="secondary"
+                            className="bg-black/40 hover:bg-black/50 text-white border-0 backdrop-blur-md text-[10px] h-5 px-1.5"
+                          >
+                            Daily Life
+                          </Badge>
+                        </div>
+                      </div>
                     </div>
-                    <div className="p-3">
-                      <h3 className="font-semibold text-base mb-1.5 line-clamp-2">{topic.title}</h3>
-                      <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{topic.description}</p>
-                      <div className="flex items-center gap-1.5 mb-3">
-                        <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-900 text-[10px] font-medium">
-                          Daily Life
-                        </span>
-                        <span className="px-1.5 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-medium">
-                          {topic.level}
-                        </span>
+
+                    <div className="p-4">
+                      <h3 className="font-bold text-slate-900 mb-1 line-clamp-1 group-hover:text-primary transition-colors">
+                        {topic.title}
+                      </h3>
+                      <p className="text-xs text-slate-500 mb-4 line-clamp-2 h-8 leading-relaxed">
+                        {topic.description}
+                      </p>
+
+                      <div className="flex items-center justify-between mb-3 text-[10px] font-medium text-slate-400 uppercase tracking-wider">
+                        <span>Progress</span>
+                        <span>50%</span>
                       </div>
-                      <div className="text-[10px] text-muted-foreground mb-2">
-                        {topic.wordCount} / {topic.wordCount}
+                      <div className="h-1.5 w-full bg-slate-100 rounded-full mb-4 overflow-hidden">
+                        <div className="h-full bg-green-500 rounded-full w-1/2" />
                       </div>
-                      <div className="h-1 bg-secondary rounded-full mb-3">
-                        <div className="h-full bg-green-500 rounded-full" style={{ width: "50%" }} />
-                      </div>
-                      <div className="flex gap-1.5">
-                        <Link href={`/vocab/${topic.id}`} className="flex-1">
-                          <Button className="w-full text-xs h-7" size="sm">
-                            Continue
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <Link href={`/vocab/${topic.id}`} className="contents">
+                          <Button className="w-full h-8 text-xs font-semibold rounded-lg shadow-sm group-hover:shadow-md transition-all">
+                            Start
                           </Button>
                         </Link>
-                        <Button variant="outline" size="sm" className="text-xs h-7 px-2 bg-transparent">
-                          View
+                        <Button
+                          variant="outline"
+                          className="w-full h-8 text-xs font-semibold rounded-lg bg-slate-50 border-slate-200 text-slate-600 hover:bg-white hover:text-primary"
+                        >
+                          Preview
                         </Button>
                       </div>
                     </div>

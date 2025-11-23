@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import Image from "next/image"
 
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { Card } from "@/components/ui/card"
@@ -14,7 +15,6 @@ import {
   Search,
   ChevronRight,
   ChevronLeft,
-  MessageCircle,
   Sparkles,
   Clock,
   Star,
@@ -75,7 +75,7 @@ const mockScenarios: Scenario[] = [
     description: "Learn vocabulary used in everyday eating, cooking, and ordering food in real situations.",
     category: "Daily Life",
     level: "A1",
-    image: "png1",
+    image: "/learning.png",
     sessionsCompleted: 2,
     totalSessions: 5,
     progress: 40,
@@ -86,7 +86,7 @@ const mockScenarios: Scenario[] = [
     description: "Learn vocabulary used in everyday eating, cooking, and ordering food in real situations.",
     category: "Daily Life",
     level: "A2",
-    image: "png2",
+    image: "/learning.png",
     sessionsCompleted: 0,
     totalSessions: 4,
     progress: 0,
@@ -97,7 +97,7 @@ const mockScenarios: Scenario[] = [
     description: "Learn vocabulary used in everyday eating, cooking, and ordering food in real situations.",
     category: "Daily Life",
     level: "B1",
-    image: "png3",
+    image: "/learning.png",
     sessionsCompleted: 3,
     totalSessions: 6,
     progress: 50,
@@ -108,7 +108,7 @@ const mockScenarios: Scenario[] = [
     description: "Learn vocabulary used in everyday eating, cooking, and ordering food in real situations.",
     category: "Daily Life",
     level: "A2",
-    image: "png4",
+    image: "/learning.png",
     sessionsCompleted: 1,
     totalSessions: 4,
     progress: 25,
@@ -119,7 +119,7 @@ const mockScenarios: Scenario[] = [
     description: "Practice professional conversations and learn how to present yourself confidently.",
     category: "Professional English",
     level: "B2",
-    image: "png5",
+    image: "/learning.png",
     sessionsCompleted: 0,
     totalSessions: 8,
     progress: 0,
@@ -130,7 +130,7 @@ const mockScenarios: Scenario[] = [
     description: "Learn essential phrases for traveling and staying at hotels.",
     category: "Travel",
     level: "A2",
-    image: "png6",
+    image: "/learning.png",
     sessionsCompleted: 2,
     totalSessions: 5,
     progress: 40,
@@ -165,7 +165,7 @@ const HISTORY_TOPICS_DATA = [
     score: 95,
     date: "2024-03-10",
     tags: ["Science", "B2"],
-    image: "/placeholder.svg?height=150&width=250",
+    image: "/learning.png",
   },
   {
     id: 2,
@@ -174,7 +174,7 @@ const HISTORY_TOPICS_DATA = [
     score: 92,
     date: "2024-03-09",
     tags: ["Fiction", "C1"],
-    image: "/placeholder.svg?height=150&width=250",
+    image: "/learning.png",
   },
   {
     id: 3,
@@ -183,7 +183,7 @@ const HISTORY_TOPICS_DATA = [
     score: 94,
     date: "2024-03-08",
     tags: ["Tech", "C1"],
-    image: "/placeholder.svg?height=150&width=250",
+    image: "/learning.png",
   },
   {
     id: 4,
@@ -192,7 +192,7 @@ const HISTORY_TOPICS_DATA = [
     score: 91,
     date: "2024-03-05",
     tags: ["Environment", "B2"],
-    image: "/placeholder.svg?height=150&width=250",
+    image: "/learning.png",
   },
   {
     id: 5,
@@ -201,16 +201,16 @@ const HISTORY_TOPICS_DATA = [
     score: 85,
     date: "2024-03-04",
     tags: ["Business", "B2"],
-    image: "/placeholder.svg?height=150&width=250",
+    image: "/learning.png",
   },
   {
-    id: 6,
+    id: "6",
     title: "Coffee Culture",
     description: "Describe different types of coffee and café experiences.",
     score: 88,
     date: "2024-03-03",
     tags: ["Daily Life", "A2"],
-    image: "/placeholder.svg?height=150&width=250",
+    image: "/learning.png",
   },
   {
     id: 7,
@@ -219,7 +219,7 @@ const HISTORY_TOPICS_DATA = [
     score: 82,
     date: "2024-03-01",
     tags: ["Travel", "B1"],
-    image: "/placeholder.svg?height=150&width=250",
+    image: "/learning.png",
   },
   {
     id: 8,
@@ -228,7 +228,7 @@ const HISTORY_TOPICS_DATA = [
     score: 89,
     date: "2024-02-28",
     tags: ["Entertainment", "B1"],
-    image: "/placeholder.svg?height=150&width=250",
+    image: "/learning.png",
   },
 ]
 
@@ -475,11 +475,14 @@ export default function SpeakingRoomPage() {
                       {topic.level}
                     </Badge>
                   </div>
-                  <div className="relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50 p-6">
-                    <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]" />
-                    <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-white shadow-lg shadow-blue-100/50 ring-1 ring-slate-100">
-                      <MessageCircle className="h-8 w-8 text-blue-500" />
-                    </div>
+                  <div className="relative aspect-[4/3] w-full overflow-hidden">
+                    <Image
+                      src={topic.image || "/learning.png"}
+                      alt={topic.title}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60" />
                   </div>
                   <div className="p-4">
                     <div className="mb-3 flex items-center gap-2">
@@ -499,7 +502,7 @@ export default function SpeakingRoomPage() {
                     </h4>
                     <p className="mb-4 line-clamp-2 text-xs text-slate-500">{topic.description}</p>
                     <div className="flex gap-2">
-                      <Button className="h-9 flex-1 rounded-xl bg-blue-600 text-xs font-semibold shadow-lg shadow-blue-200 transition-all hover:bg-blue-700 hover:shadow-blue-300">
+                      <Button className="h-9 flex-1 rounded-xl bg-blue-600 text-xs font-semibold shadow-lg shadow-blue-100/50 transition-all hover:bg-blue-700 hover:shadow-blue-300">
                         <Play className="mr-1.5 h-3.5 w-3.5" />
                         Start Speaking
                       </Button>
