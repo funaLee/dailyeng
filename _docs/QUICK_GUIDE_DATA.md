@@ -191,4 +191,3 @@ npx prisma generate
 ---
 
 **Last Updated**: 24/11/2024  
-**Maintainer**: [Your Name]
