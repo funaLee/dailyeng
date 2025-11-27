@@ -25,7 +25,7 @@ export function ProtectedRoute({
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-slate-900 dark:to-slate-950 flex items-center justify-center px-4">
+      <div className="min-h-fit bg-gradient-to-b from-blue-50 to-white dark:from-slate-900 dark:to-slate-950 flex items-center justify-center px-4 pt-20">        
         <Card className="max-w-md w-full p-8 text-center shadow-xl border-blue-100 dark:border-slate-800">
           {/* Icon */}
           <div className="mx-auto w-20 h-20 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mb-6">
