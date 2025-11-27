@@ -8,7 +8,13 @@ import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useAppStore } from "@/lib/store"
 
-const navItems = [
+type NavItem = {
+  href: string
+  label: string
+  dropdown?: Array<{ href: string; label: string }>
+}
+
+const navItems: NavItem[] = [
   { href: "/", label: "Home" },
   { href: "/speaking", label: "Speaking Room" },
   { href: "/vocab", label: "Vocabulary Hub" },
@@ -32,12 +38,12 @@ export function Navbar() {
   }
 
   return (
-    <nav className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <nav className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 font-bold text-lg">
-            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs">
+            <div className="h-8 w-8 rounded-lg bg-linear-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs">
               DE
             </div>
             <span className="hidden sm:inline">DailyEng</span>
