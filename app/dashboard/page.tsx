@@ -32,6 +32,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts"
 import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { UserProfileSidebar } from "@/components/layout/user-profile-sidebar"
+import { ProtectedRoute, PageIcons } from "@/components/auth/protected-route"
 
 export default function DashboardPage() {
   const { user, isAuthenticated } = useAppStore()
@@ -221,19 +222,12 @@ export default function DashboardPage() {
     return [badges[prev], badges[currentBadgeIndex], badges[next]]
   }
 
-  if (!isAuthenticated) {
-    return (
-      <div className="mx-auto max-w-7xl px-4 py-12 text-center">
-        <p>Please sign in to view dashboard</p>
-        <Button asChild className="mt-4">
-          <Link href="/auth/signin">Sign In</Link>
-        </Button>
-      </div>
-    )
-  }
-
   return (
-    <div className="min-h-screen bg-slate-50">
+    <ProtectedRoute
+      pageName="Dashboard"
+      pageDescription="Track your learning progress, complete daily missions, and view your achievements."
+      pageIcon={PageIcons.dashboard}
+    >
       <div className="container mx-auto px-8 py-8">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
           {/* ================= LEFT SIDEBAR ================= */}
@@ -808,7 +802,7 @@ export default function DashboardPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </ProtectedRoute>
   )
 }
 

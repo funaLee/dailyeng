@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { UserProfileSidebar } from "@/components/layout/user-profile-sidebar"
-import { Search, Filter, ArrowUpDown, Bookmark, Lock } from "lucide-react"
+import { Search, Filter, ArrowUpDown, Bookmark, Lock, FolderOpen } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Image from "next/image"
+import { ProtectedRoute } from "@/components/auth/protected-route"
 
 interface Collection {
   id: string
@@ -34,7 +35,7 @@ export default function CollectionsPage() {
       id: "c1",
       title: "Business English Essentials",
       description: "Master professional vocabulary for workplace communication",
-      image: "/learning.png",
+      image: "/learning.jpg",
       type: "vocabulary",
       itemCount: 120,
       progress: 65,
@@ -47,7 +48,7 @@ export default function CollectionsPage() {
       id: "c2",
       title: "Advanced Grammar Patterns",
       description: "Complex sentence structures and academic writing",
-      image: "/learning.png",
+      image: "/learning.jpg",
       type: "grammar",
       itemCount: 48,
       progress: 30,
@@ -60,7 +61,7 @@ export default function CollectionsPage() {
       id: "c3",
       title: "Conversation Starters",
       description: "Practice natural dialogues for everyday situations",
-      image: "/learning.png",
+      image: "/learning.jpg",
       type: "speaking",
       itemCount: 75,
       progress: 85,
@@ -73,7 +74,7 @@ export default function CollectionsPage() {
       id: "c4",
       title: "IELTS Vocabulary Booster",
       description: "Essential words for IELTS exam preparation",
-      image: "/learning.png",
+      image: "/learning.jpg",
       type: "vocabulary",
       itemCount: 200,
       progress: 0,
@@ -86,7 +87,7 @@ export default function CollectionsPage() {
       id: "c5",
       title: "Phrasal Verbs Mastery",
       description: "Common phrasal verbs with real-world examples",
-      image: "/learning.png",
+      image: "/learning.jpg",
       type: "grammar",
       itemCount: 90,
       progress: 45,
@@ -99,7 +100,7 @@ export default function CollectionsPage() {
       id: "c6",
       title: "Travel & Tourism Vocabulary",
       description: "Essential phrases for international travel",
-      image: "/learning.png",
+      image: "/learning.jpg",
       type: "vocabulary",
       itemCount: 85,
       progress: 20,
@@ -141,166 +142,172 @@ export default function CollectionsPage() {
   }
 
   return (
-    <div className="container mx-auto px-8 py-8">
-      <div className="grid lg:grid-cols-12 gap-8">
-        {/* Left Sidebar */}
-        <div className="lg:col-span-3">
-          <UserProfileSidebar activePage="collections" />
-        </div>
+    <ProtectedRoute
+      pageName="Collections"
+      pageDescription="Organize and track your learning materials across vocabulary, grammar, and speaking topics."
+      pageIcon={<FolderOpen className="w-10 h-10 text-blue-500" />}
+    >
+      <div className="container mx-auto px-8 py-8">
+        <div className="grid lg:grid-cols-12 gap-8">
+          {/* Left Sidebar */}
+          <div className="lg:col-span-3">
+            <UserProfileSidebar activePage="collections" />
+          </div>
 
-        {/* Main Content */}
-        <div className="lg:col-span-9 space-y-6">
-          {/* Header */}
-          <Card className="border-slate-200 shadow-sm">
-            <CardContent className="p-6">
-              <h1 className="text-2xl font-bold text-slate-900 mb-2">My Collections</h1>
-              <p className="text-sm text-slate-600">
-                Organize and track your learning materials across vocabulary, grammar, and speaking topics
-              </p>
-            </CardContent>
-          </Card>
+          {/* Main Content */}
+          <div className="lg:col-span-9 space-y-6">
+            {/* Header */}
+            <Card className="border-slate-200 shadow-sm">
+              <CardContent className="p-6">
+                <h1 className="text-2xl font-bold text-slate-900 mb-2">My Collections</h1>
+                <p className="text-sm text-slate-600">
+                  Organize and track your learning materials across vocabulary, grammar, and speaking topics
+                </p>
+              </CardContent>
+            </Card>
 
-          {/* Search and Filter Controls */}
-          <div className="flex gap-4 items-center">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-              <Input
-                placeholder="Search collections..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 border-slate-300 focus:border-blue-500 focus:ring-blue-500"
-              />
+            {/* Search and Filter Controls */}
+            <div className="flex gap-4 items-center">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                <Input
+                  placeholder="Search collections..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 border-slate-300 focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+
+              <Select value={filterType} onValueChange={setFilterType}>
+                <SelectTrigger className="w-[200px] border-slate-300">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Filter by type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="vocabulary">Vocabulary</SelectItem>
+                  <SelectItem value="grammar">Grammar</SelectItem>
+                  <SelectItem value="speaking">Speaking</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Button
+                variant="outline"
+                onClick={() => setSortOrder(sortOrder === "newest" ? "oldest" : "newest")}
+                className="border-slate-300 hover:bg-slate-50"
+              >
+                <ArrowUpDown className="h-4 w-4 mr-2" />
+                {sortOrder === "newest" ? "Newest" : "Oldest"}
+              </Button>
             </div>
 
-            <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger className="w-[200px] border-slate-300">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filter by type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="vocabulary">Vocabulary</SelectItem>
-                <SelectItem value="grammar">Grammar</SelectItem>
-                <SelectItem value="speaking">Speaking</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Button
-              variant="outline"
-              onClick={() => setSortOrder(sortOrder === "newest" ? "oldest" : "newest")}
-              className="border-slate-300 hover:bg-slate-50"
-            >
-              <ArrowUpDown className="h-4 w-4 mr-2" />
-              {sortOrder === "newest" ? "Newest" : "Oldest"}
-            </Button>
-          </div>
-
-          {/* Collections Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {collections.map((collection) => (
-              <Card
-                key={collection.id}
-                className={`border-slate-200 shadow-sm overflow-hidden group hover:shadow-lg transition-all ${
-                  collection.isLocked ? "opacity-75" : ""
-                }`}
-              >
-                <div className="relative aspect-video bg-slate-100">
-                  <Image
-                    src={collection.image || "/placeholder.svg"}
-                    alt={collection.title}
-                    fill
-                    className="object-cover"
-                  />
-                  {collection.isLocked && (
-                    <div className="absolute inset-0 bg-slate-900/50 flex items-center justify-center">
-                      <Lock className="h-10 w-10 text-white" />
-                    </div>
-                  )}
-                  <Badge
-                    className={`absolute top-3 left-3 border ${getDifficultyColor(collection.difficulty)} capitalize`}
-                  >
-                    {collection.difficulty}
-                  </Badge>
-                  <button
-                    onClick={() => toggleSave(collection.id)}
-                    className={`absolute top-3 right-3 p-2 rounded-full transition-all ${
-                      collection.isSaved
-                        ? "bg-blue-600 text-white hover:bg-blue-700"
-                        : "bg-white/90 text-slate-600 hover:bg-white"
-                    }`}
-                  >
-                    <Bookmark className={`h-4 w-4 ${collection.isSaved ? "fill-current" : ""}`} />
-                  </button>
-                </div>
-
-                <CardContent className="p-4 space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-bold text-base text-slate-900 flex-1">{collection.title}</h3>
-                    <span className="text-xl">{getTypeIcon(collection.type)}</span>
+            {/* Collections Grid */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {collections.map((collection) => (
+                <Card
+                  key={collection.id}
+                  className={`border-slate-200 shadow-sm overflow-hidden group hover:shadow-lg transition-all ${
+                    collection.isLocked ? "opacity-75" : ""
+                  }`}
+                >
+                  <div className="relative aspect-video bg-slate-100">
+                    <Image
+                      src={collection.image || "/placeholder.svg"}
+                      alt={collection.title}
+                      fill
+                      className="object-cover"
+                    />
+                    {collection.isLocked && (
+                      <div className="absolute inset-0 bg-slate-900/50 flex items-center justify-center">
+                        <Lock className="h-10 w-10 text-white" />
+                      </div>
+                    )}
+                    <Badge
+                      className={`absolute top-3 left-3 border ${getDifficultyColor(collection.difficulty)} capitalize`}
+                    >
+                      {collection.difficulty}
+                    </Badge>
+                    <button
+                      onClick={() => toggleSave(collection.id)}
+                      className={`absolute top-3 right-3 p-2 rounded-full transition-all ${
+                        collection.isSaved
+                          ? "bg-blue-600 text-white hover:bg-blue-700"
+                          : "bg-white/90 text-slate-600 hover:bg-white"
+                      }`}
+                    >
+                      <Bookmark className={`h-4 w-4 ${collection.isSaved ? "fill-current" : ""}`} />
+                    </button>
                   </div>
 
-                  <p className="text-xs text-slate-600 line-clamp-2">{collection.description}</p>
-
-                  <div className="flex items-center justify-between text-xs text-slate-500">
-                    <span>{collection.itemCount} items</span>
-                    <span>{collection.lastUpdated}</span>
-                  </div>
-
-                  {!collection.isLocked && (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-slate-600 font-medium">Progress</span>
-                        <span className="text-blue-600 font-bold">{collection.progress}%</span>
-                      </div>
-                      <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
-                        <div
-                          className="bg-blue-600 h-full rounded-full transition-all"
-                          style={{ width: `${collection.progress}%` }}
-                        />
-                      </div>
+                  <CardContent className="p-4 space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-bold text-base text-slate-900 flex-1">{collection.title}</h3>
+                      <span className="text-xl">{getTypeIcon(collection.type)}</span>
                     </div>
-                  )}
 
-                  <Button
-                    className={`w-full ${
-                      collection.isLocked
-                        ? "bg-slate-400 hover:bg-slate-500 cursor-not-allowed"
-                        : "bg-blue-600 hover:bg-blue-700"
-                    } text-white transition-colors`}
-                    disabled={collection.isLocked}
-                  >
-                    {collection.isLocked ? "Locked" : "Continue Learning"}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+                    <p className="text-xs text-slate-600 line-clamp-2">{collection.description}</p>
+
+                    <div className="flex items-center justify-between text-xs text-slate-500">
+                      <span>{collection.itemCount} items</span>
+                      <span>{collection.lastUpdated}</span>
+                    </div>
+
+                    {!collection.isLocked && (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-slate-600 font-medium">Progress</span>
+                          <span className="text-blue-600 font-bold">{collection.progress}%</span>
+                        </div>
+                        <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                          <div
+                            className="bg-blue-600 h-full rounded-full transition-all"
+                            style={{ width: `${collection.progress}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <Button
+                      className={`w-full ${
+                        collection.isLocked
+                          ? "bg-slate-400 hover:bg-slate-500 cursor-not-allowed"
+                          : "bg-blue-600 hover:bg-blue-700"
+                      } text-white transition-colors`}
+                      disabled={collection.isLocked}
+                    >
+                      {collection.isLocked ? "Locked" : "Continue Learning"}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Stats Summary */}
+            <Card className="border-slate-200 shadow-sm bg-blue-50/50">
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <div className="text-center">
+                    <p className="text-3xl font-bold text-blue-600">6</p>
+                    <p className="text-sm text-slate-600 mt-1">Total Collections</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-3xl font-bold text-green-600">3</p>
+                    <p className="text-sm text-slate-600 mt-1">In Progress</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-3xl font-bold text-purple-600">618</p>
+                    <p className="text-sm text-slate-600 mt-1">Total Items</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-3xl font-bold text-orange-600">48%</p>
+                    <p className="text-sm text-slate-600 mt-1">Avg Progress</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-
-          {/* Stats Summary */}
-          <Card className="border-slate-200 shadow-sm bg-blue-50/50">
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-blue-600">6</p>
-                  <p className="text-sm text-slate-600 mt-1">Total Collections</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-green-600">3</p>
-                  <p className="text-sm text-slate-600 mt-1">In Progress</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-purple-600">618</p>
-                  <p className="text-sm text-slate-600 mt-1">Total Items</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-orange-600">48%</p>
-                  <p className="text-sm text-slate-600 mt-1">Avg Progress</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
-    </div>
+    </ProtectedRoute>
   )
 }

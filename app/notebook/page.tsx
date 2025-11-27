@@ -9,8 +9,27 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { BookOpen, FileText, Link2, MessageSquare, Zap, FileCheck, LinkIcon, Volume2, Info, Edit, Plus, Search, ChevronLeft, ChevronRight, Star, Mic, Square } from 'lucide-react'
+import {
+  BookOpen,
+  FileText,
+  Link2,
+  MessageSquare,
+  Zap,
+  FileCheck,
+  LinkIcon,
+  Volume2,
+  Info,
+  Edit,
+  Plus,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  Star,
+  Mic,
+  Square,
+} from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { ProtectedRoute, PageIcons } from "@/components/auth/protected-route"
 
 type Collection = {
   id: string
@@ -170,468 +189,482 @@ export default function NotebookPage() {
   const currentItem = filteredItems[currentCardIndex]
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex gap-6 min-h-[calc(100vh-200px)]">
-        {/* Sidebar */}
-        <div className="w-64 flex-shrink-0">
-          <Card className="p-6 sticky top-8">
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Collections</h2>
-              <Button size="sm" variant="ghost" className="h-8 w-8 rounded-full p-0">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
+    <ProtectedRoute
+      pageName="Notebook"
+      pageDescription="Save and organize your vocabulary, notes, and learning materials."
+      pageIcon={PageIcons.notebook}
+    >
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex gap-6 min-h-[calc(100vh-200px)]">
+          {/* Sidebar */}
+          <div className="w-64 flex-shrink-0">
+            <Card className="p-6 sticky top-8">
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Collections</h2>
+                <Button size="sm" variant="ghost" className="h-8 w-8 rounded-full p-0">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
 
-            <div className="space-y-1">
-              {collections.map((collection) => (
-                <button
-                  key={collection.id}
-                  onClick={() => {
-                    setSelectedCollection(collection.id)
-                    setViewMode("list")
-                  }}
-                  className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${
-                    selectedCollection === collection.id
-                      ? "bg-primary/10 text-primary font-medium"
-                      : "hover:bg-muted text-muted-foreground"
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    {collection.icon}
-                    <span>{collection.name}</span>
-                  </div>
-                  <span className="text-xs">{collection.count}</span>
-                </button>
-              ))}
-            </div>
-          </Card>
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col">
-          {/* Header */}
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold mb-1">Knowledge Notebook</h1>
-            <p className="text-sm text-muted-foreground">Organize and review your English learning notes</p>
+              <div className="space-y-1">
+                {collections.map((collection) => (
+                  <button
+                    key={collection.id}
+                    onClick={() => {
+                      setSelectedCollection(collection.id)
+                      setViewMode("list")
+                    }}
+                    className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${
+                      selectedCollection === collection.id
+                        ? "bg-primary/10 text-primary font-medium"
+                        : "hover:bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      {collection.icon}
+                      <span>{collection.name}</span>
+                    </div>
+                    <span className="text-xs">{collection.count}</span>
+                  </button>
+                ))}
+              </div>
+            </Card>
           </div>
 
-          {/* Collection Header with Actions */}
-          <Card className="p-6 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                {collections.find((c) => c.id === selectedCollection)?.icon}
-                <h2 className="text-lg font-semibold capitalize">{selectedCollection}</h2>
-                <span className="text-sm text-muted-foreground">({filteredItems.length} items)</span>
+          {/* Main Content */}
+          <div className="flex-1 flex flex-col">
+            {/* Header */}
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold mb-1">Knowledge Notebook</h1>
+              <p className="text-sm text-muted-foreground">Organize and review your English learning notes</p>
+            </div>
+
+            {/* Collection Header with Actions */}
+            <Card className="p-6 mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  {collections.find((c) => c.id === selectedCollection)?.icon}
+                  <h2 className="text-lg font-semibold capitalize">{selectedCollection}</h2>
+                  <span className="text-sm text-muted-foreground">({filteredItems.length} items)</span>
+                </div>
+                <Button size="sm" className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add Item
+                </Button>
               </div>
-              <Button size="sm" className="gap-2">
-                <Plus className="h-4 w-4" />
-                Add Item
-              </Button>
-            </div>
 
-            {/* Search Bar */}
-            <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search your notes..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+              {/* Search Bar */}
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search your notes..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
 
-            {/* View Tabs */}
-            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="w-full">
-              <TabsList className="grid w-full max-w-md grid-cols-3">
-                <TabsTrigger value="list">List View</TabsTrigger>
-                <TabsTrigger value="flashcards">Flashcards</TabsTrigger>
-                <TabsTrigger value="daily-review">Daily Review</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </Card>
+              {/* View Tabs */}
+              <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="w-full">
+                <TabsList className="grid w-full max-w-md grid-cols-3">
+                  <TabsTrigger value="list">List View</TabsTrigger>
+                  <TabsTrigger value="flashcards">Flashcards</TabsTrigger>
+                  <TabsTrigger value="daily-review">Daily Review</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </Card>
 
-          {/* Content Area */}
-          <div className="flex-1">
-            {viewMode === "list" && (
-              <Card className="p-6">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[180px]">Word</TableHead>
-                      <TableHead className="w-[300px]">Meaning</TableHead>
-                      <TableHead className="w-[80px]">Level</TableHead>
-                      <TableHead className="w-[140px]">Status</TableHead>
-                      <TableHead className="w-[180px] text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredItems.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="py-4">
-                          <div>
-                            <p className="font-semibold">{item.word}</p>
-                            <p className="text-xs text-muted-foreground">{item.pronunciation}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell className="py-4">
-                          <div className="space-y-1">
-                            <p className="text-sm line-clamp-1">{item.meaning[0]}</p>
-                            {item.meaning.length > 1 && (
-                              <p className="text-sm line-clamp-1 text-muted-foreground">{item.meaning[1]}</p>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="py-4">
-                          <Badge variant="outline">{item.level}</Badge>
-                        </TableCell>
-                        <TableCell className="py-4">
-                          <div className="space-y-2">
-                            <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-primary transition-all"
-                                style={{ width: `${item.masteryLevel}%` }}
-                              />
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                              {item.masteryLevel < 30 ? "Learning" : item.masteryLevel < 70 ? "Reviewing" : "Mastered"}
-                            </p>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right py-4">
-                          <div className="flex justify-end gap-2">
-                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                              <Volume2 className="h-4 w-4" />
-                            </Button>
-                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button size="sm" variant="outline" className="h-8 bg-transparent">
-                              Practice
-                            </Button>
-                          </div>
-                        </TableCell>
+            {/* Content Area */}
+            <div className="flex-1">
+              {viewMode === "list" && (
+                <Card className="p-6">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[180px]">Word</TableHead>
+                        <TableHead className="w-[300px]">Meaning</TableHead>
+                        <TableHead className="w-[80px]">Level</TableHead>
+                        <TableHead className="w-[140px]">Status</TableHead>
+                        <TableHead className="w-[180px] text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </Card>
-            )}
+                    </TableHeader>
+                    <TableBody>
+                      {filteredItems.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="py-4">
+                            <div>
+                              <p className="font-semibold">{item.word}</p>
+                              <p className="text-xs text-muted-foreground">{item.pronunciation}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="py-4">
+                            <div className="space-y-1">
+                              <p className="text-sm line-clamp-1">{item.meaning[0]}</p>
+                              {item.meaning.length > 1 && (
+                                <p className="text-sm line-clamp-1 text-muted-foreground">{item.meaning[1]}</p>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="py-4">
+                            <Badge variant="outline">{item.level}</Badge>
+                          </TableCell>
+                          <TableCell className="py-4">
+                            <div className="space-y-2">
+                              <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
+                                <div
+                                  className="h-full bg-primary transition-all"
+                                  style={{ width: `${item.masteryLevel}%` }}
+                                />
+                              </div>
+                              <p className="text-xs text-muted-foreground">
+                                {item.masteryLevel < 30
+                                  ? "Learning"
+                                  : item.masteryLevel < 70
+                                    ? "Reviewing"
+                                    : "Mastered"}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right py-4">
+                            <div className="flex justify-end gap-2">
+                              <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                                <Volume2 className="h-4 w-4" />
+                              </Button>
+                              <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button size="sm" variant="outline" className="h-8 bg-transparent">
+                                Practice
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </Card>
+              )}
 
-            {viewMode === "flashcards" && currentItem && (
-              <div className="max-w-4xl mx-auto">
-                <div
-                  className="perspective-1000 cursor-pointer mb-8"
-                  onClick={() => setIsFlipped(!isFlipped)}
-                  style={{ perspective: "1000px" }}
-                >
+              {viewMode === "flashcards" && currentItem && (
+                <div className="max-w-4xl mx-auto">
                   <div
-                    className="relative w-full h-[500px] transition-transform duration-500 preserve-3d"
-                    style={{
-                      transformStyle: "preserve-3d",
-                      transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
-                    }}
+                    className="perspective-1000 cursor-pointer mb-8"
+                    onClick={() => setIsFlipped(!isFlipped)}
+                    style={{ perspective: "1000px" }}
                   >
-                    <Card
-                      className="absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8"
-                      style={{ backfaceVisibility: "hidden" }}
-                    >
-                      <div className="text-center space-y-6">
-                        <h2 className="text-5xl font-bold">{currentItem.word}</h2>
-                        <div className="flex items-center gap-3 justify-center">
-                          <Badge variant="secondary" className="text-lg px-4 py-1">
-                            {currentItem.partOfSpeech}
-                          </Badge>
-                          <Badge variant="outline" className="text-lg px-4 py-1">
-                            {currentItem.level}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-2 justify-center mt-8">
-                          <span className="text-sm text-muted-foreground">
-                            {currentItem.masteryLevel < 30 ? "New" : currentItem.masteryLevel < 70 ? "Learning" : "Mastered"}
-                          </span>
-                          <div className="w-48 h-3 bg-secondary rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-primary transition-all"
-                              style={{ width: `${currentItem.masteryLevel}%` }}
-                            />
-                          </div>
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-8">Click or press Space to flip</p>
-                      </div>
-                    </Card>
-
-                    <Card
-                      className="absolute inset-0 backface-hidden p-8 overflow-y-auto"
+                    <div
+                      className="relative w-full h-[500px] transition-transform duration-500 preserve-3d"
                       style={{
-                        backfaceVisibility: "hidden",
-                        transform: "rotateY(180deg)",
+                        transformStyle: "preserve-3d",
+                        transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
                       }}
                     >
-                      <div className="space-y-6">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-3">
-                            <h2 className="text-3xl font-bold">{currentItem.word}</h2>
-                            <Badge variant="secondary">{currentItem.partOfSpeech}</Badge>
-                            <Badge variant="outline">{currentItem.level}</Badge>
+                      <Card
+                        className="absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8"
+                        style={{ backfaceVisibility: "hidden" }}
+                      >
+                        <div className="text-center space-y-6">
+                          <h2 className="text-5xl font-bold">{currentItem.word}</h2>
+                          <div className="flex items-center gap-3 justify-center">
+                            <Badge variant="secondary" className="text-lg px-4 py-1">
+                              {currentItem.partOfSpeech}
+                            </Badge>
+                            <Badge variant="outline" className="text-lg px-4 py-1">
+                              {currentItem.level}
+                            </Badge>
                           </div>
-                          <Button size="sm" variant="ghost" className="h-8 w-8 rounded-full p-0">
-                            <Star className="h-4 w-4" />
-                          </Button>
-                        </div>
-
-                        <p className="text-lg text-muted-foreground">{currentItem.pronunciation}</p>
-
-                        <div className="grid md:grid-cols-2 gap-6">
-                          <div>
-                            <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-3">Meaning</h3>
-                            <div className="space-y-2">
-                              {currentItem.meaning.map((m, idx) => (
-                                <div key={idx} className="flex gap-2">
-                                  <div className="h-6 w-6 rounded-full bg-blue-100 flex-shrink-0 flex items-center justify-center text-xs font-semibold text-blue-700">
-                                    {idx + 1}
-                                  </div>
-                                  <p className="text-sm">{m}</p>
-                                </div>
-                              ))}
+                          <div className="flex items-center gap-2 justify-center mt-8">
+                            <span className="text-sm text-muted-foreground">
+                              {currentItem.masteryLevel < 30
+                                ? "New"
+                                : currentItem.masteryLevel < 70
+                                  ? "Learning"
+                                  : "Mastered"}
+                            </span>
+                            <div className="w-48 h-3 bg-secondary rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-primary transition-all"
+                                style={{ width: `${currentItem.masteryLevel}%` }}
+                              />
                             </div>
                           </div>
-
-                          <div>
-                            <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-3">Vietnamese</h3>
-                            <div className="space-y-2">
-                              {currentItem.vietnamese.map((v, idx) => (
-                                <div key={idx} className="flex gap-2">
-                                  <div className="h-6 w-6 rounded-full bg-green-100 flex-shrink-0 flex items-center justify-center text-xs font-semibold text-green-700">
-                                    {idx + 1}
-                                  </div>
-                                  <p className="text-sm">{v}</p>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
+                          <p className="text-sm text-muted-foreground mt-8">Click or press Space to flip</p>
                         </div>
+                      </Card>
 
-                        <div>
-                          <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-3">Examples</h3>
-                          <div className="space-y-3">
-                            {currentItem.examples.map((ex, idx) => (
-                              <div key={idx} className="bg-muted/50 rounded-lg p-3 space-y-1">
-                                <p className="text-sm italic">"{ex.en}"</p>
-                                <p className="text-sm text-muted-foreground">"{ex.vi}"</p>
+                      <Card
+                        className="absolute inset-0 backface-hidden p-8 overflow-y-auto"
+                        style={{
+                          backfaceVisibility: "hidden",
+                          transform: "rotateY(180deg)",
+                        }}
+                      >
+                        <div className="space-y-6">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-center gap-3">
+                              <h2 className="text-3xl font-bold">{currentItem.word}</h2>
+                              <Badge variant="secondary">{currentItem.partOfSpeech}</Badge>
+                              <Badge variant="outline">{currentItem.level}</Badge>
+                            </div>
+                            <Button size="sm" variant="ghost" className="h-8 w-8 rounded-full p-0">
+                              <Star className="h-4 w-4" />
+                            </Button>
+                          </div>
+
+                          <p className="text-lg text-muted-foreground">{currentItem.pronunciation}</p>
+
+                          <div className="grid md:grid-cols-2 gap-6">
+                            <div>
+                              <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-3">Meaning</h3>
+                              <div className="space-y-2">
+                                {currentItem.meaning.map((m, idx) => (
+                                  <div key={idx} className="flex gap-2">
+                                    <div className="h-6 w-6 rounded-full bg-blue-100 flex-shrink-0 flex items-center justify-center text-xs font-semibold text-blue-700">
+                                      {idx + 1}
+                                    </div>
+                                    <p className="text-sm">{m}</p>
+                                  </div>
+                                ))}
                               </div>
-                            ))}
+                            </div>
+
+                            <div>
+                              <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-3">Vietnamese</h3>
+                              <div className="space-y-2">
+                                {currentItem.vietnamese.map((v, idx) => (
+                                  <div key={idx} className="flex gap-2">
+                                    <div className="h-6 w-6 rounded-full bg-green-100 flex-shrink-0 flex items-center justify-center text-xs font-semibold text-green-700">
+                                      {idx + 1}
+                                    </div>
+                                    <p className="text-sm">{v}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
                           </div>
-                        </div>
 
-                        <div className="pt-4">
-                          <Button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setShadowingOpen(true)
-                              setCurrentSentence(0)
-                            }}
-                            variant="outline"
-                            className="gap-2 bg-transparent"
-                          >
-                            <Mic className="h-4 w-4" />
-                            shadowing these sentences
-                          </Button>
-                        </div>
+                          <div>
+                            <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-3">Examples</h3>
+                            <div className="space-y-3">
+                              {currentItem.examples.map((ex, idx) => (
+                                <div key={idx} className="bg-muted/50 rounded-lg p-3 space-y-1">
+                                  <p className="text-sm italic">"{ex.en}"</p>
+                                  <p className="text-sm text-muted-foreground">"{ex.vi}"</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
 
-                        <p className="text-sm text-muted-foreground text-center pt-4">
-                          Click or press Space to flip back
-                        </p>
-                      </div>
+                          <div className="pt-4">
+                            <Button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setShadowingOpen(true)
+                                setCurrentSentence(0)
+                              }}
+                              variant="outline"
+                              className="gap-2 bg-transparent"
+                            >
+                              <Mic className="h-4 w-4" />
+                              shadowing these sentences
+                            </Button>
+                          </div>
+
+                          <p className="text-sm text-muted-foreground text-center pt-4">
+                            Click or press Space to flip back
+                          </p>
+                        </div>
+                      </Card>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-center items-center gap-4">
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      onClick={handlePrevCard}
+                      disabled={currentCardIndex === 0}
+                      className="rounded-full bg-transparent"
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </Button>
+                    <span className="text-sm font-medium">
+                      {currentCardIndex + 1} / {filteredItems.length}
+                    </span>
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      onClick={handleNextCard}
+                      disabled={currentCardIndex === filteredItems.length - 1}
+                      className="rounded-full bg-transparent"
+                    >
+                      <ChevronRight className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {viewMode === "daily-review" && (
+                <div className="max-w-2xl mx-auto">
+                  <Card className="p-8 text-center">
+                    <Zap className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold mb-2">Daily Review</h2>
+                    <p className="text-muted-foreground mb-6">
+                      You have <span className="font-semibold text-primary">{dueCount} words</span> ready for review
+                      today.
+                    </p>
+                    <p className="text-sm text-muted-foreground mb-8">
+                      Consistent daily practice helps reinforce your learning and improve retention.
+                    </p>
+                    <Button size="lg" onClick={() => setIsReviewModalOpen(true)} className="gap-2">
+                      <Zap className="h-5 w-5" />
+                      Start Practice
+                    </Button>
+                  </Card>
+
+                  <div className="grid grid-cols-3 gap-4 mt-6">
+                    <Card className="p-4 text-center">
+                      <p className="text-2xl font-bold text-blue-500">247</p>
+                      <p className="text-xs text-muted-foreground mt-1">Total Words</p>
+                    </Card>
+                    <Card className="p-4 text-center">
+                      <p className="text-2xl font-bold text-green-500">182</p>
+                      <p className="text-xs text-muted-foreground mt-1">Mastered</p>
+                    </Card>
+                    <Card className="p-4 text-center">
+                      <p className="text-2xl font-bold text-yellow-500">7</p>
+                      <p className="text-xs text-muted-foreground mt-1">Day Streak</p>
                     </Card>
                   </div>
                 </div>
+              )}
+            </div>
+          </div>
+        </div>
 
-                <div className="flex justify-center items-center gap-4">
+        <Dialog open={isReviewModalOpen} onOpenChange={setIsReviewModalOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Practice Review</DialogTitle>
+            </DialogHeader>
+            {currentItem && (
+              <div className="space-y-6">
+                <Card className="p-6 bg-muted/30">
+                  <h3 className="text-2xl font-bold mb-2">{currentItem.word}</h3>
+                  <p className="text-muted-foreground mb-4">{currentItem.pronunciation}</p>
+
+                  {showAnswer ? (
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-sm font-semibold mb-2">Meaning:</p>
+                        {currentItem.meaning.map((m, idx) => (
+                          <p key={idx} className="text-sm">
+                            • {m}
+                          </p>
+                        ))}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold mb-2">Vietnamese:</p>
+                        {currentItem.vietnamese.map((v, idx) => (
+                          <p key={idx} className="text-sm">
+                            • {v}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <Button onClick={() => setShowAnswer(true)} variant="outline" className="w-full">
+                      Show Answer
+                    </Button>
+                  )}
+                </Card>
+
+                {showAnswer && (
+                  <div className="grid grid-cols-4 gap-2">
+                    <Button variant="outline" className="bg-red-50 hover:bg-red-100">
+                      Again
+                    </Button>
+                    <Button variant="outline" className="bg-yellow-50 hover:bg-yellow-100">
+                      Hard
+                    </Button>
+                    <Button variant="outline" className="bg-green-50 hover:bg-green-100">
+                      Good
+                    </Button>
+                    <Button variant="outline" className="bg-blue-50 hover:bg-blue-100">
+                      Easy
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={shadowingOpen} onOpenChange={setShadowingOpen}>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-center mb-6">Shadowing this sentence</DialogTitle>
+            </DialogHeader>
+            {currentItem && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between mb-4">
                   <Button
                     size="icon"
                     variant="outline"
-                    onClick={handlePrevCard}
-                    disabled={currentCardIndex === 0}
-                    className="rounded-full bg-transparent"
+                    onClick={() => setCurrentSentence(Math.max(0, currentSentence - 1))}
+                    disabled={currentSentence === 0}
+                    className="rounded-full"
                   >
                     <ChevronLeft className="h-5 w-5" />
                   </Button>
                   <span className="text-sm font-medium">
-                    {currentCardIndex + 1} / {filteredItems.length}
+                    Câu {currentSentence + 1} / {currentItem.examples.length}
                   </span>
                   <Button
                     size="icon"
                     variant="outline"
-                    onClick={handleNextCard}
-                    disabled={currentCardIndex === filteredItems.length - 1}
-                    className="rounded-full bg-transparent"
+                    onClick={() => setCurrentSentence(Math.min(currentItem.examples.length - 1, currentSentence + 1))}
+                    disabled={currentSentence === currentItem.examples.length - 1}
+                    className="rounded-full"
                   >
                     <ChevronRight className="h-5 w-5" />
                   </Button>
                 </div>
-              </div>
-            )}
 
-            {viewMode === "daily-review" && (
-              <div className="max-w-2xl mx-auto">
-                <Card className="p-8 text-center">
-                  <Zap className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
-                  <h2 className="text-2xl font-bold mb-2">Daily Review</h2>
-                  <p className="text-muted-foreground mb-6">
-                    You have <span className="font-semibold text-primary">{dueCount} words</span> ready for review
-                    today.
-                  </p>
-                  <p className="text-sm text-muted-foreground mb-8">
-                    Consistent daily practice helps reinforce your learning and improve retention.
-                  </p>
-                  <Button size="lg" onClick={() => setIsReviewModalOpen(true)} className="gap-2">
-                    <Zap className="h-5 w-5" />
-                    Start Practice
-                  </Button>
+                <Card className="p-6 bg-muted/30">
+                  <p className="text-xl mb-4">{currentItem.examples[currentSentence].en}</p>
+                  <p className="text-base text-muted-foreground">{currentItem.examples[currentSentence].vi}</p>
                 </Card>
 
-                <div className="grid grid-cols-3 gap-4 mt-6">
-                  <Card className="p-4 text-center">
-                    <p className="text-2xl font-bold text-blue-500">247</p>
-                    <p className="text-xs text-muted-foreground mt-1">Total Words</p>
-                  </Card>
-                  <Card className="p-4 text-center">
-                    <p className="text-2xl font-bold text-green-500">182</p>
-                    <p className="text-xs text-muted-foreground mt-1">Mastered</p>
-                  </Card>
-                  <Card className="p-4 text-center">
-                    <p className="text-2xl font-bold text-yellow-500">7</p>
-                    <p className="text-xs text-muted-foreground mt-1">Day Streak</p>
-                  </Card>
+                <div className="flex flex-col items-center gap-4">
+                  <Button
+                    size="lg"
+                    variant={isRecording ? "destructive" : "default"}
+                    onClick={handleRecording}
+                    className="h-24 w-24 rounded-full"
+                  >
+                    {isRecording ? <Square className="h-8 w-8" /> : <Mic className="h-8 w-8" />}
+                  </Button>
+                  <p className="text-sm text-muted-foreground">
+                    {isRecording ? "Recording... Click to stop" : "Click to start recording"}
+                  </p>
+                </div>
+
+                <div className="flex justify-center gap-2">
+                  <Button variant="outline" className="gap-2 bg-transparent">
+                    <Volume2 className="h-4 w-4" />
+                    Play Original
+                  </Button>
+                  <Button variant="outline" className="gap-2 bg-transparent" disabled={!isRecording}>
+                    <Volume2 className="h-4 w-4" />
+                    Play Recording
+                  </Button>
                 </div>
               </div>
             )}
-          </div>
-        </div>
+          </DialogContent>
+        </Dialog>
       </div>
-
-      <Dialog open={isReviewModalOpen} onOpenChange={setIsReviewModalOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Practice Review</DialogTitle>
-          </DialogHeader>
-          {currentItem && (
-            <div className="space-y-6">
-              <Card className="p-6 bg-muted/30">
-                <h3 className="text-2xl font-bold mb-2">{currentItem.word}</h3>
-                <p className="text-muted-foreground mb-4">{currentItem.pronunciation}</p>
-
-                {showAnswer ? (
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-sm font-semibold mb-2">Meaning:</p>
-                      {currentItem.meaning.map((m, idx) => (
-                        <p key={idx} className="text-sm">
-                          • {m}
-                        </p>
-                      ))}
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold mb-2">Vietnamese:</p>
-                      {currentItem.vietnamese.map((v, idx) => (
-                        <p key={idx} className="text-sm">
-                          • {v}
-                        </p>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <Button onClick={() => setShowAnswer(true)} variant="outline" className="w-full">
-                    Show Answer
-                  </Button>
-                )}
-              </Card>
-
-              {showAnswer && (
-                <div className="grid grid-cols-4 gap-2">
-                  <Button variant="outline" className="bg-red-50 hover:bg-red-100">
-                    Again
-                  </Button>
-                  <Button variant="outline" className="bg-yellow-50 hover:bg-yellow-100">
-                    Hard
-                  </Button>
-                  <Button variant="outline" className="bg-green-50 hover:bg-green-100">
-                    Good
-                  </Button>
-                  <Button variant="outline" className="bg-blue-50 hover:bg-blue-100">
-                    Easy
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={shadowingOpen} onOpenChange={setShadowingOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-center mb-6">Shadowing this sentence</DialogTitle>
-          </DialogHeader>
-          {currentItem && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between mb-4">
-                <Button
-                  size="icon"
-                  variant="outline"
-                  onClick={() => setCurrentSentence(Math.max(0, currentSentence - 1))}
-                  disabled={currentSentence === 0}
-                  className="rounded-full"
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </Button>
-                <span className="text-sm font-medium">
-                  Câu {currentSentence + 1} / {currentItem.examples.length}
-                </span>
-                <Button
-                  size="icon"
-                  variant="outline"
-                  onClick={() => setCurrentSentence(Math.min(currentItem.examples.length - 1, currentSentence + 1))}
-                  disabled={currentSentence === currentItem.examples.length - 1}
-                  className="rounded-full"
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </Button>
-              </div>
-
-              <Card className="p-6 bg-muted/30">
-                <p className="text-xl mb-4">{currentItem.examples[currentSentence].en}</p>
-                <p className="text-base text-muted-foreground">{currentItem.examples[currentSentence].vi}</p>
-              </Card>
-
-              <div className="flex flex-col items-center gap-4">
-                <Button
-                  size="lg"
-                  variant={isRecording ? "destructive" : "default"}
-                  onClick={handleRecording}
-                  className="h-24 w-24 rounded-full"
-                >
-                  {isRecording ? <Square className="h-8 w-8" /> : <Mic className="h-8 w-8" />}
-                </Button>
-                <p className="text-sm text-muted-foreground">
-                  {isRecording ? "Recording... Click to stop" : "Click to start recording"}
-                </p>
-              </div>
-
-              <div className="flex justify-center gap-2">
-                <Button variant="outline" className="gap-2">
-                  <Volume2 className="h-4 w-4" />
-                  Play Original
-                </Button>
-                <Button variant="outline" className="gap-2" disabled={!isRecording}>
-                  <Volume2 className="h-4 w-4" />
-                  Play Recording
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
+    </ProtectedRoute>
   )
 }

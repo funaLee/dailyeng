@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button"
 import { UserProfileSidebar } from "@/components/layout/user-profile-sidebar"
 import { Upload, User, Mail, Calendar, Phone, MapPin, Users } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ProtectedRoute } from "@/components/auth/protected-route"
+import { UserIcon } from "lucide-react"
 
 type TabType = "personal" | "password" | "link"
 
@@ -23,205 +25,211 @@ export default function ProfileNewPage() {
   })
 
   return (
-    <div className="container mx-auto px-8 py-8">
-      <div className="grid lg:grid-cols-12 gap-8">
-        {/* Left Sidebar */}
-        <div className="lg:col-span-3">
-          <UserProfileSidebar activePage="profile" />
-        </div>
+    <ProtectedRoute
+      pageName="Profile"
+      pageDescription="View and manage your account settings and personal information."
+      pageIcon={<UserIcon className="w-10 h-10 text-blue-500" />}
+    >
+      <div className="container mx-auto px-8 py-8">
+        <div className="grid lg:grid-cols-12 gap-8">
+          {/* Left Sidebar */}
+          <div className="lg:col-span-3">
+            <UserProfileSidebar activePage="profile" />
+          </div>
 
-        {/* Main Content */}
-        <div className="lg:col-span-9 space-y-6">
-          {/* Header with Profile Picture */}
-          <Card className="border-slate-200 shadow-sm">
-            <CardContent className="p-8">
-              <h1 className="text-2xl font-bold text-slate-900 mb-6">Hello, Thanh Truc!</h1>
+          {/* Main Content */}
+          <div className="lg:col-span-9 space-y-6">
+            {/* Header with Profile Picture */}
+            <Card className="border-slate-200 shadow-sm">
+              <CardContent className="p-8">
+                <h1 className="text-2xl font-bold text-slate-900 mb-6">Hello, Thanh Truc!</h1>
 
-              <div className="flex items-center gap-6">
-                <div className="relative">
-                  <div className="w-32 h-32 rounded-full bg-slate-200 flex items-center justify-center overflow-hidden border-4 border-blue-100">
-                    <div className="w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-blue-600 font-bold text-4xl">
-                      T
-                    </div>
-                  </div>
-                  <Button
-                    size="icon"
-                    className="absolute bottom-0 right-0 rounded-full w-10 h-10 bg-blue-600 hover:bg-blue-700 shadow-lg"
-                  >
-                    <Upload className="h-5 w-5 text-white" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Tabs and Form */}
-          <Card className="border-slate-200 shadow-sm">
-            <CardContent className="p-8">
-              {/* Tabs */}
-              <div className="flex gap-8 mb-8 border-b border-slate-200">
-                <button
-                  onClick={() => setActiveTab("personal")}
-                  className={`pb-3 px-2 text-base font-bold transition-colors border-b-2 ${
-                    activeTab === "personal"
-                      ? "border-blue-600 text-blue-600"
-                      : "border-transparent text-slate-500 hover:text-slate-900"
-                  }`}
-                >
-                  Personal information
-                </button>
-                <button
-                  onClick={() => setActiveTab("password")}
-                  className={`pb-3 px-2 text-base font-bold transition-colors border-b-2 ${
-                    activeTab === "password"
-                      ? "border-blue-600 text-blue-600"
-                      : "border-transparent text-slate-500 hover:text-slate-900"
-                  }`}
-                >
-                  Change Password
-                </button>
-                <button
-                  onClick={() => setActiveTab("link")}
-                  className={`pb-3 px-2 text-base font-bold transition-colors border-b-2 ${
-                    activeTab === "link"
-                      ? "border-blue-600 text-blue-600"
-                      : "border-transparent text-slate-500 hover:text-slate-900"
-                  }`}
-                >
-                  Link Account
-                </button>
-              </div>
-
-              {/* Personal Information Form */}
-              {activeTab === "personal" && (
-                <div className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-6">
-                    {/* Full Name */}
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">
-                        Full name:<span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                        <Input
-                          value={formData.fullName}
-                          onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                          className="pl-10 border-slate-300"
-                        />
+                <div className="flex items-center gap-6">
+                  <div className="relative">
+                    <div className="w-32 h-32 rounded-full bg-slate-200 flex items-center justify-center overflow-hidden border-4 border-blue-100">
+                      <div className="w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-blue-600 font-bold text-4xl">
+                        T
                       </div>
                     </div>
-
-                    {/* Email */}
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">Email:</label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                        <Input
-                          value={formData.email}
-                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                          className="pl-10 border-slate-300"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Date of Birth */}
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">Date of birth:</label>
-                      <div className="relative">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                        <Input
-                          value={formData.dob}
-                          onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-                          className="pl-10 border-slate-300"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Phone Number */}
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">Phone number:</label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                        <Input
-                          value={formData.phone}
-                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                          className="pl-10 border-slate-300"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Sex */}
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">Sex:</label>
-                      <div className="relative">
-                        <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
-                        <Input
-                          value={formData.sex}
-                          onChange={(e) => setFormData({ ...formData, sex: e.target.value })}
-                          className="pl-10 border-slate-300"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Address */}
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">Address</label>
-                      <div className="relative">
-                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                        <Input
-                          value={formData.address}
-                          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                          className="pl-10 border-slate-300"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Level */}
-                  <div className="max-w-md">
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">Level:</label>
-                    <Select
-                      value={formData.level}
-                      onValueChange={(value) => setFormData({ ...formData, level: value })}
+                    <Button
+                      size="icon"
+                      className="absolute bottom-0 right-0 rounded-full w-10 h-10 bg-blue-600 hover:bg-blue-700 shadow-lg"
                     >
-                      <SelectTrigger className="border-slate-300">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="A1-A2 beginners">A1-A2 beginners</SelectItem>
-                        <SelectItem value="B1-B2 intermediate">B1-B2 intermediate</SelectItem>
-                        <SelectItem value="C1-C2 advanced">C1-C2 advanced</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-4 pt-4">
-                    <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8">Save details</Button>
-                    <Button variant="outline" className="border-slate-300 px-8 bg-transparent">
-                      Cancel
+                      <Upload className="h-5 w-5 text-white" />
                     </Button>
                   </div>
                 </div>
-              )}
+              </CardContent>
+            </Card>
 
-              {/* Change Password Tab */}
-              {activeTab === "password" && (
-                <div className="space-y-6">
-                  <p className="text-slate-600">Change password functionality coming soon...</p>
+            {/* Tabs and Form */}
+            <Card className="border-slate-200 shadow-sm">
+              <CardContent className="p-8">
+                {/* Tabs */}
+                <div className="flex gap-8 mb-8 border-b border-slate-200">
+                  <button
+                    onClick={() => setActiveTab("personal")}
+                    className={`pb-3 px-2 text-base font-bold transition-colors border-b-2 ${
+                      activeTab === "personal"
+                        ? "border-blue-600 text-blue-600"
+                        : "border-transparent text-slate-500 hover:text-slate-900"
+                    }`}
+                  >
+                    Personal information
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("password")}
+                    className={`pb-3 px-2 text-base font-bold transition-colors border-b-2 ${
+                      activeTab === "password"
+                        ? "border-blue-600 text-blue-600"
+                        : "border-transparent text-slate-500 hover:text-slate-900"
+                    }`}
+                  >
+                    Change Password
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("link")}
+                    className={`pb-3 px-2 text-base font-bold transition-colors border-b-2 ${
+                      activeTab === "link"
+                        ? "border-blue-600 text-blue-600"
+                        : "border-transparent text-slate-500 hover:text-slate-900"
+                    }`}
+                  >
+                    Link Account
+                  </button>
                 </div>
-              )}
 
-              {/* Link Account Tab */}
-              {activeTab === "link" && (
-                <div className="space-y-6">
-                  <p className="text-slate-600">Link account functionality coming soon...</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                {/* Personal Information Form */}
+                {activeTab === "personal" && (
+                  <div className="space-y-6">
+                    <div className="grid md:grid-cols-2 gap-6">
+                      {/* Full Name */}
+                      <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-2">
+                          Full name:<span className="text-red-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                          <Input
+                            value={formData.fullName}
+                            onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                            className="pl-10 border-slate-300"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Email */}
+                      <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-2">Email:</label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                          <Input
+                            value={formData.email}
+                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            className="pl-10 border-slate-300"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Date of Birth */}
+                      <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-2">Date of birth:</label>
+                        <div className="relative">
+                          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                          <Input
+                            value={formData.dob}
+                            onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
+                            className="pl-10 border-slate-300"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Phone Number */}
+                      <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-2">Phone number:</label>
+                        <div className="relative">
+                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                          <Input
+                            value={formData.phone}
+                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                            className="pl-10 border-slate-300"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Sex */}
+                      <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-2">Sex:</label>
+                        <div className="relative">
+                          <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                          <Input
+                            value={formData.sex}
+                            onChange={(e) => setFormData({ ...formData, sex: e.target.value })}
+                            className="pl-10 border-slate-300"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Address */}
+                      <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-2">Address</label>
+                        <div className="relative">
+                          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                          <Input
+                            value={formData.address}
+                            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                            className="pl-10 border-slate-300"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Level */}
+                    <div className="max-w-md">
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">Level:</label>
+                      <Select
+                        value={formData.level}
+                        onValueChange={(value) => setFormData({ ...formData, level: value })}
+                      >
+                        <SelectTrigger className="border-slate-300">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="A1-A2 beginners">A1-A2 beginners</SelectItem>
+                          <SelectItem value="B1-B2 intermediate">B1-B2 intermediate</SelectItem>
+                          <SelectItem value="C1-C2 advanced">C1-C2 advanced</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-4 pt-4">
+                      <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8">Save details</Button>
+                      <Button variant="outline" className="border-slate-300 px-8 bg-transparent">
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Change Password Tab */}
+                {activeTab === "password" && (
+                  <div className="space-y-6">
+                    <p className="text-slate-600">Change password functionality coming soon...</p>
+                  </div>
+                )}
+
+                {/* Link Account Tab */}
+                {activeTab === "link" && (
+                  <div className="space-y-6">
+                    <p className="text-slate-600">Link account functionality coming soon...</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
-    </div>
+    </ProtectedRoute>
   )
 }
