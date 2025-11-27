@@ -155,7 +155,7 @@ export default function NotificationsPage() {
                     !notification.read ? "bg-blue-50/30" : ""
                   }`}
                 >
-                  <CardContent className="p-5 pt-1 pb-1">
+                  <CardContent className="px-5">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
@@ -168,7 +168,6 @@ export default function NotificationsPage() {
                       </div>
 
                       <div className="text-right flex flex-col items-end gap-1">
-                        <span className="text-xs font-medium text-slate-500 italic">{notification.timestamp}</span>
                         <span className="text-xs text-slate-900 font-semibold">
                           {notification.timestamp.includes(":") ? notification.timestamp : ""}
                         </span>
