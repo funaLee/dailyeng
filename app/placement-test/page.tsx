@@ -1,14 +1,13 @@
 "use client"
 
 import { useState, useRef } from "react"
-import { Card } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import {
   BookOpen,
-  FileText,
   Headphones,
   MessageSquare,
   PenTool,
@@ -29,10 +28,11 @@ import {
   Award,
   RotateCcw,
   Highlighter,
-  ChevronLeft,
+  Lightbulb,
   ChevronRight,
+  FileTextIcon,
   CheckCircle,
-  XCircle,
+  X,
 } from "lucide-react"
 import Link from "next/link"
 import {
@@ -50,6 +50,7 @@ import {
   Tooltip,
 } from "recharts"
 import { cn } from "@/lib/utils" // Assuming cn is available for conditional styling
+import { Badge } from "@/components/ui/badge" // Added Badge import
 
 // Test steps in order
 const TEST_STEPS = [
@@ -70,7 +71,7 @@ const TEST_STEPS = [
   {
     id: "reading",
     label: "Reading",
-    icon: FileText,
+    icon: FileTextIcon, // Changed to FileTextIcon for consistency
     color: "amber",
     description: "Reading comprehension",
   },
@@ -108,6 +109,7 @@ const mockQuestions: Record<
     correctAnswer?: number | string
     passage?: string
     prompt?: string
+    hint?: string // Added hint for feedback
   }>
 > = {
   vocabulary: [
@@ -359,11 +361,19 @@ export default function PlacementTestPage() {
   const [isPlaying, setIsPlaying] = useState(false)
   const [showResults, setShowResults] = useState(false)
 
+  // Show feedback page after each test
+  const [showTestFeedback, setShowTestFeedback] = useState(false)
+  const [feedbackTestId, setFeedbackTestId] = useState<string | null>(null)
+  const [feedbackAnswers, setFeedbackAnswers] = useState<Record<number, number | string>>({})
+  const [feedbackReadingAnswers, setFeedbackReadingAnswers] = useState<Record<number, number>>({})
+
   // Reading test state
   const [readingHighlights, setReadingHighlights] = useState<
     Array<{ start: number; end: number; color: "green" | "red"; type: "user" | "hint" }>
   >([])
   const [isHighlightMode, setIsHighlightMode] = useState(false)
+  const [readingHints, setReadingHints] = useState<Record<number, boolean>>({})
+  // Remove old single hint states if they exist
   const [showReadingHint, setShowReadingHint] = useState(false)
   const [currentReadingQuestion, setCurrentReadingQuestion] = useState(0)
   const [readingAnswers, setReadingAnswers] = useState<Record<number, number>>({})
@@ -484,6 +494,7 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
       setReadingHighlights([])
       setIsHighlightMode(false)
       setShowReadingHint(false)
+      setReadingHints({}) // Reset hints for reading
     }
   }
 
@@ -529,14 +540,10 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
         const score = Math.round((correct / questions.length) * 100)
 
         setTestScores((prev) => ({ ...prev, [activeTestId!]: score }))
-        setCompletedTests((prev) => [...prev, activeTestId!])
 
-        // Check if all tests completed
-        const newCompleted = [...completedTests, activeTestId!]
-        if (newCompleted.length === TEST_STEPS.length) {
-          setShowResults(true)
-        }
-
+        setFeedbackTestId(activeTestId)
+        setFeedbackAnswers(newAnswers)
+        setShowTestFeedback(true)
         setActiveTestId(null)
       }
     }
@@ -582,6 +589,7 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
     setReadingHighlights([])
     setIsHighlightMode(false)
     setShowReadingHint(false)
+    setReadingHints({}) // Reset hints for reading
   }
 
   // Submit test (used for reading test completion)
@@ -597,16 +605,305 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
       const score = Math.round((correct / readingPassage.questions.length) * 100)
 
       setTestScores((prev) => ({ ...prev, [activeTestId]: score }))
-      setCompletedTests((prev) => [...prev, activeTestId])
+
+      setFeedbackTestId(activeTestId)
+      setFeedbackReadingAnswers(readingAnswers)
+      setShowTestFeedback(true)
+      setActiveTestId(null)
+    }
+  }
+
+  // Function to continue to next test after viewing feedback
+  const handleContinueFromFeedback = () => {
+    if (feedbackTestId) {
+      setCompletedTests((prev) => [...prev, feedbackTestId])
 
       // Check if all tests completed
-      const newCompleted = [...completedTests, activeTestId]
+      const newCompleted = [...completedTests, feedbackTestId]
       if (newCompleted.length === TEST_STEPS.length) {
         setShowResults(true)
       }
-
-      setActiveTestId(null)
     }
+
+    // Reset feedback state
+    setShowTestFeedback(false)
+    setFeedbackTestId(null)
+    setFeedbackAnswers({})
+    setFeedbackReadingAnswers({})
+    setAnswers({})
+    setReadingAnswers({})
+    setCurrentQuestion(0)
+    setSelectedAnswer(null)
+  }
+
+  const renderTestFeedback = () => {
+    if (!feedbackTestId) return null
+
+    const testInfo = TEST_STEPS.find((t) => t.id === feedbackTestId)
+    const score = testScores[feedbackTestId] || 0
+    const isReadingTest = feedbackTestId === "reading"
+
+    // Get questions and answers
+    const questions = isReadingTest ? readingPassage.questions : mockQuestions[feedbackTestId]
+    const userAnswers = isReadingTest ? feedbackReadingAnswers : feedbackAnswers
+
+    // Calculate correct count
+    let correctCount = 0
+    questions.forEach((q: any, idx: number) => {
+      const userAnswer = userAnswers[idx]
+      if (isReadingTest) {
+        if (userAnswer === q.correctAnswer) correctCount++
+      } else {
+        if (q.correctAnswer !== undefined && userAnswer === q.correctAnswer) {
+          correctCount++
+        } else if (q.type === "fill-blank" && typeof q.correctAnswer === "string") {
+          if (String(userAnswer).toLowerCase().trim() === q.correctAnswer.toLowerCase()) {
+            correctCount++
+          }
+        }
+      }
+    })
+
+    // Determine performance level
+    const getPerformanceLevel = (score: number) => {
+      if (score >= 90)
+        return { label: "Excellent", color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200" }
+      if (score >= 70) return { label: "Good", color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-200" }
+      if (score >= 50)
+        return { label: "Average", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200" }
+      return { label: "Needs Improvement", color: "text-red-600", bg: "bg-red-50", border: "border-red-200" }
+    }
+    const performance = getPerformanceLevel(score)
+
+    // Get feedback for each question
+    const getFeedback = (q: any, userAnswer: any, isCorrect: boolean) => {
+      if (q.type === "speaking") {
+        return "Your speaking response has been recorded. Focus on pronunciation, fluency, and coherence."
+      }
+      if (q.type === "writing") {
+        return "Your writing has been evaluated. Consider grammar, vocabulary range, and coherence in your response."
+      }
+      if (isCorrect) {
+        return "Correct! Well done."
+      }
+      if (q.hint) {
+        return `Incorrect. Hint: ${q.hint}`
+      }
+      return "Incorrect. Review this topic for better understanding."
+    }
+
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-800 py-8 px-4">
+        <div className="max-w-4xl mx-auto space-y-6">
+          {/* Header */}
+          <Card className="border-0 shadow-lg overflow-hidden">
+            <div className={`${performance.bg} ${performance.border} border-b px-6 py-4`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-12 h-12 rounded-xl ${performance.bg} ${performance.border} border-2 flex items-center justify-center`}
+                  >
+                    {testInfo && <testInfo.icon className={`w-6 h-6 ${performance.color}`} />}
+                  </div>
+                  <div>
+                    <h1 className="text-xl font-bold text-slate-800 dark:text-white">
+                      {testInfo?.label} Test - Results
+                    </h1>
+                    <p className="text-sm text-slate-500">{questions.length} questions completed</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className={`text-3xl font-bold ${performance.color}`}>{score}%</div>
+                  <Badge className={`${performance.bg} ${performance.color} ${performance.border} border`}>
+                    {performance.label}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
+                  <div className="text-2xl font-bold text-emerald-600">{correctCount}</div>
+                  <div className="text-sm text-slate-500">Correct</div>
+                </div>
+                <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-xl">
+                  <div className="text-2xl font-bold text-red-600">{questions.length - correctCount}</div>
+                  <div className="text-sm text-slate-500">Incorrect</div>
+                </div>
+                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                  <div className="text-2xl font-bold text-blue-600">{questions.length}</div>
+                  <div className="text-sm text-slate-500">Total</div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Detailed Answers */}
+          <Card className="border-0 shadow-lg">
+            <CardHeader className="border-b bg-slate-50 dark:bg-slate-800">
+              <CardTitle className="flex items-center gap-2">
+                <FileTextIcon className="w-5 h-5 text-blue-600" />
+                Detailed Review
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y">
+                {questions.map((q: any, idx: number) => {
+                  const userAnswer = userAnswers[idx]
+                  let isCorrect = false
+
+                  if (isReadingTest) {
+                    isCorrect = userAnswer === q.correctAnswer
+                  } else if (q.type === "speaking" || q.type === "writing") {
+                    isCorrect = true // Subjective - always show as "submitted"
+                  } else if (q.type === "fill-blank" && typeof q.correctAnswer === "string") {
+                    isCorrect = String(userAnswer).toLowerCase().trim() === q.correctAnswer.toLowerCase()
+                  } else {
+                    isCorrect = userAnswer === q.correctAnswer
+                  }
+
+                  const feedback = getFeedback(q, userAnswer, isCorrect)
+
+                  return (
+                    <div
+                      key={idx}
+                      className={`p-5 ${isCorrect ? "bg-emerald-50/50 dark:bg-emerald-900/10" : "bg-red-50/50 dark:bg-red-900/10"}`}
+                    >
+                      <div className="flex items-start gap-4">
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                            isCorrect ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-600"
+                          }`}
+                        >
+                          {isCorrect ? <CheckCircle className="w-5 h-5" /> : <X className="w-5 h-5" />}
+                        </div>
+                        <div className="flex-1 space-y-3">
+                          <div>
+                            <span className="text-xs font-medium text-slate-400 uppercase">Question {idx + 1}</span>
+                            <p className="font-medium text-slate-800 dark:text-white mt-1">{q.question || q.text}</p>
+                          </div>
+
+                          {/* Options for multiple choice */}
+                          {q.options && (
+                            <div className="grid grid-cols-1 gap-2 mt-3">
+                              {q.options.map((opt: string, optIdx: number) => {
+                                const isUserAnswer = userAnswer === optIdx
+                                const isCorrectAnswer = q.correctAnswer === optIdx
+
+                                return (
+                                  <div
+                                    key={optIdx}
+                                    className={`px-4 py-2 rounded-lg text-sm flex items-center gap-3 ${
+                                      isCorrectAnswer
+                                        ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                                        : isUserAnswer && !isCorrectAnswer
+                                          ? "bg-red-100 text-red-800 border border-red-300"
+                                          : "bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600"
+                                    }`}
+                                  >
+                                    <span
+                                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                                        isCorrectAnswer
+                                          ? "bg-emerald-600 text-white"
+                                          : isUserAnswer && !isCorrectAnswer
+                                            ? "bg-red-600 text-white"
+                                            : "bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-300"
+                                      }`}
+                                    >
+                                      {String.fromCharCode(65 + optIdx)}
+                                    </span>
+                                    <span>{opt}</span>
+                                    {isCorrectAnswer && <CheckCircle className="w-4 h-4 ml-auto text-emerald-600" />}
+                                    {isUserAnswer && !isCorrectAnswer && <X className="w-4 h-4 ml-auto text-red-600" />}
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
+
+                          {/* Fill in blank answer */}
+                          {q.type === "fill-blank" && (
+                            <div className="flex gap-4 mt-3">
+                              <div
+                                className={`px-4 py-2 rounded-lg text-sm ${
+                                  isCorrect ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"
+                                }`}
+                              >
+                                <span className="text-xs uppercase font-medium opacity-70">Your answer:</span>
+                                <p className="font-medium">{String(userAnswer) || "(empty)"}</p>
+                              </div>
+                              {!isCorrect && (
+                                <div className="px-4 py-2 rounded-lg text-sm bg-emerald-100 text-emerald-800">
+                                  <span className="text-xs uppercase font-medium opacity-70">Correct answer:</span>
+                                  <p className="font-medium">{q.correctAnswer}</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Writing answer */}
+                          {q.type === "writing" && (
+                            <div className="mt-3 p-4 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600">
+                              <span className="text-xs uppercase font-medium text-slate-400">Your response:</span>
+                              <p className="mt-1 text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
+                                {String(userAnswer) || "(No response)"}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Speaking indicator */}
+                          {q.type === "speaking" && (
+                            <div className="mt-3 flex items-center gap-2 text-blue-600">
+                              <Mic className="w-4 h-4" />
+                              <span className="text-sm">Audio response recorded</span>
+                            </div>
+                          )}
+
+                          {/* Feedback */}
+                          <div
+                            className={`mt-3 p-3 rounded-lg text-sm ${
+                              isCorrect
+                                ? "bg-emerald-100/50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                                : "bg-amber-100/50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                            }`}
+                          >
+                            <div className="flex items-start gap-2">
+                              <Lightbulb className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                              <span>{feedback}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Continue Button */}
+          <div className="flex justify-center pt-4">
+            <Button
+              onClick={handleContinueFromFeedback}
+              size="lg"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
+            >
+              {completedTests.length + 1 >= TEST_STEPS.length ? (
+                <>
+                  <Trophy className="w-5 h-5 mr-2" />
+                  View Final Results
+                </>
+              ) : (
+                <>
+                  Continue to Next Test
+                  <ChevronRight className="w-5 h-5 ml-2" />
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   const handleTextSelection = () => {
@@ -917,16 +1214,15 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
     )
   }
 
+  // Changed the renderReadingTest to display all questions at once
   const renderReadingTest = () => {
-    const currentQ = readingPassage.questions[currentReadingQuestion]
-
+    const highlights = readingHighlights.filter((h) => h.type === "user")
     return (
-      <div className="w-full max-w-6xl mx-auto px-6 py-8">
-        <div className="grid lg:grid-cols-2 gap-6 items-start">
-          {/* Left Column - Reading Passage */}
-          <Card className="p-6 space-y-4 lg:sticky lg:top-6 max-h-[calc(100vh-12rem)] overflow-y-auto">
+      <div className="w-full max-w-7xl mx-auto px-8 py-8">
+        <div className="grid lg:grid-cols-5 gap-8 items-start">
+          <Card className="lg:col-span-3 p-8 space-y-4 lg:sticky lg:top-6 max-h-[calc(100vh-8rem)] overflow-y-auto">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">{readingPassage.title}</h2>
+              <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">{readingPassage.title}</h2>
               <Button
                 variant={isHighlightMode ? "default" : "outline"}
                 size="sm"
@@ -942,139 +1238,118 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
               ref={passageRef}
               onMouseUp={handleTextSelection}
               className={cn(
-                "prose prose-sm max-w-none dark:prose-invert",
+                "prose prose-base max-w-none dark:prose-invert",
                 isHighlightMode ? "cursor-text select-text" : "select-none",
               )}
             >
-              <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
+              <p className="text-base leading-relaxed text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
                 {renderHighlightedContent()}
               </p>
             </div>
-          </Card>
 
-          {/* Right Column - Questions */}
-          <Card className="p-6 space-y-4 flex flex-col min-h-[500px]">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-900 flex items-center justify-center font-bold text-sm">
-                  {currentReadingQuestion + 1}
-                </div>
-                <h3 className="font-semibold text-slate-800 dark:text-slate-200">Question</h3>
-              </div>
-              <Button variant="outline" size="sm" onClick={handleToggleReadingHint}>
-                {showReadingHint ? "Hide Hint" : "Show Hint"}
-              </Button>
-            </div>
-
-            <p className="text-sm font-medium text-slate-700 dark:text-slate-300">{currentQ?.question}</p>
-
-            {showReadingHint && (
-              <div className="p-3 rounded-lg bg-yellow-50 border border-yellow-200 text-sm text-yellow-900">
-                <p className="font-semibold mb-1">Hint:</p>
-                <p>{currentQ?.explanation}</p>
+            {highlights.length > 0 && (
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+                <p className="text-xs text-slate-500">{highlights.length} highlight(s) saved</p>
               </div>
             )}
+          </Card>
 
-            <div className="space-y-2 flex-1">
-              {currentQ?.options?.map((option, optIdx) => (
-                <button
-                  key={optIdx}
-                  onClick={() => handleReadingAnswer(currentReadingQuestion, optIdx)}
-                  disabled={isReadingQuestionChecked}
-                  className={cn(
-                    "w-full text-left p-4 rounded-lg border-2 transition-colors text-sm",
-                    readingAnswers[currentReadingQuestion] === optIdx
-                      ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30"
-                      : "border-slate-200 hover:border-blue-300 bg-slate-50 dark:bg-slate-800 dark:border-slate-700",
-                    isReadingQuestionChecked && optIdx === currentQ.correctAnswer
-                      ? "border-green-500 bg-green-50 dark:bg-green-900/30"
-                      : "",
-                    isReadingQuestionChecked &&
-                      readingAnswers[currentReadingQuestion] === optIdx &&
-                      !isReadingAnswerCorrect
-                      ? "border-red-500 bg-red-50 dark:bg-red-900/30"
-                      : "",
-                  )}
+          <Card className="lg:col-span-2 p-6 space-y-6 max-h-[calc(100vh-8rem)] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-4">
+              <h3 className="font-bold text-lg text-slate-800 dark:text-slate-200">Questions</h3>
+              <span className="text-sm text-slate-500">
+                {Object.keys(readingAnswers).length} of {readingPassage.questions.length} answered
+              </span>
+            </div>
+
+            <div className="space-y-8">
+              {readingPassage.questions.map((q, qIdx) => (
+                <div
+                  key={qIdx}
+                  className="space-y-3 pb-6 border-b border-slate-100 dark:border-slate-800 last:border-0"
                 >
-                  <span className="font-medium mr-2">{String.fromCharCode(65 + optIdx)}.</span>
-                  {option}
-                </button>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 flex items-center justify-center font-bold text-sm flex-shrink-0">
+                        {qIdx + 1}
+                      </div>
+                      <p className="text-sm font-medium text-slate-700 dark:text-slate-300 pt-0.5">{q.question}</p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const newHints = { ...readingHints }
+                        newHints[qIdx] = !newHints[qIdx]
+                        setReadingHints(newHints)
+                      }}
+                      className="text-xs text-slate-500 hover:text-blue-600 flex-shrink-0"
+                    >
+                      <Lightbulb className="h-3.5 w-3.5 mr-1" />
+                      Hint
+                    </Button>
+                  </div>
+
+                  {readingHints[qIdx] && (
+                    <div className="ml-10 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 text-sm text-yellow-800 dark:text-yellow-200">
+                      <p>{q.explanation}</p>
+                    </div>
+                  )}
+
+                  <div className="ml-10 space-y-2">
+                    {q.options?.map((option, optIdx) => (
+                      <button
+                        key={optIdx}
+                        onClick={() => handleReadingAnswer(qIdx, optIdx)}
+                        className={cn(
+                          "w-full text-left p-3 rounded-lg border transition-all text-sm flex items-center gap-3",
+                          readingAnswers[qIdx] === optIdx
+                            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 ring-1 ring-blue-500"
+                            : "border-slate-200 dark:border-slate-700 hover:border-blue-300 hover:bg-slate-50 dark:hover:bg-slate-800",
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0",
+                            readingAnswers[qIdx] === optIdx
+                              ? "bg-blue-600 text-white"
+                              : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400",
+                          )}
+                        >
+                          {String.fromCharCode(65 + optIdx)}
+                        </span>
+                        <span className="text-slate-700 dark:text-slate-300">{option}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
 
-            {isReadingQuestionChecked && (
-              <div
-                className={cn(
-                  "p-4 rounded-lg flex items-start gap-3",
-                  isReadingAnswerCorrect
-                    ? "bg-green-50 border border-green-200 dark:bg-green-900/30 dark:border-green-700"
-                    : "bg-red-50 border border-red-200 dark:bg-red-900/30 dark:border-red-700",
-                )}
+            <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+              <Button
+                onClick={() => {
+                  // Calculate score
+                  let correct = 0
+                  readingPassage.questions.forEach((q, idx) => {
+                    if (readingAnswers[idx] === q.correctAnswer) correct++
+                  })
+                  const score = Math.round((correct / readingPassage.questions.length) * 100)
+                  setTestScores((prev) => ({ ...prev, reading: score }))
+
+                  setFeedbackTestId("reading")
+                  setFeedbackReadingAnswers(readingAnswers)
+                  setShowTestFeedback(true)
+                  setActiveTestId(null)
+                }}
+                disabled={Object.keys(readingAnswers).length < readingPassage.questions.length}
+                className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
               >
-                {isReadingAnswerCorrect ? (
-                  <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                ) : (
-                  <XCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-                )}
-                <div className="text-sm">
-                  <p
-                    className={cn(
-                      "font-semibold",
-                      isReadingAnswerCorrect ? "text-green-700 dark:text-green-400" : "text-red-700 dark:text-red-400",
-                    )}
-                  >
-                    {isReadingAnswerCorrect ? "Correct!" : "Incorrect"}
-                  </p>
-                  <p className="text-slate-600 dark:text-slate-400 mt-1">{currentQ?.explanation}</p>
-                </div>
-              </div>
-            )}
-
-            {!isReadingQuestionChecked && isReadingQuestionAnswered && (
-              <Button onClick={handleCheckReadingAnswer} className="w-full bg-blue-600 hover:bg-blue-700">
-                Check Answer
+                Submit All Answers
               </Button>
-            )}
-
-            <div className="border-t border-slate-200 dark:border-slate-700 pt-4 space-y-4">
-              <div className="relative h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                <div
-                  className="absolute left-0 top-0 h-full bg-blue-600 transition-all duration-500 ease-out"
-                  style={{ width: `${((currentReadingQuestion + 1) / readingPassage.questions.length) * 100}%` }}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <Button
-                  variant="outline"
-                  onClick={handlePrevReadingQuestion}
-                  disabled={currentReadingQuestion === 0}
-                  className="gap-2 bg-transparent"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  Previous
-                </Button>
-
-                <span className="text-sm font-medium px-4 py-1 rounded-full bg-blue-100 text-blue-900 dark:bg-blue-900/50 dark:text-blue-300">
-                  {currentReadingQuestion + 1} / {readingPassage.questions.length}
-                </span>
-
-                {currentReadingQuestion === readingPassage.questions.length - 1 ? (
-                  <Button
-                    onClick={handleSubmitTest}
-                    disabled={!allReadingQuestionsChecked}
-                    className="gap-2 bg-green-600 hover:bg-green-700"
-                  >
-                    Finish Test
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
-                ) : (
-                  <Button onClick={handleNextReadingQuestion} disabled={!isReadingQuestionChecked} className="gap-2">
-                    Next
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
+              {Object.keys(readingAnswers).length < readingPassage.questions.length && (
+                <p className="text-xs text-center text-slate-500 mt-2">Please answer all questions before submitting</p>
+              )}
             </div>
           </Card>
         </div>
@@ -1083,7 +1358,7 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
   }
 
   // Results Page
-  if (showResults) {
+  const renderResults = () => {
     const overallScore = calculateOverallScore()
     const cefrResult = calculateCEFRLevel(overallScore)
 
@@ -1214,6 +1489,11 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
     )
   }
 
+  // Test Feedback View - must be checked before activeTestId
+  if (showTestFeedback) {
+    return renderTestFeedback()
+  }
+
   // Active Test View
   if (activeTestId) {
     return renderTestContent()
@@ -1258,7 +1538,7 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
             {/* Progress Line */}
             <div className="absolute top-8 left-0 right-0 h-1 bg-slate-200 dark:bg-slate-700 mx-12" />
             <div
-              className="absolute top-8 left-0 h-1 bg-blue-500 mx-12 transition-all duration-500"
+              className="absolute top-8 left-0 h-1 bg-green-500 mx-12 transition-all duration-500"
               style={{ width: `calc(${(completedTests.length / TEST_STEPS.length) * 100}% - 6rem)` }}
             />
 
