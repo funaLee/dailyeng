@@ -575,9 +575,6 @@ export default function Home() {
                         >
                           Try for free
                         </Button>
-                        <Button variant="ghost" className="rounded-full px-6 text-gray-600 cursor-pointer">
-                          Learn more
-                        </Button>
                       </div>
                     </div>
                   </div>
