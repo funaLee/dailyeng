@@ -345,9 +345,9 @@ export default function SpeakingRoomPage() {
             and content.
           </p>
           <div className="flex flex-wrap gap-3 mb-4">
-            <Button className="gap-2">Start Practice</Button>
+            <Button className="gap-2">Build Study Plan</Button>
             <Button variant="outline" className="gap-2 bg-transparent">
-              Choose Topic
+              Random Topic
             </Button>
           </div>
           <div className="flex items-center gap-2">
