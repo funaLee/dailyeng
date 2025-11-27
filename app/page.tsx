@@ -21,9 +21,12 @@ import {
   ChevronRight,
   GraduationCap,
   ArrowRight,
+  Trophy,
+  ChevronLeft,
 } from "lucide-react"
 import { InteractiveGridBackground } from "@/components/ui/interactive-grid-background"
-import { StackedCardCarousel } from "@/components/home/stacked-card-carousel"
+import { StackedCardBackground } from "@/components/home/stacked-card-background"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 
 // Scroll Animation Component
 function RevealOnScroll({
@@ -110,47 +113,94 @@ export default function Home() {
   const reviews = [
     {
       name: "Nguyen Van A",
-      avatar: "/avatar.png",
+      avatar: "/asian-male-student-portrait.png",
       ielts: "7.5",
       content: "DailyEng helped me improve my speaking skills dramatically. The AI tutor is amazing!",
       direction: "up",
+      fullFeedback:
+        "DailyEng completely transformed my English learning journey. Before using this platform, I struggled with speaking confidence and couldn't hold a conversation for more than a few minutes. The AI tutor feature is incredibly patient and provides instant feedback on pronunciation and grammar. After 6 months of consistent practice, I achieved my dream IELTS score. The gamification elements kept me motivated throughout, and the speaking room sessions with other learners gave me real-world practice opportunities.",
+      courses: ["IELTS Speaking Mastery", "Academic Writing", "Pronunciation Pro"],
+      result: { type: "IELTS", score: "7.5", previousScore: "5.5" },
+      duration: "6 months",
+      photo: "/student-studying-with-laptop-celebrating.jpg",
     },
     {
       name: "Tran Thi B",
-      avatar: "/avatar.png",
+      avatar: "/asian-female-student-portrait.png",
       ielts: "8.0",
       content: "I love the gamification features. Learning English has never been this fun!",
       direction: "up",
+      fullFeedback:
+        "As someone who always found traditional English classes boring, DailyEng was a breath of fresh air. The gamification features made me actually look forward to my daily lessons. I earned badges, competed on leaderboards, and the streak system ensured I never missed a day. The vocabulary hub is particularly impressive - I learned over 3000 new words in just 4 months. The platform's ability to adapt to my learning pace and style made all the difference in my IELTS preparation.",
+      courses: ["Vocabulary Builder", "IELTS Complete Preparation", "Grammar Fundamentals"],
+      result: { type: "IELTS", score: "8.0", previousScore: "6.0" },
+      duration: "4 months",
+      photo: "/happy-student-with-certificate.jpg",
     },
     {
       name: "Le Van C",
-      avatar: "/avatar.png",
+      avatar: "/asian-male-professional-portrait.jpg",
       ielts: "7.0",
       content: "The personalized study plan keeps me motivated every day. Highly recommended!",
       direction: "up",
+      fullFeedback:
+        "Working full-time made it challenging to find time for English study, but DailyEng's personalized study plan fit perfectly into my busy schedule. The platform analyzed my strengths and weaknesses and created a custom curriculum just for me. The mobile app allowed me to study during commutes, and the short, focused lessons were perfect for my attention span. I went from intermediate to advanced level while maintaining my job, something I thought was impossible before.",
+      courses: ["Business English", "Daily Conversation", "Listening Skills"],
+      result: { type: "IELTS", score: "7.0", previousScore: "5.0" },
+      duration: "8 months",
+      photo: "/professional-working-on-laptop-in-office.jpg",
     },
     {
       name: "Pham Thi D",
-      avatar: "/avatar.png",
+      avatar: "/asian-female-graduate-portrait.jpg",
       ielts: "8.5",
       content: "Best English learning platform I've ever used. The speaking room is a game-changer!",
       direction: "down",
+      fullFeedback:
+        "I've tried numerous English learning platforms before DailyEng, but none came close to this experience. The speaking room feature connected me with learners from around the world, giving me invaluable practice in real conversations. The AI feedback on my speaking was spot-on and helped me identify issues I never knew I had. The comprehensive IELTS preparation materials, especially for the writing section, were exceptional. I achieved a band 8.5, exceeding my target of 7.5!",
+      courses: ["IELTS Writing Excellence", "Speaking Room Premium", "Reading Strategies"],
+      result: { type: "IELTS", score: "8.5", previousScore: "6.5" },
+      duration: "5 months",
+      photo: "/female-student-graduation-celebration.jpg",
     },
     {
       name: "Hoang Van E",
-      avatar: "/avatar.png",
+      avatar: "/asian-male-university-student-portrait.jpg",
       ielts: "7.5",
       content: "Great for exam preparation. I improved my IELTS score significantly!",
       direction: "down",
+      fullFeedback:
+        "DailyEng's exam preparation materials are comprehensive and well-structured. The practice tests closely mimic the actual IELTS format, which helped me feel confident on test day. The detailed explanations for each answer taught me valuable strategies and techniques. The progress tracking feature allowed me to see my improvement over time, which was incredibly motivating. I particularly loved the writing feedback system that provided specific suggestions for improvement.",
+      courses: ["IELTS Full Preparation", "Test Strategies", "Time Management Skills"],
+      result: { type: "IELTS", score: "7.5", previousScore: "6.0" },
+      duration: "3 months",
+      photo: "/student-taking-exam-confidently.jpg",
     },
     {
-      name: "Vo Thi F",
-      avatar: "/avatar.png",
-      ielts: "8.0",
-      content: "The vocabulary exercises are engaging and effective. I can see real progress!",
-      direction: "down",
+      name: "Nguyen Thi F",
+      avatar: "/asian-female-business-professional-portrait.jpg",
+      ielts: "N/A",
+      content: "TOEIC preparation on DailyEng helped me get promoted at work!",
+      direction: "up",
+      fullFeedback:
+        "My company required a minimum TOEIC score for promotion, and DailyEng helped me exceed that requirement by a huge margin. The business English focus was exactly what I needed for my career. The listening practice with various accents prepared me well for the real test. The vocabulary specific to corporate settings has been useful in my daily work communications. Within 2 months, I went from 650 to 890, opening new doors in my career.",
+      courses: ["TOEIC Complete", "Business Communication", "Email Writing"],
+      result: { type: "TOEIC", score: "890", previousScore: "650" },
+      duration: "2 months",
+      photo: "/businesswoman-presenting-in-meeting-room.jpg",
     },
   ]
+
+  const [showReviewsDialog, setShowReviewsDialog] = useState(false)
+  const [currentReviewIndex, setCurrentReviewIndex] = useState(0)
+
+  const nextReview = () => {
+    setCurrentReviewIndex((prev) => (prev + 1) % reviews.length)
+  }
+
+  const prevReview = () => {
+    setCurrentReviewIndex((prev) => (prev - 1 + reviews.length) % reviews.length)
+  }
 
   const partnerLogos = [
     { src: "/bc-logo.png", alt: "British Council" },
@@ -170,7 +220,7 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
             {/* Left Content */}
             <div className="pointer-events-none flex flex-col items-center lg:items-start text-center lg:text-left">
-              <RevealOnScroll className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 text-sm font-semibold px-4 py-1.5 rounded-full mb-6 border border-blue-100 shadow-sm">
+              <RevealOnScroll className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 text-sm font-semibold px-4 py-1.5 rounded-full mb-6 border border-blue-100 shadow-sm cursor-pointer hover:bg-blue-100 transition-colors">
                 <Sparkles className="w-4 h-4 fill-blue-400 text-blue-500" />
                 <span>The #1 AI-Powered English Platform</span>
               </RevealOnScroll>
@@ -200,19 +250,19 @@ export default function Home() {
                 delay={400}
                 className="flex flex-col sm:flex-row gap-4 pointer-events-auto w-full sm:w-auto"
               >
-                <Link href="/auth/signup" className="pointer-events-auto w-full sm:w-auto">
+                <Link href="/auth/signup" className="pointer-events-auto w-full sm:w-auto cursor-pointer">
                   <Button
                     size="lg"
-                    className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 text-white px-8 py-6 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-lg font-semibold"
+                    className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 text-white px-8 py-6 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-lg font-semibold cursor-pointer"
                   >
                     Start Learning Free
                   </Button>
                 </Link>
-                <Link href="/help" className="pointer-events-auto w-full sm:w-auto">
+                <Link href="/help" className="pointer-events-auto w-full sm:w-auto cursor-pointer">
                   <Button
                     size="lg"
                     variant="outline"
-                    className="w-full sm:w-auto border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50 px-8 py-6 rounded-full text-lg bg-transparent"
+                    className="w-full sm:w-auto border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50 px-8 py-6 rounded-full text-lg bg-transparent cursor-pointer"
                   >
                     How it works
                   </Button>
@@ -237,7 +287,7 @@ export default function Home() {
               style={{ animationDelay: "600ms" }}
             >
               <div className="absolute -inset-4 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full opacity-30 blur-3xl -z-10" />
-              <StackedCardCarousel
+              <StackedCardBackground
                 images={[
                   "/learning.png",
                   "/abstract-job-concept.png",
@@ -276,7 +326,7 @@ export default function Home() {
           <div className="grid md:grid-cols-2 gap-6">
             {/* Rating Card */}
             <RevealOnScroll>
-              <Card className="bg-blue-400 text-white border-0 p-6 shadow-xl rounded-2xl relative overflow-hidden group transition-transform hover:scale-[1.02] h-full">
+              <Card className="bg-blue-400 text-white border-0 p-6 shadow-xl rounded-2xl relative overflow-hidden group transition-transform hover:scale-[1.02] h-full cursor-pointer">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-12 -mt-12 blur-2xl group-hover:bg-white/20 transition-colors"></div>
                 <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-400/20 rounded-full -ml-10 -mb-10 blur-xl"></div>
 
@@ -308,7 +358,7 @@ export default function Home() {
 
             {/* Quote Card */}
             <RevealOnScroll delay={200}>
-              <Card className="bg-slate-50 border border-slate-200 p-6 shadow-lg rounded-2xl relative flex flex-col justify-center group hover:border-blue-200 transition-colors h-full">
+              <Card className="bg-slate-50 border border-slate-200 p-6 shadow-lg rounded-2xl relative flex flex-col justify-center group hover:border-blue-200 transition-colors h-full cursor-pointer">
                 <Quote className="absolute top-4 right-4 w-10 h-10 text-blue-100 -z-0 rotate-12" />
                 <div className="relative z-10">
                   <div className="mb-4 flex gap-1">
@@ -341,7 +391,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <RevealOnScroll className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">Why Learners Choose DailyEng</h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            <p className="text-xl text-gray-600">
               We combine advanced AI with proven learning methods to help you achieve fluency faster.
             </p>
           </RevealOnScroll>
@@ -349,7 +399,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[minmax(250px,auto)]">
             {/* Large Feature - Speak First */}
             <RevealOnScroll className="md:col-span-2">
-              <Card className="h-full bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all p-8 rounded-3xl flex flex-col md:flex-row items-center gap-8 overflow-hidden group">
+              <Card className="h-full bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all p-8 rounded-3xl flex flex-col md:flex-row items-center gap-8 overflow-hidden group cursor-pointer">
                 <div className="flex-1 z-10">
                   <div className="w-12 h-12 bg-blue-100 text-blue-400 rounded-2xl flex items-center justify-center mb-6">
                     <Mic className="w-6 h-6" />
@@ -376,7 +426,7 @@ export default function Home() {
 
             {/* Feature 2 - Context Learning */}
             <RevealOnScroll delay={100}>
-              <Card className="h-full bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all p-8 rounded-3xl flex flex-col justify-between group">
+              <Card className="h-full bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all p-8 rounded-3xl flex flex-col justify-between group cursor-pointer">
                 <div>
                   <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mb-6">
                     <BookOpen className="w-6 h-6" />
@@ -396,7 +446,7 @@ export default function Home() {
 
             {/* Feature 3 - Gamification */}
             <RevealOnScroll delay={200}>
-              <Card className="h-full bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all p-8 rounded-3xl flex flex-col justify-between group">
+              <Card className="h-full bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all p-8 rounded-3xl flex flex-col justify-between group cursor-pointer">
                 <div>
                   <div className="w-12 h-12 bg-yellow-100 text-yellow-600 rounded-2xl flex items-center justify-center mb-6">
                     <Zap className="w-6 h-6" />
@@ -419,7 +469,7 @@ export default function Home() {
 
             {/* Large Feature - AI Companion */}
             <RevealOnScroll className="md:col-span-2" delay={300}>
-              <Card className="h-full bg-white border border-purple-100 shadow-sm hover:shadow-lg transition-all p-8 rounded-3xl flex flex-col md:flex-row-reverse items-center gap-8 overflow-hidden group">
+              <Card className="h-full bg-white border border-purple-100 shadow-sm hover:shadow-lg transition-all p-8 rounded-3xl flex flex-col md:flex-row-reverse items-center gap-8 overflow-hidden group cursor-pointer">
                 <div className="flex-1 z-10">
                   <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center mb-6 border border-purple-100">
                     <Sparkles className="w-6 h-6" />
@@ -429,7 +479,10 @@ export default function Home() {
                     Stuck on a word? Need grammar help? Kitty is your 24/7 AI companion ready to explain concepts
                     instantly inside any lesson.
                   </p>
-                  <Button variant="default" className="bg-purple-600 hover:bg-purple-700 text-white rounded-full">
+                  <Button
+                    variant="default"
+                    className="bg-purple-600 hover:bg-purple-700 text-white rounded-full cursor-pointer"
+                  >
                     Chat with Kitty
                   </Button>
                 </div>
@@ -463,7 +516,7 @@ export default function Home() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`group flex items-center gap-4 p-4 rounded-2xl text-left transition-all duration-300 ${
+                  className={`group flex items-center gap-4 p-4 rounded-2xl text-left transition-all duration-300 cursor-pointer ${
                     activeTab === tab.id ? "bg-blue-50 ring-1 ring-blue-200 shadow-sm" : "hover:bg-gray-50"
                   }`}
                 >
@@ -514,10 +567,13 @@ export default function Home() {
                     <div className="p-8 flex flex-col justify-between flex-1 bg-white rounded-b-[2rem]">
                       <p className="text-lg text-gray-600 leading-relaxed">{tab.description}</p>
                       <div className="flex gap-4 mt-6">
-                        <Button className="rounded-full px-6" onClick={() => (window.location.href = "/auth/signup")}>
+                        <Button
+                          className="rounded-full px-6 cursor-pointer"
+                          onClick={() => (window.location.href = "/auth/signup")}
+                        >
                           Try for free
                         </Button>
-                        <Button variant="ghost" className="rounded-full px-6 text-gray-600">
+                        <Button variant="ghost" className="rounded-full px-6 text-gray-600 cursor-pointer">
                           Learn more
                         </Button>
                       </div>
@@ -544,7 +600,11 @@ export default function Home() {
               <span className="font-medium text-gray-600">4.8/5 average rating</span>
             </div>
           </div>
-          <Button variant="outline" className="hidden sm:flex bg-transparent">
+          <Button
+            variant="outline"
+            className="hidden sm:flex bg-transparent cursor-pointer"
+            onClick={() => setShowReviewsDialog(true)}
+          >
             View all reviews
           </Button>
         </RevealOnScroll>
@@ -561,7 +621,10 @@ export default function Home() {
             {/* Column 1 - Scroll Up */}
             <div className="space-y-6 animate-scroll-up hover:[animation-play-state:paused]">
               {[...reviews, ...reviews].map((review, idx) => (
-                <Card key={`col1-${idx}`} className="p-6 border-0 shadow-sm bg-white rounded-2xl">
+                <Card
+                  key={`col1-${idx}`}
+                  className="p-6 border-0 shadow-sm bg-white rounded-2xl cursor-pointer hover:shadow-md transition-shadow"
+                >
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden relative">
                       <Image
@@ -584,7 +647,10 @@ export default function Home() {
             {/* Column 2 - Scroll Down */}
             <div className="space-y-6 animate-scroll-down hover:[animation-play-state:paused] hidden md:block">
               {[...reviews.reverse(), ...reviews].map((review, idx) => (
-                <Card key={`col2-${idx}`} className="p-6 border-0 shadow-sm bg-white rounded-2xl">
+                <Card
+                  key={`col2-${idx}`}
+                  className="p-6 border-0 shadow-sm bg-white rounded-2xl cursor-pointer hover:shadow-md transition-shadow"
+                >
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-400 flex items-center justify-center font-bold text-sm">
                       {review.name.charAt(0)}
@@ -603,7 +669,10 @@ export default function Home() {
             {/* Column 3 - Scroll Up */}
             <div className="space-y-6 animate-scroll-up hover:[animation-play-state:paused] hidden lg:block">
               {[...reviews, ...reviews].map((review, idx) => (
-                <Card key={`col3-${idx}`} className="p-6 border-0 shadow-sm bg-white rounded-2xl">
+                <Card
+                  key={`col3-${idx}`}
+                  className="p-6 border-0 shadow-sm bg-white rounded-2xl cursor-pointer hover:shadow-md transition-shadow"
+                >
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden relative">
                       <Image
@@ -626,15 +695,187 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Reviews Dialog */}
+      <Dialog open={showReviewsDialog} onOpenChange={setShowReviewsDialog}>
+        <DialogContent className="!max-w-[1400px] w-[95vw] max-h-[90vh] overflow-y-auto p-0">
+          <div className="relative">
+            {/* Header */}
+            <div className="sticky top-0 z-10 bg-white dark:bg-slate-900 border-b px-10 py-6">
+              <DialogTitle className="text-3xl font-bold text-slate-800 dark:text-white">Learner Stories</DialogTitle>
+              <p className="text-slate-500 dark:text-slate-400 text-base mt-1">
+                Real success stories from our community
+              </p>
 
+              {/* Review navigation dots */}
+              <div className="flex items-center gap-2 mt-4">
+                {reviews.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentReviewIndex(idx)}
+                    className={`h-2.5 rounded-full transition-all cursor-pointer ${
+                      idx === currentReviewIndex ? "bg-blue-500 w-8" : "bg-slate-300 hover:bg-slate-400 w-2.5"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Current Review Card */}
+            <div className="p-10">
+              <div className="bg-gradient-to-br from-blue-50 to-slate-50 dark:from-slate-800 dark:to-slate-900 rounded-3xl p-10">
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
+                  {/* Left Column - Photo and Result (2 cols) */}
+                  <div className="lg:col-span-2">
+                    {/* Photo */}
+                    <div className="relative h-80 rounded-2xl overflow-hidden mb-6 shadow-lg">
+                      <Image
+                        src={reviews[currentReviewIndex].photo || "/placeholder.svg"}
+                        alt={`${reviews[currentReviewIndex].name}'s journey`}
+                        fill
+                        className="object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                      <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
+                        <Quote className="w-10 h-10 text-white/70" />
+                        {/* Result badge on photo */}
+                        <div className="flex items-center gap-2 bg-white/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg">
+                          <Trophy className="w-5 h-5 text-yellow-500" />
+                          <span className="font-bold text-slate-800">
+                            {reviews[currentReviewIndex].result.type}: {reviews[currentReviewIndex].result.score}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Score improvement card */}
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-md border border-slate-200 dark:border-slate-700">
+                      <h4 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-4">
+                        Score Improvement
+                      </h4>
+                      <div className="flex items-center justify-between">
+                        <div className="text-center">
+                          <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Before</p>
+                          <p className="text-2xl font-bold text-slate-400">
+                            {reviews[currentReviewIndex].result.previousScore}
+                          </p>
+                        </div>
+                        <div className="flex-1 mx-4">
+                          <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full relative">
+                            <div
+                              className="absolute inset-y-0 left-0 bg-gradient-to-r from-slate-400 to-blue-500 rounded-full"
+                              style={{ width: "100%" }}
+                            />
+                            <ArrowRight className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-5 h-5 text-blue-500" />
+                          </div>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">After</p>
+                          <p className="text-2xl font-bold text-blue-500">{reviews[currentReviewIndex].result.score}</p>
+                        </div>
+                      </div>
+                      <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-3">
+                        Achieved in {reviews[currentReviewIndex].duration}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Right Column - User Info and Review (3 cols) */}
+                  <div className="lg:col-span-3 flex flex-col">
+                    {/* Top section with avatar and basic info */}
+                    <div className="flex items-start gap-5 mb-6">
+                      <div className="relative flex-shrink-0">
+                        <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-xl">
+                          <Image
+                            src={reviews[currentReviewIndex].avatar || "/placeholder.svg"}
+                            alt={reviews[currentReviewIndex].name}
+                            width={96}
+                            height={96}
+                            className="object-cover w-full h-full"
+                          />
+                        </div>
+                        <div className="absolute -bottom-1 -right-1 bg-green-500 text-white text-xs px-2.5 py-1 rounded-full font-medium shadow-md">
+                          Verified
+                        </div>
+                      </div>
+
+                      <div className="flex-1">
+                        <h3 className="text-2xl font-bold text-slate-800 dark:text-white">
+                          {reviews[currentReviewIndex].name}
+                        </h3>
+                        <p className="text-slate-500 dark:text-slate-400 text-base mt-1">
+                          Studied for {reviews[currentReviewIndex].duration}
+                        </p>
+
+                        {/* Stars */}
+                        <div className="flex gap-1 mt-2">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Full feedback */}
+                    <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 mb-6 shadow-sm flex-1">
+                      <Quote className="w-8 h-8 text-blue-200 dark:text-blue-800 mb-3" />
+                      <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-lg">
+                        "{reviews[currentReviewIndex].fullFeedback}"
+                      </p>
+                    </div>
+
+                    {/* Courses taken */}
+                    <div>
+                      <h4 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">
+                        Courses Completed
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {reviews[currentReviewIndex].courses.map((course, idx) => (
+                          <span
+                            key={idx}
+                            className="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-4 py-2 rounded-full text-sm font-medium"
+                          >
+                            {course}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Navigation buttons */}
+              <div className="flex justify-between items-center px-10 py-6 border-t bg-white dark:bg-slate-900">
+                <Button variant="outline" onClick={prevReview} className="cursor-pointer bg-transparent px-6 py-5">
+                  <ChevronLeft className="w-5 h-5 mr-2" />
+                  Previous
+                </Button>
+
+                <span className="text-slate-500 dark:text-slate-400 text-base font-medium">
+                  {currentReviewIndex + 1} of {reviews.length}
+                </span>
+
+                <Button
+                  onClick={nextReview}
+                  className="bg-blue-500 hover:bg-blue-600 text-white cursor-pointer px-6 py-5"
+                >
+                  Next
+                  <ChevronRight className="w-5 h-5 ml-2" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Test Your English Level Section */}
       <section className="py-20 bg-white">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <RevealOnScroll>
-            <Card className="relative overflow-hidden border-0 shadow-xl rounded-3xl bg-white">
+            <Card className="relative overflow-hidden border-0 shadow-xl rounded-3xl bg-white cursor-pointer">
               <div className="grid md:grid-cols-2 gap-0">
                 {/* Left Content */}
                 <div className="p-8 md:p-12 flex flex-col justify-center">
-                  <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 text-sm font-semibold px-4 py-1.5 rounded-full mb-6 w-fit border border-blue-100">
+                  <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 text-sm font-semibold px-4 py-1.5 rounded-full mb-6 w-fit border border-blue-100 cursor-pointer hover:bg-blue-100 transition-colors">
                     <GraduationCap className="w-4 h-4" />
                     <span>Free Assessment</span>
                   </div>
@@ -653,10 +894,10 @@ export default function Home() {
                   </blockquote>
 
                   <div className="flex flex-col sm:flex-row gap-4">
-                    <Link href="/placement-test">
+                    <Link href="/placement-test" className="cursor-pointer">
                       <Button
                         size="lg"
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-6 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-lg font-semibold group"
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-6 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-lg font-semibold group cursor-pointer"
                       >
                         Take the Test
                         <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -675,12 +916,12 @@ export default function Home() {
                   <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-l from-white/20 to-transparent" />
 
                   {/* Floating badges */}
-                  <div className="absolute top-6 right-6 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg">
+                  <div className="absolute top-6 right-6 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg cursor-pointer hover:shadow-xl transition-shadow">
                     <div className="text-xs text-gray-500 font-medium">CEFR Levels</div>
                     <div className="text-lg font-bold text-blue-600">A1 - C2</div>
                   </div>
 
-                  <div className="absolute bottom-6 left-6 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg">
+                  <div className="absolute bottom-6 left-6 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg cursor-pointer hover:shadow-xl transition-shadow">
                     <div className="flex items-center gap-2">
                       <Users className="w-4 h-4 text-blue-500" />
                       <span className="text-sm font-semibold text-gray-700">50K+ tests taken</span>
@@ -711,19 +952,19 @@ export default function Home() {
             Join thousands of learners who are already improving their careers and lives with DailyEng.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/auth/signup">
+            <Link href="/auth/signup" className="cursor-pointer">
               <Button
                 size="lg"
-                className="bg-white text-blue-400 hover:bg-blue-50 rounded-full px-10 py-7 text-lg font-bold shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 w-full sm:w-auto"
+                className="bg-white text-blue-400 hover:bg-blue-50 rounded-full px-10 py-7 text-lg font-bold shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 w-full sm:w-auto cursor-pointer"
               >
                 Get Started for Free
               </Button>
             </Link>
-            <Link href="/placement-test">
+            <Link href="/placement-test" className="cursor-pointer">
               <Button
                 size="lg"
                 variant="outline"
-                className="border-2 border-blue-400 text-white hover:bg-blue-700/50 hover:border-blue-300 bg-transparent rounded-full px-10 py-7 text-lg font-semibold w-full sm:w-auto"
+                className="border-2 border-blue-400 text-white hover:bg-blue-700/50 hover:border-blue-300 bg-transparent rounded-full px-10 py-7 text-lg font-semibold w-full sm:w-auto cursor-pointer"
               >
                 Take Placement Test
               </Button>
@@ -763,12 +1004,12 @@ export default function Home() {
         .animate-fade-in-up {
           animation: fade-in-up 0.6s ease-out forwards;
         }
-        
+
         /* Mask for marquee edges */
         .mask-linear-fade {
           mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
         }
-        
+
         /* Hide scrollbar for cleaner UI */
         .scrollbar-hide::-webkit-scrollbar {
             display: none;
