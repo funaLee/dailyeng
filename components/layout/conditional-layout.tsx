@@ -6,8 +6,7 @@ import { usePathname } from "next/navigation"
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 
-// Routes that should NOT show navbar and footer
-const noNavRoutes = ["/placement-test", "/speaking/session", "/vocab/", "/grammar/"]
+const noNavRoutes = ["/placement-test", "/speaking/session", "/vocab/", "/grammar/", "/build-plan"]
 
 export function ConditionalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()

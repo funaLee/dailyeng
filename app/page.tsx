@@ -23,10 +23,12 @@ import {
   ArrowRight,
   Trophy,
   ChevronLeft,
+  Check,
 } from "lucide-react"
 import { InteractiveGridBackground } from "@/components/ui/interactive-grid-background"
 import { StackedCardBackground } from "@/components/home/stacked-card-background"
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { Progress } from "@/components/ui/progress"
 
 // Scroll Animation Component
 function RevealOnScroll({
@@ -113,7 +115,7 @@ export default function Home() {
   const reviews = [
     {
       name: "Nguyen Van A",
-      avatar: "/learning.png",
+      avatar: "/asian-male-student-portrait.png",
       ielts: "7.5",
       content: "DailyEng helped me improve my speaking skills dramatically. The AI tutor is amazing!",
       direction: "up",
@@ -122,11 +124,11 @@ export default function Home() {
       courses: ["IELTS Speaking Mastery", "Academic Writing", "Pronunciation Pro"],
       result: { type: "IELTS", score: "7.5", previousScore: "5.5" },
       duration: "6 months",
-      photo: "/learning.png",
+      photo: "/student-studying-with-laptop-celebrating.jpg",
     },
     {
       name: "Tran Thi B",
-      avatar: "/learning.png",
+      avatar: "/asian-female-student-portrait.png",
       ielts: "8.0",
       content: "I love the gamification features. Learning English has never been this fun!",
       direction: "up",
@@ -135,11 +137,11 @@ export default function Home() {
       courses: ["Vocabulary Builder", "IELTS Complete Preparation", "Grammar Fundamentals"],
       result: { type: "IELTS", score: "8.0", previousScore: "6.0" },
       duration: "4 months",
-      photo: "/learning.png",
+      photo: "/happy-student-with-certificate.jpg",
     },
     {
       name: "Le Van C",
-      avatar: "/learning.png",
+      avatar: "/asian-male-professional-portrait.jpg",
       ielts: "7.0",
       content: "The personalized study plan keeps me motivated every day. Highly recommended!",
       direction: "up",
@@ -148,11 +150,11 @@ export default function Home() {
       courses: ["Business English", "Daily Conversation", "Listening Skills"],
       result: { type: "IELTS", score: "7.0", previousScore: "5.0" },
       duration: "8 months",
-      photo: "/learning.png",
+      photo: "/professional-working-on-laptop-in-office.jpg",
     },
     {
       name: "Pham Thi D",
-      avatar: "/learning.png",
+      avatar: "/asian-female-graduate-portrait.jpg",
       ielts: "8.5",
       content: "Best English learning platform I've ever used. The speaking room is a game-changer!",
       direction: "down",
@@ -161,11 +163,11 @@ export default function Home() {
       courses: ["IELTS Writing Excellence", "Speaking Room Premium", "Reading Strategies"],
       result: { type: "IELTS", score: "8.5", previousScore: "6.5" },
       duration: "5 months",
-      photo: "/learning.png",
+      photo: "/female-student-graduation-celebration.jpg",
     },
     {
       name: "Hoang Van E",
-      avatar: "/learning.png",
+      avatar: "/asian-male-university-student-portrait.jpg",
       ielts: "7.5",
       content: "Great for exam preparation. I improved my IELTS score significantly!",
       direction: "down",
@@ -174,11 +176,11 @@ export default function Home() {
       courses: ["IELTS Full Preparation", "Test Strategies", "Time Management Skills"],
       result: { type: "IELTS", score: "7.5", previousScore: "6.0" },
       duration: "3 months",
-      photo: "/learning.png",
+      photo: "/student-taking-exam-confidently.jpg",
     },
     {
       name: "Nguyen Thi F",
-      avatar: "/learning.png",
+      avatar: "/asian-female-business-professional-portrait.jpg",
       ielts: "N/A",
       content: "TOEIC preparation on DailyEng helped me get promoted at work!",
       direction: "up",
@@ -187,7 +189,7 @@ export default function Home() {
       courses: ["TOEIC Complete", "Business Communication", "Email Writing"],
       result: { type: "TOEIC", score: "890", previousScore: "650" },
       duration: "2 months",
-      photo: "/learning.png",
+      photo: "/businesswoman-presenting-in-meeting-room.jpg",
     },
   ]
 
@@ -931,6 +933,137 @@ export default function Home() {
               </div>
             </Card>
           </RevealOnScroll>
+        </div>
+      </section>
+
+      {/* Build Study Plan Section */}
+      <section className="py-24 bg-gradient-to-br from-blue-50 via-white to-sky-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative overflow-hidden">
+        {/* Background decorations */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-200/30 to-sky-200/30 dark:from-blue-900/20 dark:to-sky-900/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-blue-200/30 to-indigo-200/30 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left Content */}
+            <div className="space-y-6">
+              <div className="inline-flex items-center gap-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-4 py-2 rounded-full text-sm font-medium cursor-pointer">
+                <Target className="w-4 h-4" />
+                Personalized Learning
+              </div>
+
+              <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white leading-tight">
+                Build Your
+                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-sky-500">
+                  Study Plan
+                </span>
+              </h2>
+
+              <p className="text-lg text-slate-600 dark:text-slate-300 max-w-lg">
+                Tell us about your goals, schedule, and preferences. We will create a customized learning roadmap
+                designed specifically for your success.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-4">
+                <Link href="/build-plan">
+                  <Button
+                    size="lg"
+                    className="px-8 py-6 text-lg rounded-full bg-gradient-to-r from-blue-500 to-sky-500 hover:from-blue-600 hover:to-sky-600 shadow-lg cursor-pointer"
+                  >
+                    Build My Plan
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </Link>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="px-8 py-6 text-lg rounded-full cursor-pointer bg-transparent border-blue-300 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/20"
+                >
+                  Learn More
+                </Button>
+              </div>
+
+              {/* Stats */}
+              <div className="flex gap-8 pt-6">
+                <div>
+                  <div className="text-3xl font-bold text-slate-900 dark:text-white">5 min</div>
+                  <div className="text-sm text-slate-500 dark:text-slate-400">To complete</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-bold text-slate-900 dark:text-white">10+</div>
+                  <div className="text-sm text-slate-500 dark:text-slate-400">Course matches</div>
+                </div>
+                <div>
+                  <div className="text-3xl font-bold text-slate-900 dark:text-white">100%</div>
+                  <div className="text-sm text-slate-500 dark:text-slate-400">Personalized</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Visual */}
+            <div className="relative">
+              <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-2xl border border-blue-100 dark:border-slate-700">
+                {/* Mock questionnaire preview */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
+                      <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                      <div className="font-semibold text-slate-900 dark:text-white">Study Plan Builder</div>
+                      <div className="text-sm text-slate-500 dark:text-slate-400">Question 1 of 10</div>
+                    </div>
+                  </div>
+
+                  <Progress value={10} className="h-2 [&>div]:bg-blue-500" />
+
+                  <div>
+                    <h3 className="font-semibold text-slate-900 dark:text-white mb-4">What is your primary goal?</h3>
+                    <div className="space-y-3">
+                      {["Pass IELTS/TOEFL exam", "Improve for career", "Travel confidently", "Academic studies"].map(
+                        (option, idx) => (
+                          <div
+                            key={option}
+                            className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                              idx === 0
+                                ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                                : "border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-700"
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                                  idx === 0 ? "border-blue-500 bg-blue-500" : "border-slate-300 dark:border-slate-500"
+                                }`}
+                              >
+                                {idx === 0 && <Check className="w-3 h-3 text-white" />}
+                              </div>
+                              <span
+                                className={
+                                  idx === 0
+                                    ? "font-medium text-blue-700 dark:text-blue-300"
+                                    : "text-slate-600 dark:text-slate-300"
+                                }
+                              >
+                                {option}
+                              </span>
+                            </div>
+                          </div>
+                        ),
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Floating elements */}
+              <div className="absolute -top-4 -right-4 bg-blue-500 text-white rounded-2xl p-4 shadow-lg cursor-pointer">
+                <BookOpen className="w-6 h-6" />
+              </div>
+              <div className="absolute -bottom-4 -left-4 bg-sky-500 text-white rounded-2xl p-4 shadow-lg cursor-pointer">
+                <GraduationCap className="w-6 h-6" />
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
