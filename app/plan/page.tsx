@@ -1,669 +1,622 @@
 "use client"
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
+import { useState } from "react"
+import Link from "next/link" // Added Link for navigation
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import {
-  BookOpen,
-  FileText,
-  Link2,
-  MessageSquare,
-  Zap,
-  FileCheck,
-  LinkIcon,
-  Volume2,
-  Info,
-  Edit,
-  Plus,
-  Search,
-  ChevronLeft,
-  ChevronRight,
-  Star,
-  Mic,
-  Square,
-} from "lucide-react"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Progress } from "@/components/ui/progress"
+import { Gift, Check, Edit2, PlayCircle, BookOpen, Mic, Brain, Target } from "lucide-react"
+import Image from "next/image"
 import { ProtectedRoute, PageIcons } from "@/components/auth/protected-route"
 
-type Collection = {
+interface StudyPlan {
   id: string
   name: string
-  icon: React.ReactNode
-  count: number
-}
-
-type NotebookItem = {
-  id: string
-  word: string
-  pronunciation: string
-  meaning: string[]
-  vietnamese: string[]
-  examples: { en: string; vi: string }[]
-  partOfSpeech: string
+  goal: string
   level: string
-  note?: string
-  tags: string[]
-  collectionId: string
-  masteryLevel: number
+  progress: number
+  status: "active" | "completed" | "paused"
+  studiedHours: number
+  totalHours: number
+  remainHours: number
 }
 
-export default function NotebookPage() {
-  const [selectedCollection, setSelectedCollection] = useState<string>("vocabulary")
-  const [viewMode, setViewMode] = useState<"list" | "flashcards" | "daily-review">("list")
-  const [searchQuery, setSearchQuery] = useState("")
-  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
-  const [currentCardIndex, setCurrentCardIndex] = useState(0)
-  const [showAnswer, setShowAnswer] = useState(false)
-  const [isFlipped, setIsFlipped] = useState(false)
-  const [shadowingOpen, setShadowingOpen] = useState(false)
-  const [currentSentence, setCurrentSentence] = useState(0)
-  const [isRecording, setIsRecording] = useState(false)
+interface Mission {
+  id: string
+  title: string
+  points: number
+  completed: boolean
+}
 
-  const collections: Collection[] = [
-    { id: "vocabulary", name: "Vocabulary", icon: <BookOpen className="h-4 w-4" />, count: 247 },
-    { id: "grammar", name: "Grammar", icon: <FileText className="h-4 w-4" />, count: 45 },
-    { id: "collocations", name: "Collocations", icon: <Link2 className="h-4 w-4" />, count: 89 },
-    { id: "idioms", name: "Idioms & Expressions", icon: <MessageSquare className="h-4 w-4" />, count: 67 },
-    { id: "phrasal-verbs", name: "Phrasal Verbs", icon: <Zap className="h-4 w-4" />, count: 123 },
-    { id: "sentence-patterns", name: "Sentence Patterns", icon: <FileCheck className="h-4 w-4" />, count: 34 },
-    { id: "linking-words", name: "Linking Words", icon: <LinkIcon className="h-4 w-4" />, count: 56 },
-    { id: "pronunciation", name: "Pronunciation", icon: <Volume2 className="h-4 w-4" />, count: 78 },
-    { id: "common-mistakes", name: "Common Mistakes", icon: <Info className="h-4 w-4" />, count: 29 },
+interface TodayLesson {
+  id: string
+  type: "vocab" | "grammar" | "speaking"
+  title: string
+  topic: string
+  duration: string
+  completed: boolean
+  link?: string // Added link property for navigation
+}
+
+export default function StudyPlanPage() {
+  const [selectedPlanId, setSelectedPlanId] = useState<string>("plan1")
+  const [activeMissionTab, setActiveMissionTab] = useState<"today" | "weekly" | "monthly">("today")
+  const [isEditing, setIsEditing] = useState(false)
+  const [completedLessons, setCompletedLessons] = useState<string[]>([])
+  const [completedMissions, setCompletedMissions] = useState<string[]>([])
+
+  // Mock Data
+  const studyPlans: StudyPlan[] = [
+    {
+      id: "plan1",
+      name: "IELTS Preparation",
+      goal: "Achieve IELTS Band 7.0",
+      level: "C1",
+      progress: 44,
+      status: "active",
+      studiedHours: 72,
+      totalHours: 104,
+      remainHours: 32,
+    },
+    {
+      id: "plan2",
+      name: "Business English",
+      goal: "Achieve IELTS Band 6.0",
+      level: "B2",
+      progress: 44,
+      status: "active",
+      studiedHours: 45,
+      totalHours: 120,
+      remainHours: 75,
+    },
   ]
 
-  const [notebookItems] = useState<NotebookItem[]>([
+  const todayLessons: TodayLesson[] = [
     {
-      id: "1",
-      word: "Accomplish",
-      pronunciation: "/əˈkʌmplɪʃ/",
-      meaning: ["To complete or achieve something successfully"],
-      vietnamese: ["Hoàn thành, đạt được"],
-      examples: [
-        {
-          en: "She was able to accomplish all her goals this year.",
-          vi: "Cô ấy đã có thể hoàn thành tất cả mục tiêu của mình trong năm nay.",
-        },
-      ],
-      partOfSpeech: "verb",
-      level: "B1",
-      note: "Often used in professional contexts",
-      tags: ["business", "achievement"],
-      collectionId: "vocabulary",
-      masteryLevel: 65,
+      id: "l1",
+      type: "vocab",
+      title: "Vocabulary Topic: Animals",
+      topic: "Từ mới: 13 • Khóa học: IELTS Preparation",
+      duration: "Thời gian học: 20 phút",
+      completed: false,
+      link: "/vocab/animals", // Added mock link
     },
     {
-      id: "2",
-      word: "Collaborate",
-      pronunciation: "/kəˈlæbəreɪt/",
-      meaning: ["To work together with others on a project or task"],
-      vietnamese: ["Cộng tác, làm việc cùng nhau"],
-      examples: [
-        {
-          en: "The teams will collaborate to develop the new software.",
-          vi: "Các nhóm sẽ cộng tác để phát triển phần mềm mới.",
-        },
-      ],
-      partOfSpeech: "verb",
-      level: "B2",
-      note: "Very common in workplace English",
-      tags: ["business", "teamwork"],
-      collectionId: "vocabulary",
-      masteryLevel: 40,
+      id: "l2",
+      type: "grammar",
+      title: "Grammar Topic: Present Simple",
+      topic: "Ngữ pháp mới: 4 • Khóa học: IELTS Preparation",
+      duration: "Thời gian học: 10 phút",
+      completed: false,
+      link: "/grammar/present-simple",
     },
     {
-      id: "3",
-      word: "behaviour",
-      pronunciation: "/bɪˈheɪvjə(r)/",
-      meaning: [
-        "the way that somebody behaves, especially towards other people",
-        "the way a person, an animal, a plant, a chemical, etc. behaves or functions in a particular situation",
-      ],
-      vietnamese: [
-        "Hành vi / cách cư xử (đối với người khác)",
-        "Cách hoạt động / phản ứng (trong một tình huống cụ thể)",
-      ],
-      examples: [
-        { en: "It is hard to change old patterns of behaviour.", vi: "Thật khó để thay đổi những hành vi cũ." },
-        {
-          en: "Animals in zoos often display disturbed behaviour.",
-          vi: "Động vật trong vườn thú thường thể hiện hành vi bất thường.",
-        },
-      ],
-      partOfSpeech: "noun",
-      level: "A2",
-      tags: [],
-      collectionId: "vocabulary",
-      masteryLevel: 80,
+      id: "l3",
+      type: "grammar",
+      title: "Grammar Topic: Could/Should",
+      topic: "Ngữ pháp mới: 4 • Khóa học: IELTS Preparation",
+      duration: "Thời gian học: 10 phút",
+      completed: false,
+      link: "/grammar/modals",
     },
-  ])
+  ]
 
-  const filteredItems = notebookItems.filter(
-    (item) =>
-      item.collectionId === selectedCollection &&
-      (item.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.meaning.some((m) => m.toLowerCase().includes(searchQuery.toLowerCase()))),
-  )
+  const missions: Mission[] = [
+    { id: "m1", title: "Enter today", points: 5, completed: false },
+    { id: "m2", title: "Study 30 minutes", points: 10, completed: false },
+    { id: "m3", title: "Learn 10 new flashcard", points: 10, completed: false },
+    { id: "m4", title: "Complete today lesson", points: 40, completed: false },
+    { id: "m5", title: "Speaking 1 time", points: 30, completed: false },
+    { id: "m6", title: "Review all notebook", points: 30, completed: false },
+    { id: "m7", title: "Complete all tasks", points: 30, completed: false },
+  ]
 
-  const dueCount = 15
-
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.code === "Space" && viewMode === "flashcards") {
-        e.preventDefault()
-        setIsFlipped(!isFlipped)
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyPress)
-    return () => window.removeEventListener("keydown", handleKeyPress)
-  }, [isFlipped, viewMode])
-
-  useEffect(() => {
-    setIsFlipped(false)
-  }, [currentCardIndex])
-
-  const handleNextCard = () => {
-    if (currentCardIndex < filteredItems.length - 1) {
-      setCurrentCardIndex(currentCardIndex + 1)
-      setShowAnswer(false)
-    }
+  const toggleLesson = (id: string) => {
+    setCompletedLessons((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]))
   }
 
-  const handlePrevCard = () => {
-    if (currentCardIndex > 0) {
-      setCurrentCardIndex(currentCardIndex - 1)
-      setShowAnswer(false)
-    }
+  const toggleMission = (id: string) => {
+    setCompletedMissions((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]))
   }
 
-  const handleRecording = () => {
-    setIsRecording(!isRecording)
-  }
+  const selectedPlan = studyPlans.find((p) => p.id === selectedPlanId) || studyPlans[0]
 
-  const currentItem = filteredItems[currentCardIndex]
+  const displayedMissions = missions.map((m) => ({
+    ...m,
+    // Add some variation for other tabs just for demo
+    title:
+      activeMissionTab === "today"
+        ? m.title
+        : activeMissionTab === "weekly"
+          ? m.title.replace("today", "this week")
+          : m.title.replace("today", "this month"),
+    points: activeMissionTab === "today" ? m.points : m.points * 5,
+  }))
 
   return (
     <ProtectedRoute
-      pageName="Notebook"
-      pageDescription="Save and organize your vocabulary, notes, and learning materials."
-      pageIcon={PageIcons.notebook}
+      pageName="Study Plan"
+      pageDescription="View and manage your personalized learning schedule."
+      pageIcon={PageIcons.studyPlan}
     >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex gap-6 min-h-[calc(100vh-200px)]">
-          {/* Sidebar */}
-          <div className="w-64 flex-shrink-0">
-            <Card className="p-6 sticky top-8">
-              <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Collections</h2>
-                <Button size="sm" variant="ghost" className="h-8 w-8 rounded-full p-0">
-                  <Plus className="h-4 w-4" />
+      <div className="container mx-auto max-w-7xl py-8">
+        <div className="space-y-8">
+          {/* 1. Header Section */}
+          <div className="relative overflow-hidden rounded-3xl border border-blue-100 bg-white p-8 shadow-sm">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+              <div className="max-w-xl space-y-4">
+                <h1 className="text-4xl font-black uppercase tracking-tight text-blue-950">Your Study Plan</h1>
+                <p className="text-lg text-slate-600">
+                  Practice real conversations with AI tutors and get instant feedback on your pronunciation, fluency,
+                  grammar, and content.
+                </p>
+              </div>
+              <div className="relative h-48 w-48 md:h-64 md:w-64 flex-shrink-0">
+                {/* Placeholder illustration matching the style */}
+                <div className="absolute inset-0 bg-[#C2E2FA]/40 rounded-full blur-3xl animate-pulse" />
+                <Image
+                  src="learning.png"
+                  alt="Study Plan Illustration"
+                  width={300}
+                  height={300}
+                  className="relative z-10 object-contain drop-shadow-lg"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* 2. This week's plan Section */}
+          <Card className="p-6 border-blue-100 shadow-md">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-slate-800">This week&apos;s plan</h2>
+              <Button
+                variant={isEditing ? "default" : "outline"}
+                size="sm"
+                onClick={() => setIsEditing(!isEditing)}
+                className={isEditing ? "bg-blue-600 text-white" : "border-blue-200 text-blue-700 hover:bg-blue-50"}
+              >
+                {isEditing ? <Check className="w-4 h-4 mr-1" /> : <Edit2 className="w-4 h-4 mr-1" />}
+                {isEditing ? "Done" : "Edit"}
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              {/* Left Side: Stats & Calendar (8 cols) */}
+              <div className="lg:col-span-7 space-y-8">
+                {/* Stats Row */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-center">
+                    <p className="text-xs text-blue-600 font-medium mb-1">Số giờ học trong ngày</p>
+                    <p className="text-xl font-bold text-slate-800">1.5h</p>
+                  </div>
+                  <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-center">
+                    <p className="text-xs text-blue-600 font-medium mb-1">Số giờ học trong tuần</p>
+                    <p className="text-xl font-bold text-slate-800">13h</p>
+                  </div>
+                  <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-center">
+                    <p className="text-xs text-blue-600 font-medium mb-1">Total Hours</p>
+                    <p className="text-xl font-bold text-slate-800">70h</p>
+                  </div>
+                </div>
+
+                {/* Calendar Grid */}
+                <div className="rounded-xl border border-blue-100 overflow-hidden shadow-sm bg-white">
+                  <div className="grid grid-cols-8 border-b border-blue-100 text-center text-xs font-semibold text-slate-500 bg-blue-50/30">
+                    <div className="p-3 border-r border-blue-100">time</div>
+                    {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+                      <div key={day} className="p-3 border-r border-blue-100 last:border-r-0 text-blue-900">
+                        {day}
+                      </div>
+                    ))}
+                  </div>
+                  {/* Simplified Time Blocks for visual matching */}
+                  <div className="grid grid-cols-8 text-xs min-h-[60px] border-b border-blue-50">
+                    <div className="p-2 border-r border-blue-50 text-center text-slate-400 font-mono font-bold text-sm">
+                      6:00
+                    </div>
+                    <div className="border-r border-blue-50"></div>
+                    <div className="border-r border-blue-50 p-1">
+                      <div
+                        className={`w-full h-full rounded-lg ${isEditing ? "animate-pulse ring-1 ring-blue-300" : ""} bg-[#C2E2FA] text-blue-900 font-medium flex items-center justify-center text-[10px] shadow-sm`}
+                      >
+                        Speaking
+                      </div>
+                    </div>
+                    <div className="border-r border-blue-50 p-1">
+                      <div
+                        className={`w-full h-full rounded-lg ${isEditing ? "animate-pulse ring-1 ring-blue-300" : ""} bg-[#C2E2FA] text-blue-900 font-medium flex items-center justify-center text-[10px] shadow-sm`}
+                      >
+                        Speaking
+                      </div>
+                    </div>
+                    <div className="border-r border-blue-50"></div>
+                    <div className="border-r border-blue-50 p-1">
+                      <div
+                        className={`w-full h-full rounded-lg ${isEditing ? "animate-pulse ring-1 ring-blue-300" : ""} bg-[#C2E2FA] text-blue-900 font-medium flex items-center justify-center text-[10px] shadow-sm`}
+                      >
+                        Speaking
+                      </div>
+                    </div>
+                    <div className="border-r border-blue-50"></div>
+                    <div className="border-r border-blue-50"></div>
+                  </div>
+                  <div className="grid grid-cols-8 text-xs min-h-[60px] border-b border-blue-50">
+                    <div className="p-2 border-r border-blue-50 text-center text-slate-400 font-mono font-bold text-sm">
+                      12:00
+                    </div>
+                    <div className="border-r border-blue-50 p-1">
+                      <div className="w-full h-full rounded-lg bg-[#C2E2FA] text-blue-900 font-medium flex items-center justify-center text-[10px] shadow-sm">
+                        Speaking
+                      </div>
+                    </div>
+                    {/* ... existing empty cells ... */}
+                    <div className="border-r border-blue-50"></div>
+                    <div className="border-r border-blue-50"></div>
+                    <div className="border-r border-blue-50"></div>
+                    <div className="border-r border-blue-50"></div>
+                    <div className="border-r border-blue-50"></div>
+                    <div className="border-r border-blue-50"></div>
+                  </div>
+                  <div className="grid grid-cols-8 text-xs min-h-[60px] border-b border-blue-50">
+                    <div className="p-2 border-r border-blue-50 text-center text-slate-400 font-mono font-bold text-sm">
+                      1:00
+                    </div>
+                    <div className="border-r border-blue-50 p-1">
+                      <div className="w-full h-full rounded-lg bg-indigo-100 text-indigo-900 font-medium flex items-center justify-center text-[10px] shadow-sm">
+                        Vocabulary
+                      </div>
+                    </div>
+                    <div className="border-r border-blue-50"></div>
+                    <div className="border-r border-blue-50 p-1">
+                      <div className="w-full h-full rounded-lg bg-[#C2E2FA] text-blue-900 font-medium flex items-center justify-center text-[10px] shadow-sm">
+                        Speaking
+                      </div>
+                    </div>
+                    <div className="border-r border-blue-50"></div>
+                    <div className="border-r border-blue-50"></div>
+                    <div className="border-r border-blue-50 p-1">
+                      <div className="w-full h-full rounded-lg bg-[#C2E2FA] text-blue-900 font-medium flex items-center justify-center text-[10px] shadow-sm">
+                        Speaking
+                      </div>
+                    </div>
+                    <div className="border-r border-blue-50"></div>
+                  </div>
+                  <div className="grid grid-cols-8 text-xs min-h-[60px]">
+                    <div className="p-2 border-r border-blue-50 text-center text-slate-400 font-mono font-bold text-sm">
+                      5:00
+                    </div>
+                    <div className="border-r border-blue-50 p-1">
+                      <div className="w-full h-full rounded-lg bg-orange-100 text-orange-900 font-medium flex items-center justify-center text-[10px] shadow-sm">
+                        Grammar
+                      </div>
+                    </div>
+                    {/* ... existing empty cells ... */}
+                    <div className="border-r border-blue-50"></div>
+                    <div className="border-r border-blue-50"></div>
+                    <div className="border-r border-blue-50"></div>
+                    <div className="border-r border-blue-50"></div>
+                    <div className="border-r border-blue-50"></div>
+                    <div className="border-r border-blue-50"></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Side: Today's Lesson (4 cols) */}
+              <div className="lg:col-span-5 flex flex-col">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-slate-800">Today&apos;s lesson</h3>
+                  <span className="bg-blue-100 text-blue-700 font-semibold text-xs px-2.5 py-1 rounded-full">
+                    Complete {completedLessons.length}/{todayLessons.length}
+                  </span>
+                </div>
+
+                <div className="space-y-4 flex-1">
+                  {todayLessons.map((lesson) => {
+                    const isCompleted = completedLessons.includes(lesson.id)
+                    return (
+                      <div
+                        key={lesson.id}
+                        onClick={() => toggleLesson(lesson.id)}
+                        className={`relative flex items-start gap-4 p-4 border rounded-xl transition-all cursor-pointer group ${
+                          isCompleted
+                            ? "bg-blue-50 border-blue-200"
+                            : "bg-white border-gray-100 hover:border-blue-300 hover:shadow-md"
+                        }`}
+                      >
+                        <div className="mt-1">
+                          <div
+                            className={`h-5 w-5 rounded border flex items-center justify-center transition-colors ${
+                              isCompleted
+                                ? "bg-blue-500 border-blue-500"
+                                : "border-gray-300 group-hover:border-blue-400"
+                            }`}
+                          >
+                            {isCompleted && <Check className="h-3 w-3 text-white" />}
+                          </div>
+                        </div>
+                        <div className="flex-1 space-y-1">
+                          <h4 className={`font-bold text-sm ${isCompleted ? "text-blue-900" : "text-slate-800"}`}>
+                            {lesson.title}
+                          </h4>
+                          <p className="text-xs text-slate-500 whitespace-pre-line">{lesson.topic}</p>
+                          <p className="text-xs text-slate-400 flex items-center gap-1">
+                            <PlayCircle className="w-3 h-3" /> {lesson.duration}
+                          </p>
+                        </div>
+                        <div className="absolute bottom-4 right-4">
+                          <Button
+                            asChild
+                            variant="secondary"
+                            size="sm"
+                            className="h-7 text-xs bg-blue-100 text-blue-700 hover:bg-blue-200"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <Link href={lesson.link || "#"}>học ngay</Link>
+                          </Button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                <div className="flex justify-center gap-2 mt-4 text-xs font-medium text-slate-500">
+                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-sm">
+                    1
+                  </span>
+                  <span className="w-6 h-6 rounded-full hover:bg-blue-100 hover:text-blue-700 flex items-center justify-center cursor-pointer transition-colors">
+                    2
+                  </span>
+                  <span className="w-6 h-6 rounded-full hover:bg-blue-100 hover:text-blue-700 flex items-center justify-center cursor-pointer transition-colors">
+                    &gt;
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+{/* 3. Missions & Reminders Section (GRID LAYOUT UPDATED) */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Missions - Takes up 2 Columns */}
+            <Card className="p-6 border-blue-100 shadow-md lg:col-span-2">
+              <h2 className="text-xl font-bold mb-6 text-slate-800">Mission</h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                {/* Sidebar Tabs */}
+                <div className="md:col-span-3 space-y-6">
+                  <div className="flex flex-col border border-blue-100 rounded-xl overflow-hidden shadow-sm">
+                    {(["today", "weekly", "monthly"] as const).map((tab) => (
+                      <button
+                        key={tab}
+                        onClick={() => setActiveMissionTab(tab)}
+                        className={`p-3 text-sm font-medium text-left border-b border-blue-50 last:border-b-0 transition-all capitalize flex items-center justify-between ${
+                          activeMissionTab === tab
+                            ? "bg-[#C2E2FA] text-blue-900"
+                            : "bg-white text-slate-600 hover:bg-blue-50"
+                        }`}
+                      >
+                        {tab}
+                        {activeMissionTab === tab && <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 text-center space-y-2 border border-blue-100">
+                    <h4 className="font-bold text-sm text-slate-700">Countdown</h4>
+                    <div className="bg-white/80 py-2 px-4 rounded-lg font-mono font-bold text-sm text-blue-600 shadow-sm border border-blue-100">
+                      14:59 hours remains
+                    </div>
+                    <p className="text-[10px] text-slate-500">Kết thúc lúc 11:59PM ngày 23/11/2025</p>
+                  </div>
+                </div>
+
+                {/* Mission List */}
+                <div className="md:col-span-5">
+                  <h3 className="font-bold mb-4 text-slate-800 capitalize">{activeMissionTab} Mission</h3>
+                  <div className="space-y-3">
+                    {displayedMissions.map((mission) => {
+                      const isDone = completedMissions.includes(mission.id)
+                      return (
+                        <div
+                          key={mission.id}
+                          className="flex items-center gap-3 group cursor-pointer"
+                          onClick={() => toggleMission(mission.id)}
+                        >
+                          <div
+                            className={`h-5 w-5 rounded border flex items-center justify-center transition-colors ${
+                              isDone
+                                ? "bg-green-500 border-green-500"
+                                : "border-slate-300 group-hover:border-blue-400"
+                            }`}
+                          >
+                            {isDone && <Check className="h-3 w-3 text-white" />}
+                          </div>
+                          <span
+                            className={`text-sm flex-1 transition-colors ${
+                              isDone ? "text-slate-400 line-through" : "text-slate-700"
+                            }`}
+                          >
+                            {mission.title}
+                          </span>
+                          <span className="text-xs font-bold text-orange-500 bg-orange-50 px-1.5 py-0.5 rounded border border-orange-100">
+                            +{mission.points}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Gift/Reward */}
+                <div className="md:col-span-4 flex flex-col items-center">
+                  <h3 className="font-bold mb-4 self-start text-slate-800">Quà tặng</h3>
+                  <div className="w-full aspect-square border-2 border-dashed border-blue-200 rounded-2xl flex flex-col items-center justify-center mb-4 bg-blue-50/50 hover:bg-blue-50 transition-colors cursor-pointer group">
+                    <Gift className="h-12 w-12 text-blue-300 group-hover:text-blue-500 transition-colors mb-2" />
+                    <span className="text-xs text-blue-400 font-medium">Open Rewards</span>
+                  </div>
+                  <div className="text-center text-sm bg-white px-4 py-2 rounded-lg border border-gray-100 shadow-sm">
+                    <p className="font-bold text-blue-900">110 điểm thưởng</p>
+                    <p className="text-slate-500">30 card</p>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Reminders - Takes up 1 Column */}
+            <Card className="p-6 border-blue-100 shadow-md flex flex-col lg:col-span-1">
+              <h2 className="text-xl font-bold mb-6 text-slate-800">Lời nhắc</h2>
+
+              <div className="space-y-4 flex-1">
+                <div className="border border-indigo-100 bg-indigo-50/30 rounded-xl p-4 text-center space-y-3">
+                  <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mx-auto text-indigo-600">
+                    <Mic className="w-5 h-5" />
+                  </div>
+                  <h3 className="font-bold text-sm text-indigo-900">Speaking Room</h3>
+                  <p className="text-xs text-slate-500 px-4">Bạn chưa luyện nói lần nào</p>
+                  <Button
+                    asChild
+                    variant="secondary"
+                    size="sm"
+                    className="w-full bg-indigo-100 hover:bg-indigo-200 text-indigo-700"
+                  >
+                    <Link href="/speaking">Luyện ngay</Link>
+                  </Button>
+                </div>
+
+                <div className="border border-emerald-100 bg-emerald-50/30 rounded-xl p-4 text-center space-y-3">
+                  <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-600">
+                    <BookOpen className="w-5 h-5" />
+                  </div>
+                  <h3 className="font-bold text-sm text-emerald-900">Notebook</h3>
+                  <p className="text-xs text-slate-500 px-4">Bạn có 34 từ đang đợi ôn tập</p>
+                  <Button
+                    asChild
+                    variant="secondary"
+                    size="sm"
+                    className="w-full bg-emerald-100 hover:bg-emerald-200 text-emerald-700"
+                  >
+                    <Link href="/notebook">ôn tập ngay</Link>
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* 4. Plans Grid Section (GRID LAYOUT UPDATED) */}
+          <div className="grid grid-cols-1 lg:grid-cols-7 gap-8">
+            {/* My Study Plan - Takes up 1 Column */}
+            <Card className="p-6 h-full border-blue-100 shadow-md lg:col-span-2">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-slate-800">My Study Plan</h2>
+                <Button variant="secondary" size="sm" className="bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs">
+                  New plan
                 </Button>
               </div>
 
-              <div className="space-y-1">
-                {collections.map((collection) => (
-                  <button
-                    key={collection.id}
-                    onClick={() => {
-                      setSelectedCollection(collection.id)
-                      setViewMode("list")
-                    }}
-                    className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${
-                      selectedCollection === collection.id
-                        ? "bg-primary/10 text-primary font-medium"
-                        : "hover:bg-muted text-muted-foreground"
+              <div className="space-y-4">
+                {studyPlans.map((plan) => (
+                  <div
+                    key={plan.id}
+                    onClick={() => setSelectedPlanId(plan.id)}
+                    className={`rounded-xl border p-4 cursor-pointer transition-all ${
+                      selectedPlanId === plan.id
+                        ? "ring-2 ring-blue-500 border-transparent bg-blue-50 shadow-sm"
+                        : "border-gray-200 hover:border-blue-300 hover:shadow-sm bg-white"
                     }`}
                   >
-                    <div className="flex items-center gap-2">
-                      {collection.icon}
-                      <span>{collection.name}</span>
+                    <div className="flex items-center justify-between mb-3">
+                      <h3
+                        className={`font-bold text-sm ${
+                          selectedPlanId === plan.id ? "text-blue-900" : "text-slate-700"
+                        }`}
+                      >
+                        {plan.name}
+                      </h3>
+                      {plan.status === "active" && (
+                        <span className="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">
+                          active
+                        </span>
+                      )}
                     </div>
-                    <span className="text-xs">{collection.count}</span>
-                  </button>
+                    <p className="text-xs text-slate-500 mb-4">{plan.goal}</p>
+
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-xs font-bold text-slate-700">
+                        <span>Progress</span>
+                        <span>{plan.progress}%</span>
+                      </div>
+                      <Progress value={plan.progress} className="h-1.5 bg-blue-100" />
+                      <p className="text-[10px] text-slate-400 mt-1">Remain: {plan.remainHours}h to complete</p>
+                    </div>
+                  </div>
                 ))}
               </div>
             </Card>
-          </div>
 
-          {/* Main Content */}
-          <div className="flex-1 flex flex-col">
-            {/* Header */}
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold mb-1">Knowledge Notebook</h1>
-              <p className="text-sm text-muted-foreground">Organize and review your English learning notes</p>
-            </div>
-
-            {/* Collection Header with Actions */}
-            <Card className="p-6 mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  {collections.find((c) => c.id === selectedCollection)?.icon}
-                  <h2 className="text-lg font-semibold capitalize">{selectedCollection}</h2>
-                  <span className="text-sm text-muted-foreground">({filteredItems.length} items)</span>
-                </div>
-                <Button size="sm" className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Add Item
+            {/* Detail Study Plan - Takes up 3 Columns */}
+            <Card className="p-6 border-blue-100 shadow-md lg:col-span-5">
+              <div className="flex items-center justify-between mb-1">
+                <h2 className="text-xl font-bold text-slate-800">Detail Study Plan</h2>
+                <Button variant="ghost" size="icon" className="text-slate-400 hover:text-blue-600">
+                  <Brain className="w-5 h-5" />
                 </Button>
               </div>
 
-              {/* Search Bar */}
-              <div className="relative mb-4">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search your notes..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
+              <h3 className="text-lg font-bold mb-4 text-blue-900">{selectedPlan.name}</h3>
+              <p className="text-sm text-slate-500 mb-6 border-b border-gray-100 pb-4">{selectedPlan.goal}</p>
+
+              {/* Detailed Stats */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+                <div className="border border-blue-100 bg-blue-50/50 rounded-xl p-3 text-center">
+                  <p className="text-xs text-blue-600 font-medium mb-1">Progress</p>
+                  <p className="font-bold text-slate-800">{selectedPlan.progress}%</p>
+                </div>
+                <div className="border border-blue-100 bg-blue-50/50 rounded-xl p-3 text-center">
+                  <p className="text-xs text-blue-600 font-medium mb-1">Studied</p>
+                  <p className="font-bold text-slate-800">{selectedPlan.studiedHours}h</p>
+                </div>
+                <div className="border border-blue-100 bg-blue-50/50 rounded-xl p-3 text-center">
+                  <p className="text-xs text-blue-600 font-medium mb-1">Remain</p>
+                  <p className="font-bold text-slate-800">{selectedPlan.remainHours}h</p>
+                </div>
+                <div className="border border-blue-100 bg-blue-50/50 rounded-xl p-3 text-center">
+                  <p className="text-xs text-blue-600 font-medium mb-1">Level</p>
+                  <p className="font-bold text-slate-800">{selectedPlan.level}</p>
+                </div>
               </div>
 
-              {/* View Tabs */}
-              <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="w-full">
-                <TabsList className="grid w-full max-w-md grid-cols-3">
-                  <TabsTrigger value="list">List View</TabsTrigger>
-                  <TabsTrigger value="flashcards">Flashcards</TabsTrigger>
-                  <TabsTrigger value="daily-review">Daily Review</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </Card>
+              {/* Gamification Placeholders */}
+              <div className="space-y-6">
+                <div className="w-full h-48 bg-gradient-to-r from-blue-100 to-indigo-50 rounded-2xl flex flex-col items-center justify-center text-center p-6 border border-blue-200 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full -mr-10 -mt-10" />
+                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/20 rounded-full -ml-8 -mb-8" />
+                  <Target className="w-12 h-12 text-blue-500 mb-2 group-hover:scale-110 transition-transform" />
+                  <p className="font-bold text-blue-900 text-sm">Gamification Map Overview</p>
+                  <p className="text-xs text-blue-600 mt-1">Unlock new islands as you progress!</p>
+                </div>
 
-            {/* Content Area */}
-            <div className="flex-1">
-              {viewMode === "list" && (
-                <Card className="p-6">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[180px]">Word</TableHead>
-                        <TableHead className="w-[300px]">Meaning</TableHead>
-                        <TableHead className="w-[80px]">Level</TableHead>
-                        <TableHead className="w-[140px]">Status</TableHead>
-                        <TableHead className="w-[180px] text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredItems.map((item) => (
-                        <TableRow key={item.id}>
-                          <TableCell className="py-4">
-                            <div>
-                              <p className="font-semibold">{item.word}</p>
-                              <p className="text-xs text-muted-foreground">{item.pronunciation}</p>
-                            </div>
-                          </TableCell>
-                          <TableCell className="py-4">
-                            <div className="space-y-1">
-                              <p className="text-sm line-clamp-1">{item.meaning[0]}</p>
-                              {item.meaning.length > 1 && (
-                                <p className="text-sm line-clamp-1 text-muted-foreground">{item.meaning[1]}</p>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="py-4">
-                            <Badge variant="outline">{item.level}</Badge>
-                          </TableCell>
-                          <TableCell className="py-4">
-                            <div className="space-y-2">
-                              <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
-                                <div
-                                  className="h-full bg-primary transition-all"
-                                  style={{ width: `${item.masteryLevel}%` }}
-                                />
-                              </div>
-                              <p className="text-xs text-muted-foreground">
-                                {item.masteryLevel < 30
-                                  ? "Learning"
-                                  : item.masteryLevel < 70
-                                    ? "Reviewing"
-                                    : "Mastered"}
-                              </p>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right py-4">
-                            <div className="flex justify-end gap-2">
-                              <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                                <Volume2 className="h-4 w-4" />
-                              </Button>
-                              <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button size="sm" variant="outline" className="h-8 bg-transparent">
-                                Practice
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </Card>
-              )}
-
-              {viewMode === "flashcards" && currentItem && (
-                <div className="max-w-4xl mx-auto">
-                  <div
-                    className="perspective-1000 cursor-pointer mb-8"
-                    onClick={() => setIsFlipped(!isFlipped)}
-                    style={{ perspective: "1000px" }}
-                  >
-                    <div
-                      className="relative w-full h-[500px] transition-transform duration-500 preserve-3d"
-                      style={{
-                        transformStyle: "preserve-3d",
-                        transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
-                      }}
-                    >
-                      <Card
-                        className="absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8"
-                        style={{ backfaceVisibility: "hidden" }}
-                      >
-                        <div className="text-center space-y-6">
-                          <h2 className="text-5xl font-bold">{currentItem.word}</h2>
-                          <div className="flex items-center gap-3 justify-center">
-                            <Badge variant="secondary" className="text-lg px-4 py-1">
-                              {currentItem.partOfSpeech}
-                            </Badge>
-                            <Badge variant="outline" className="text-lg px-4 py-1">
-                              {currentItem.level}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center gap-2 justify-center mt-8">
-                            <span className="text-sm text-muted-foreground">
-                              {currentItem.masteryLevel < 30
-                                ? "New"
-                                : currentItem.masteryLevel < 70
-                                  ? "Learning"
-                                  : "Mastered"}
-                            </span>
-                            <div className="w-48 h-3 bg-secondary rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-primary transition-all"
-                                style={{ width: `${currentItem.masteryLevel}%` }}
-                              />
-                            </div>
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-8">Click or press Space to flip</p>
-                        </div>
-                      </Card>
-
-                      <Card
-                        className="absolute inset-0 backface-hidden p-8 overflow-y-auto"
-                        style={{
-                          backfaceVisibility: "hidden",
-                          transform: "rotateY(180deg)",
-                        }}
-                      >
-                        <div className="space-y-6">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-3">
-                              <h2 className="text-3xl font-bold">{currentItem.word}</h2>
-                              <Badge variant="secondary">{currentItem.partOfSpeech}</Badge>
-                              <Badge variant="outline">{currentItem.level}</Badge>
-                            </div>
-                            <Button size="sm" variant="ghost" className="h-8 w-8 rounded-full p-0">
-                              <Star className="h-4 w-4" />
-                            </Button>
-                          </div>
-
-                          <p className="text-lg text-muted-foreground">{currentItem.pronunciation}</p>
-
-                          <div className="grid md:grid-cols-2 gap-6">
-                            <div>
-                              <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-3">Meaning</h3>
-                              <div className="space-y-2">
-                                {currentItem.meaning.map((m, idx) => (
-                                  <div key={idx} className="flex gap-2">
-                                    <div className="h-6 w-6 rounded-full bg-blue-100 flex-shrink-0 flex items-center justify-center text-xs font-semibold text-blue-700">
-                                      {idx + 1}
-                                    </div>
-                                    <p className="text-sm">{m}</p>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-
-                            <div>
-                              <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-3">Vietnamese</h3>
-                              <div className="space-y-2">
-                                {currentItem.vietnamese.map((v, idx) => (
-                                  <div key={idx} className="flex gap-2">
-                                    <div className="h-6 w-6 rounded-full bg-green-100 flex-shrink-0 flex items-center justify-center text-xs font-semibold text-green-700">
-                                      {idx + 1}
-                                    </div>
-                                    <p className="text-sm">{v}</p>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div>
-                            <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-3">Examples</h3>
-                            <div className="space-y-3">
-                              {currentItem.examples.map((ex, idx) => (
-                                <div key={idx} className="bg-muted/50 rounded-lg p-3 space-y-1">
-                                  <p className="text-sm italic">"{ex.en}"</p>
-                                  <p className="text-sm text-muted-foreground">"{ex.vi}"</p>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-
-                          <div className="pt-4">
-                            <Button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                setShadowingOpen(true)
-                                setCurrentSentence(0)
-                              }}
-                              variant="outline"
-                              className="gap-2 bg-transparent"
-                            >
-                              <Mic className="h-4 w-4" />
-                              shadowing these sentences
-                            </Button>
-                          </div>
-
-                          <p className="text-sm text-muted-foreground text-center pt-4">
-                            Click or press Space to flip back
-                          </p>
-                        </div>
-                      </Card>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-center items-center gap-4">
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      onClick={handlePrevCard}
-                      disabled={currentCardIndex === 0}
-                      className="rounded-full bg-transparent"
-                    >
-                      <ChevronLeft className="h-5 w-5" />
-                    </Button>
-                    <span className="text-sm font-medium">
-                      {currentCardIndex + 1} / {filteredItems.length}
+                <div className="space-y-2">
+                  <h4 className="font-bold text-sm text-slate-800 flex items-center gap-2">
+                    <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">
+                      1
                     </span>
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      onClick={handleNextCard}
-                      disabled={currentCardIndex === filteredItems.length - 1}
-                      className="rounded-full bg-transparent"
-                    >
-                      <ChevronRight className="h-5 w-5" />
-                    </Button>
+                    Chặng 1: Foundation
+                  </h4>
+                  <div className="w-full h-64 bg-slate-50 rounded-2xl border border-dashed border-slate-300 flex items-center justify-center text-xs text-slate-400 relative">
+                    <Image
+                      src="/placeholder.svg?height=400&width=800"
+                      alt="Gamification Path"
+                      fill
+                      className="object-cover opacity-50 rounded-2xl"
+                    />
+                    <span className="relative z-10 bg-white/80 px-4 py-2 rounded-full backdrop-blur-sm font-medium">
+                      Map Visualization Loading...
+                    </span>
                   </div>
                 </div>
-              )}
-
-              {viewMode === "daily-review" && (
-                <div className="max-w-2xl mx-auto">
-                  <Card className="p-8 text-center">
-                    <Zap className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
-                    <h2 className="text-2xl font-bold mb-2">Daily Review</h2>
-                    <p className="text-muted-foreground mb-6">
-                      You have <span className="font-semibold text-primary">{dueCount} words</span> ready for review
-                      today.
-                    </p>
-                    <p className="text-sm text-muted-foreground mb-8">
-                      Consistent daily practice helps reinforce your learning and improve retention.
-                    </p>
-                    <Button size="lg" onClick={() => setIsReviewModalOpen(true)} className="gap-2">
-                      <Zap className="h-5 w-5" />
-                      Start Practice
-                    </Button>
-                  </Card>
-
-                  <div className="grid grid-cols-3 gap-4 mt-6">
-                    <Card className="p-4 text-center">
-                      <p className="text-2xl font-bold text-blue-500">247</p>
-                      <p className="text-xs text-muted-foreground mt-1">Total Words</p>
-                    </Card>
-                    <Card className="p-4 text-center">
-                      <p className="text-2xl font-bold text-green-500">182</p>
-                      <p className="text-xs text-muted-foreground mt-1">Mastered</p>
-                    </Card>
-                    <Card className="p-4 text-center">
-                      <p className="text-2xl font-bold text-yellow-500">7</p>
-                      <p className="text-xs text-muted-foreground mt-1">Day Streak</p>
-                    </Card>
-                  </div>
-                </div>
-              )}
-            </div>
+              </div>
+            </Card>
           </div>
         </div>
-
-        <Dialog open={isReviewModalOpen} onOpenChange={setIsReviewModalOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Practice Review</DialogTitle>
-            </DialogHeader>
-            {currentItem && (
-              <div className="space-y-6">
-                <Card className="p-6 bg-muted/30">
-                  <h3 className="text-2xl font-bold mb-2">{currentItem.word}</h3>
-                  <p className="text-muted-foreground mb-4">{currentItem.pronunciation}</p>
-
-                  {showAnswer ? (
-                    <div className="space-y-4">
-                      <div>
-                        <p className="text-sm font-semibold mb-2">Meaning:</p>
-                        {currentItem.meaning.map((m, idx) => (
-                          <p key={idx} className="text-sm">
-                            • {m}
-                          </p>
-                        ))}
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold mb-2">Vietnamese:</p>
-                        {currentItem.vietnamese.map((v, idx) => (
-                          <p key={idx} className="text-sm">
-                            • {v}
-                          </p>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <Button onClick={() => setShowAnswer(true)} variant="outline" className="w-full">
-                      Show Answer
-                    </Button>
-                  )}
-                </Card>
-
-                {showAnswer && (
-                  <div className="grid grid-cols-4 gap-2">
-                    <Button variant="outline" className="bg-red-50 hover:bg-red-100">
-                      Again
-                    </Button>
-                    <Button variant="outline" className="bg-yellow-50 hover:bg-yellow-100">
-                      Hard
-                    </Button>
-                    <Button variant="outline" className="bg-green-50 hover:bg-green-100">
-                      Good
-                    </Button>
-                    <Button variant="outline" className="bg-blue-50 hover:bg-blue-100">
-                      Easy
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
-
-        <Dialog open={shadowingOpen} onOpenChange={setShadowingOpen}>
-          <DialogContent className="max-w-3xl">
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-bold text-center mb-6">Shadowing this sentence</DialogTitle>
-            </DialogHeader>
-            {currentItem && (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between mb-4">
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    onClick={() => setCurrentSentence(Math.max(0, currentSentence - 1))}
-                    disabled={currentSentence === 0}
-                    className="rounded-full"
-                  >
-                    <ChevronLeft className="h-5 w-5" />
-                  </Button>
-                  <span className="text-sm font-medium">
-                    Câu {currentSentence + 1} / {currentItem.examples.length}
-                  </span>
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    onClick={() => setCurrentSentence(Math.min(currentItem.examples.length - 1, currentSentence + 1))}
-                    disabled={currentSentence === currentItem.examples.length - 1}
-                    className="rounded-full"
-                  >
-                    <ChevronRight className="h-5 w-5" />
-                  </Button>
-                </div>
-
-                <Card className="p-6 bg-muted/30">
-                  <p className="text-xl mb-4">{currentItem.examples[currentSentence].en}</p>
-                  <p className="text-base text-muted-foreground">{currentItem.examples[currentSentence].vi}</p>
-                </Card>
-
-                <div className="flex flex-col items-center gap-4">
-                  <Button
-                    size="lg"
-                    variant={isRecording ? "destructive" : "default"}
-                    onClick={handleRecording}
-                    className="h-24 w-24 rounded-full"
-                  >
-                    {isRecording ? <Square className="h-8 w-8" /> : <Mic className="h-8 w-8" />}
-                  </Button>
-                  <p className="text-sm text-muted-foreground">
-                    {isRecording ? "Recording... Click to stop" : "Click to start recording"}
-                  </p>
-                </div>
-
-                <div className="flex justify-center gap-2">
-                  <Button variant="outline" className="gap-2 bg-transparent">
-                    <Volume2 className="h-4 w-4" />
-                    Play Original
-                  </Button>
-                  <Button variant="outline" className="gap-2 bg-transparent" disabled={!isRecording}>
-                    <Volume2 className="h-4 w-4" />
-                    Play Recording
-                  </Button>
-                </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
       </div>
     </ProtectedRoute>
   )
