@@ -59,7 +59,7 @@ export function Button3D({ children, className, variant = "primary", size = "md"
   return (
     <button
       className={cn(
-        "relative cursor-pointer inline-flex items-center justify-center",
+        "relative cursor-pointer inline-flex items-center justify-center overflow-hidden",
         // apply min-width/height from size mapping
         currentSize,
         disabled && "opacity-50 cursor-not-allowed",
@@ -80,11 +80,12 @@ export function Button3D({ children, className, variant = "primary", size = "md"
       {/* Shadow layer */}
       <div
         className={cn(
-          "absolute left-0 top-[3px] rounded-xl inline-flex justify-center items-center gap-2 transition-colors duration-100 pointer-events-none",
+          "absolute left-0 top-[3px] inline-flex justify-center items-center gap-2 transition-colors duration-100 pointer-events-none",
           currentVariant.shadow,
           // make shadow layer fill the button dimensions so it follows the actual width/height
           "w-full h-full",
         )}
+        style={{ borderRadius: "inherit" }}
       >
         {/* invisible element to preserve width/height for shadow */}
             <span className="text-center font-bold font-['Nunito'] leading-4 opacity-0 whitespace-pre-wrap wrap-break-word">{children}</span>
@@ -93,7 +94,7 @@ export function Button3D({ children, className, variant = "primary", size = "md"
       {/* Main button layer */}
       <div
         className={cn(
-          "absolute left-0 rounded-xl outline -outline-offset-1 inline-flex justify-center items-center gap-1.5 transition-all duration-100",
+          "absolute left-0 outline -outline-offset-1 inline-flex justify-center items-center gap-1.5 transition-all duration-100",
           currentVariant.button,
           currentVariant.outline,
           currentVariant.text,
@@ -101,6 +102,7 @@ export function Button3D({ children, className, variant = "primary", size = "md"
           // When pressing/hovering we translate the top layer to create the 3D effect.
               isPressed ? "translate-y-0.5" : isHovered ? "-translate-y-0.5" : "translate-y-0",
         )}
+        style={{ borderRadius: "inherit" }}
       >
             <span className="text-center font-bold font-['Nunito'] leading-5 whitespace-pre-wrap wrap-break-word">{children}</span>
       </div>

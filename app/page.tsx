@@ -252,19 +252,19 @@ export default function Home() {
                 delay={400}
                 className="flex flex-col sm:flex-row gap-4 pointer-events-auto w-full sm:w-auto"
               >
-                <Link href="/auth/signup" className="pointer-events-auto w-full sm:w-auto cursor-pointer">
+                  <Link href="/auth/signup" className="pointer-events-auto w-full sm:w-auto cursor-pointer">
                   <Button3D
                     size="lg"
-                    className="w-full sm:w-auto bg-primary-400 hover:bg-primary-500 text-white px-8 py-6 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-lg font-semibold cursor-pointer"
+                    className="bg-primary-400 text-white rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
                   >
                     Start Learning Free
                   </Button3D>
                 </Link>
-                <Link href="/help" className="pointer-events-auto w-full sm:w-auto cursor-pointer">
+                  <Link href="/help" className="pointer-events-auto w-full sm:w-auto cursor-pointer">
                   <Button3D
                     size="lg"
                     variant="primary"
-                    className="w-full sm:w-auto border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50 px-8 py-6 rounded-full text-lg bg-transparent cursor-pointer"
+                    className="border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50 rounded-full text-lg bg-transparent"
                   >
                     How it works
                   </Button3D>
@@ -845,7 +845,7 @@ export default function Home() {
 
               {/* Navigation Button3Ds */}
               <div className="flex justify-between items-center px-10 py-6 border-t bg-white dark:bg-slate-900">
-                <Button3D variant="primary" onClick={prevReview} className="cursor-pointer bg-transparent px-6 py-5">
+                <Button3D variant="primary" size="md" onClick={prevReview} className="bg-transparent cursor-pointer">
                   <ChevronLeft className="w-5 h-5 mr-2" />
                   Previous
                 </Button3D>
@@ -855,8 +855,9 @@ export default function Home() {
                 </span>
 
                 <Button3D
+                  size="md"
                   onClick={nextReview}
-                  className="bg-primary-500 hover:bg-primary-600 text-white cursor-pointer px-6 py-5"
+                  className="bg-primary-500 text-white rounded-full text-sm font-semibold shadow-lg hover:shadow-xl transition-all cursor-pointer"
                 >
                   Next
                   <ChevronRight className="w-5 h-5 ml-2" />
@@ -897,7 +898,7 @@ export default function Home() {
                     <Link href="/placement-test" className="cursor-pointer">
                       <Button3D
                         size="lg"
-                        className="bg-primary-500 hover:bg-primary-600 text-white px-8 py-6 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-lg font-semibold group cursor-pointer"
+                        className="bg-primary-500 text-white rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transition-all group"
                       >
                         Take the Test
                         <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -965,7 +966,7 @@ export default function Home() {
                 <Link href="/build-plan">
                   <Button3D
                     size="lg"
-                    className="px-8 py-6 text-lg rounded-full bg-gradient-to-r from-primary-500 to-sky-500 hover:from-primary-600 hover:to-sky-600 shadow-lg cursor-pointer"
+                    className="bg-primary-500 text-white rounded-full text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
                   >
                     Build My Plan
                     <ArrowRight className="w-5 h-5 ml-2" />
@@ -974,7 +975,7 @@ export default function Home() {
                 <Button3D
                   size="lg"
                   variant="primary"
-                  className="px-8 py-6 text-lg rounded-full cursor-pointer bg-transparent border-primary-300 text-primary-600 hover:bg-primary-50 dark:border-primary-700 dark:text-primary-400 dark:hover:bg-primary-900/20"
+                  className="rounded-full bg-transparent text-lg text-primary-600 border border-primary-300 dark:border-primary-700 dark:text-primary-400 dark:hover:bg-primary-900/20"
                 >
                   Learn More
                 </Button3D>
