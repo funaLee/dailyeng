@@ -1,6 +1,7 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { Nunito } from "next/font/google"
+// import { Fredoka } from "next/font/google"
 import { KittyTutor } from "@/components/layout/kitty-tutor"
 import { SearchCommand } from "@/components/layout/search-command"
 import { ConditionalLayout } from "@/components/layout/conditional-layout"
@@ -13,6 +14,12 @@ const nunito = Nunito({
   weight: ["200", "300", "400", "500", "600", "700", "800", "900"],
   variable: "--font-nunito",
 })
+
+// const fredoka = Fredoka({
+//   subsets: ["latin"],
+//   weight: ["300", "400", "500", "600", "700"],
+//   variable: "--font-sans",  
+// })
 
 export const metadata: Metadata = {
   title: "EnglishFlow - Learn English with AI",
