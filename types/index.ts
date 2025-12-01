@@ -6,6 +6,8 @@ export const TopicSchema = z.object({
   title: z.string(),
   description: z.string(),
   level: z.enum(["A1", "A2", "B1", "B2"]),
+  // Optional progress (0-100) representing user's progress for this topic
+  progress: z.number().min(0).max(100).optional(),
   wordCount: z.number(),
   estimatedTime: z.number(), // minutes
   thumbnail: z.string().optional(),
