@@ -28,7 +28,7 @@ export default function ProfileNewPage() {
     <ProtectedRoute
       pageName="Profile"
       pageDescription="View and manage your account settings and personal information."
-      pageIcon={<UserIcon className="w-10 h-10 text-blue-500" />}
+      pageIcon={<UserIcon className="w-10 h-10 text-primary" />}
     >
       <div className="container mx-auto px-8 py-8">
         <div className="grid lg:grid-cols-12 gap-8">
@@ -40,22 +40,22 @@ export default function ProfileNewPage() {
           {/* Main Content */}
           <div className="lg:col-span-9 space-y-6">
             {/* Header with Profile Picture */}
-            <Card className="border-slate-200 shadow-sm">
+            <Card className="border-border shadow-sm">
               <CardContent className="p-8">
-                <h1 className="text-2xl font-bold text-slate-900 mb-6">Hello, Thanh Truc!</h1>
+                <h1 className="text-2xl font-bold text-foreground mb-6">Hello, Thanh Truc!</h1>
 
                 <div className="flex items-center gap-6">
                   <div className="relative">
-                    <div className="w-32 h-32 rounded-full bg-slate-200 flex items-center justify-center overflow-hidden border-4 border-blue-100">
-                      <div className="w-full h-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-blue-600 font-bold text-4xl">
+                    <div className="w-32 h-32 rounded-full bg-muted flex items-center justify-center overflow-hidden border-4 border-primary/20">
+                      <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/30 flex items-center justify-center text-primary font-bold text-4xl">
                         T
                       </div>
                     </div>
                     <Button
                       size="icon"
-                      className="absolute bottom-0 right-0 rounded-full w-10 h-10 bg-blue-600 hover:bg-blue-700 shadow-lg"
+                      className="absolute bottom-0 right-0 rounded-full w-10 h-10 bg-primary hover:bg-primary/90 shadow-lg"
                     >
-                      <Upload className="h-5 w-5 text-white" />
+                      <Upload className="h-5 w-5 text-primary-foreground" />
                     </Button>
                   </div>
                 </div>
@@ -63,16 +63,16 @@ export default function ProfileNewPage() {
             </Card>
 
             {/* Tabs and Form */}
-            <Card className="border-slate-200 shadow-sm">
+            <Card className="border-border shadow-sm">
               <CardContent className="p-8">
                 {/* Tabs */}
-                <div className="flex gap-8 mb-8 border-b border-slate-200">
+                <div className="flex gap-8 mb-8 border-b border-border">
                   <button
                     onClick={() => setActiveTab("personal")}
                     className={`pb-3 px-2 text-base font-bold transition-colors border-b-2 ${
                       activeTab === "personal"
-                        ? "border-blue-600 text-blue-600"
-                        : "border-transparent text-slate-500 hover:text-slate-900"
+                        ? "border-primary text-primary"
+                        : "border-transparent text-muted-foreground hover:text-foreground"
                     }`}
                   >
                     Personal information
@@ -81,8 +81,8 @@ export default function ProfileNewPage() {
                     onClick={() => setActiveTab("password")}
                     className={`pb-3 px-2 text-base font-bold transition-colors border-b-2 ${
                       activeTab === "password"
-                        ? "border-blue-600 text-blue-600"
-                        : "border-transparent text-slate-500 hover:text-slate-900"
+                        ? "border-primary text-primary"
+                        : "border-transparent text-muted-foreground hover:text-foreground"
                     }`}
                   >
                     Change Password
@@ -91,8 +91,8 @@ export default function ProfileNewPage() {
                     onClick={() => setActiveTab("link")}
                     className={`pb-3 px-2 text-base font-bold transition-colors border-b-2 ${
                       activeTab === "link"
-                        ? "border-blue-600 text-blue-600"
-                        : "border-transparent text-slate-500 hover:text-slate-900"
+                        ? "border-primary text-primary"
+                        : "border-transparent text-muted-foreground hover:text-foreground"
                     }`}
                   >
                     Link Account
@@ -105,80 +105,80 @@ export default function ProfileNewPage() {
                     <div className="grid md:grid-cols-2 gap-6">
                       {/* Full Name */}
                       <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">
-                          Full name:<span className="text-red-500">*</span>
+                        <label className="block text-sm font-semibold text-foreground mb-2">
+                          Full name:<span className="text-destructive">*</span>
                         </label>
                         <div className="relative">
-                          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                           <Input
                             value={formData.fullName}
                             onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                            className="pl-10 border-slate-300"
+                            className="pl-10 border-input"
                           />
                         </div>
                       </div>
 
                       {/* Email */}
                       <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">Email:</label>
+                        <label className="block text-sm font-semibold text-foreground mb-2">Email:</label>
                         <div className="relative">
-                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                           <Input
                             value={formData.email}
                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                            className="pl-10 border-slate-300"
+                            className="pl-10 border-input"
                           />
                         </div>
                       </div>
 
                       {/* Date of Birth */}
                       <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">Date of birth:</label>
+                        <label className="block text-sm font-semibold text-foreground mb-2">Date of birth:</label>
                         <div className="relative">
-                          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                           <Input
                             value={formData.dob}
                             onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-                            className="pl-10 border-slate-300"
+                            className="pl-10 border-input"
                           />
                         </div>
                       </div>
 
                       {/* Phone Number */}
                       <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">Phone number:</label>
+                        <label className="block text-sm font-semibold text-foreground mb-2">Phone number:</label>
                         <div className="relative">
-                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                           <Input
                             value={formData.phone}
                             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                            className="pl-10 border-slate-300"
+                            className="pl-10 border-input"
                           />
                         </div>
                       </div>
 
                       {/* Sex */}
                       <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">Sex:</label>
+                        <label className="block text-sm font-semibold text-foreground mb-2">Sex:</label>
                         <div className="relative">
-                          <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400 z-10" />
+                          <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground z-10" />
                           <Input
                             value={formData.sex}
                             onChange={(e) => setFormData({ ...formData, sex: e.target.value })}
-                            className="pl-10 border-slate-300"
+                            className="pl-10 border-input"
                           />
                         </div>
                       </div>
 
                       {/* Address */}
                       <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">Address</label>
+                        <label className="block text-sm font-semibold text-foreground mb-2">Address</label>
                         <div className="relative">
-                          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                           <Input
                             value={formData.address}
                             onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                            className="pl-10 border-slate-300"
+                            className="pl-10 border-input"
                           />
                         </div>
                       </div>
@@ -186,12 +186,12 @@ export default function ProfileNewPage() {
 
                     {/* Level */}
                     <div className="max-w-md">
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">Level:</label>
+                      <label className="block text-sm font-semibold text-foreground mb-2">Level:</label>
                       <Select
                         value={formData.level}
                         onValueChange={(value) => setFormData({ ...formData, level: value })}
                       >
-                        <SelectTrigger className="border-slate-300">
+                        <SelectTrigger className="border-input">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -204,8 +204,10 @@ export default function ProfileNewPage() {
 
                     {/* Action Buttons */}
                     <div className="flex gap-4 pt-4">
-                      <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8">Save details</Button>
-                      <Button variant="outline" className="border-slate-300 px-8 bg-transparent">
+                      <Button className="bg-primary hover:bg-primary/90 text-primary-foreground px-8">
+                        Save details
+                      </Button>
+                      <Button variant="outline" className="border-input px-8 bg-transparent">
                         Cancel
                       </Button>
                     </div>
@@ -215,14 +217,14 @@ export default function ProfileNewPage() {
                 {/* Change Password Tab */}
                 {activeTab === "password" && (
                   <div className="space-y-6">
-                    <p className="text-slate-600">Change password functionality coming soon...</p>
+                    <p className="text-muted-foreground">Change password functionality coming soon...</p>
                   </div>
                 )}
 
                 {/* Link Account Tab */}
                 {activeTab === "link" && (
                   <div className="space-y-6">
-                    <p className="text-slate-600">Link account functionality coming soon...</p>
+                    <p className="text-muted-foreground">Link account functionality coming soon...</p>
                   </div>
                 )}
               </CardContent>

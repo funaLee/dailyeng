@@ -114,9 +114,9 @@ export default function ShopPage() {
     <ProtectedRoute
       pageName="Reward Shop"
       pageDescription="Exchange your earned points for amazing rewards and power-ups."
-      pageIcon={<ShoppingCart className="w-10 h-10 text-blue-500" />}
+      pageIcon={<ShoppingCart className="w-10 h-10 text-primary" />}
     >
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-muted/50">
         <div className="container mx-auto px-8 py-8">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
             <div className="md:col-span-3 lg:col-span-3 space-y-6">
@@ -127,17 +127,17 @@ export default function ShopPage() {
               <div className="mb-8">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                   <div>
-                    <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
-                      <ShoppingCart className="text-blue-600" size={32} />
+                    <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+                      <ShoppingCart className="text-primary" size={32} />
                       Reward Shop
                     </h1>
-                    <p className="text-slate-500 mt-2">Exchange your earned points for amazing rewards</p>
+                    <p className="text-muted-foreground mt-2">Exchange your earned points for amazing rewards</p>
                   </div>
-                  <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white border-none shadow-lg px-6 py-4">
+                  <Card className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground border-none shadow-lg px-6 py-4">
                     <div className="flex items-center gap-3">
                       <Coins size={28} className="text-yellow-300" />
                       <div>
-                        <p className="text-xs text-blue-100">Your Balance</p>
+                        <p className="text-xs text-primary-foreground/80">Your Balance</p>
                         <p className="text-2xl font-bold">{userPoints.toLocaleString()} pts</p>
                       </div>
                     </div>
@@ -146,12 +146,12 @@ export default function ShopPage() {
 
                 <div className="flex flex-col md:flex-row gap-4">
                   <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
                     <Input
                       placeholder="Search for items..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10 bg-white border-slate-200 focus:border-blue-400"
+                      className="pl-10 bg-background border-input focus:border-primary"
                     />
                   </div>
                   <div className="flex gap-2 overflow-x-auto pb-2">
@@ -162,8 +162,8 @@ export default function ShopPage() {
                         variant={activeFilter === category ? "default" : "outline"}
                         className={`whitespace-nowrap ${
                           activeFilter === category
-                            ? "bg-blue-600 text-white hover:bg-blue-700"
-                            : "bg-white text-slate-600 hover:bg-slate-50"
+                            ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                            : "bg-background text-muted-foreground hover:bg-muted"
                         }`}
                       >
                         {category.charAt(0).toUpperCase() + category.slice(1)}
@@ -228,9 +228,9 @@ export default function ShopPage() {
 
               {filteredItems.length === 0 && (
                 <div className="text-center py-16">
-                  <ShoppingCart size={64} className="mx-auto text-slate-300 mb-4" />
-                  <h3 className="text-xl font-semibold text-slate-700 mb-2">No items found</h3>
-                  <p className="text-slate-500">Try adjusting your search or filter</p>
+                  <ShoppingCart size={64} className="mx-auto text-muted-foreground/30 mb-4" />
+                  <h3 className="text-xl font-semibold text-foreground mb-2">No items found</h3>
+                  <p className="text-muted-foreground">Try adjusting your search or filter</p>
                 </div>
               )}
             </div>
@@ -255,9 +255,9 @@ function ShopItemCard({
   return (
     <Card
       onClick={onClick}
-      className="group cursor-pointer overflow-hidden border-2 border-slate-200 hover:border-blue-400 hover:shadow-xl transition-all duration-300 bg-white"
+      className="group cursor-pointer overflow-hidden border-2 border-border hover:border-primary hover:shadow-xl transition-all duration-300 bg-card"
     >
-      <div className="relative w-full aspect-video overflow-hidden bg-slate-100">
+      <div className="relative w-full aspect-video overflow-hidden bg-muted">
         <Image
           src={item.image || "/placeholder.svg"}
           alt={item.name}
@@ -272,29 +272,32 @@ function ShopItemCard({
             </Badge>
           )}
           {item.status === "used" && (
-            <Badge className="bg-slate-400 text-white shadow-md">
+            <Badge className="bg-muted-foreground text-background shadow-md">
               <Clock size={12} className="mr-1" />
               Used
             </Badge>
           )}
         </div>
-        <div className="absolute bottom-2 left-2 text-4xl bg-white/90 backdrop-blur-sm rounded-full w-14 h-14 flex items-center justify-center shadow-lg">
+        <div className="absolute bottom-2 left-2 text-4xl bg-background/90 backdrop-blur-sm rounded-full w-14 h-14 flex items-center justify-center shadow-lg">
           {item.icon}
         </div>
       </div>
       <div className="p-4">
         <div className="mb-2">
-          <h3 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{item.name}</h3>
-          <p className="text-xs text-slate-500 mt-1">{item.category}</p>
+          <h3 className="font-bold text-foreground group-hover:text-primary transition-colors">{item.name}</h3>
+          <p className="text-xs text-muted-foreground mt-1">{item.category}</p>
         </div>
-        <p className="text-sm text-slate-600 mb-4 line-clamp-2">{item.description}</p>
+        <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{item.description}</p>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1">
             <Coins size={18} className="text-yellow-500" />
-            <span className="text-lg font-bold text-blue-600">{item.price}</span>
+            <span className="text-lg font-bold text-primary">{item.price}</span>
           </div>
           {item.status === "available" && (
-            <Badge variant={canAfford ? "default" : "outline"} className={canAfford ? "bg-blue-600" : "text-slate-400"}>
+            <Badge
+              variant={canAfford ? "default" : "outline"}
+              className={canAfford ? "bg-primary" : "text-muted-foreground"}
+            >
               {canAfford ? "Affordable" : "Save more"}
             </Badge>
           )}

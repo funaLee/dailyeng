@@ -118,13 +118,13 @@ export default function CollectionsPage() {
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case "beginner":
-        return "bg-green-100 text-green-700 border-green-200"
+        return "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800"
       case "intermediate":
-        return "bg-blue-100 text-blue-700 border-blue-200"
+        return "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800"
       case "advanced":
-        return "bg-purple-100 text-purple-700 border-purple-200"
+        return "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800"
       default:
-        return "bg-slate-100 text-slate-700 border-slate-200"
+        return "bg-muted text-muted-foreground border-border"
     }
   }
 
@@ -145,7 +145,7 @@ export default function CollectionsPage() {
     <ProtectedRoute
       pageName="Collections"
       pageDescription="Organize and track your learning materials across vocabulary, grammar, and speaking topics."
-      pageIcon={<FolderOpen className="w-10 h-10 text-blue-500" />}
+      pageIcon={<FolderOpen className="w-10 h-10 text-primary" />}
     >
       <div className="container mx-auto px-8 py-8">
         <div className="grid lg:grid-cols-12 gap-8">
@@ -157,10 +157,10 @@ export default function CollectionsPage() {
           {/* Main Content */}
           <div className="lg:col-span-9 space-y-6">
             {/* Header */}
-            <Card className="border-slate-200 shadow-sm">
+            <Card className="border-border shadow-sm">
               <CardContent className="p-6">
-                <h1 className="text-2xl font-bold text-slate-900 mb-2">My Collections</h1>
-                <p className="text-sm text-slate-600">
+                <h1 className="text-2xl font-bold text-foreground mb-2">My Collections</h1>
+                <p className="text-sm text-muted-foreground">
                   Organize and track your learning materials across vocabulary, grammar, and speaking topics
                 </p>
               </CardContent>
@@ -169,17 +169,17 @@ export default function CollectionsPage() {
             {/* Search and Filter Controls */}
             <div className="flex gap-4 items-center">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   placeholder="Search collections..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 border-slate-300 focus:border-blue-500 focus:ring-blue-500"
+                  className="pl-10 border-input focus:border-primary focus:ring-primary"
                 />
               </div>
 
               <Select value={filterType} onValueChange={setFilterType}>
-                <SelectTrigger className="w-[200px] border-slate-300">
+                <SelectTrigger className="w-[200px] border-input">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Filter by type" />
                 </SelectTrigger>
@@ -194,7 +194,7 @@ export default function CollectionsPage() {
               <Button
                 variant="outline"
                 onClick={() => setSortOrder(sortOrder === "newest" ? "oldest" : "newest")}
-                className="border-slate-300 hover:bg-slate-50"
+                className="border-input hover:bg-muted"
               >
                 <ArrowUpDown className="h-4 w-4 mr-2" />
                 {sortOrder === "newest" ? "Newest" : "Oldest"}
@@ -206,11 +206,11 @@ export default function CollectionsPage() {
               {collections.map((collection) => (
                 <Card
                   key={collection.id}
-                  className={`border-slate-200 shadow-sm overflow-hidden group hover:shadow-lg transition-all ${
+                  className={`border-border shadow-sm overflow-hidden group hover:shadow-lg transition-all ${
                     collection.isLocked ? "opacity-75" : ""
                   }`}
                 >
-                  <div className="relative aspect-video bg-slate-100">
+                  <div className="relative aspect-video bg-muted">
                     <Image
                       src={collection.image || "/placeholder.svg"}
                       alt={collection.title}
@@ -218,8 +218,8 @@ export default function CollectionsPage() {
                       className="object-cover"
                     />
                     {collection.isLocked && (
-                      <div className="absolute inset-0 bg-slate-900/50 flex items-center justify-center">
-                        <Lock className="h-10 w-10 text-white" />
+                      <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
+                        <Lock className="h-10 w-10 text-foreground" />
                       </div>
                     )}
                     <Badge
@@ -231,8 +231,8 @@ export default function CollectionsPage() {
                       onClick={() => toggleSave(collection.id)}
                       className={`absolute top-3 right-3 p-2 rounded-full transition-all ${
                         collection.isSaved
-                          ? "bg-blue-600 text-white hover:bg-blue-700"
-                          : "bg-white/90 text-slate-600 hover:bg-white"
+                          ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                          : "bg-background/90 text-muted-foreground hover:bg-background"
                       }`}
                     >
                       <Bookmark className={`h-4 w-4 ${collection.isSaved ? "fill-current" : ""}`} />
@@ -241,13 +241,13 @@ export default function CollectionsPage() {
 
                   <CardContent className="p-4 space-y-3">
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-bold text-base text-slate-900 flex-1">{collection.title}</h3>
+                      <h3 className="font-bold text-base text-foreground flex-1">{collection.title}</h3>
                       <span className="text-xl">{getTypeIcon(collection.type)}</span>
                     </div>
 
-                    <p className="text-xs text-slate-600 line-clamp-2">{collection.description}</p>
+                    <p className="text-xs text-muted-foreground line-clamp-2">{collection.description}</p>
 
-                    <div className="flex items-center justify-between text-xs text-slate-500">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span>{collection.itemCount} items</span>
                       <span>{collection.lastUpdated}</span>
                     </div>
@@ -255,12 +255,12 @@ export default function CollectionsPage() {
                     {!collection.isLocked && (
                       <div className="space-y-2">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-slate-600 font-medium">Progress</span>
-                          <span className="text-blue-600 font-bold">{collection.progress}%</span>
+                          <span className="text-muted-foreground font-medium">Progress</span>
+                          <span className="text-primary font-bold">{collection.progress}%</span>
                         </div>
-                        <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                        <div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
                           <div
-                            className="bg-blue-600 h-full rounded-full transition-all"
+                            className="bg-primary h-full rounded-full transition-all"
                             style={{ width: `${collection.progress}%` }}
                           />
                         </div>
@@ -270,9 +270,9 @@ export default function CollectionsPage() {
                     <Button
                       className={`w-full ${
                         collection.isLocked
-                          ? "bg-slate-400 hover:bg-slate-500 cursor-not-allowed"
-                          : "bg-blue-600 hover:bg-blue-700"
-                      } text-white transition-colors`}
+                          ? "bg-muted text-muted-foreground hover:bg-muted cursor-not-allowed"
+                          : "bg-primary hover:bg-primary/90 text-primary-foreground"
+                      } transition-colors`}
                       disabled={collection.isLocked}
                     >
                       {collection.isLocked ? "Locked" : "Continue Learning"}
@@ -283,24 +283,24 @@ export default function CollectionsPage() {
             </div>
 
             {/* Stats Summary */}
-            <Card className="border-slate-200 shadow-sm bg-blue-50/50">
+            <Card className="border-border shadow-sm bg-primary/5">
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                   <div className="text-center">
-                    <p className="text-3xl font-bold text-blue-600">6</p>
-                    <p className="text-sm text-slate-600 mt-1">Total Collections</p>
+                    <p className="text-3xl font-bold text-primary">6</p>
+                    <p className="text-sm text-muted-foreground mt-1">Total Collections</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-3xl font-bold text-green-600">3</p>
-                    <p className="text-sm text-slate-600 mt-1">In Progress</p>
+                    <p className="text-3xl font-bold text-green-600 dark:text-green-400">3</p>
+                    <p className="text-sm text-muted-foreground mt-1">In Progress</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-3xl font-bold text-purple-600">618</p>
-                    <p className="text-sm text-slate-600 mt-1">Total Items</p>
+                    <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">618</p>
+                    <p className="text-sm text-muted-foreground mt-1">Total Items</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-3xl font-bold text-orange-600">48%</p>
-                    <p className="text-sm text-slate-600 mt-1">Avg Progress</p>
+                    <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">48%</p>
+                    <p className="text-sm text-muted-foreground mt-1">Avg Progress</p>
                   </div>
                 </div>
               </CardContent>

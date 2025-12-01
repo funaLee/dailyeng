@@ -29,7 +29,7 @@ export function CourseDetail({
   currentTopic,
 }: CourseDetailProps) {
   return (
-    <Card className="p-6 rounded-3xl border-2 border-blue-100 dark:border-blue-900/50 bg-white dark:bg-slate-950">
+    <Card className="p-6 rounded-3xl border-2 border-primary-200 dark:border-primary-800 bg-white dark:bg-slate-950">
       <div className="grid md:grid-cols-3 gap-6">
         <div className="md:col-span-2">
           <h2 className="text-2xl font-bold mb-2">{title}</h2>
@@ -49,7 +49,7 @@ export function CourseDetail({
         </div>
 
         {currentTopic && (
-          <Card className="p-4 rounded-2xl border-2 border-blue-100 dark:border-blue-900/50 bg-slate-50 dark:bg-slate-900">
+          <Card className="p-4 rounded-2xl border-2 border-primary-200 dark:border-primary-800 bg-slate-50 dark:bg-slate-900">
             <h4 className="font-bold text-base mb-1">{currentTopic.title}</h4>
             <p className="text-sm text-muted-foreground mb-3">{currentTopic.subtitle}</p>
             {currentTopic.href ? (

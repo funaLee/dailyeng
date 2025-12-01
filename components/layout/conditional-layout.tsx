@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation"
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
 
-const noNavRoutes = ["/placement-test", "/speaking/session", "/vocab/", "/grammar/", "/build-plan"]
+const noNavRoutes = ["/placement-test", "/speaking/session", "/vocab/", "/grammar/", "/build-plan", "/auth"]
 
 export function ConditionalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()

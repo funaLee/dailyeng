@@ -20,7 +20,7 @@ export function HubTabs({ tabs, activeTab, onTabChange }: HubTabsProps) {
           onClick={() => onTabChange(tab.id)}
           className={`pb-3 px-4 text-lg font-bold transition-colors cursor-pointer ${
             activeTab === tab.id
-              ? "border-b-2 border-primary text-primary"
+              ? "border-b-2 border-primary-500 text-primary-600 dark:text-primary-400"
               : "border-b-2 border-transparent text-muted-foreground hover:text-gray-900 dark:hover:text-gray-100"
           }`}
         >

@@ -58,42 +58,42 @@ const TEST_STEPS = [
     id: "vocabulary",
     label: "Vocabulary",
     icon: BookMarked,
-    color: "emerald",
+    color: "accent",
     description: "Test your word knowledge",
   },
   {
     id: "grammar",
     label: "Grammar",
     icon: BookOpen,
-    color: "blue",
+    color: "primary",
     description: "Assess grammar understanding",
   },
   {
     id: "reading",
     label: "Reading",
     icon: FileTextIcon, // Changed to FileTextIcon for consistency
-    color: "amber",
+    color: "warning",
     description: "Reading comprehension",
   },
   {
     id: "listening",
     label: "Listening",
     icon: Headphones,
-    color: "purple",
+    color: "info",
     description: "Test listening skills",
   },
   {
     id: "speaking",
     label: "Speaking",
     icon: MessageSquare,
-    color: "rose",
+    color: "secondary",
     description: "Assess speaking ability",
   },
   {
     id: "writing",
     label: "Writing",
     icon: PenTool,
-    color: "cyan",
+    color: "primary",
     description: "Evaluate writing skills",
   },
 ]
@@ -339,12 +339,12 @@ const mockQuestions: Record<
 
 // CEFR level calculation
 const calculateCEFRLevel = (score: number): { level: string; description: string; color: string } => {
-  if (score >= 90) return { level: "C2", description: "Proficient - Mastery", color: "text-emerald-600" }
-  if (score >= 80) return { level: "C1", description: "Proficient - Advanced", color: "text-blue-600" }
-  if (score >= 70) return { level: "B2", description: "Independent - Upper Intermediate", color: "text-cyan-600" }
-  if (score >= 55) return { level: "B1", description: "Independent - Intermediate", color: "text-amber-600" }
-  if (score >= 40) return { level: "A2", description: "Basic - Elementary", color: "text-orange-600" }
-  return { level: "A1", description: "Basic - Beginner", color: "text-rose-600" }
+  if (score >= 90) return { level: "C2", description: "Proficient - Mastery", color: "text-success-600" }
+  if (score >= 80) return { level: "C1", description: "Proficient - Advanced", color: "text-primary-600" }
+  if (score >= 70) return { level: "B2", description: "Independent - Upper Intermediate", color: "text-info-600" }
+  if (score >= 55) return { level: "B1", description: "Independent - Intermediate", color: "text-warning-600" }
+  if (score >= 40) return { level: "A2", description: "Basic - Elementary", color: "text-warning-500" }
+  return { level: "A1", description: "Basic - Beginner", color: "text-secondary-600" }
 }
 
 export default function PlacementTestPage() {

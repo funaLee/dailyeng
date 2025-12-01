@@ -133,7 +133,7 @@ export default function TopicDetailPage() {
   if (!topic) {
     return (
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-        <div className="h-96 bg-secondary animate-pulse rounded-2xl" />
+        <div className="h-96 bg-muted animate-pulse rounded-2xl" />
       </div>
     )
   }
@@ -144,27 +144,27 @@ export default function TopicDetailPage() {
       <div className="mb-6">
         <Button
           variant="ghost"
-          className="gap-2 mb-4 bg-blue-50 hover:bg-blue-100 text-blue-900"
+          className="gap-2 mb-4 bg-primary-50 hover:bg-primary-100 text-primary-900"
           onClick={() => router.back()}
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Topic
         </Button>
 
-        <Card className="p-6 border-blue-100 bg-gradient-to-r from-white to-blue-50/30">
+        <Card className="p-6 border-primary-100 bg-gradient-to-r from-white to-primary-50/30">
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-3xl font-bold mb-2 text-blue-950">{topic.title}</h1>
-              <p className="text-slate-600">{topic.description}</p>
+              <h1 className="text-3xl font-bold mb-2 text-primary-900">{topic.title}</h1>
+              <p className="text-muted-foreground">{topic.description}</p>
             </div>
             <div className="text-right">
               <div className="mb-2">
-                <span className="text-2xl font-bold text-blue-600">{progressPercentage}%</span>
+                <span className="text-2xl font-bold text-primary-600">{progressPercentage}%</span>
                 <span className="text-sm text-muted-foreground ml-1">Complete</span>
               </div>
               <div className="w-32 h-2 bg-gray-100 rounded-full ml-auto overflow-hidden">
                 <div
-                  className="h-full bg-blue-600 rounded-full transition-all duration-500 ease-out"
+                  className="h-full bg-primary-600 rounded-full transition-all duration-500 ease-out"
                   style={{ width: `${progressPercentage}%` }}
                 />
               </div>
@@ -178,7 +178,7 @@ export default function TopicDetailPage() {
           {/* Connection Line */}
           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-gray-100 -z-10 rounded-full" />
           <div
-            className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-blue-200 -z-10 rounded-full transition-all duration-500"
+            className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-primary-200 -z-10 rounded-full transition-all duration-500"
             style={{ width: `${(completedSteps.length / (STEPS.length - 1)) * 100}%` }}
           />
 
@@ -188,7 +188,7 @@ export default function TopicDetailPage() {
             const isUnlocked = isStepUnlocked(step.id)
 
             return (
-              <div key={step.id} className="flex flex-col items-center gap-2">
+              <div key={step.id} className="flex flex-col items-center gap-2 pt-5">
                 <button
                   onClick={() => isUnlocked && setActiveTab(step.id)}
                   disabled={!isUnlocked}
@@ -196,11 +196,11 @@ export default function TopicDetailPage() {
                     w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 z-10
                     ${
                       isCompleted
-                        ? "bg-green-500 border-green-500 text-white"
+                        ? "bg-success-500 border-success-500 text-white"
                         : isActive
-                          ? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200 scale-110"
+                          ? "bg-primary-600 border-primary-600 text-white shadow-lg shadow-primary-200 scale-110"
                           : isUnlocked
-                            ? "bg-white border-blue-200 text-blue-600 hover:border-blue-400"
+                            ? "bg-white border-primary-200 text-primary-600 hover:border-primary-400"
                             : "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
                     }
                   `}
@@ -218,7 +218,7 @@ export default function TopicDetailPage() {
                 <span
                   className={`
                     text-xs font-medium transition-colors duration-300
-                    ${isActive ? "text-blue-700 font-bold" : isUnlocked ? "text-slate-600" : "text-gray-400"}
+                    ${isActive ? "text-primary-700 font-bold" : isUnlocked ? "text-muted-foreground" : "text-gray-400"}
                   `}
                 >
                   {step.label}
@@ -234,7 +234,7 @@ export default function TopicDetailPage() {
         {activeTab === "learn" && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-slate-800">Learn Vocabulary</h2>
+              <h2 className="text-2xl font-bold">Learn Vocabulary</h2>
               <span className="text-sm text-muted-foreground">Step 1 of 6</span>
             </div>
 
@@ -242,7 +242,7 @@ export default function TopicDetailPage() {
               {/* Left Column: Word List */}
               <div
                 ref={wordListRef}
-                className="lg:col-span-1 space-y-2 max-h-[600px] overflow-y-auto border border-border rounded-lg p-3 bg-secondary/30"
+                className="lg:col-span-1 space-y-2 max-h-[600px] overflow-y-auto border border-border rounded-lg p-3 bg-muted/30"
               >
                 {vocab.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
@@ -254,7 +254,7 @@ export default function TopicDetailPage() {
                       key={word.id}
                       onClick={() => handleSelectWord(word)}
                       className={`w-full text-left px-3 py-2 rounded-lg transition-colors text-sm font-medium ${
-                        selectedWord?.id === word.id ? "bg-blue-600 text-white" : "hover:bg-secondary text-foreground"
+                        selectedWord?.id === word.id ? "bg-primary-600 text-white" : "hover:bg-muted text-foreground"
                       }`}
                     >
                       {word.word}
@@ -274,13 +274,17 @@ export default function TopicDetailPage() {
                       <div>
                         <h3 className="text-4xl font-bold mb-2">{selectedWord.word}</h3>
                         <p className="text-sm text-muted-foreground font-mono mb-1">{selectedWord.pronunciation}</p>
-                        <span className="inline-block px-2 py-1 rounded bg-blue-100 text-blue-900 text-xs font-medium">
+                        <span className="inline-block px-2 py-1 rounded bg-primary-100 text-primary-900 text-xs font-medium">
                           {selectedWord.partOfSpeech}
                         </span>
                       </div>
                       <div className="flex gap-2">
-                        <span className="px-3 py-1 rounded-full bg-blue-200 text-blue-900 text-sm">{topic.level}</span>
-                        <span className="px-3 py-1 rounded-full bg-blue-300 text-blue-900 text-sm">Chưa nhớ lắm</span>
+                        <span className="px-3 py-1 rounded-full bg-primary-200 text-primary-900 text-sm">
+                          {topic.level}
+                        </span>
+                        <span className="px-3 py-1 rounded-full bg-primary-300 text-primary-900 text-sm">
+                          Chưa nhớ lắm
+                        </span>
                         <Button variant="outline" size="sm">
                           <BookOpen className="h-4 w-4" />
                         </Button>
@@ -298,7 +302,7 @@ export default function TopicDetailPage() {
                             <p className="text-sm">{selectedWord.meaning}</p>
                           </div>
                           <div className="flex gap-2">
-                            <div className="h-6 w-6 rounded-full bg-blue-400 text-white flex-shrink-0 flex items-center justify-center text-xs font-semibold">
+                            <div className="h-6 w-6 rounded-full bg-primary-400 text-white flex-shrink-0 flex items-center justify-center text-xs font-semibold">
                               2
                             </div>
                             <p className="text-sm">
@@ -319,7 +323,7 @@ export default function TopicDetailPage() {
                             <p className="text-sm">Hành vi / cách cư xử (đối với người khác)</p>
                           </div>
                           <div className="flex gap-2">
-                            <div className="h-6 w-6 rounded-full bg-blue-400 text-white flex-shrink-0 flex items-center justify-center text-xs font-semibold">
+                            <div className="h-6 w-6 rounded-full bg-primary-400 text-white flex-shrink-0 flex items-center justify-center text-xs font-semibold">
                               2
                             </div>
                             <p className="text-sm">Cách hoạt động / phản ứng (trong một tình huống cụ thể)</p>
@@ -341,7 +345,7 @@ export default function TopicDetailPage() {
                           </div>
                         </div>
                         <div className="flex gap-2 items-start">
-                          <div className="h-6 w-6 rounded-full bg-blue-400 text-white flex-shrink-0 flex items-center justify-center text-xs font-semibold">
+                          <div className="h-6 w-6 rounded-full bg-primary-400 text-white flex-shrink-0 flex items-center justify-center text-xs font-semibold">
                             2
                           </div>
                           <div className="flex-1">
@@ -365,35 +369,32 @@ export default function TopicDetailPage() {
                     <div>
                       <p className="text-xs font-semibold text-muted-foreground mb-3">SEE ALSO</p>
                       <div className="space-y-2">
-                        {/* Green row - positive/neutral terms */}
                         <div className="flex flex-wrap gap-2">
                           {["conduct", "manners", "attitude", "customs"].map((term, idx) => (
                             <span
                               key={idx}
-                              className="px-3 py-1 rounded-full bg-green-100 text-green-800 text-xs font-medium hover:bg-green-200 cursor-pointer border border-green-300"
+                              className="px-3 py-1 rounded-full bg-success-100 text-success-800 text-xs font-medium hover:bg-success-200 cursor-pointer border border-success-300"
                             >
                               {term}
                             </span>
                           ))}
                         </div>
-                        {/* Orange row - negative terms */}
                         <div className="flex flex-wrap gap-2">
                           {["misbehavior", "misconduct", "rudeness"].map((term, idx) => (
                             <span
                               key={`neg-${idx}`}
-                              className="px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-xs font-medium hover:bg-orange-200 cursor-pointer border border-orange-300"
+                              className="px-3 py-1 rounded-full bg-warning-100 text-warning-800 text-xs font-medium hover:bg-warning-200 cursor-pointer border border-warning-300"
                             >
                               {term}
                             </span>
                           ))}
                         </div>
-                        {/* Blue row - phrases */}
                         <div className="flex flex-wrap gap-2">
                           {["good behaviour", "bad behaviour", "strange behaviour", "behaviour towards others"].map(
                             (term, idx) => (
                               <span
                                 key={`phrase-${idx}`}
-                                className="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-medium hover:bg-blue-200 cursor-pointer border border-blue-300"
+                                className="px-3 py-1 rounded-full bg-primary-100 text-primary-800 text-xs font-medium hover:bg-primary-200 cursor-pointer border border-primary-300"
                               >
                                 {term}
                               </span>
@@ -406,19 +407,25 @@ export default function TopicDetailPage() {
                     <div className="border-t border-border pt-6">
                       <div className="flex flex-wrap items-center justify-center gap-3">
                         {[
-                          { label: "Brand New", color: "bg-red-100 text-red-800 border-red-300 hover:bg-red-200" },
+                          {
+                            label: "Brand New",
+                            color: "bg-error-100 text-error-800 border-error-300 hover:bg-error-200",
+                          },
                           {
                             label: "Not Remembered",
-                            color: "bg-orange-100 text-orange-800 border-orange-300 hover:bg-orange-200",
+                            color: "bg-warning-100 text-warning-800 border-warning-300 hover:bg-warning-200",
                           },
                           {
                             label: "Normal",
-                            color: "bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200",
+                            color: "bg-warning-50 text-warning-700 border-warning-200 hover:bg-warning-100",
                           },
-                          { label: "Remembered", color: "bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200" },
+                          {
+                            label: "Remembered",
+                            color: "bg-primary-100 text-primary-800 border-primary-300 hover:bg-primary-200",
+                          },
                           {
                             label: "Mastered",
-                            color: "bg-green-100 text-green-800 border-green-300 hover:bg-green-200",
+                            color: "bg-success-100 text-success-800 border-success-300 hover:bg-success-200",
                           },
                         ].map((level, idx) => (
                           <button
@@ -470,7 +477,7 @@ export default function TopicDetailPage() {
               <Button
                 onClick={handleCompleteStep}
                 size="lg"
-                className="bg-green-600 hover:bg-green-700 text-white gap-2 shadow-sm"
+                className="bg-success-600 hover:bg-success-700 text-white gap-2 shadow-sm"
               >
                 Finish Learning & Continue
                 <ChevronRight className="h-4 w-4" />

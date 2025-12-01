@@ -35,7 +35,7 @@ export function HubHero({
   decorativeWords = ["vocabulary", "learning", "mastery"],
 }: HubHeroProps) {
   return (
-    <Card className="p-8 mb-8 relative overflow-hidden rounded-3xl border-2 border-blue-100 dark:border-blue-900/50">
+    <Card className="p-8 mb-8 relative overflow-hidden rounded-3xl border-2 border-primary-200 dark:border-primary-800">
       <div className="relative z-10">
         <h1 className="text-4xl font-bold mb-2">{title}</h1>
         <p className="text-muted-foreground mb-6">{description}</p>
@@ -56,19 +56,19 @@ export function HubHero({
           </div>
         )}
       </div>
-      <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-br from-blue-200/50 to-blue-400/30 rounded-lg pointer-events-none">
+      <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-br from-primary-200/50 to-primary-400/30 rounded-lg pointer-events-none">
         {decorativeWords[0] && (
-          <div className="absolute right-12 top-12 text-blue-600/20 text-6xl font-bold rotate-12">
+          <div className="absolute right-12 top-12 text-primary-500/20 text-6xl font-bold rotate-12">
             {decorativeWords[0]}
           </div>
         )}
         {decorativeWords[1] && (
-          <div className="absolute right-24 top-32 text-blue-600/20 text-5xl font-bold -rotate-6">
+          <div className="absolute right-24 top-32 text-primary-500/20 text-5xl font-bold -rotate-6">
             {decorativeWords[1]}
           </div>
         )}
         {decorativeWords[2] && (
-          <div className="absolute right-8 top-52 text-blue-600/20 text-4xl font-bold rotate-3">
+          <div className="absolute right-8 top-52 text-primary-500/20 text-4xl font-bold rotate-3">
             {decorativeWords[2]}
           </div>
         )}

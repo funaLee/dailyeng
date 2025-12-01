@@ -528,14 +528,14 @@ export default function BuildPlanPage() {
   // Intro Screen
   if (stage === "intro") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-sky-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
         {/* Close button */}
         <div className="absolute top-6 right-6">
           <Link href="/">
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full hover:bg-blue-100 dark:hover:bg-slate-700 cursor-pointer"
+              className="rounded-full hover:bg-primary-100 dark:hover:bg-slate-700 cursor-pointer"
             >
               <X className="w-5 h-5" />
             </Button>
@@ -544,14 +544,14 @@ export default function BuildPlanPage() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 flex flex-col items-center justify-center min-h-screen">
           <div className="text-center max-w-2xl mx-auto">
-            <div className="inline-flex items-center gap-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-4 py-2 rounded-full text-sm font-medium mb-8 cursor-pointer">
+            <div className="inline-flex items-center gap-2 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 px-4 py-2 rounded-full text-sm font-medium mb-8 cursor-pointer">
               <Sparkles className="w-4 h-4" />
               Personalized Learning Path
             </div>
 
             <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-6">
               Let's Build Your
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-sky-500">
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-primary-400">
                 Perfect Study Plan
               </span>
             </h1>
@@ -570,12 +570,12 @@ export default function BuildPlanPage() {
               ].map((feature, idx) => (
                 <Card
                   key={idx}
-                  className="p-6 border border-blue-100 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm cursor-pointer hover:border-blue-300 dark:hover:border-blue-700 transition-colors"
+                  className="p-6 border border-primary-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm cursor-pointer hover:border-primary-300 dark:hover:border-primary-700 transition-colors"
                 >
-                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <feature.icon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                  <div className="w-12 h-12 bg-primary-100 dark:bg-primary-900/30 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <feature.icon className="w-6 h-6 text-primary-600 dark:text-primary-400" />
                   </div>
-                  <h3 className="font-semibold text-slate-900 dark:text-white mb-1">{feature.title}</h3>
+                  <h3 className="font-semibold text-slate-900 dark:text-white">{feature.title}</h3>
                   <p className="text-sm text-slate-500 dark:text-slate-400">{feature.desc}</p>
                 </Card>
               ))}
@@ -584,10 +584,10 @@ export default function BuildPlanPage() {
             <Button
               size="lg"
               onClick={() => setStage("questions")}
-              className="px-10 py-6 text-lg rounded-full bg-gradient-to-r from-blue-500 to-sky-500 hover:from-blue-600 hover:to-sky-600 shadow-lg cursor-pointer"
+              className="bg-primary-500 hover:bg-primary-600 text-white px-8 py-6 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all"
             >
               Start Building My Plan
-              <ArrowRight className="w-5 h-5 ml-2" />
+              <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
           </div>
         </div>
@@ -694,9 +694,9 @@ export default function BuildPlanPage() {
     }
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-sky-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
         {/* Header */}
-        <div className="border-b border-blue-100 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm sticky top-0 z-10">
+        <div className="border-b border-primary-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm sticky top-0 z-10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <Link href="/">
@@ -808,95 +808,56 @@ export default function BuildPlanPage() {
 
   // Results Stage
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-sky-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      {/* Header */}
-      <div className="border-b border-blue-100 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/">
-              <Button variant="ghost" className="gap-2 cursor-pointer hover:bg-blue-50 dark:hover:bg-slate-700">
-                <ArrowLeft className="w-4 h-4" />
-                Back to Home
-              </Button>
-            </Link>
-            <Link href="/plan">
-              <Button className="gap-2 cursor-pointer bg-gradient-to-r from-blue-500 to-sky-500 hover:from-blue-600 hover:to-sky-600">
-                Go to My Plan
-                <ArrowRight className="w-4 h-4" />
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Results Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Success Header */}
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
         <div className="text-center mb-12">
-          <div className="w-20 h-20 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Sparkles className="w-10 h-10 text-blue-600 dark:text-blue-400" />
+          <div className="inline-flex items-center gap-2 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <Sparkles className="w-4 h-4" />
+            Plan Generated Successfully
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
             Your Personalized Study Plan is Ready!
           </h1>
           <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
-            Based on your goals and preferences, we've selected the best courses to help you succeed.
+            Based on your answers, we've selected the best courses to help you achieve your goals.
           </p>
         </div>
 
         {/* Recommended Courses */}
-        <div className="mb-16">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center">
-              <Star className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Recommended for You</h2>
-              <p className="text-slate-500 dark:text-slate-400">Courses matched to your goals</p>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="mb-12">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+            <Star className="w-5 h-5 text-yellow-500" />
+            Recommended for You
+          </h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {recommendedCourses.map((course) => (
               <Card
                 key={course.id}
-                className="overflow-hidden border border-blue-100 dark:border-slate-700 hover:shadow-xl transition-all cursor-pointer group bg-white dark:bg-slate-800"
+                className="overflow-hidden border-2 border-primary-200 dark:border-primary-800 hover:border-primary-300 dark:hover:border-primary-700 transition-all hover:shadow-lg"
               >
-                <div className="relative h-48">
+                <div className="relative h-40">
                   <Image src={course.image || "/placeholder.svg"} alt={course.title} fill className="object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute top-4 right-4 bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                    {course.match}% Match
-                  </div>
-                  <div className="absolute bottom-4 left-4">
-                    <span className="bg-white/90 text-slate-800 text-xs font-medium px-3 py-1 rounded-full">
-                      {course.level}
-                    </span>
+                  <div className="absolute top-3 right-3 bg-primary-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                    {course.matchScore}% Match
                   </div>
                 </div>
-                <div className="p-5">
-                  <h3 className="font-bold text-lg text-slate-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                    {course.title}
-                  </h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 line-clamp-2">{course.description}</p>
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
-                      <Clock className="w-4 h-4" />
-                      {course.duration}
-                    </div>
-                    <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
-                      <BookOpen className="w-4 h-4" />
-                      {course.lessons} lessons
-                    </div>
+                <div className="p-4">
+                  <h3 className="font-bold text-slate-900 dark:text-white mb-2">{course.title}</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-3 line-clamp-2">{course.description}</p>
+                  <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-4">
+                    <Clock className="w-3 h-3" />
+                    {course.duration}
+                    <span className="mx-1">•</span>
+                    {course.level}
                   </div>
-                  <div className="flex gap-2 mt-4">
-                    <Button
-                      variant="outline"
-                      className="flex-1 cursor-pointer hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400 bg-transparent"
-                    >
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="flex-1 text-xs bg-transparent">
                       View Course
                     </Button>
-                    <Button className="flex-1 cursor-pointer bg-blue-500 hover:bg-blue-600">Add to Plan</Button>
+                    <Button size="sm" className="flex-1 text-xs bg-primary-500 hover:bg-primary-600 text-white">
+                      Add to Plan
+                    </Button>
                   </div>
                 </div>
               </Card>
@@ -905,57 +866,31 @@ export default function BuildPlanPage() {
         </div>
 
         {/* Other Courses */}
-        <div>
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-slate-200 dark:bg-slate-700 rounded-xl flex items-center justify-center">
-              <BookOpen className="w-5 h-5 text-slate-600 dark:text-slate-300" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Other Courses</h2>
-              <p className="text-slate-500 dark:text-slate-400">Explore more learning options</p>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="mb-12">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Other Courses You Might Like</h2>
+          <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
             {otherCourses.map((course) => (
               <Card
                 key={course.id}
-                className="overflow-hidden border border-slate-200 dark:border-slate-700 hover:shadow-lg hover:border-blue-200 dark:hover:border-blue-800 transition-all cursor-pointer group bg-white dark:bg-slate-800"
+                className="p-4 hover:shadow-md transition-all border border-slate-200 dark:border-slate-700"
               >
-                <div className="relative h-36">
-                  <Image src={course.image || "/placeholder.svg"} alt={course.title} fill className="object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                  <div className="absolute bottom-3 left-3">
-                    <span className="bg-white/90 text-slate-800 text-xs font-medium px-2 py-1 rounded-full">
-                      {course.level}
-                    </span>
+                <div className="flex gap-3">
+                  <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                    <Image src={course.image || "/placeholder.svg"} alt={course.title} fill className="object-cover" />
                   </div>
-                </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-slate-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1">
-                    {course.title}
-                  </h3>
-                  <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      {course.duration}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <BookOpen className="w-3 h-3" />
-                      {course.lessons}
-                    </span>
-                  </div>
-                  <div className="flex gap-2 mt-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1 cursor-pointer hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/20 dark:hover:text-blue-400 bg-transparent"
-                    >
-                      View
-                    </Button>
-                    <Button size="sm" className="flex-1 cursor-pointer bg-blue-500 hover:bg-blue-600">
-                      Add
-                    </Button>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-sm text-slate-900 dark:text-white mb-1 truncate">
+                      {course.title}
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{course.duration}</p>
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="sm" className="h-6 text-xs px-2 text-primary-600">
+                        View
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-6 text-xs px-2 text-primary-600">
+                        Add
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </Card>
@@ -963,31 +898,25 @@ export default function BuildPlanPage() {
           </div>
         </div>
 
-        {/* CTA */}
-        <div className="mt-16 text-center">
-          <Card className="p-8 bg-gradient-to-r from-blue-500 to-sky-500 border-0 text-white">
-            <h3 className="text-2xl font-bold mb-4">Ready to Start Learning?</h3>
-            <p className="text-blue-100 mb-6 max-w-lg mx-auto">
-              Your personalized study plan is waiting. Begin your journey to English fluency today!
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/plan">
-                <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50 cursor-pointer">
-                  Go to My Study Plan
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-              </Link>
-              <Link href="/dashboard">
-                <Button
-                  size="lg"
-                  variant="outline"
-                  className="border-2 border-white text-white hover:bg-white/20 bg-transparent cursor-pointer"
-                >
-                  Explore Dashboard
-                </Button>
-              </Link>
-            </div>
-          </Card>
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <Link href="/plan">
+            <Button size="lg" className="bg-primary-500 hover:bg-primary-600 text-white px-8">
+              Go to My Study Plan
+              <ArrowRight className="ml-2 w-5 h-5" />
+            </Button>
+          </Link>
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={() => {
+              setStage("intro")
+              setCurrentQuestion(0)
+              setAnswers({})
+            }}
+          >
+            Retake Questionnaire
+          </Button>
         </div>
       </div>
     </div>

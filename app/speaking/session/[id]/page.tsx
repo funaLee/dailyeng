@@ -1,15 +1,31 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { SessionChat } from "@/components/speaking/session-chat"
 import { SessionTranscript } from "@/components/speaking/session-transcript"
 import { RadarChart } from "@/components/speaking/radar-chart"
-// Removed mock data import - now fetching from API
+import { mockSpeakingScenarios, mockSpeakingTurns, mockCustomScenarios } from "@/lib/mock-data"
 import { useAppStore } from "@/lib/store"
-import { ArrowLeft, BarChart3, BookOpen, Download, Play, RotateCcw, User, Bot, Volume2, Copy, Check, Mic, MoreVertical, RefreshCw } from 'lucide-react'
+import {
+  ArrowLeft,
+  BarChart3,
+  BookOpen,
+  Download,
+  Play,
+  RotateCcw,
+  User,
+  Bot,
+  Volume2,
+  Copy,
+  Check,
+  Mic,
+  MoreVertical,
+  RefreshCw,
+  MicOff,
+} from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import VocabHelperChatbot from "@/components/speaking/vocab-helper-chatbot" // Import the new component
@@ -50,41 +66,54 @@ export default function SpeakingSessionPage() {
   const TURNS_FOR_COMPLETION = 6
 
   useEffect(() => {
-    const fetchScenario = async () => {
-      try {
-        // Fetch scenario from API
-        const response = await fetch(`/api/speaking/scenarios`)
-        if (!response.ok) {
-          throw new Error('Failed to fetch scenarios')
-        }
-        
-        const allScenarios = await response.json()
-        console.log("Looking for scenarioId:", scenarioId)
-        console.log("Available scenarios:", allScenarios.map((s: any) => s.id))
+    // Flatten all scenarios from all categories
+    const allScenarios = Object.values(mockSpeakingScenarios)
+      .reduce((acc, curr) => [...acc, ...curr], [])
+      .concat(mockCustomScenarios)
 
-        let found = allScenarios.find((s: any) => s.id === scenarioId)
+    console.log("Looking for scenarioId:", scenarioId)
+    console.log(
+      "Available scenarios:",
+      allScenarios.map((s) => s.id),
+    )
 
-        if (!found) {
-          console.warn("Speaking scenario not found for id:", scenarioId)
-        } else {
-          console.log("Successfully found scenario:", found.title)
-        }
+    let found = allScenarios.find((s) => s.id === scenarioId)
 
-        setScenario(found)
-
-        // Fetch session turns if scenario exists
-        if (found) {
-          // For now, start with empty turns - will be populated when user starts speaking
-          setTurns([])
-          calculateStats([])
-        }
-      } catch (error) {
-        console.error('Error fetching scenario:', error)
-        setScenario(null)
+    // Fallbacks for mismatched ids (numeric ids or slight formatting differences)
+    if (!found) {
+      const numeric = Number.parseInt(scenarioId, 10)
+      if (!isNaN(numeric) && numeric > 0 && numeric <= allScenarios.length) {
+        found = allScenarios[numeric - 1]
+        console.log("Found by numeric index:", numeric - 1, found?.id)
       }
     }
 
-    fetchScenario()
+    if (!found) {
+      // try loose match ignoring hyphens/underscores
+      const normalized = (id: string) => id.replace(/[-_]/g, "").toLowerCase()
+      const normalizedScenarioId = normalized(scenarioId)
+      found = allScenarios.find((s) => {
+        const match = normalized(s.id) === normalizedScenarioId
+        if (match) console.log("Found by loose match:", s.id)
+        return match
+      })
+    }
+
+    if (!found) {
+      console.warn(
+        "Speaking scenario not found for id:",
+        scenarioId,
+        "available:",
+        allScenarios.map((s) => s.id),
+      )
+    } else {
+      console.log("Successfully found scenario:", found.title)
+    }
+
+    setScenario(found)
+
+    setTurns(mockSpeakingTurns.session1 as Turn[])
+    calculateStats(mockSpeakingTurns.session1 as Turn[])
   }, [scenarioId])
 
   const calculateStats = (allTurns: Turn[]) => {
@@ -229,7 +258,7 @@ export default function SpeakingSessionPage() {
   if (!scenario) {
     return (
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-        <div className="h-96 bg-secondary animate-pulse rounded-2xl" />
+        <div className="h-96 bg-muted animate-pulse rounded-2xl" />
       </div>
     )
   }
@@ -253,20 +282,20 @@ export default function SpeakingSessionPage() {
                 <h2 className="text-2xl font-bold">Learning Goals</h2>
               </div>
               <div className="space-y-3">
-                <div className="flex gap-3 p-4 bg-blue-50 rounded-xl">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+                <div className="flex gap-3 p-4 bg-primary-50 rounded-xl">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-bold">
                     1
                   </div>
                   <p className="text-sm">Talk about being tired of a small room.</p>
                 </div>
-                <div className="flex gap-3 p-4 bg-blue-50 rounded-xl">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+                <div className="flex gap-3 p-4 bg-primary-50 rounded-xl">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-bold">
                     2
                   </div>
                   <p className="text-sm">Describe your dream house.</p>
                 </div>
-                <div className="flex gap-3 p-4 bg-blue-50 rounded-xl">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+                <div className="flex gap-3 p-4 bg-primary-50 rounded-xl">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-bold">
                     3
                   </div>
                   <p className="text-sm">Compare and talk about two types of houses.</p>
@@ -277,22 +306,38 @@ export default function SpeakingSessionPage() {
             <div>
               <div className="flex items-center gap-2 mb-6">
                 <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                  />
                 </svg>
                 <h2 className="text-2xl font-bold">Key expressions</h2>
               </div>
-              <div className="space-y-4 p-4 bg-blue-50 rounded-xl text-sm">
+              <div className="space-y-4 p-4 bg-primary-50 rounded-xl text-sm">
                 <div>
-                  <p className="font-medium mb-1">1. One day, I'm going to have a house with a pool, a walk-in closet, and a huge kitchen.</p>
-                  <p className="text-muted-foreground italic">Một ngày nào đó, tôi sẽ có một căn nhà với hồ bơi, tủ đồ cỡ mà có thể bước vào được, và một căn bếp rất mà rất lớn.</p>
+                  <p className="font-medium mb-1">
+                    1. One day, I'm going to have a house with a pool, a walk-in closet, and a huge kitchen.
+                  </p>
+                  <p className="text-muted-foreground italic">
+                    Một ngày nào đó, tôi sẽ có một căn nhà với hồ bơi, tủ đồ cỡ mà có thể bước vào được, và một căn bếp
+                    rất mà rất lớn.
+                  </p>
                 </div>
                 <div>
-                  <p className="font-medium mb-1">2. Don't forget the home theater! I'll invite you over for movie nights every weekend.</p>
-                  <p className="text-muted-foreground italic">Đừng quên rạp chiếu phim tại nhà nhé! Tớ sẽ mời cậu tới xem phim mỗi cuối tuần.</p>
+                  <p className="font-medium mb-1">
+                    2. Don't forget the home theater! I'll invite you over for movie nights every weekend.
+                  </p>
+                  <p className="text-muted-foreground italic">
+                    Đừng quên rạp chiếu phim tại nhà nhé! Tớ sẽ mời cậu tới xem phim mỗi cuối tuần.
+                  </p>
                 </div>
                 <div>
                   <p className="font-medium mb-1">3. Sounds perfect … now if only our bank accounts would agree.</p>
-                  <p className="text-muted-foreground italic">Nghe hoàn hảo đây … giá mà tài khoản ngân hàng của chúng ta cũng đồng ý.</p>
+                  <p className="text-muted-foreground italic">
+                    Nghe hoàn hảo đây … giá mà tài khoản ngân hàng của chúng ta cũng đồng ý.
+                  </p>
                 </div>
               </div>
             </div>
@@ -301,19 +346,16 @@ export default function SpeakingSessionPage() {
           {/* Right side: Topic card with play button */}
           <div className="space-y-6">
             <Card className="p-8">
-              <div className="aspect-video bg-gradient-to-br from-blue-200 to-blue-300 rounded-2xl mb-6 relative overflow-hidden">
-                <Image
-                  src="/learning.png"
-                  alt={scenario.title}
-                  fill
-                  className="object-cover rounded-2xl"
-                />
+              <div className="aspect-video bg-gradient-to-br from-primary-200 to-primary-300 rounded-2xl mb-6 relative overflow-hidden">
+                <Image src="/learning.png" alt={scenario.title} fill className="object-cover rounded-2xl" />
               </div>
 
               <h1 className="text-3xl font-bold mb-4">{scenario.title || "Share about your dream house"}</h1>
 
               <p className="text-muted-foreground mb-6 leading-relaxed">
-                In their shabby little room, A dreams of a mansion with countless rooms — for gaming, movies, and spa. B dreams of a cozy home surrounded by flowers and butterflies. While they are arguing, the power suddenly goes out, and the sounds of neighbors complaining bring them both back to reality.
+                In their shabby little room, A dreams of a mansion with countless rooms — for gaming, movies, and spa. B
+                dreams of a cozy home surrounded by flowers and butterflies. While they are arguing, the power suddenly
+                goes out, and the sounds of neighbors complaining bring them both back to reality.
               </p>
 
               <div className="flex items-center justify-between mb-8">
@@ -334,19 +376,11 @@ export default function SpeakingSessionPage() {
               </div>
 
               <div className="flex gap-3">
-                <Button 
-                  onClick={() => setViewState("active")}
-                  className="flex-1 gap-2 text-lg py-6"
-                  size="lg"
-                >
+                <Button onClick={() => setViewState("active")} className="flex-1 gap-2 text-lg py-6" size="lg">
                   <Play className="h-5 w-5" />
                   Start Speaking
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="lg"
-                  className="px-6 bg-transparent"
-                >
+                <Button variant="outline" size="lg" className="px-6 bg-transparent">
                   <RotateCcw className="h-5 w-5" />
                 </Button>
               </div>
@@ -360,37 +394,22 @@ export default function SpeakingSessionPage() {
   if (viewState === "active") {
     return (
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        {/*
-        */}
         <div className="grid grid-cols-3 gap-6">
-          {/* Main Speaking Section - Without wrapping Card */}
+          {/* Main Speaking Section */}
           <div className="rounded-2xl border bg-card p-8 col-span-2">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={() => setViewState("preparation")}
-                className="rounded-xl"
-              >
+              <Button variant="ghost" size="icon" onClick={() => setViewState("preparation")} className="rounded-xl">
                 <ArrowLeft className="h-5 w-5" />
               </Button>
-              
+
               <h1 className="text-2xl font-bold text-center">{scenario.title || "Share about your dream house"}</h1>
-              
+
               <div className="flex gap-2">
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  className="rounded-xl"
-                >
+                <Button variant="ghost" size="icon" className="rounded-xl">
                   <RefreshCw className="h-5 w-5" />
                 </Button>
-                <Button 
-                  variant="ghost" 
-                  size="icon"
-                  className="rounded-xl"
-                >
+                <Button variant="ghost" size="icon" className="rounded-xl">
                   <MoreVertical className="h-5 w-5" />
                 </Button>
               </div>
@@ -400,7 +419,9 @@ export default function SpeakingSessionPage() {
             <div className="mb-6">
               <h3 className="font-bold mb-2">Situation Description</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                In a shabby room, A dreams of a mansion with countless rooms: a game room, a cinema room, and a spa. B dreams of a cottage surrounded by flowers and butterflies. While they are arguing, the power suddenly goes out, and the sounds of neighbors complaining bring them both back to reality.
+                In a shabby room, A dreams of a mansion with countless rooms: a game room, a cinema room, and a spa. B
+                dreams of a cottage surrounded by flowers and butterflies. While they are arguing, the power suddenly
+                goes out, and the sounds of neighbors complaining bring them both back to reality.
               </p>
             </div>
 
@@ -420,20 +441,22 @@ export default function SpeakingSessionPage() {
                 <div key={turn.id} className={`flex ${turn.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div className="flex gap-3 max-w-lg">
                     {turn.role === "tutor" && (
-                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                        <Bot className="h-5 w-5 text-blue-600" />
+                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                        <Bot className="h-5 w-5 text-primary-600" />
                       </div>
                     )}
-                    
+
                     <div className="flex-1">
-                      <div className={`rounded-2xl px-4 py-3 ${
-                        turn.role === "user" 
-                          ? "bg-blue-50 border border-gray-200" 
-                          : "bg-gray-100 border border-gray-200"
-                      }`}>
+                      <div
+                        className={`rounded-2xl px-4 py-3 ${
+                          turn.role === "user"
+                            ? "bg-primary-50 border border-gray-200"
+                            : "bg-gray-100 border border-gray-200"
+                        }`}
+                      >
                         <p className="text-sm leading-relaxed">{turn.text}</p>
                       </div>
-                      
+
                       {/* Action buttons below message */}
                       <div className="flex gap-2 mt-2 ml-2">
                         <button
@@ -444,10 +467,10 @@ export default function SpeakingSessionPage() {
                               window.speechSynthesis.speak(utterance)
                             }
                           }}
-                          className="w-8 h-8 rounded-full bg-blue-100 hover:bg-blue-200 flex items-center justify-center transition-colors"
+                          className="w-8 h-8 rounded-full bg-primary-100 hover:bg-primary-200 flex items-center justify-center transition-colors"
                           aria-label="Speak"
                         >
-                          <Volume2 className="h-4 w-4 text-blue-600" />
+                          <Volume2 className="h-4 w-4 text-primary-600" />
                         </button>
                         <button
                           onClick={() => {
@@ -455,20 +478,20 @@ export default function SpeakingSessionPage() {
                             setCopiedId(turn.id)
                             setTimeout(() => setCopiedId(null), 2000)
                           }}
-                          className="w-8 h-8 rounded-full bg-blue-100 hover:bg-blue-200 flex items-center justify-center transition-colors"
+                          className="w-8 h-8 rounded-full bg-primary-100 hover:bg-primary-200 flex items-center justify-center transition-colors"
                           aria-label="Copy"
                         >
                           {copiedId === turn.id ? (
-                            <Check className="h-4 w-4 text-blue-600" />
+                            <Check className="h-4 w-4 text-primary-600" />
                           ) : (
-                            <Copy className="h-4 w-4 text-blue-600" />
+                            <Copy className="h-4 w-4 text-primary-600" />
                           )}
                         </button>
                       </div>
                     </div>
 
                     {turn.role === "user" && (
-                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
+                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center">
                         <User className="h-5 w-5 text-white" />
                       </div>
                     )}
@@ -485,27 +508,30 @@ export default function SpeakingSessionPage() {
             </div>
 
             {/* Tap to Speak Button */}
-            <div className="flex flex-col items-center gap-2">
-              <p className="text-sm text-muted-foreground">Tap to speak</p>
+            <div className="flex justify-center">
               <button
                 onClick={handleToggleRecording}
-                className={`w-20 h-20 rounded-full flex items-center justify-center transition-all ${
-                  isRecording 
-                    ? "bg-red-500 hover:bg-red-600 animate-pulse" 
-                    : "bg-blue-100 hover:bg-blue-200"
-                }`}
-                aria-label={isRecording ? "Stop recording" : "Start recording"}
+                className={`
+                  w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300
+                  ${
+                    isRecording
+                      ? "bg-secondary-500 animate-pulse shadow-lg shadow-secondary-200"
+                      : "bg-primary-500 hover:bg-primary-600 shadow-lg shadow-primary-200"
+                  }
+                `}
               >
-                <Mic className={`h-10 w-10 ${isRecording ? "text-white" : "text-blue-600"}`} />
+                {isRecording ? <MicOff className="h-8 w-8 text-white" /> : <Mic className="h-8 w-8 text-white" />}
               </button>
-              {isRecording && (
-                <p className="text-sm text-red-500 font-medium animate-pulse">Recording...</p>
-              )}
             </div>
+            <p className="text-center text-sm text-muted-foreground mt-4">
+              {isRecording ? "Recording... Tap to stop" : "Tap to speak"}
+            </p>
           </div>
 
-          {/* Vocabulary Helper Chatbot - Sibling column */}
-          <VocabHelperChatbot />
+          {/* Right Sidebar - Vocab Helper */}
+          <div className="col-span-1">
+            <VocabHelperChatbot />
+          </div>
         </div>
       </div>
     )
@@ -513,13 +539,15 @@ export default function SpeakingSessionPage() {
 
   if (viewState === "complete") {
     const overallScore = Math.round(
-      (sessionStats.avgPronunciation + sessionStats.avgFluency + sessionStats.avgGrammar + sessionStats.avgContent) / 4 * 10
+      ((sessionStats.avgPronunciation + sessionStats.avgFluency + sessionStats.avgGrammar + sessionStats.avgContent) /
+        4) *
+        10,
     )
 
     const radarData = [
       { label: "Relevance", value: Math.round(sessionStats.avgContent * 10) },
       { label: "Pronunciation", value: Math.round(sessionStats.avgPronunciation * 10) },
-      { label: "Intonation & Stress", value: Math.round((sessionStats.avgFluency * 0.8) * 10) },
+      { label: "Intonation & Stress", value: Math.round(sessionStats.avgFluency * 0.8 * 10) },
       { label: "Fluency", value: Math.round(sessionStats.avgFluency * 10) },
       { label: "Grammar", value: Math.round(sessionStats.avgGrammar * 10) },
     ]
@@ -550,10 +578,9 @@ export default function SpeakingSessionPage() {
             <Card className="p-8 bg-gradient-to-br from-gray-50 to-gray-100">
               <h2 className="text-3xl font-bold mb-4">Amazing context understanding</h2>
               <p className="text-base text-muted-foreground leading-relaxed">
-                Amazing work! You seem to understand the context really well, you also got nice pronunciation 
-                and good use of grammar. However, you may want to put in more time in speaking session to improve 
-                your fluency, since there are a couple of times you pause a bit too long to remember the 
-                pronunciation of a word.
+                Amazing work! You seem to understand the context really well, you also got nice pronunciation and good
+                use of grammar. However, you may want to put in more time in speaking session to improve your fluency,
+                since there are a couple of times you pause a bit too long to remember the pronunciation of a word.
               </p>
             </Card>
           </div>
@@ -572,20 +599,20 @@ export default function SpeakingSessionPage() {
                 <h2 className="text-2xl font-bold">Learning Goals</h2>
               </div>
               <div className="space-y-3">
-                <div className="flex gap-3 p-4 bg-blue-50 rounded-xl">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+                <div className="flex gap-3 p-4 bg-primary-50 rounded-xl">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-bold">
                     1
                   </div>
                   <p className="text-sm">Talk about being tired of a small room.</p>
                 </div>
-                <div className="flex gap-3 p-4 bg-blue-50 rounded-xl">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+                <div className="flex gap-3 p-4 bg-primary-50 rounded-xl">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-bold">
                     2
                   </div>
                   <p className="text-sm">Describe your dream house.</p>
                 </div>
-                <div className="flex gap-3 p-4 bg-blue-50 rounded-xl">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold">
+                <div className="flex gap-3 p-4 bg-primary-50 rounded-xl">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-bold">
                     3
                   </div>
                   <p className="text-sm">Compare and talk about two types of houses.</p>
@@ -595,11 +622,11 @@ export default function SpeakingSessionPage() {
 
             {/* Action Buttons */}
             <div className="space-y-3">
-              <Button onClick={handleExtractWords} className="w-full gap-2" variant="outline">
+              <Button onClick={handleExtractWords} className="w-full gap-2 bg-transparent" variant="outline">
                 <BookOpen className="h-4 w-4" />
                 Extract New Words to Flashcards
               </Button>
-              <Button onClick={handleDownloadTranscript} className="w-full gap-2" variant="outline">
+              <Button onClick={handleDownloadTranscript} className="w-full gap-2 bg-transparent" variant="outline">
                 <Download className="h-4 w-4" />
                 Download Transcript
               </Button>

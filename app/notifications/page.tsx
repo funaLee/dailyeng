@@ -89,7 +89,7 @@ export default function NotificationsPage() {
     <ProtectedRoute
       pageName="Notifications"
       pageDescription="Stay updated with your learning progress, achievements, and important announcements."
-      pageIcon={<Bell className="w-10 h-10 text-blue-500" />}
+      pageIcon={<Bell className="w-10 h-10 text-primary" />}
     >
       <div className="container mx-auto px-8 py-8">
         <div className="grid lg:grid-cols-12 gap-8">
@@ -101,29 +101,29 @@ export default function NotificationsPage() {
           {/* Main Content */}
           <div className="lg:col-span-9 space-y-6">
             {/* Header */}
-            <Card className="border-slate-200 shadow-sm">
+            <Card className="border-border shadow-sm">
               <CardContent className="p-6">
-                <h1 className="text-2xl font-bold text-slate-900">Hello, Thanh Truc!</h1>
+                <h1 className="text-2xl font-bold text-foreground">Hello, Thanh Truc!</h1>
               </CardContent>
             </Card>
 
             {/* Title */}
-            <h2 className="text-xl font-bold text-slate-900">Your Notifications</h2>
+            <h2 className="text-xl font-bold text-foreground">Your Notifications</h2>
 
             {/* Search and Filter Controls */}
             <div className="flex gap-4 items-center">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   placeholder="Search"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 border-slate-300 focus:border-blue-500 focus:ring-blue-500"
+                  className="pl-10 border-input focus:border-primary focus:ring-primary"
                 />
               </div>
 
               <Select value={filterCategory} onValueChange={setFilterCategory}>
-                <SelectTrigger className="w-[200px] border-slate-300">
+                <SelectTrigger className="w-[200px] border-input">
                   <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Filter by type" />
                 </SelectTrigger>
@@ -139,7 +139,7 @@ export default function NotificationsPage() {
               <Button
                 variant="outline"
                 onClick={() => setSortOrder(sortOrder === "newest" ? "oldest" : "newest")}
-                className="border-slate-300"
+                className="border-input"
               >
                 <ArrowUpDown className="h-4 w-4 mr-2" />
                 {sortOrder === "newest" ? "Newest" : "Oldest"}
@@ -151,27 +151,30 @@ export default function NotificationsPage() {
               {filteredNotifications.map((notification) => (
                 <Card
                   key={notification.id}
-                  className={`border-slate-200 shadow-sm transition-all hover:shadow-md ${
-                    !notification.read ? "bg-blue-50/30" : ""
+                  className={`border-border shadow-sm transition-all hover:shadow-md ${
+                    !notification.read ? "bg-primary/5" : ""
                   }`}
                 >
-                  <CardContent className="px-5">
+                  <CardContent className="p-5 pt-1 pb-1">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-bold text-lg text-slate-900">{notification.title}</h3>
-                          <Badge variant="outline" className="border-slate-300 text-slate-600 text-xs px-3 py-0.5">
+                          <h3 className="font-bold text-lg text-foreground">{notification.title}</h3>
+                          <Badge variant="outline" className="border-input text-muted-foreground text-xs px-3 py-0.5">
                             {notification.category}
                           </Badge>
                         </div>
-                        <p className="text-slate-600 text-sm leading-relaxed">{notification.description}</p>
+                        <p className="text-muted-foreground text-sm leading-relaxed">{notification.description}</p>
                       </div>
 
                       <div className="text-right flex flex-col items-end gap-1">
-                        <span className="text-xs text-slate-900 font-semibold">
+                        <span className="text-xs font-medium text-muted-foreground italic">
+                          {notification.timestamp}
+                        </span>
+                        <span className="text-xs text-foreground font-semibold">
                           {notification.timestamp.includes(":") ? notification.timestamp : ""}
                         </span>
-                        <span className="text-xs text-slate-500">{notification.date}</span>
+                        <span className="text-xs text-muted-foreground">{notification.date}</span>
                       </div>
                     </div>
                   </CardContent>

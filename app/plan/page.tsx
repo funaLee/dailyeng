@@ -142,18 +142,17 @@ export default function StudyPlanPage() {
       <div className="container mx-auto max-w-7xl py-8">
         <div className="space-y-8">
           {/* 1. Header Section */}
-          <div className="relative overflow-hidden rounded-3xl border border-blue-100 bg-white p-8 shadow-sm">
+          <div className="relative overflow-hidden rounded-3xl border border-primary-200 bg-white p-8 shadow-sm">
             <div className="flex flex-col md:flex-row items-center justify-between gap-8">
               <div className="max-w-xl space-y-4">
-                <h1 className="text-4xl font-black uppercase tracking-tight text-blue-950">Your Study Plan</h1>
+                <h1 className="text-4xl font-black uppercase tracking-tight text-primary-950">Your Study Plan</h1>
                 <p className="text-lg text-slate-600">
                   Practice real conversations with AI tutors and get instant feedback on your pronunciation, fluency,
                   grammar, and content.
                 </p>
               </div>
               <div className="relative h-48 w-48 md:h-64 md:w-64 flex-shrink-0">
-                {/* Placeholder illustration matching the style */}
-                <div className="absolute inset-0 bg-[#C2E2FA]/40 rounded-full blur-3xl animate-pulse" />
+                <div className="absolute inset-0 bg-primary-200/40 rounded-full blur-3xl animate-pulse" />
                 <Image
                   src="learning.png"
                   alt="Study Plan Illustration"
@@ -166,146 +165,146 @@ export default function StudyPlanPage() {
           </div>
 
           {/* 2. This week's plan Section */}
-          <Card className="p-6 border-blue-100 shadow-md">
+          <Card className="p-6 border-primary-200 shadow-md">
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-xl font-bold text-slate-800">This week&apos;s plan</h2>
               <Button
                 variant={isEditing ? "default" : "outline"}
                 size="sm"
                 onClick={() => setIsEditing(!isEditing)}
-                className={isEditing ? "bg-blue-600 text-white" : "border-blue-200 text-blue-700 hover:bg-blue-50"}
+                className={
+                  isEditing ? "bg-primary-500 text-white" : "border-primary-200 text-primary-700 hover:bg-primary-50"
+                }
               >
                 {isEditing ? <Check className="w-4 h-4 mr-1" /> : <Edit2 className="w-4 h-4 mr-1" />}
                 {isEditing ? "Done" : "Edit"}
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="grid grid-cols-1 lg:grid-grid-cols-12 gap-8">
               {/* Left Side: Stats & Calendar (8 cols) */}
               <div className="lg:col-span-7 space-y-8">
                 {/* Stats Row */}
                 <div className="grid grid-cols-3 gap-4">
-                  <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-center">
-                    <p className="text-xs text-blue-600 font-medium mb-1">Số giờ học trong ngày</p>
+                  <div className="rounded-xl border border-primary-200 bg-primary-50/50 p-4 text-center">
+                    <p className="text-xs text-primary-600 font-medium mb-1">Số giờ học trong ngày</p>
                     <p className="text-xl font-bold text-slate-800">1.5h</p>
                   </div>
-                  <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-center">
-                    <p className="text-xs text-blue-600 font-medium mb-1">Số giờ học trong tuần</p>
+                  <div className="rounded-xl border border-primary-200 bg-primary-50/50 p-4 text-center">
+                    <p className="text-xs text-primary-600 font-medium mb-1">Số giờ học trong tuần</p>
                     <p className="text-xl font-bold text-slate-800">13h</p>
                   </div>
-                  <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-center">
-                    <p className="text-xs text-blue-600 font-medium mb-1">Total Hours</p>
+                  <div className="rounded-xl border border-primary-200 bg-primary-50/50 p-4 text-center">
+                    <p className="text-xs text-primary-600 font-medium mb-1">Total Hours</p>
                     <p className="text-xl font-bold text-slate-800">70h</p>
                   </div>
                 </div>
 
                 {/* Calendar Grid */}
-                <div className="rounded-xl border border-blue-100 overflow-hidden shadow-sm bg-white">
-                  <div className="grid grid-cols-8 border-b border-blue-100 text-center text-xs font-semibold text-slate-500 bg-blue-50/30">
-                    <div className="p-3 border-r border-blue-100">time</div>
+                <div className="rounded-xl border border-primary-200 overflow-hidden shadow-sm bg-white">
+                  <div className="grid grid-cols-8 border-b border-primary-200 text-center text-xs font-semibold text-slate-500 bg-primary-50/30">
+                    <div className="p-3 border-r border-primary-100">time</div>
                     {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-                      <div key={day} className="p-3 border-r border-blue-100 last:border-r-0 text-blue-900">
+                      <div key={day} className="p-3 border-r border-primary-100 last:border-r-0 text-primary-900">
                         {day}
                       </div>
                     ))}
                   </div>
                   {/* Simplified Time Blocks for visual matching */}
-                  <div className="grid grid-cols-8 text-xs min-h-[60px] border-b border-blue-50">
-                    <div className="p-2 border-r border-blue-50 text-center text-slate-400 font-mono font-bold text-sm">
+                  <div className="grid grid-cols-8 text-xs min-h-[60px] border-b border-primary-50">
+                    <div className="p-2 border-r border-primary-50 text-center text-slate-400 font-mono font-bold text-sm">
                       6:00
                     </div>
-                    <div className="border-r border-blue-50"></div>
-                    <div className="border-r border-blue-50 p-1">
+                    <div className="border-r border-primary-50"></div>
+                    <div className="border-r border-primary-50 p-1">
                       <div
-                        className={`w-full h-full rounded-lg ${isEditing ? "animate-pulse ring-1 ring-blue-300" : ""} bg-[#C2E2FA] text-blue-900 font-medium flex items-center justify-center text-[10px] shadow-sm`}
+                        className={`w-full h-full rounded-lg ${isEditing ? "animate-pulse ring-1 ring-primary-300" : ""} bg-primary-200 text-primary-900 font-medium flex items-center justify-center text-[10px] shadow-sm`}
                       >
                         Speaking
                       </div>
                     </div>
-                    <div className="border-r border-blue-50 p-1">
+                    <div className="border-r border-primary-50 p-1">
                       <div
-                        className={`w-full h-full rounded-lg ${isEditing ? "animate-pulse ring-1 ring-blue-300" : ""} bg-[#C2E2FA] text-blue-900 font-medium flex items-center justify-center text-[10px] shadow-sm`}
+                        className={`w-full h-full rounded-lg ${isEditing ? "animate-pulse ring-1 ring-primary-300" : ""} bg-primary-200 text-primary-900 font-medium flex items-center justify-center text-[10px] shadow-sm`}
                       >
                         Speaking
                       </div>
                     </div>
-                    <div className="border-r border-blue-50"></div>
-                    <div className="border-r border-blue-50 p-1">
+                    <div className="border-r border-primary-50"></div>
+                    <div className="border-r border-primary-50 p-1">
                       <div
-                        className={`w-full h-full rounded-lg ${isEditing ? "animate-pulse ring-1 ring-blue-300" : ""} bg-[#C2E2FA] text-blue-900 font-medium flex items-center justify-center text-[10px] shadow-sm`}
+                        className={`w-full h-full rounded-lg ${isEditing ? "animate-pulse ring-1 ring-primary-300" : ""} bg-primary-200 text-primary-900 font-medium flex items-center justify-center text-[10px] shadow-sm`}
                       >
                         Speaking
                       </div>
                     </div>
-                    <div className="border-r border-blue-50"></div>
-                    <div className="border-r border-blue-50"></div>
+                    <div className="border-r border-primary-50"></div>
+                    <div className="border-r border-primary-50"></div>
                   </div>
-                  <div className="grid grid-cols-8 text-xs min-h-[60px] border-b border-blue-50">
-                    <div className="p-2 border-r border-blue-50 text-center text-slate-400 font-mono font-bold text-sm">
+                  <div className="grid grid-cols-8 text-xs min-h-[60px] border-b border-primary-50">
+                    <div className="p-2 border-r border-primary-50 text-center text-slate-400 font-mono font-bold text-sm">
                       12:00
                     </div>
-                    <div className="border-r border-blue-50 p-1">
-                      <div className="w-full h-full rounded-lg bg-[#C2E2FA] text-blue-900 font-medium flex items-center justify-center text-[10px] shadow-sm">
+                    <div className="border-r border-primary-50 p-1">
+                      <div className="w-full h-full rounded-lg bg-primary-200 text-primary-900 font-medium flex items-center justify-center text-[10px] shadow-sm">
                         Speaking
                       </div>
                     </div>
-                    {/* ... existing empty cells ... */}
-                    <div className="border-r border-blue-50"></div>
-                    <div className="border-r border-blue-50"></div>
-                    <div className="border-r border-blue-50"></div>
-                    <div className="border-r border-blue-50"></div>
-                    <div className="border-r border-blue-50"></div>
-                    <div className="border-r border-blue-50"></div>
+                    <div className="border-r border-primary-50"></div>
+                    <div className="border-r border-primary-50"></div>
+                    <div className="border-r border-primary-50"></div>
+                    <div className="border-r border-primary-50"></div>
+                    <div className="border-r border-primary-50"></div>
+                    <div className="border-r border-primary-50"></div>
                   </div>
-                  <div className="grid grid-cols-8 text-xs min-h-[60px] border-b border-blue-50">
-                    <div className="p-2 border-r border-blue-50 text-center text-slate-400 font-mono font-bold text-sm">
+                  <div className="grid grid-cols-8 text-xs min-h-[60px] border-b border-primary-50">
+                    <div className="p-2 border-r border-primary-50 text-center text-slate-400 font-mono font-bold text-sm">
                       1:00
                     </div>
-                    <div className="border-r border-blue-50 p-1">
+                    <div className="border-r border-primary-50 p-1">
                       <div className="w-full h-full rounded-lg bg-indigo-100 text-indigo-900 font-medium flex items-center justify-center text-[10px] shadow-sm">
                         Vocabulary
                       </div>
                     </div>
-                    <div className="border-r border-blue-50"></div>
-                    <div className="border-r border-blue-50 p-1">
-                      <div className="w-full h-full rounded-lg bg-[#C2E2FA] text-blue-900 font-medium flex items-center justify-center text-[10px] shadow-sm">
+                    <div className="border-r border-primary-50"></div>
+                    <div className="border-r border-primary-50 p-1">
+                      <div className="w-full h-full rounded-lg bg-primary-200 text-primary-900 font-medium flex items-center justify-center text-[10px] shadow-sm">
                         Speaking
                       </div>
                     </div>
-                    <div className="border-r border-blue-50"></div>
-                    <div className="border-r border-blue-50"></div>
-                    <div className="border-r border-blue-50 p-1">
-                      <div className="w-full h-full rounded-lg bg-[#C2E2FA] text-blue-900 font-medium flex items-center justify-center text-[10px] shadow-sm">
+                    <div className="border-r border-primary-50"></div>
+                    <div className="border-r border-primary-50"></div>
+                    <div className="border-r border-primary-50 p-1">
+                      <div className="w-full h-full rounded-lg bg-primary-200 text-primary-900 font-medium flex items-center justify-center text-[10px] shadow-sm">
                         Speaking
                       </div>
                     </div>
-                    <div className="border-r border-blue-50"></div>
+                    <div className="border-r border-primary-50"></div>
                   </div>
                   <div className="grid grid-cols-8 text-xs min-h-[60px]">
-                    <div className="p-2 border-r border-blue-50 text-center text-slate-400 font-mono font-bold text-sm">
+                    <div className="p-2 border-r border-primary-50 text-center text-slate-400 font-mono font-bold text-sm">
                       5:00
                     </div>
-                    <div className="border-r border-blue-50 p-1">
+                    <div className="border-r border-primary-50 p-1">
                       <div className="w-full h-full rounded-lg bg-orange-100 text-orange-900 font-medium flex items-center justify-center text-[10px] shadow-sm">
                         Grammar
                       </div>
                     </div>
-                    {/* ... existing empty cells ... */}
-                    <div className="border-r border-blue-50"></div>
-                    <div className="border-r border-blue-50"></div>
-                    <div className="border-r border-blue-50"></div>
-                    <div className="border-r border-blue-50"></div>
-                    <div className="border-r border-blue-50"></div>
-                    <div className="border-r border-blue-50"></div>
+                    <div className="border-r border-primary-50"></div>
+                    <div className="border-r border-primary-50"></div>
+                    <div className="border-r border-primary-50"></div>
+                    <div className="border-r border-primary-50"></div>
+                    <div className="border-r border-primary-50"></div>
+                    <div className="border-r border-primary-50"></div>
                   </div>
                 </div>
               </div>
 
-              {/* Right Side: Today's Lesson (4 cols) */}
+              {/* Right Side: Today's Lesson */}
               <div className="lg:col-span-5 flex flex-col">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-bold text-slate-800">Today&apos;s lesson</h3>
-                  <span className="bg-blue-100 text-blue-700 font-semibold text-xs px-2.5 py-1 rounded-full">
+                  <span className="bg-primary-100 text-primary-700 font-semibold text-xs px-2.5 py-1 rounded-full">
                     Complete {completedLessons.length}/{todayLessons.length}
                   </span>
                 </div>
@@ -319,23 +318,23 @@ export default function StudyPlanPage() {
                         onClick={() => toggleLesson(lesson.id)}
                         className={`relative flex items-start gap-4 p-4 border rounded-xl transition-all cursor-pointer group ${
                           isCompleted
-                            ? "bg-blue-50 border-blue-200"
-                            : "bg-white border-gray-100 hover:border-blue-300 hover:shadow-md"
+                            ? "bg-primary-50 border-primary-200"
+                            : "bg-white border-gray-100 hover:border-primary-300 hover:shadow-md"
                         }`}
                       >
                         <div className="mt-1">
                           <div
                             className={`h-5 w-5 rounded border flex items-center justify-center transition-colors ${
                               isCompleted
-                                ? "bg-blue-500 border-blue-500"
-                                : "border-gray-300 group-hover:border-blue-400"
+                                ? "bg-primary-500 border-primary-500"
+                                : "border-gray-300 group-hover:border-primary-400"
                             }`}
                           >
                             {isCompleted && <Check className="h-3 w-3 text-white" />}
                           </div>
                         </div>
                         <div className="flex-1 space-y-1">
-                          <h4 className={`font-bold text-sm ${isCompleted ? "text-blue-900" : "text-slate-800"}`}>
+                          <h4 className={`font-bold text-sm ${isCompleted ? "text-primary-900" : "text-slate-800"}`}>
                             {lesson.title}
                           </h4>
                           <p className="text-xs text-slate-500 whitespace-pre-line">{lesson.topic}</p>
@@ -348,10 +347,10 @@ export default function StudyPlanPage() {
                             asChild
                             variant="secondary"
                             size="sm"
-                            className="h-7 text-xs bg-blue-100 text-blue-700 hover:bg-blue-200"
+                            className="h-7 text-xs bg-primary-100 text-primary-700 hover:bg-primary-200"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <Link href={lesson.link || "#"}>học ngay</Link>
+                            <Link href={lesson.link || "#"}>h{"u\x63"} ngay</Link>
                           </Button>
                         </div>
                       </div>
@@ -360,13 +359,13 @@ export default function StudyPlanPage() {
                 </div>
 
                 <div className="flex justify-center gap-2 mt-4 text-xs font-medium text-slate-500">
-                  <span className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-sm">
+                  <span className="w-6 h-6 rounded-full bg-primary-500 text-white flex items-center justify-center shadow-sm">
                     1
                   </span>
-                  <span className="w-6 h-6 rounded-full hover:bg-blue-100 hover:text-blue-700 flex items-center justify-center cursor-pointer transition-colors">
+                  <span className="w-6 h-6 rounded-full hover:bg-primary-100 hover:text-primary-700 flex items-center justify-center cursor-pointer transition-colors">
                     2
                   </span>
-                  <span className="w-6 h-6 rounded-full hover:bg-blue-100 hover:text-blue-700 flex items-center justify-center cursor-pointer transition-colors">
+                  <span className="w-6 h-6 rounded-full hover:bg-primary-100 hover:text-primary-700 flex items-center justify-center cursor-pointer transition-colors">
                     &gt;
                   </span>
                 </div>
@@ -374,35 +373,35 @@ export default function StudyPlanPage() {
             </div>
           </Card>
 
-{/* 3. Missions & Reminders Section (GRID LAYOUT UPDATED) */}
+          {/* 3. Missions & Reminders Section (GRID LAYOUT UPDATED) */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Missions - Takes up 2 Columns */}
-            <Card className="p-6 border-blue-100 shadow-md lg:col-span-2">
+            <Card className="p-6 border-primary-200 shadow-md lg:col-span-2">
               <h2 className="text-xl font-bold mb-6 text-slate-800">Mission</h2>
 
               <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
                 {/* Sidebar Tabs */}
                 <div className="md:col-span-3 space-y-6">
-                  <div className="flex flex-col border border-blue-100 rounded-xl overflow-hidden shadow-sm">
+                  <div className="flex flex-col border border-primary-200 rounded-xl overflow-hidden shadow-sm">
                     {(["today", "weekly", "monthly"] as const).map((tab) => (
                       <button
                         key={tab}
                         onClick={() => setActiveMissionTab(tab)}
-                        className={`p-3 text-sm font-medium text-left border-b border-blue-50 last:border-b-0 transition-all capitalize flex items-center justify-between ${
+                        className={`p-3 text-sm font-medium text-left border-b border-primary-50 last:border-b-0 transition-all capitalize flex items-center justify-between ${
                           activeMissionTab === tab
-                            ? "bg-[#C2E2FA] text-blue-900"
-                            : "bg-white text-slate-600 hover:bg-blue-50"
+                            ? "bg-primary-200 text-primary-900"
+                            : "bg-white text-slate-600 hover:bg-primary-50"
                         }`}
                       >
                         {tab}
-                        {activeMissionTab === tab && <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />}
+                        {activeMissionTab === tab && <div className="w-1.5 h-1.5 rounded-full bg-primary-500" />}
                       </button>
                     ))}
                   </div>
 
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 text-center space-y-2 border border-blue-100">
+                  <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-4 text-center space-y-2 border border-primary-200">
                     <h4 className="font-bold text-sm text-slate-700">Countdown</h4>
-                    <div className="bg-white/80 py-2 px-4 rounded-lg font-mono font-bold text-sm text-blue-600 shadow-sm border border-blue-100">
+                    <div className="bg-white/80 py-2 px-4 rounded-lg font-mono font-bold text-sm text-primary-600 shadow-sm border border-primary-200">
                       14:59 hours remains
                     </div>
                     <p className="text-[10px] text-slate-500">Kết thúc lúc 11:59PM ngày 23/11/2025</p>
@@ -418,26 +417,26 @@ export default function StudyPlanPage() {
                       return (
                         <div
                           key={mission.id}
-                          className="flex items-center gap-3 group cursor-pointer"
                           onClick={() => toggleMission(mission.id)}
+                          className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-all ${
+                            isDone
+                              ? "bg-primary-50 border-primary-200"
+                              : "bg-white border-slate-100 hover:border-primary-200 hover:shadow-sm"
+                          }`}
                         >
                           <div
-                            className={`h-5 w-5 rounded border flex items-center justify-center transition-colors ${
-                              isDone
-                                ? "bg-green-500 border-green-500"
-                                : "border-slate-300 group-hover:border-blue-400"
+                            className={`w-5 h-5 rounded-full flex items-center justify-center border-2 ${
+                              isDone ? "bg-primary-500 border-primary-500" : "border-slate-300"
                             }`}
                           >
-                            {isDone && <Check className="h-3 w-3 text-white" />}
+                            {isDone && <Check className="w-3 h-3 text-white" />}
                           </div>
                           <span
-                            className={`text-sm flex-1 transition-colors ${
-                              isDone ? "text-slate-400 line-through" : "text-slate-700"
-                            }`}
+                            className={`flex-1 text-sm ${isDone ? "line-through text-slate-400" : "text-slate-700"}`}
                           >
                             {mission.title}
                           </span>
-                          <span className="text-xs font-bold text-orange-500 bg-orange-50 px-1.5 py-0.5 rounded border border-orange-100">
+                          <span className="text-xs font-bold text-orange-500 bg-orange-50 px-2 py-0.5 rounded-md">
                             +{mission.points}
                           </span>
                         </div>
@@ -447,15 +446,19 @@ export default function StudyPlanPage() {
                 </div>
 
                 {/* Gift/Reward */}
-                <div className="md:col-span-4 flex flex-col items-center">
-                  <h3 className="font-bold mb-4 self-start text-slate-800">Quà tặng</h3>
-                  <div className="w-full aspect-square border-2 border-dashed border-blue-200 rounded-2xl flex flex-col items-center justify-center mb-4 bg-blue-50/50 hover:bg-blue-50 transition-colors cursor-pointer group">
-                    <Gift className="h-12 w-12 text-blue-300 group-hover:text-blue-500 transition-colors mb-2" />
-                    <span className="text-xs text-blue-400 font-medium">Open Rewards</span>
-                  </div>
-                  <div className="text-center text-sm bg-white px-4 py-2 rounded-lg border border-gray-100 shadow-sm">
-                    <p className="font-bold text-blue-900">110 điểm thưởng</p>
-                    <p className="text-slate-500">30 card</p>
+                <div className="md:col-span-4 flex flex-col items-center justify-center">
+                  <div className="bg-gradient-to-br from-primary-100 to-primary-200 rounded-2xl p-6 text-center w-full">
+                    <div className="w-20 h-20 mx-auto mb-4 relative">
+                      <Gift className="w-full h-full text-primary-600" />
+                    </div>
+                    <h4 className="font-bold text-slate-800 mb-2">Daily Gift</h4>
+                    <p className="text-xs text-slate-500 mb-4">Complete all missions to claim!</p>
+                    <Button
+                      className="w-full bg-primary-500 hover:bg-primary-600 text-white"
+                      disabled={completedMissions.length < displayedMissions.length}
+                    >
+                      Claim Gift
+                    </Button>
                   </div>
                 </div>
               </div>

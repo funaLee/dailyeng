@@ -48,7 +48,14 @@ export default function GrammarTopicPage() {
     }
 
     if (notes.length === 0) {
-      console.warn("Grammar notes not found for topicId:", topicId, "lookupId:", lookupId, "available:", Object.keys(mockGrammar))
+      console.warn(
+        "Grammar notes not found for topicId:",
+        topicId,
+        "lookupId:",
+        lookupId,
+        "available:",
+        Object.keys(mockGrammar),
+      )
     }
 
     setGrammarNotes(notes)
@@ -113,7 +120,7 @@ export default function GrammarTopicPage() {
   if (grammarNotes.length === 0) {
     return (
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-        <div className="h-96 bg-secondary animate-pulse rounded-2xl" />
+        <div className="h-96 bg-muted animate-pulse rounded-2xl" />
       </div>
     )
   }
@@ -122,26 +129,26 @@ export default function GrammarTopicPage() {
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-6">
         <Link href="/grammar">
-          <Button variant="ghost" className="gap-2 mb-4 bg-blue-50 hover:bg-blue-100 text-blue-900">
+          <Button variant="ghost" className="gap-2 mb-4 bg-primary-50 hover:bg-primary-100 text-primary-900">
             <ArrowLeft className="h-4 w-4" />
             Back to Grammar Hub
           </Button>
         </Link>
 
-        <Card className="p-6 border-blue-100 bg-gradient-to-r from-white to-blue-50/30">
+        <Card className="p-6 border-primary-100 bg-gradient-to-r from-white to-primary-50/30">
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-3xl font-bold mb-2 text-blue-950">{topic.title}</h1>
-              <p className="text-slate-600">{topic.description}</p>
+              <h1 className="text-3xl font-bold mb-2 text-primary-900">{topic.title}</h1>
+              <p className="text-muted-foreground">{topic.description}</p>
             </div>
             <div className="text-right">
               <div className="mb-2">
-                <span className="text-2xl font-bold text-blue-600">{progressPercentage}%</span>
+                <span className="text-2xl font-bold text-primary-600">{progressPercentage}%</span>
                 <span className="text-sm text-muted-foreground ml-1">Complete</span>
               </div>
               <div className="w-32 h-2 bg-gray-100 rounded-full ml-auto overflow-hidden">
                 <div
-                  className="h-full bg-blue-600 rounded-full transition-all duration-500 ease-out"
+                  className="h-full bg-primary-600 rounded-full transition-all duration-500 ease-out"
                   style={{ width: `${progressPercentage}%` }}
                 />
               </div>
@@ -150,11 +157,11 @@ export default function GrammarTopicPage() {
         </Card>
       </div>
 
-      <div className="mb-8 overflow-x-auto pb-4 pt-3">
+      <div className="mb-8 overflow-x-auto pb-4">
         <div className="min-w-[768px] flex items-center justify-between relative px-4">
           <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-gray-100 -z-10 rounded-full" />
           <div
-            className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-blue-200 -z-10 rounded-full transition-all duration-500"
+            className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-primary-200 -z-10 rounded-full transition-all duration-500"
             style={{ width: `${(completedSteps.length / (STEPS.length - 1)) * 100}%` }}
           />
 
@@ -172,11 +179,11 @@ export default function GrammarTopicPage() {
                     w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 z-10
                     ${
                       isCompleted
-                        ? "bg-green-500 border-green-500 text-white"
+                        ? "bg-success-500 border-success-500 text-white"
                         : isActive
-                          ? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200 scale-110"
+                          ? "bg-primary-600 border-primary-600 text-white shadow-lg shadow-primary-200 scale-110"
                           : isUnlocked
-                            ? "bg-white border-blue-200 text-blue-600 hover:border-blue-400"
+                            ? "bg-white border-primary-200 text-primary-600 hover:border-primary-400"
                             : "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
                     }
                   `}
@@ -194,7 +201,7 @@ export default function GrammarTopicPage() {
                 <span
                   className={`
                     text-xs font-medium transition-colors duration-300
-                    ${isActive ? "text-blue-700 font-bold" : isUnlocked ? "text-slate-600" : "text-gray-400"}
+                    ${isActive ? "text-primary-700 font-bold" : isUnlocked ? "text-muted-foreground" : "text-gray-400"}
                   `}
                 >
                   {step.label}
@@ -209,18 +216,18 @@ export default function GrammarTopicPage() {
         {activeTab === "learn" && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-slate-800">Learn Grammar</h2>
+              <h2 className="text-2xl font-bold">Learn Grammar</h2>
               <span className="text-sm text-muted-foreground">Step 1 of 6</span>
             </div>
 
             <div className="grid lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-1 space-y-2 max-h-[600px] overflow-y-auto border border-border rounded-lg p-3 bg-secondary/30">
+              <div className="lg:col-span-1 space-y-2 max-h-[600px] overflow-y-auto border border-border rounded-lg p-3 bg-muted/30">
                 {grammarNotes.map((note, idx) => (
                   <button
                     key={note.id}
                     onClick={() => handleSelectNote(note, idx)}
                     className={`w-full text-left px-3 py-2 rounded-lg transition-colors text-sm font-medium ${
-                      selectedNote?.id === note.id ? "bg-blue-600 text-white" : "hover:bg-secondary text-foreground"
+                      selectedNote?.id === note.id ? "bg-primary-600 text-white" : "hover:bg-muted text-foreground"
                     }`}
                   >
                     {idx + 1}. {note.title}
@@ -233,7 +240,7 @@ export default function GrammarTopicPage() {
                   <Card className="p-6 space-y-6">
                     <div>
                       <h3 className="text-3xl font-bold mb-4">{selectedNote.title}</h3>
-                      <div className="p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
+                      <div className="p-4 bg-primary-50 border-l-4 border-primary-500 rounded">
                         <p className="text-base leading-relaxed">{selectedNote.explanation}</p>
                       </div>
                     </div>
@@ -242,9 +249,9 @@ export default function GrammarTopicPage() {
                       <p className="text-xs font-semibold text-muted-foreground mb-4">EXAMPLES</p>
                       <div className="space-y-4">
                         {selectedNote.examples.map((example: any, idx: number) => (
-                          <div key={idx} className="p-4 bg-secondary/30 rounded-lg">
+                          <div key={idx} className="p-4 bg-muted/30 rounded-lg">
                             <p className="text-base font-medium mb-2">
-                              <span className="text-blue-600 font-bold mr-2">{idx + 1}.</span>
+                              <span className="text-primary-600 font-bold mr-2">{idx + 1}.</span>
                               {example.en}
                             </p>
                             <p className="text-sm text-muted-foreground ml-6">
@@ -259,15 +266,15 @@ export default function GrammarTopicPage() {
                       <h4 className="text-lg font-semibold mb-4">Practice Tips</h4>
                       <ul className="space-y-2 ml-4">
                         <li className="flex gap-2">
-                          <div className="h-2 w-2 rounded-full bg-blue-500 mt-2" />
+                          <div className="h-2 w-2 rounded-full bg-primary-500 mt-2" />
                           <p className="text-sm">Try creating your own sentences using this grammar structure</p>
                         </li>
                         <li className="flex gap-2">
-                          <div className="h-2 w-2 rounded-full bg-blue-500 mt-2" />
+                          <div className="h-2 w-2 rounded-full bg-primary-500 mt-2" />
                           <p className="text-sm">Practice with the exercises in the other tabs</p>
                         </li>
                         <li className="flex gap-2">
-                          <div className="h-2 w-2 rounded-full bg-blue-500 mt-2" />
+                          <div className="h-2 w-2 rounded-full bg-primary-500 mt-2" />
                           <p className="text-sm">Take the quiz to test your understanding</p>
                         </li>
                       </ul>
@@ -277,19 +284,25 @@ export default function GrammarTopicPage() {
                       <p className="text-center text-sm font-medium mb-4">How well do you understand this grammar?</p>
                       <div className="flex flex-wrap items-center justify-center gap-3">
                         {[
-                          { label: "Brand New", color: "bg-red-100 text-red-800 border-red-300 hover:bg-red-200" },
+                          {
+                            label: "Brand New",
+                            color: "bg-error-100 text-error-800 border-error-300 hover:bg-error-200",
+                          },
                           {
                             label: "Not Remembered",
-                            color: "bg-orange-100 text-orange-800 border-orange-300 hover:bg-orange-200",
+                            color: "bg-warning-100 text-warning-800 border-warning-300 hover:bg-warning-200",
                           },
                           {
                             label: "Normal",
-                            color: "bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-200",
+                            color: "bg-warning-50 text-warning-700 border-warning-200 hover:bg-warning-100",
                           },
-                          { label: "Remembered", color: "bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200" },
+                          {
+                            label: "Remembered",
+                            color: "bg-primary-100 text-primary-800 border-primary-300 hover:bg-primary-200",
+                          },
                           {
                             label: "Mastered",
-                            color: "bg-green-100 text-green-800 border-green-300 hover:bg-green-200",
+                            color: "bg-success-100 text-success-800 border-success-300 hover:bg-success-200",
                           },
                         ].map((level, idx) => (
                           <button
@@ -306,7 +319,10 @@ export default function GrammarTopicPage() {
                     <div className="border-t border-border pt-6 flex items-center justify-between">
                       <Button
                         variant="outline"
-                        onClick={handleNext}
+                        onClick={() =>
+                          currentNoteIndex > 0 &&
+                          handleSelectNote(grammarNotes[currentNoteIndex - 1], currentNoteIndex - 1)
+                        }
                         disabled={currentNoteIndex === 0}
                         className="gap-2 bg-transparent"
                       >
@@ -319,7 +335,7 @@ export default function GrammarTopicPage() {
                       </span>
 
                       <Button
-                        onClick={handleCompleteStep}
+                        onClick={handleNext}
                         disabled={!masterySelected || currentNoteIndex === grammarNotes.length - 1}
                         className="gap-2"
                       >
@@ -339,7 +355,7 @@ export default function GrammarTopicPage() {
             <div className="mt-8">
               <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
                 <div
-                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-600 via-blue-400 to-blue-200 rounded-full transition-all duration-500 ease-out"
+                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary-600 via-primary-400 to-primary-200 rounded-full transition-all duration-500 ease-out"
                   style={{
                     width: `${grammarNotes.length > 0 ? ((currentNoteIndex + 1) / grammarNotes.length) * 100 : 0}%`,
                   }}
@@ -356,7 +372,7 @@ export default function GrammarTopicPage() {
               <Button
                 onClick={handleCompleteStep}
                 size="lg"
-                className="bg-green-600 hover:bg-green-700 text-white gap-2 shadow-sm"
+                className="bg-success-600 hover:bg-success-700 text-white gap-2 shadow-sm"
               >
                 Finish Learning & Continue
                 <ChevronRight className="h-4 w-4" />
@@ -368,7 +384,7 @@ export default function GrammarTopicPage() {
         {activeTab === "translate" && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-slate-800">Translate Lab</h2>
+              <h2 className="text-2xl font-bold">Translate Lab</h2>
               <span className="text-sm text-muted-foreground">Step 2 of 6</span>
             </div>
             <TranslateSpeakLab topicTitle={topic.title} />
@@ -377,7 +393,7 @@ export default function GrammarTopicPage() {
               <Button
                 onClick={handleCompleteStep}
                 size="lg"
-                className="bg-green-600 hover:bg-green-700 text-white gap-2 shadow-sm"
+                className="bg-success-600 hover:bg-success-700 text-white gap-2 shadow-sm"
               >
                 Complete Translation
                 <ChevronRight className="h-4 w-4" />
@@ -389,7 +405,7 @@ export default function GrammarTopicPage() {
         {activeTab === "listening" && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-slate-800">Listening Practice</h2>
+              <h2 className="text-2xl font-bold">Listening Practice</h2>
               <span className="text-sm text-muted-foreground">Step 3 of 6</span>
             </div>
             <ListeningSection topicTitle={topic.title} tasks={mockListeningTasks[topicId] || []} />
@@ -398,7 +414,7 @@ export default function GrammarTopicPage() {
               <Button
                 onClick={handleCompleteStep}
                 size="lg"
-                className="bg-green-600 hover:bg-green-700 text-white gap-2 shadow-sm"
+                className="bg-success-600 hover:bg-success-700 text-white gap-2 shadow-sm"
               >
                 Complete Listening
                 <ChevronRight className="h-4 w-4" />
@@ -410,7 +426,7 @@ export default function GrammarTopicPage() {
         {activeTab === "reading" && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-slate-800">Reading Practice</h2>
+              <h2 className="text-2xl font-bold">Reading Practice</h2>
               <span className="text-sm text-muted-foreground">Step 4 of 6</span>
             </div>
             {mockReadingPassages[topicId] ? (
@@ -426,7 +442,7 @@ export default function GrammarTopicPage() {
               <Button
                 onClick={handleCompleteStep}
                 size="lg"
-                className="bg-green-600 hover:bg-green-700 text-white gap-2 shadow-sm"
+                className="bg-success-600 hover:bg-success-700 text-white gap-2 shadow-sm"
               >
                 Submit Writing
                 <ChevronRight className="h-4 w-4" />
@@ -438,7 +454,7 @@ export default function GrammarTopicPage() {
         {activeTab === "writing" && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-slate-800">Writing Practice</h2>
+              <h2 className="text-2xl font-bold">Writing Practice</h2>
               <span className="text-sm text-muted-foreground">Step 5 of 6</span>
             </div>
             <div className="grid lg:grid-cols-3 gap-6">
@@ -486,7 +502,7 @@ export default function GrammarTopicPage() {
               <Button
                 onClick={handleCompleteStep}
                 size="lg"
-                className="bg-green-600 hover:bg-green-700 text-white gap-2 shadow-sm"
+                className="bg-success-600 hover:bg-success-700 text-white gap-2 shadow-sm"
               >
                 Submit Writing
                 <ChevronRight className="h-4 w-4" />
@@ -498,7 +514,7 @@ export default function GrammarTopicPage() {
         {activeTab === "quiz" && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-slate-800">Quiz</h2>
+              <h2 className="text-2xl font-bold">Quiz</h2>
               <span className="text-sm text-muted-foreground">Final Step</span>
             </div>
             <QuizSection items={mockQuizzes[topicId] || []} />
@@ -507,7 +523,7 @@ export default function GrammarTopicPage() {
               <Button
                 onClick={handleCompleteStep}
                 size="lg"
-                className="bg-green-600 hover:bg-green-700 text-white gap-2 shadow-sm"
+                className="bg-success-600 hover:bg-success-700 text-white gap-2 shadow-sm"
               >
                 Finish Lesson
                 <CheckCircle2 className="h-4 w-4" />

@@ -27,8 +27,8 @@ export function CoursesSidebar({
   title = "Courses",
 }: CoursesSidebarProps) {
   return (
-    <Card className="p-5 bg-[#F0F9FF] dark:bg-slate-900 rounded-3xl border-2 border-blue-100 dark:border-blue-900/50 shadow-sm">
-      <h3 className="font-bold text-base mb-4 text-blue-900 dark:text-blue-100">{title}</h3>
+    <Card className="p-5 bg-primary-50 dark:bg-slate-900 rounded-3xl border-2 border-primary-200 dark:border-primary-800 shadow-sm">
+      <h3 className="font-bold text-base mb-4 text-primary-900 dark:text-primary-100">{title}</h3>
       <div className="space-y-3">
         {courses.map((course) => (
           <label key={course.id} className="flex items-center gap-3 cursor-pointer group">
@@ -38,14 +38,14 @@ export function CoursesSidebar({
                 name="course"
                 checked={selectedCourse === course.id}
                 onChange={() => onCourseChange(course.id)}
-                className="peer h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
+                className="peer h-4 w-4 border-gray-300 text-primary-500 focus:ring-primary-500"
               />
             </div>
             <span
               className={`text-sm font-medium transition-colors ${
                 selectedCourse === course.id
-                  ? "text-blue-700 dark:text-blue-300"
-                  : "text-slate-600 dark:text-slate-400 group-hover:text-blue-700 dark:group-hover:text-blue-300"
+                  ? "text-primary-700 dark:text-primary-300"
+                  : "text-slate-600 dark:text-slate-400 group-hover:text-primary-700 dark:group-hover:text-primary-300"
               }`}
             >
               {course.name}
