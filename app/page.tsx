@@ -255,7 +255,7 @@ export default function Home() {
                 <Link href="/auth/signup" className="pointer-events-auto w-full sm:w-auto cursor-pointer">
                   <Button
                     size="lg"
-                    className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 text-white px-8 py-6 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-lg font-semibold cursor-pointer"
+                    className="w-full sm:w-auto bg-blue-400 hover:bg-blue-500 text-white rounded-full shadow-lg hover:shadow-xl transition-all text-lg font-semibold cursor-pointer"
                   >
                     Start Learning Free
                   </Button>
@@ -264,7 +264,7 @@ export default function Home() {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="w-full sm:w-auto border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50 px-8 py-6 rounded-full text-lg bg-transparent cursor-pointer"
+                    className="w-full sm:w-auto border-2 border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50 rounded-full text-lg bg-transparent cursor-pointer"
                   >
                     How it works
                   </Button>
@@ -896,7 +896,7 @@ export default function Home() {
                     <Link href="/placement-test" className="cursor-pointer">
                       <Button
                         size="lg"
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-6 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-lg font-semibold group cursor-pointer"
+                        className="bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all text-lg font-semibold group cursor-pointer"
                       >
                         Take the Test
                         <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -964,7 +964,7 @@ export default function Home() {
                 <Link href="/build-plan">
                   <Button
                     size="lg"
-                    className="px-8 py-6 text-lg rounded-full bg-gradient-to-r from-blue-500 to-sky-500 hover:from-blue-600 hover:to-sky-600 shadow-lg cursor-pointer"
+                    className="text-lg rounded-full bg-gradient-to-r from-blue-500 to-sky-500 hover:from-blue-600 hover:to-sky-600 shadow-lg cursor-pointer"
                   >
                     Build My Plan
                     <ArrowRight className="w-5 h-5 ml-2" />
@@ -973,7 +973,7 @@ export default function Home() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="px-8 py-6 text-lg rounded-full cursor-pointer bg-transparent border-blue-300 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/20"
+                  className="text-lg rounded-full cursor-pointer bg-transparent border-blue-300 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-900/20"
                 >
                   Learn More
                 </Button>
@@ -1085,7 +1085,7 @@ export default function Home() {
             <Link href="/auth/signup" className="cursor-pointer">
               <Button
                 size="lg"
-                className="bg-white text-blue-400 hover:bg-blue-50 rounded-full px-10 py-7 text-lg font-bold shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 w-full sm:w-auto cursor-pointer"
+                className="bg-white text-blue-400 hover:bg-blue-50 rounded-full text-lg font-bold shadow-xl hover:shadow-2xl transition-all w-full sm:w-auto cursor-pointer"
               >
                 Get Started for Free
               </Button>
@@ -1094,7 +1094,7 @@ export default function Home() {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-2 border-blue-400 text-white hover:bg-blue-700/50 hover:border-blue-300 bg-transparent rounded-full px-10 py-7 text-lg font-semibold w-full sm:w-auto cursor-pointer"
+                className="border-2 border-blue-400 text-white hover:bg-blue-700/50 hover:border-blue-300 bg-transparent rounded-full text-lg font-semibold w-full sm:w-auto cursor-pointer"
               >
                 Take Placement Test
               </Button>
