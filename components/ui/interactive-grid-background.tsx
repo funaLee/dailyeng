@@ -9,32 +9,32 @@ interface InteractiveGridBackgroundProps {
 }
 
 // hàm generate chung
-function generateHighlightedCells(rows: number, cols: number) {
-  const set = new Set<string>()
-  const highlightCount = Math.floor((rows * cols) / 8)
+// function generateHighlightedCells(rows: number, cols: number) {
+//   const set = new Set<string>()
+//   const highlightCount = Math.floor((rows * cols) / 8)
 
-  for (let i = 0; i < highlightCount; i++) {
-    const randomRow = Math.floor(Math.random() * rows)
-    const randomCol = Math.floor(Math.random() * cols)
-    set.add(`${randomRow}-${randomCol}`)
-  }
+//   for (let i = 0; i < highlightCount; i++) {
+//     const randomRow = Math.floor(Math.random() * rows)
+//     const randomCol = Math.floor(Math.random() * cols)
+//     set.add(`${randomRow}-${randomCol}`)
+//   }
 
-  return set
-}
+//   return set
+// }
 
 export function InteractiveGridBackground({ rows = 6, cols = 8, className = "" }: InteractiveGridBackgroundProps) {
   const [hoveredCell, setHoveredCell] = useState<string | null>(null)
   const [fadingCells, setFadingCells] = useState<Set<string>>(new Set())
 
   // ✅ giữ state cho highlightedCells, không random lại mỗi render
-  const [highlightedCells, setHighlightedCells] = useState<Set<string>>(() =>
-    generateHighlightedCells(rows, cols),
-  )
+  // const [highlightedCells, setHighlightedCells] = useState<Set<string>>(() =>
+  //   generateHighlightedCells(rows, cols),
+  // )
 
   // nếu rows/cols đổi, random lại một lần
-  useEffect(() => {
-    setHighlightedCells(generateHighlightedCells(rows, cols))
-  }, [rows, cols])
+  // useEffect(() => {
+  //   setHighlightedCells(generateHighlightedCells(rows, cols))
+  // }, [rows, cols])
 
   const handleMouseEnter = (cellId: string) => {
     setHoveredCell(cellId)
@@ -70,7 +70,7 @@ export function InteractiveGridBackground({ rows = 6, cols = 8, className = "" }
         {Array.from({ length: rows }).map((_, rowIndex) =>
           Array.from({ length: cols }).map((_, colIndex) => {
             const cellId = `${rowIndex}-${colIndex}`
-            const isHighlighted = highlightedCells.has(cellId)
+            // const isHighlighted = highlightedCells.has(cellId)
             const isHovered = hoveredCell === cellId
             const isFading = fadingCells.has(cellId)
 
@@ -83,10 +83,10 @@ export function InteractiveGridBackground({ rows = 6, cols = 8, className = "" }
                   border border-gray-200/30 
                   transition-all duration-500 ease-out
                   cursor-pointer
-                  ${isHighlighted && !isHovered && !isFading ? "bg-[#C2E2FA]/10" : ""}
-                  ${isHovered ? "bg-[#C2E2FA]/80 border-[#C2E2FA]/60 scale-[0.98]" : ""}
-                  ${isFading ? "bg-[#C2E2FA]/20 border-[#C2E2FA]/30" : ""}
-                  ${!isHovered && !isFading && !isHighlighted ? "bg-transparent" : ""}
+                  ${!isHovered && !isFading ? "bg-white" : ""}
+                  ${isHovered ? "bg-primary-200 border-foreground" : ""}
+                  ${isFading ? "bg-primary-50 border-foreground" : ""}
+                  ${!isHovered && !isFading ? "bg-transparent" : ""}
                 `}
               />
             )
