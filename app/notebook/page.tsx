@@ -6,29 +6,31 @@ import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Input } from "@/components/ui/input"
+
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import {
   BookOpen,
   FileText,
-  Link2,
-  MessageSquare,
   Zap,
-  FileCheck,
-  LinkIcon,
   Volume2,
-  Info,
   Edit,
   Plus,
-  Search,
   ChevronLeft,
   ChevronRight,
   Star,
   Mic,
   Square,
+  X,
+  Check,
+  RotateCcw,
+  Play,
+  Shuffle,
+  Undo2,
+  GraduationCap,
 } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Checkbox } from "@/components/ui/checkbox"
 import { ProtectedRoute, PageIcons } from "@/components/auth/protected-route"
 
 type Collection = {
@@ -55,8 +57,9 @@ type NotebookItem = {
 
 export default function NotebookPage() {
   const [selectedCollection, setSelectedCollection] = useState<string>("vocabulary")
-  const [viewMode, setViewMode] = useState<"list" | "flashcards" | "daily-review">("list")
-  const [searchQuery, setSearchQuery] = useState("")
+  const [viewMode, setViewMode] = useState<"list" | "flashcards" | "statistics">("list")
+  const [searchQuery] = useState("")
+  const [starredItems, setStarredItems] = useState<Set<string>>(new Set())
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false)
   const [currentCardIndex, setCurrentCardIndex] = useState(0)
   const [showAnswer, setShowAnswer] = useState(false)
@@ -64,17 +67,15 @@ export default function NotebookPage() {
   const [shadowingOpen, setShadowingOpen] = useState(false)
   const [currentSentence, setCurrentSentence] = useState(0)
   const [isRecording, setIsRecording] = useState(false)
+  const [cardAnimation, setCardAnimation] = useState<"" | "swipe-left" | "swipe-right">("")
+  const [learnedCards, setLearnedCards] = useState<Set<string>>(new Set())
+  const [notLearnedCards, setNotLearnedCards] = useState<Set<string>>(new Set())
+  const [sessionCompleteOpen, setSessionCompleteOpen] = useState(false)
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
 
   const collections: Collection[] = [
     { id: "vocabulary", name: "Vocabulary", icon: <BookOpen className="h-4 w-4" />, count: 247 },
     { id: "grammar", name: "Grammar", icon: <FileText className="h-4 w-4" />, count: 45 },
-    { id: "collocations", name: "Collocations", icon: <Link2 className="h-4 w-4" />, count: 89 },
-    { id: "idioms", name: "Idioms & Expressions", icon: <MessageSquare className="h-4 w-4" />, count: 67 },
-    { id: "phrasal-verbs", name: "Phrasal Verbs", icon: <Zap className="h-4 w-4" />, count: 123 },
-    { id: "sentence-patterns", name: "Sentence Patterns", icon: <FileCheck className="h-4 w-4" />, count: 34 },
-    { id: "linking-words", name: "Linking Words", icon: <LinkIcon className="h-4 w-4" />, count: 56 },
-    { id: "pronunciation", name: "Pronunciation", icon: <Volume2 className="h-4 w-4" />, count: 78 },
-    { id: "common-mistakes", name: "Common Mistakes", icon: <Info className="h-4 w-4" />, count: 29 },
   ]
 
   const [notebookItems] = useState<NotebookItem[]>([
@@ -150,26 +151,77 @@ export default function NotebookPage() {
         item.meaning.some((m) => m.toLowerCase().includes(searchQuery.toLowerCase()))),
   )
 
+  // Items to show in flashcards mode (only selected items if any are selected)
+  const flashcardItems =
+    selectedItems.size > 0 ? filteredItems.filter((item) => selectedItems.has(item.id)) : filteredItems
+
   const dueCount = 15
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.code === "Space" && viewMode === "flashcards") {
+      if (viewMode !== "flashcards" || sessionCompleteOpen) return
+
+      // Space or Up/Down arrows: flip card
+      if (e.code === "Space" || e.code === "ArrowUp" || e.code === "ArrowDown") {
         e.preventDefault()
         setIsFlipped(!isFlipped)
+      }
+
+      // Left arrow: mark as "not learned" and go to previous card
+      if (e.code === "ArrowLeft") {
+        e.preventDefault()
+        if (currentItem) {
+          setNotLearnedCards((prev) => new Set(prev).add(currentItem.id))
+          setLearnedCards((prev) => {
+            const newSet = new Set(prev)
+            newSet.delete(currentItem.id)
+            return newSet
+          })
+        }
+        setCardAnimation("swipe-left")
+        setTimeout(() => {
+          if (currentCardIndex < flashcardItems.length - 1) {
+            handleNextCard()
+          } else {
+            setSessionCompleteOpen(true)
+          }
+          setCardAnimation("")
+        }, 500)
+      }
+
+      // Right arrow: mark as "learned" and go to next card
+      if (e.code === "ArrowRight") {
+        e.preventDefault()
+        if (currentItem) {
+          setLearnedCards((prev) => new Set(prev).add(currentItem.id))
+          setNotLearnedCards((prev) => {
+            const newSet = new Set(prev)
+            newSet.delete(currentItem.id)
+            return newSet
+          })
+        }
+        setCardAnimation("swipe-right")
+        setTimeout(() => {
+          if (currentCardIndex < flashcardItems.length - 1) {
+            handleNextCard()
+          } else {
+            setSessionCompleteOpen(true)
+          }
+          setCardAnimation("")
+        }, 500)
       }
     }
 
     window.addEventListener("keydown", handleKeyPress)
     return () => window.removeEventListener("keydown", handleKeyPress)
-  }, [isFlipped, viewMode])
+  }, [isFlipped, viewMode, currentCardIndex, flashcardItems.length, sessionCompleteOpen])
 
   useEffect(() => {
     setIsFlipped(false)
   }, [currentCardIndex])
 
   const handleNextCard = () => {
-    if (currentCardIndex < filteredItems.length - 1) {
+    if (currentCardIndex < flashcardItems.length - 1) {
       setCurrentCardIndex(currentCardIndex + 1)
       setShowAnswer(false)
     }
@@ -186,7 +238,7 @@ export default function NotebookPage() {
     setIsRecording(!isRecording)
   }
 
-  const currentItem = filteredItems[currentCardIndex]
+  const currentItem = flashcardItems[currentCardIndex]
 
   return (
     <ProtectedRoute
@@ -199,11 +251,8 @@ export default function NotebookPage() {
           {/* Sidebar */}
           <div className="w-64 flex-shrink-0">
             <Card className="p-6 sticky top-8">
-              <div className="mb-6 flex items-center justify-between">
+              <div className="mb-6">
                 <h2 className="text-lg font-semibold">Collections</h2>
-                <Button size="sm" variant="ghost" className="h-8 w-8 rounded-full p-0">
-                  <Plus className="h-4 w-4" />
-                </Button>
               </div>
 
               <div className="space-y-1">
@@ -212,7 +261,7 @@ export default function NotebookPage() {
                     key={collection.id}
                     onClick={() => {
                       setSelectedCollection(collection.id)
-                      setViewMode("list")
+                      setViewMode("flashcards")
                     }}
                     className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors ${
                       selectedCollection === collection.id
@@ -228,69 +277,98 @@ export default function NotebookPage() {
                   </button>
                 ))}
               </div>
+
+              <div className="mt-4 pt-4 border-t">
+                <Button variant="outline" className="w-full gap-2 justify-start" size="sm">
+                  <Plus className="h-4 w-4" />
+                  New notebook
+                </Button>
+              </div>
             </Card>
           </div>
 
           {/* Main Content */}
           <div className="flex-1 flex flex-col">
-            {/* Header */}
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold mb-1">Knowledge Notebook</h1>
-              <p className="text-sm text-muted-foreground">Organize and review your English learning notes</p>
-            </div>
-
-            {/* Collection Header with Actions */}
-            <Card className="p-6 mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  {collections.find((c) => c.id === selectedCollection)?.icon}
-                  <h2 className="text-lg font-semibold capitalize">{selectedCollection}</h2>
-                  <span className="text-sm text-muted-foreground">({filteredItems.length} items)</span>
-                </div>
-                <Button size="sm" className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Add Item
-                </Button>
-              </div>
-
-              {/* Search Bar */}
-              <div className="relative mb-4">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search your notes..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-
-              {/* View Tabs */}
-              <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="w-full">
-                <TabsList className="grid w-full max-w-md grid-cols-3">
-                  <TabsTrigger value="list">List View</TabsTrigger>
-                  <TabsTrigger value="flashcards">Flashcards</TabsTrigger>
-                  <TabsTrigger value="daily-review">Daily Review</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </Card>
+            {/* View Tabs */}
+            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="w-full mb-6">
+              <TabsList className="grid w-full max-w-md grid-cols-3">
+                {selectedCollection === "vocabulary" ? (
+                  <>
+                    <TabsTrigger value="list">List View</TabsTrigger>
+                    <TabsTrigger value="flashcards">Flashcards</TabsTrigger>
+                    <TabsTrigger value="statistics">Statistics</TabsTrigger>
+                  </>
+                ) : (
+                  <>
+                    <TabsTrigger value="list">All rules</TabsTrigger>
+                    <TabsTrigger value="flashcards">Quizzes</TabsTrigger>
+                    <TabsTrigger value="statistics">Statistic</TabsTrigger>
+                  </>
+                )}
+              </TabsList>
+            </Tabs>
 
             {/* Content Area */}
             <div className="flex-1">
               {viewMode === "list" && (
                 <Card className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="select-all"
+                        checked={selectedItems.size === filteredItems.length && filteredItems.length > 0}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedItems(new Set(filteredItems.map((item) => item.id)))
+                          } else {
+                            setSelectedItems(new Set())
+                          }
+                        }}
+                      />
+                      <label htmlFor="select-all" className="text-sm font-medium cursor-pointer">
+                        Select All ({selectedItems.size} selected)
+                      </label>
+                    </div>
+                    <Button
+                      onClick={() => {
+                        setViewMode("flashcards")
+                        setCurrentCardIndex(0)
+                        setIsFlipped(false)
+                      }}
+                      disabled={selectedItems.size === 0}
+                      className="gap-2"
+                    >
+                      <GraduationCap className="h-4 w-4" />
+                      Practice ({selectedItems.size})
+                    </Button>
+                  </div>
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead className="w-[50px]"></TableHead>
                         <TableHead className="w-[180px]">Word</TableHead>
                         <TableHead className="w-[300px]">Meaning</TableHead>
                         <TableHead className="w-[80px]">Level</TableHead>
                         <TableHead className="w-[140px]">Status</TableHead>
-                        <TableHead className="w-[180px] text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredItems.map((item) => (
                         <TableRow key={item.id}>
+                          <TableCell className="py-4">
+                            <Checkbox
+                              checked={selectedItems.has(item.id)}
+                              onCheckedChange={(checked) => {
+                                const newSelected = new Set(selectedItems)
+                                if (checked) {
+                                  newSelected.add(item.id)
+                                } else {
+                                  newSelected.delete(item.id)
+                                }
+                                setSelectedItems(newSelected)
+                              }}
+                            />
+                          </TableCell>
                           <TableCell className="py-4">
                             <div>
                               <p className="font-semibold">{item.word}</p>
@@ -325,19 +403,6 @@ export default function NotebookPage() {
                               </p>
                             </div>
                           </TableCell>
-                          <TableCell className="text-right py-4">
-                            <div className="flex justify-end gap-2">
-                              <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                                <Volume2 className="h-4 w-4" />
-                              </Button>
-                              <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button size="sm" variant="outline" className="h-8 bg-transparent">
-                                Practice
-                              </Button>
-                            </div>
-                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -347,115 +412,195 @@ export default function NotebookPage() {
 
               {viewMode === "flashcards" && currentItem && (
                 <div className="max-w-4xl mx-auto">
+                  {/* Counter badges above card */}
+                  <div className="flex justify-center gap-4 mb-6">
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-orange-100 border border-orange-200">
+                      <X className="h-4 w-4 text-orange-600" />
+                      <span className="text-lg font-semibold text-orange-600">{notLearnedCards.size}</span>
+                    </div>
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-100 border border-green-200">
+                      <Check className="h-4 w-4 text-green-600" />
+                      <span className="text-lg font-semibold text-green-600">{learnedCards.size}</span>
+                    </div>
+                  </div>
+
                   <div
-                    className="perspective-1000 cursor-pointer mb-8"
+                    className="perspective-1000 cursor-pointer mb-6"
                     onClick={() => setIsFlipped(!isFlipped)}
                     style={{ perspective: "1000px" }}
                   >
                     <div
-                      className="relative w-full h-[500px] transition-transform duration-500 preserve-3d"
+                      className="relative w-full h-[480px] transition-transform duration-500 preserve-3d"
                       style={{
                         transformStyle: "preserve-3d",
                         transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
                       }}
                     >
                       <Card
-                        className="absolute inset-0 backface-hidden flex flex-col items-center justify-center p-8"
+                        className="absolute inset-0 backface-hidden p-8"
                         style={{ backfaceVisibility: "hidden" }}
                       >
-                        <div className="text-center space-y-6">
-                          <h2 className="text-5xl font-bold">{currentItem.word}</h2>
-                          <div className="flex items-center gap-3 justify-center">
-                            <Badge variant="secondary" className="text-lg px-4 py-1">
+                        {/* Overlay for swipe feedback */}
+                        {cardAnimation === "swipe-left" && (
+                          <div className="absolute inset-0 bg-orange-500/70 flex items-center justify-center rounded-lg z-10 transition-all duration-300 animate-in fade-in">
+                            <X className="h-40 w-40 text-white stroke-[4] animate-in zoom-in duration-300" />
+                          </div>
+                        )}
+                        {cardAnimation === "swipe-right" && (
+                          <div className="absolute inset-0 bg-green-500/70 flex items-center justify-center rounded-lg z-10 transition-all duration-300 animate-in fade-in">
+                            <Check className="h-40 w-40 text-white stroke-[4] animate-in zoom-in duration-300" />
+                          </div>
+                        )}
+
+                        {/* Top section with badges and star */}
+                        <div className="flex items-start justify-between mb-8">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="secondary" className="text-sm px-3 py-1">
                               {currentItem.partOfSpeech}
                             </Badge>
-                            <Badge variant="outline" className="text-lg px-4 py-1">
+                            <Badge variant="secondary" className="text-sm px-3 py-1">
                               {currentItem.level}
                             </Badge>
                           </div>
-                          <div className="flex items-center gap-2 justify-center mt-8">
-                            <span className="text-sm text-muted-foreground">
-                              {currentItem.masteryLevel < 30
-                                ? "New"
-                                : currentItem.masteryLevel < 70
-                                  ? "Learning"
-                                  : "Mastered"}
-                            </span>
-                            <div className="w-48 h-3 bg-secondary rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-primary transition-all"
-                                style={{ width: `${currentItem.masteryLevel}%` }}
-                              />
+                          <div className="flex items-center gap-3">
+                            {/* Mastery Progress Bar */}
+                            <div className="flex flex-col items-end gap-1">
+                              <div className="flex items-center gap-2 w-48">
+                                <span className="text-xs text-muted-foreground whitespace-nowrap">New</span>
+                                <div className="relative flex-1 h-2 rounded-full overflow-hidden bg-gradient-to-r from-gray-300 via-gray-200 to-gray-100">
+                                  <div
+                                    className="absolute inset-0 bg-gradient-to-r from-red-500 via-orange-500 via-yellow-500 to-green-500 transition-all duration-300"
+                                    style={{
+                                      clipPath: `inset(0 ${100 - currentItem.masteryLevel}% 0 0)`,
+                                    }}
+                                  />
+                                </div>
+                                <span className="text-xs text-muted-foreground whitespace-nowrap">Mastered</span>
+                              </div>
                             </div>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 rounded-full p-0"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setStarredItems((prev) => {
+                                  const newSet = new Set(prev)
+                                  if (newSet.has(currentItem.id)) {
+                                    newSet.delete(currentItem.id)
+                                  } else {
+                                    newSet.add(currentItem.id)
+                                  }
+                                  return newSet
+                                })
+                              }}
+                            >
+                              <Star
+                                className={`h-5 w-5 ${starredItems.has(currentItem.id) ? "fill-yellow-400 text-yellow-400" : ""}`}
+                              />
+                            </Button>
                           </div>
-                          <p className="text-sm text-muted-foreground mt-8">Click or press Space to flip</p>
+                        </div>
+
+                        {/* Center content */}
+                        <div className="flex flex-col items-center justify-center h-[calc(100%-120px)]">
+                          <h2 className="text-5xl font-bold">{currentItem.word}</h2>
                         </div>
                       </Card>
 
                       <Card
-                        className="absolute inset-0 backface-hidden p-8 overflow-y-auto"
+                        className="absolute inset-0 backface-hidden p-8 overflow-hidden flex flex-col"
                         style={{
                           backfaceVisibility: "hidden",
                           transform: "rotateY(180deg)",
                         }}
                       >
-                        <div className="space-y-6">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-3">
+                        <div className="flex flex-col h-full">
+                          {/* Header */}
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex items-center gap-2">
                               <h2 className="text-3xl font-bold">{currentItem.word}</h2>
-                              <Badge variant="secondary">{currentItem.partOfSpeech}</Badge>
-                              <Badge variant="outline">{currentItem.level}</Badge>
+                              <Badge variant="secondary" className="text-sm">
+                                {currentItem.partOfSpeech}
+                              </Badge>
+                              <Badge variant="secondary" className="text-sm">
+                                {currentItem.level}
+                              </Badge>
                             </div>
-                            <Button size="sm" variant="ghost" className="h-8 w-8 rounded-full p-0">
-                              <Star className="h-4 w-4" />
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 rounded-full p-0"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setStarredItems((prev) => {
+                                  const newSet = new Set(prev)
+                                  if (newSet.has(currentItem.id)) {
+                                    newSet.delete(currentItem.id)
+                                  } else {
+                                    newSet.add(currentItem.id)
+                                  }
+                                  return newSet
+                                })
+                              }}
+                            >
+                              <Star
+                                className={`h-5 w-5 ${starredItems.has(currentItem.id) ? "fill-yellow-400 text-yellow-400" : ""}`}
+                              />
                             </Button>
                           </div>
 
-                          <p className="text-lg text-muted-foreground">{currentItem.pronunciation}</p>
+                          <p className="text-base text-muted-foreground mb-5">{currentItem.pronunciation}</p>
 
-                          <div className="grid md:grid-cols-2 gap-6">
-                            <div>
-                              <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-3">Meaning</h3>
-                              <div className="space-y-2">
-                                {currentItem.meaning.map((m, idx) => (
-                                  <div key={idx} className="flex gap-2">
-                                    <div className="h-6 w-6 rounded-full bg-blue-100 flex-shrink-0 flex items-center justify-center text-xs font-semibold text-blue-700">
-                                      {idx + 1}
+                          {/* Content - scrollable if needed */}
+                          <div className="flex-1 overflow-y-auto space-y-5 pr-2">
+                            <div className="grid grid-cols-2 gap-6">
+                              <div>
+                                <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-3">Meaning</h3>
+                                <div className="space-y-2">
+                                  {currentItem.meaning.map((m, idx) => (
+                                    <div key={idx} className="flex gap-2">
+                                      <div className="h-6 w-6 rounded-full bg-blue-100 flex-shrink-0 flex items-center justify-center text-xs font-semibold text-blue-700">
+                                        {idx + 1}
+                                      </div>
+                                      <p className="text-sm leading-relaxed">{m}</p>
                                     </div>
-                                    <p className="text-sm">{m}</p>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-
-                            <div>
-                              <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-3">Vietnamese</h3>
-                              <div className="space-y-2">
-                                {currentItem.vietnamese.map((v, idx) => (
-                                  <div key={idx} className="flex gap-2">
-                                    <div className="h-6 w-6 rounded-full bg-green-100 flex-shrink-0 flex items-center justify-center text-xs font-semibold text-green-700">
-                                      {idx + 1}
-                                    </div>
-                                    <p className="text-sm">{v}</p>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div>
-                            <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-3">Examples</h3>
-                            <div className="space-y-3">
-                              {currentItem.examples.map((ex, idx) => (
-                                <div key={idx} className="bg-muted/50 rounded-lg p-3 space-y-1">
-                                  <p className="text-sm italic">"{ex.en}"</p>
-                                  <p className="text-sm text-muted-foreground">"{ex.vi}"</p>
+                                  ))}
                                 </div>
-                              ))}
+                              </div>
+
+                              <div>
+                                <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-3">
+                                  Vietnamese
+                                </h3>
+                                <div className="space-y-2">
+                                  {currentItem.vietnamese.map((v, idx) => (
+                                    <div key={idx} className="flex gap-2">
+                                      <div className="h-6 w-6 rounded-full bg-green-100 flex-shrink-0 flex items-center justify-center text-xs font-semibold text-green-700">
+                                        {idx + 1}
+                                      </div>
+                                      <p className="text-sm leading-relaxed">{v}</p>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div>
+                              <h3 className="text-sm font-semibold uppercase text-muted-foreground mb-3">Examples</h3>
+                              <div className="space-y-2.5">
+                                {currentItem.examples.map((ex, idx) => (
+                                  <div key={idx} className="bg-muted/50 rounded-lg p-3 space-y-1">
+                                    <p className="text-sm italic">"{ex.en}"</p>
+                                    <p className="text-sm text-muted-foreground">"{ex.vi}"</p>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
                           </div>
 
-                          <div className="pt-4">
+                          {/* Footer button */}
+                          <div className="pt-4 mt-3 border-t">
                             <Button
                               onClick={(e) => {
                                 e.stopPropagation()
@@ -463,52 +608,49 @@ export default function NotebookPage() {
                                 setCurrentSentence(0)
                               }}
                               variant="outline"
-                              className="gap-2 bg-transparent"
+                              className="gap-2 bg-transparent w-full"
                             >
                               <Mic className="h-4 w-4" />
-                              shadowing these sentences
+                              Shadowing Practice
                             </Button>
                           </div>
-
-                          <p className="text-sm text-muted-foreground text-center pt-4">
-                            Click or press Space to flip back
-                          </p>
                         </div>
                       </Card>
                     </div>
                   </div>
 
-                  <div className="flex justify-center items-center gap-4">
+                  {/* Navigation buttons below card */}
+                  <div className="flex justify-between items-center">
                     <Button
-                      size="icon"
                       variant="outline"
-                      onClick={handlePrevCard}
+                      className="gap-2"
+                      onClick={() => {
+                        if (currentCardIndex > 0) {
+                          setCurrentCardIndex(currentCardIndex - 1)
+                          setIsFlipped(false)
+                        }
+                      }}
                       disabled={currentCardIndex === 0}
-                      className="rounded-full bg-transparent"
                     >
-                      <ChevronLeft className="h-5 w-5" />
+                      <Undo2 className="h-4 w-4" />
+                      Back
                     </Button>
-                    <span className="text-sm font-medium">
-                      {currentCardIndex + 1} / {filteredItems.length}
+                    <span className="text-sm font-medium text-muted-foreground">
+                      {currentCardIndex + 1} / {flashcardItems.length}
                     </span>
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      onClick={handleNextCard}
-                      disabled={currentCardIndex === filteredItems.length - 1}
-                      className="rounded-full bg-transparent"
-                    >
-                      <ChevronRight className="h-5 w-5" />
+                    <Button variant="outline" className="gap-2">
+                      <Shuffle className="h-4 w-4" />
+                      Shuffle
                     </Button>
                   </div>
                 </div>
               )}
 
-              {viewMode === "daily-review" && (
+              {viewMode === "statistics" && (
                 <div className="max-w-2xl mx-auto">
                   <Card className="p-8 text-center">
                     <Zap className="h-16 w-16 text-yellow-500 mx-auto mb-4" />
-                    <h2 className="text-2xl font-bold mb-2">Daily Review</h2>
+                    <h2 className="text-2xl font-bold mb-2">Statistics</h2>
                     <p className="text-muted-foreground mb-6">
                       You have <span className="font-semibold text-primary">{dueCount} words</span> ready for review
                       today.
@@ -662,6 +804,99 @@ export default function NotebookPage() {
                 </div>
               </div>
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Session Complete Dialog */}
+        <Dialog open={sessionCompleteOpen} onOpenChange={setSessionCompleteOpen}>
+          <DialogContent className="max-w-xl">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-semibold text-center">Review Complete</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-6 py-6">
+              {/* Circular Progress Chart */}
+              <div className="flex flex-col items-center gap-6">
+                <div className="relative w-48 h-48">
+                  <svg className="w-48 h-48 transform -rotate-90">
+                    <circle
+                      cx="96"
+                      cy="96"
+                      r="80"
+                      stroke="#fed7aa"
+                      strokeWidth="32"
+                      fill="none"
+                      strokeDasharray={`${(notLearnedCards.size / (learnedCards.size + notLearnedCards.size)) * 502.4} 502.4`}
+                    />
+                    <circle
+                      cx="96"
+                      cy="96"
+                      r="80"
+                      stroke="#86efac"
+                      strokeWidth="32"
+                      fill="none"
+                      strokeDasharray={`${(learnedCards.size / (learnedCards.size + notLearnedCards.size)) * 502.4} 502.4`}
+                      strokeDashoffset={`-${(notLearnedCards.size / (learnedCards.size + notLearnedCards.size)) * 502.4}`}
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <p className="text-4xl font-bold">
+                      {Math.round((learnedCards.size / (learnedCards.size + notLearnedCards.size)) * 100)}%
+                    </p>
+                    <p className="text-sm text-muted-foreground">Complete</p>
+                  </div>
+                </div>
+
+                {/* Legend */}
+                <div className="flex gap-8">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded-full bg-orange-300"></div>
+                    <div>
+                      <p className="text-sm font-medium">Learning</p>
+                      <p className="text-xs text-muted-foreground">{notLearnedCards.size} cards</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 rounded-full bg-green-300"></div>
+                    <div>
+                      <p className="text-sm font-medium">Mastered</p>
+                      <p className="text-xs text-muted-foreground">{learnedCards.size} cards</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="space-y-3 pt-2">
+                <Button
+                  className="w-full gap-2"
+                  size="lg"
+                  disabled={notLearnedCards.size === 0}
+                  onClick={() => {
+                    setCurrentCardIndex(0)
+                    setSessionCompleteOpen(false)
+                    setIsFlipped(false)
+                  }}
+                >
+                  <Play className="h-5 w-5" />
+                  Review Unmastered Cards ({notLearnedCards.size})
+                </Button>
+                <Button
+                  className="w-full gap-2"
+                  size="lg"
+                  variant="outline"
+                  onClick={() => {
+                    setCurrentCardIndex(0)
+                    setLearnedCards(new Set())
+                    setNotLearnedCards(new Set())
+                    setSessionCompleteOpen(false)
+                    setIsFlipped(false)
+                  }}
+                >
+                  <RotateCcw className="h-5 w-5" />
+                  Start Over
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
