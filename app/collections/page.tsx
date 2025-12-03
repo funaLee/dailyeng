@@ -118,11 +118,11 @@ export default function CollectionsPage() {
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case "beginner":
-        return "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800"
+        return "bg-green-100 text-green-700 border-green-200"
       case "intermediate":
-        return "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800"
+        return "bg-blue-100 text-blue-700 border-blue-200"
       case "advanced":
-        return "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800"
+        return "bg-purple-100 text-purple-700 border-purple-200"
       default:
         return "bg-muted text-muted-foreground border-border"
     }
@@ -147,7 +147,7 @@ export default function CollectionsPage() {
       pageDescription="Organize and track your learning materials across vocabulary, grammar, and speaking topics."
       pageIcon={<FolderOpen className="w-10 h-10 text-primary" />}
     >
-      <div className="container mx-auto px-8 py-8">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid lg:grid-cols-12 gap-8">
           {/* Left Sidebar */}
           <div className="lg:col-span-3">
@@ -291,15 +291,15 @@ export default function CollectionsPage() {
                     <p className="text-sm text-muted-foreground mt-1">Total Collections</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-3xl font-bold text-green-600 dark:text-green-400">3</p>
+                    <p className="text-3xl font-bold text-green-600">3</p>
                     <p className="text-sm text-muted-foreground mt-1">In Progress</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">618</p>
+                    <p className="text-3xl font-bold text-purple-600">618</p>
                     <p className="text-sm text-muted-foreground mt-1">Total Items</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">48%</p>
+                    <p className="text-3xl font-bold text-orange-600">48%</p>
                     <p className="text-sm text-muted-foreground mt-1">Avg Progress</p>
                   </div>
                 </div>

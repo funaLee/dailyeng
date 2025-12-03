@@ -1,5 +1,6 @@
 "use client"
 import Image from "next/image"
+import { Bookmark } from "lucide-react"
 
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -12,7 +13,6 @@ import { useState, useEffect, useRef } from "react"
 import { ProtectedRoute, PageIcons } from "@/components/auth/protected-route"
 import {
   HubHero,
-  HubTabs,
   TopicGroupsSidebar,
   LevelsSidebar,
   SubcategoryPills,
@@ -47,7 +47,7 @@ const TOPIC_GROUPS: TopicGroup[] = [
   },
 ]
 
-type TabType = "available" | "custom" | "history"
+type TabType = "available" | "custom" | "history" | "bookmarks"
 
 interface Scenario {
   id: string
@@ -232,7 +232,7 @@ const HISTORY_TOPICS_DATA = [
   },
 ]
 
-export default function SpeakingRoomPage() {
+export default function SpeakingPage() {
   const [scenarios, setScenarios] = useState<Scenario[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState("")
@@ -240,6 +240,7 @@ export default function SpeakingRoomPage() {
   const [selectedGroup, setSelectedGroup] = useState<string>("Daily Life")
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>("Shopping")
   const [activeTab, setActiveTab] = useState<TabType>("available")
+  const [bookmarkedTopics, setBookmarkedTopics] = useState<string[]>([])
 
   const [historyFilter, setHistoryFilter] = useState<string>("excellent")
   const [historyPage, setHistoryPage] = useState(1)
@@ -271,6 +272,13 @@ export default function SpeakingRoomPage() {
     }
 
     fetchScenarios()
+  }, [])
+
+  useEffect(() => {
+    const saved = localStorage.getItem("speaking-bookmarks")
+    if (saved) {
+      setBookmarkedTopics(JSON.parse(saved))
+    }
   }, [])
 
   const filteredScenarios = scenarios.filter((scenario) => {
@@ -306,11 +314,22 @@ export default function SpeakingRoomPage() {
   const totalPages = Math.ceil(filteredHistory.length / itemsPerPage)
   const currentHistoryItems = filteredHistory.slice((historyPage - 1) * itemsPerPage, historyPage * itemsPerPage)
 
+  const bookmarkedTopicsList = scenarios.filter((topic) => bookmarkedTopics.includes(topic.id))
+
   const tabs = [
     { id: "available", label: "Available Topics" },
+    { id: "bookmarks", label: "Bookmarks" },
     { id: "custom", label: "Custom Topics" },
     { id: "history", label: "History" },
   ]
+
+  const handleBookmarkToggle = (topicId: string) => {
+    setBookmarkedTopics((prev) => {
+      const newBookmarks = prev.includes(topicId) ? prev.filter((id) => id !== topicId) : [...prev, topicId]
+      localStorage.setItem("speaking-bookmarks", JSON.stringify(newBookmarks))
+      return newBookmarks
+    })
+  }
 
   if (loading) {
     return (
@@ -340,7 +359,30 @@ export default function SpeakingRoomPage() {
           decorativeWords={["speaking", "fluency", "practice"]}
         />
 
-        <HubTabs tabs={tabs} activeTab={activeTab} onTabChange={(tabId) => setActiveTab(tabId as TabType)} />
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 border-b border-gray-200 pb-0">
+          <div className="flex gap-8 overflow-x-auto pb-px">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as TabType)}
+                className={`pb-3 px-2 text-lg font-bold transition-colors border-b-2 whitespace-nowrap cursor-pointer ${
+                  activeTab === tab.id
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-gray-900"
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex-1 hidden sm:block" />
+          <Input
+            placeholder="Search"
+            className="max-w-xs mb-4 sm:mb-0"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
 
         <div>
           {activeTab === "available" && (
@@ -381,10 +423,57 @@ export default function SpeakingRoomPage() {
                       href={`/speaking/session/${topic.id}`}
                       onNotYet={() => {}}
                       type="speaking"
+                      isBookmarked={bookmarkedTopics.includes(topic.id)}
+                      onBookmarkToggle={handleBookmarkToggle}
                     />
                   ))}
                 </div>
               </div>
+            </div>
+          )}
+
+          {activeTab === "bookmarks" && (
+            <div className="space-y-6">
+              {bookmarkedTopicsList.length > 0 ? (
+                <>
+                  <div className="flex items-center gap-3 mb-6">
+                    <Bookmark className="h-6 w-6 text-primary-500 fill-primary-500" />
+                    <h2 className="text-xl font-bold text-foreground">
+                      Your Bookmarked Topics ({bookmarkedTopicsList.length})
+                    </h2>
+                  </div>
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    {bookmarkedTopicsList.map((topic) => (
+                      <TopicCard
+                        key={topic.id}
+                        id={topic.id}
+                        title={topic.title}
+                        description={topic.description}
+                        level={topic.level}
+                        wordCount={topic.duration || 7}
+                        thumbnail={topic.image}
+                        progress={topic.progress}
+                        href={`/speaking/session/${topic.id}`}
+                        onNotYet={() => {}}
+                        type="speaking"
+                        isBookmarked={true}
+                        onBookmarkToggle={handleBookmarkToggle}
+                      />
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <Card className="p-12 rounded-3xl border-[1.4px] border-primary-200 text-center">
+                  <Bookmark className="h-16 w-16 text-primary-200 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-foreground mb-2">No Bookmarks Yet</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Click the bookmark icon on any topic card to save it here for quick access.
+                  </p>
+                  <Button variant="default" onClick={() => setActiveTab("available")} className="cursor-pointer">
+                    Browse Topics
+                  </Button>
+                </Card>
+              )}
             </div>
           )}
 
