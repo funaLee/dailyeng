@@ -46,7 +46,7 @@ const CURRENT_TOPIC = {
   progress: 40,
 }
 
-type TabType = "courses" | "bookmarks" | "statistic" | "mindmap"
+type TabType = "courses" | "bookmarks" | "mindmap"
 
 export default function VocabPage() {
   const [topics, setTopics] = useState<Topic[]>([])
@@ -56,39 +56,6 @@ export default function VocabPage() {
   const [activeTab, setActiveTab] = useState<TabType>("courses")
   const [selectedCourse, setSelectedCourse] = useState<string>("ielts-7")
   const [bookmarkedTopics, setBookmarkedTopics] = useState<string[]>([])
-
-  const [dictionaryWords] = useState([
-    {
-      id: "1",
-      word: "Parent",
-      pronunciation: "/ˈpeərənt/",
-      meaning: "A father or mother of a person or an animal",
-      partOfSpeech: "Noun",
-      level: "A1",
-      category: "Family",
-      masteryLevel: 33,
-    },
-    {
-      id: "2",
-      word: "Accomplish",
-      pronunciation: "/əˈkʌmplɪʃ/",
-      meaning: "To complete or achieve something successfully",
-      partOfSpeech: "Verb",
-      level: "B1",
-      category: "Action",
-      masteryLevel: 65,
-    },
-    {
-      id: "3",
-      word: "Collaborate",
-      pronunciation: "/kəˈlæbəreɪt/",
-      meaning: "To work together with others on a project or task",
-      partOfSpeech: "Verb",
-      level: "B2",
-      category: "Workplace",
-      masteryLevel: 80,
-    },
-  ])
 
   useEffect(() => {
     setTopics(mockTopics)
@@ -127,7 +94,6 @@ export default function VocabPage() {
     { id: "courses", label: "Courses" },
     { id: "bookmarks", label: "Bookmarks" },
     { id: "mindmap", label: "Mindmap" },
-    { id: "statistic", label: "Dictionary" },
   ]
 
   const mindmapData = [
@@ -316,69 +282,7 @@ export default function VocabPage() {
             </div>
           )}
 
-          {activeTab === "statistic" && (
-            <Card className="p-6 rounded-3xl border-2 border-primary-100">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold">My Dictionary</h3>
-                <div className="flex items-center gap-3">
-                  <Input placeholder="Search words..." className="w-64" />
-                  <Button variant="outline" className="gap-2 cursor-pointer bg-transparent">
-                    <Plus className="h-4 w-4" />
-                    Add Word
-                  </Button>
-                </div>
-              </div>
-
-              <div className="rounded-xl border overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-slate-50">
-                      <TableHead className="font-bold">Word</TableHead>
-                      <TableHead className="font-bold">Pronunciation</TableHead>
-                      <TableHead className="font-bold">Meaning</TableHead>
-                      <TableHead className="font-bold">Type</TableHead>
-                      <TableHead className="font-bold">Level</TableHead>
-                      <TableHead className="font-bold">Mastery</TableHead>
-                      <TableHead className="w-12"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {dictionaryWords.map((word) => (
-                      <TableRow key={word.id} className="hover:bg-primary-50/50 transition-colors">
-                        <TableCell className="font-semibold text-primary-600">{word.word}</TableCell>
-                        <TableCell className="text-slate-500 font-mono text-sm">{word.pronunciation}</TableCell>
-                        <TableCell className="max-w-xs truncate">{word.meaning}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="text-xs">
-                            {word.partOfSpeech}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className="bg-primary-100 text-primary-700 text-xs">{word.level}</Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div className="w-16 h-2 bg-slate-200 rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-primary-500 rounded-full"
-                                style={{ width: `${word.masteryLevel}%` }}
-                              />
-                            </div>
-                            <span className="text-xs text-slate-500">{word.masteryLevel}%</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </Card>
-          )}
+          
         </div>
       )}
     </ProtectedRoute>
