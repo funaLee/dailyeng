@@ -54,6 +54,13 @@ export function TopicCard({
     }
   }
 
+  const getStatusVariant = () => {
+    if (progress === 100) return "completed" as const
+    if (progress > 0) return "inProgress" as const
+    return "notYet" as const
+  }
+
+
   const cardContent = (
     <Card className="group relative overflow-hidden rounded-3xl border-[1.4px] border-primary-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:border-primary-300 flex flex-col min-w-[280px] h-[420px]">
       <div className="p-4 pt-0 pb-0">
@@ -72,15 +79,15 @@ export function TopicCard({
           <Badge className="text-xs px-2.5 py-1 bg-primary-100 text-primary-600 border border-primary-200 font-medium">
             {level}
           </Badge>
-          <Badge className="text-xs px-2.5 py-1 bg-secondary-100 text-secondary-600 border border-secondary-200 font-medium">
+          <Badge className="text-xs px-2.5 py-1 bg-primary-100 text-primary-600 border border-primary-200 font-medium">
             {getCountLabel()}
           </Badge>
 
           {onNotYet && (
             <Tag
-              variant="notYet"
+              variant={getStatusVariant()}
               size="md"
-              className="ml-auto cursor-pointer hover:bg-error-100 transition-all"
+              className="ml-auto cursor-pointer transition-all hover:brightness-95"
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
@@ -88,6 +95,7 @@ export function TopicCard({
               }}
             />
           )}
+
         </div>
 
         <h4 className="mb-2 text-lg font-bold text-slate-900 group-hover:text-primary-600 transition-colors">
@@ -100,9 +108,10 @@ export function TopicCard({
           <Button
             className={`flex-1 h-10 rounded-full font-semibold text-sm cursor-pointer transition-all ${
               isCompleted
-                ? "bg-secondary-100 hover:bg-secondary-200 text-secondary-700"
-                : "bg-primary-300 hover:bg-primary-500 text-primary-900"
+                ? "bg-accent-100 hover:bg-accent-200 text-accent-700"
+                : (isInProgress ? "bg-secondary-100 hover:bg-secondary-300 text-secondary-800" : "bg-primary-300 hover:bg-primary-500 text-primary-900")
             }`}
+            variant={isCompleted ? "accent" : ( isInProgress? "secondary" : "default")}
           >
             {getButtonLabel()}
           </Button>
@@ -113,7 +122,7 @@ export function TopicCard({
 
   if (href) {
     return (
-      <Link href={href} className="active:translate-y-0.5 active:shadow-sm">
+      <Link href={href}>
         {cardContent}
       </Link>
     )

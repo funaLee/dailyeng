@@ -1,7 +1,7 @@
 import type * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
-import { CheckCircle2, Clock, AlertCircle, XCircle, Loader2, CircleDot, Pause, Play } from "lucide-react"
+import { CheckCircle2, Clock, AlertCircle, XCircle, Loader, CircleDot, Pause, Play } from "lucide-react"
 
 const tagVariants = cva(
   "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold border-[1.4px] transition-colors",
@@ -61,7 +61,7 @@ const variantIcons: Record<string, React.ElementType> = {
   done: CheckCircle2,
   active: Play,
   pending: Clock,
-  inProgress: Loader2,
+  inProgress: Loader,
   waiting: Clock,
   notYet: XCircle,
   failed: AlertCircle,
@@ -111,7 +111,7 @@ function Tag({ className, variant = "default", size, showIcon = true, icon, chil
 
   return (
     <span className={cn(tagVariants({ variant, size }), className)} {...props}>
-      {showIcon && IconComponent && <IconComponent className={cn("size-3.5", isSpinning && "animate-spin")} />}
+      {showIcon && IconComponent && <IconComponent className={cn("size-3.5")} />}
       {children || defaultLabel}
     </span>
   )
