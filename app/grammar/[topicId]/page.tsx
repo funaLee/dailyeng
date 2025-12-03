@@ -162,9 +162,14 @@ export default function GrammarTopicPage() {
           {/* Left Sidebar - Course Outline */}
           <div className="lg:col-span-1">
             <CourseOutlineSidebar
-              sections={mockGrammarCourseSections}
-              activeLesson={activeLesson}
-              onLessonSelect={handleLessonSelect}
+              courseName={topic.title}
+              topics={mockGrammarCourseSections.map((section) => ({
+                id: section.id,
+                title: section.title,
+                subTopics: section.lessons,
+              }))}
+              activeSubTopic={activeLesson}
+              onSubTopicSelect={handleLessonSelect}
               showGrades={true}
               showInfo={true}
             />

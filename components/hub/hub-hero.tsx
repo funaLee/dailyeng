@@ -35,7 +35,7 @@ export function HubHero({
   decorativeWords = ["vocabulary", "learning", "mastery"],
 }: HubHeroProps) {
   return (
-    <Card className="p-8 mb-8 relative overflow-hidden rounded-3xl border-2 border-primary-200 dark:border-primary-800">
+    <Card className="p-8 mb-8 relative overflow-hidden rounded-3xl border-[1.4px] border-primary-200">
       <div className="relative z-10">
         <h1 className="text-4xl font-bold mb-2">{title}</h1>
         <p className="text-muted-foreground mb-6">{description}</p>

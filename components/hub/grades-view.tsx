@@ -58,18 +58,18 @@ export function GradesView({ lessonGrades, skillScores, overallProgress, average
 
   const getScoreColor = (score: number | null) => {
     if (score === null) return "text-muted-foreground"
-    if (score >= 80) return "text-success-600 dark:text-success-400"
-    if (score >= 60) return "text-warning-600 dark:text-warning-400"
-    return "text-error-600 dark:text-error-400"
+    if (score >= 80) return "text-success-600"
+    if (score >= 60) return "text-warning-600"
+    return "text-error-600"
   }
 
   const getScoreBg = (score: number | null) => {
     if (score === null) return "bg-muted"
-    return "bg-secondary-100 dark:bg-secondary-900/30"
+    return "bg-secondary-100"
   }
 
   return (
-    <Card className="rounded-3xl border-2 border-secondary-200 bg-card overflow-hidden">
+    <Card className="rounded-3xl border-[1.4px] border-secondary-200 bg-card overflow-hidden">
       <div className="p-6 bg-gradient-to-r from-secondary-500 to-secondary-600">
         <div className="flex items-center gap-3 text-white">
           <Award className="h-6 w-6" />
@@ -79,19 +79,19 @@ export function GradesView({ lessonGrades, skillScores, overallProgress, average
 
       <div className="p-6 space-y-6">
         <div className="grid grid-cols-2 gap-4">
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-secondary-50 to-secondary-100 dark:from-secondary-900/30 dark:to-secondary-900/20 border border-secondary-200 dark:border-secondary-800">
-            <div className="flex items-center gap-2 text-secondary-600 dark:text-secondary-400 mb-2">
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-secondary-50 to-secondary-100 border-[1.4px] border-secondary-200">
+            <div className="flex items-center gap-2 text-secondary-600 mb-2">
               <TrendingUp className="h-5 w-5" />
               <span className="text-sm font-medium">Overall Progress</span>
             </div>
-            <p className="text-3xl font-bold text-secondary-700 dark:text-secondary-300">{overallProgress}%</p>
+            <p className="text-3xl font-bold text-secondary-700">{overallProgress}%</p>
           </div>
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-secondary-50 to-secondary-100 dark:from-secondary-900/30 dark:to-secondary-900/20 border border-secondary-200 dark:border-secondary-800">
-            <div className="flex items-center gap-2 text-secondary-600 dark:text-secondary-400 mb-2">
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-secondary-50 to-secondary-100 border-[1.4px] border-secondary-200">
+            <div className="flex items-center gap-2 text-secondary-600 mb-2">
               <Award className="h-5 w-5" />
               <span className="text-sm font-medium">Average Score</span>
             </div>
-            <p className="text-3xl font-bold text-secondary-700 dark:text-secondary-300">{averageScore}%</p>
+            <p className="text-3xl font-bold text-secondary-700">{averageScore}%</p>
           </div>
         </div>
 
@@ -140,7 +140,7 @@ export function GradesView({ lessonGrades, skillScores, overallProgress, average
             {lessonGrades.map((lesson) => (
               <div
                 key={lesson.id}
-                className="flex items-center justify-between p-3 rounded-xl bg-secondary-50 dark:bg-secondary-900/20 hover:bg-secondary-100 dark:hover:bg-secondary-900/30 transition-colors"
+                className="flex items-center justify-between p-3 rounded-xl bg-secondary-50 transition-colors"
               >
                 <div className="flex items-center gap-3">
                   <div className={`p-2 rounded-lg ${getScoreBg(lesson.score)}`}>{getSkillIcon(lesson.type)}</div>

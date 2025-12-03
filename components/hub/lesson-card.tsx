@@ -28,18 +28,16 @@ export function LessonCard({
       case "completed":
         return (
           <div className="flex items-center gap-2">
-            <span className="text-success-600 dark:text-success-400 font-medium text-sm">Completed</span>
-            {score !== undefined && (
-              <span className="text-success-600 dark:text-success-400 font-bold text-sm">{score}%</span>
-            )}
+            <span className="text-success-600 font-medium text-sm">Completed</span>
+            {score !== undefined && <span className="text-success-600 font-bold text-sm">{score}%</span>}
             <CheckCircle2 className="h-5 w-5 text-success-500" />
           </div>
         )
       case "in_progress":
         return (
           <div className="flex items-center gap-2">
-            <span className="text-warning-600 dark:text-warning-400 font-medium text-sm">In progress</span>
-            <span className="text-warning-600 dark:text-warning-400 font-bold text-sm">{progress}%</span>
+            <span className="text-warning-600 font-medium text-sm">In progress</span>
+            <span className="text-warning-600 font-bold text-sm">{progress}%</span>
             <Loader2 className="h-5 w-5 text-warning-500 animate-spin" />
           </div>
         )
@@ -49,7 +47,7 @@ export function LessonCard({
           <Button
             onClick={onClick}
             variant="outline"
-            className="rounded-full border-primary-300 text-primary-700 hover:bg-primary-50 dark:border-primary-600 dark:text-primary-300 dark:hover:bg-primary-900/30 bg-transparent"
+            className="rounded-full border-primary-300 text-primary-700 hover:bg-primary-50 bg-transparent"
           >
             Get started
           </Button>

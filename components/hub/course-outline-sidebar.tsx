@@ -37,15 +37,15 @@ export function CourseOutlineSidebar({
   activeView = "outline",
   onViewChange,
 }: CourseOutlineSidebarProps) {
-  const [expandedTopics, setExpandedTopics] = useState<string[]>(topics.filter((t) => t.isExpanded).map((t) => t.id))
+  const [expandedTopic, setExpandedTopic] = useState<string | null>(topics.find((t) => t.isExpanded)?.id || null)
 
   const toggleTopic = (topicId: string) => {
-    setExpandedTopics((prev) => (prev.includes(topicId) ? prev.filter((id) => id !== topicId) : [...prev, topicId]))
+    setExpandedTopic((prev) => (prev === topicId ? null : topicId))
   }
 
   return (
     <Card
-      className={`rounded-3xl border-2 bg-card overflow-hidden shadow-lg ${
+      className={`rounded-3xl border-[1.4px] bg-card overflow-hidden shadow-lg ${
         activeView === "grades"
           ? "border-secondary-200"
           : activeView === "info"
@@ -86,13 +86,13 @@ export function CourseOutlineSidebar({
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Course Outline</p>
         <div className="space-y-2">
           {topics.map((topic) => {
-            const isExpanded = expandedTopics.includes(topic.id)
+            const isExpanded = expandedTopic === topic.id
 
             return (
               <div key={topic.id}>
                 <button
                   onClick={() => toggleTopic(topic.id)}
-                  className="w-full flex items-center justify-between px-3 py-3 rounded-xl text-left transition-all bg-gradient-to-r from-primary-100 to-primary-50 dark:from-primary-900/40 dark:to-primary-900/20 text-primary-700 dark:text-primary-300 shadow-sm"
+                  className="w-full flex items-center justify-between px-3 py-3 rounded-xl text-left bg-gradient-to-r from-primary-100 to-primary-50 text-primary-700 shadow-sm"
                 >
                   <div className="flex items-center gap-2">
                     <FolderOpen className="h-4 w-4 text-primary-500" />
@@ -113,9 +113,9 @@ export function CourseOutlineSidebar({
                             onSubTopicSelect?.(subTopic.id)
                             onViewChange?.("outline")
                           }}
-                          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-all border-l-4 ${
+                          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left border-l-4 ${
                             isActive
-                              ? "bg-gradient-to-r from-primary-100 to-primary-50 dark:from-primary-900/40 dark:to-primary-900/20 text-primary-700 dark:text-primary-300 border-l-primary-400 font-medium"
+                              ? "bg-gradient-to-r from-primary-100 to-primary-50 text-primary-700 border-l-primary-400 font-medium"
                               : "border-l-transparent hover:bg-muted/70 text-muted-foreground hover:text-foreground"
                           }`}
                         >
@@ -137,14 +137,14 @@ export function CourseOutlineSidebar({
 
       {showGrades && (
         <>
-          <div className="border-t-2 border-primary-100 dark:border-primary-800" />
+          <div className="border-t-[1.4px] border-primary-100" />
           <div className="p-3">
             <button
               onClick={() => onViewChange?.("grades")}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl ${
                 activeView === "grades"
                   ? "bg-gradient-to-r from-secondary-500 to-secondary-600 text-white shadow-md"
-                  : "hover:bg-secondary-50 dark:hover:bg-secondary-900/30 text-foreground hover:text-secondary-700 dark:hover:text-secondary-300"
+                  : "hover:bg-secondary-50 text-foreground hover:text-secondary-700"
               }`}
             >
               <GraduationCap className="h-5 w-5" />
@@ -156,14 +156,14 @@ export function CourseOutlineSidebar({
 
       {showInfo && (
         <>
-          <div className="border-t-2 border-primary-100 dark:border-primary-800" />
+          <div className="border-t-[1.4px] border-primary-100" />
           <div className="p-3">
             <button
               onClick={() => onViewChange?.("info")}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl ${
                 activeView === "info"
                   ? "bg-gradient-to-r from-accent-500 to-accent-600 text-white shadow-md"
-                  : "hover:bg-accent-50 dark:hover:bg-accent-900/30 text-foreground hover:text-accent-700 dark:hover:text-accent-300"
+                  : "hover:bg-accent-50 text-foreground hover:text-accent-700"
               }`}
             >
               <Info className="h-5 w-5" />

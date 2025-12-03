@@ -49,8 +49,8 @@ import {
   CartesianGrid,
   Tooltip,
 } from "recharts"
-import { cn } from "@/lib/utils" // Assuming cn is available for conditional styling
-import { Badge } from "@/components/ui/badge" // Added Badge import
+import { cn } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
 
 // Test steps in order
 const TEST_STEPS = [
@@ -71,7 +71,7 @@ const TEST_STEPS = [
   {
     id: "reading",
     label: "Reading",
-    icon: FileTextIcon, // Changed to FileTextIcon for consistency
+    icon: FileTextIcon,
     color: "warning",
     description: "Reading comprehension",
   },
@@ -109,7 +109,7 @@ const mockQuestions: Record<
     correctAnswer?: number | string
     passage?: string
     prompt?: string
-    hint?: string // Added hint for feedback
+    hint?: string
   }>
 > = {
   vocabulary: [
@@ -337,7 +337,6 @@ const mockQuestions: Record<
   ],
 }
 
-// CEFR level calculation
 const calculateCEFRLevel = (score: number): { level: string; description: string; color: string } => {
   if (score >= 90) return { level: "C2", description: "Proficient - Mastery", color: "text-success-600" }
   if (score >= 80) return { level: "C1", description: "Proficient - Advanced", color: "text-primary-600" }
@@ -373,7 +372,6 @@ export default function PlacementTestPage() {
   >([])
   const [isHighlightMode, setIsHighlightMode] = useState(false)
   const [readingHints, setReadingHints] = useState<Record<number, boolean>>({})
-  // Remove old single hint states if they exist
   const [showReadingHint, setShowReadingHint] = useState(false)
   const [currentReadingQuestion, setCurrentReadingQuestion] = useState(0)
   const [readingAnswers, setReadingAnswers] = useState<Record<number, number>>({})
@@ -486,7 +484,6 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
     setAnswers({})
     setWritingAnswer("")
     setFillBlankAnswer("")
-    // Reset reading-specific states if switching to reading test
     if (testId === "reading") {
       setCurrentReadingQuestion(0)
       setReadingAnswers({})
@@ -494,7 +491,7 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
       setReadingHighlights([])
       setIsHighlightMode(false)
       setShowReadingHint(false)
-      setReadingHints({}) // Reset hints for reading
+      setReadingHints({})
     }
   }
 
@@ -523,14 +520,13 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
         setWritingAnswer("")
         setFillBlankAnswer("")
       } else {
-        // Calculate score for this test
         let correct = 0
         Object.entries(newAnswers).forEach(([qIdx, ans]) => {
           const q = questions[Number(qIdx)]
           if (q.correctAnswer !== undefined && ans === q.correctAnswer) {
             correct++
           } else if (q.type === "speaking" || q.type === "writing") {
-            correct += 0.7 // Partial credit for subjective
+            correct += 0.7
           } else if (q.type === "fill-blank" && typeof q.correctAnswer === "string") {
             if (String(ans).toLowerCase().trim() === q.correctAnswer.toLowerCase()) {
               correct++
@@ -582,20 +578,18 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
     setShowResults(false)
     setCurrentQuestion(0)
     setAnswers({})
-    // Reset reading-specific states
     setCurrentReadingQuestion(0)
     setReadingAnswers({})
     setCheckedReadingQuestions(new Set())
     setReadingHighlights([])
     setIsHighlightMode(false)
     setShowReadingHint(false)
-    setReadingHints({}) // Reset hints for reading
+    setReadingHints({})
   }
 
   // Submit test (used for reading test completion)
   const handleSubmitTest = () => {
     if (activeTestId === "reading") {
-      // Calculate score for reading test
       let correct = 0
       readingPassage.questions.forEach((_, idx) => {
         if (readingAnswers[idx] === readingPassage.questions[idx].correctAnswer) {
@@ -618,14 +612,12 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
     if (feedbackTestId) {
       setCompletedTests((prev) => [...prev, feedbackTestId])
 
-      // Check if all tests completed
       const newCompleted = [...completedTests, feedbackTestId]
       if (newCompleted.length === TEST_STEPS.length) {
         setShowResults(true)
       }
     }
 
-    // Reset feedback state
     setShowTestFeedback(false)
     setFeedbackTestId(null)
     setFeedbackAnswers({})
@@ -643,11 +635,9 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
     const score = testScores[feedbackTestId] || 0
     const isReadingTest = feedbackTestId === "reading"
 
-    // Get questions and answers
     const questions = isReadingTest ? readingPassage.questions : mockQuestions[feedbackTestId]
     const userAnswers = isReadingTest ? feedbackReadingAnswers : feedbackAnswers
 
-    // Calculate correct count
     let correctCount = 0
     questions.forEach((q: any, idx: number) => {
       const userAnswer = userAnswers[idx]
@@ -664,18 +654,17 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
       }
     })
 
-    // Determine performance level
     const getPerformanceLevel = (score: number) => {
       if (score >= 90)
-        return { label: "Excellent", color: "text-emerald-600", bg: "bg-emerald-50", border: "border-emerald-200" }
-      if (score >= 70) return { label: "Good", color: "text-blue-600", bg: "bg-blue-50", border: "border-blue-200" }
+        return { label: "Excellent", color: "text-success-600", bg: "bg-success-50", border: "border-success-200" }
+      if (score >= 70)
+        return { label: "Good", color: "text-primary-600", bg: "bg-primary-50", border: "border-primary-200" }
       if (score >= 50)
-        return { label: "Average", color: "text-amber-600", bg: "bg-amber-50", border: "border-amber-200" }
-      return { label: "Needs Improvement", color: "text-red-600", bg: "bg-red-50", border: "border-red-200" }
+        return { label: "Average", color: "text-warning-600", bg: "bg-warning-50", border: "border-warning-200" }
+      return { label: "Needs Improvement", color: "text-error-600", bg: "bg-error-50", border: "border-error-200" }
     }
     const performance = getPerformanceLevel(score)
 
-    // Get feedback for each question
     const getFeedback = (q: any, userAnswer: any, isCorrect: boolean) => {
       if (q.type === "speaking") {
         return "Your speaking response has been recorded. Focus on pronunciation, fluency, and coherence."
@@ -693,7 +682,7 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
     }
 
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-800 py-8 px-4">
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-8 px-4">
         <div className="max-w-4xl mx-auto space-y-6">
           {/* Header */}
           <Card className="border-0 shadow-lg overflow-hidden">
@@ -706,10 +695,8 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
                     {testInfo && <testInfo.icon className={`w-6 h-6 ${performance.color}`} />}
                   </div>
                   <div>
-                    <h1 className="text-xl font-bold text-slate-800 dark:text-white">
-                      {testInfo?.label} Test - Results
-                    </h1>
-                    <p className="text-sm text-slate-500">{questions.length} questions completed</p>
+                    <h1 className="text-xl font-bold text-foreground">{testInfo?.label} Test - Results</h1>
+                    <p className="text-sm text-muted-foreground">{questions.length} questions completed</p>
                   </div>
                 </div>
                 <div className="text-right">
@@ -722,17 +709,17 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
             </div>
             <CardContent className="p-6">
               <div className="grid grid-cols-3 gap-4 text-center">
-                <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
-                  <div className="text-2xl font-bold text-emerald-600">{correctCount}</div>
-                  <div className="text-sm text-slate-500">Correct</div>
+                <div className="p-4 bg-success-50 rounded-xl">
+                  <div className="text-2xl font-bold text-success-600">{correctCount}</div>
+                  <div className="text-sm text-muted-foreground">Correct</div>
                 </div>
-                <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-xl">
-                  <div className="text-2xl font-bold text-red-600">{questions.length - correctCount}</div>
-                  <div className="text-sm text-slate-500">Incorrect</div>
+                <div className="p-4 bg-error-50 rounded-xl">
+                  <div className="text-2xl font-bold text-error-600">{questions.length - correctCount}</div>
+                  <div className="text-sm text-muted-foreground">Incorrect</div>
                 </div>
-                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
-                  <div className="text-2xl font-bold text-blue-600">{questions.length}</div>
-                  <div className="text-sm text-slate-500">Total</div>
+                <div className="p-4 bg-primary-50 rounded-xl">
+                  <div className="text-2xl font-bold text-primary-600">{questions.length}</div>
+                  <div className="text-sm text-muted-foreground">Total</div>
                 </div>
               </div>
             </CardContent>
@@ -740,9 +727,9 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
 
           {/* Detailed Answers */}
           <Card className="border-0 shadow-lg">
-            <CardHeader className="border-b bg-slate-50 dark:bg-slate-800">
+            <CardHeader className="border-b bg-muted/50">
               <CardTitle className="flex items-center gap-2">
-                <FileTextIcon className="w-5 h-5 text-blue-600" />
+                <FileTextIcon className="w-5 h-5 text-primary-600" />
                 Detailed Review
               </CardTitle>
             </CardHeader>
@@ -755,7 +742,7 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
                   if (isReadingTest) {
                     isCorrect = userAnswer === q.correctAnswer
                   } else if (q.type === "speaking" || q.type === "writing") {
-                    isCorrect = true // Subjective - always show as "submitted"
+                    isCorrect = true
                   } else if (q.type === "fill-blank" && typeof q.correctAnswer === "string") {
                     isCorrect = String(userAnswer).toLowerCase().trim() === q.correctAnswer.toLowerCase()
                   } else {
@@ -767,23 +754,24 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
                   return (
                     <div
                       key={idx}
-                      className={`p-5 ${isCorrect ? "bg-emerald-50/50 dark:bg-emerald-900/10" : "bg-red-50/50 dark:bg-red-900/10"}`}
+                      className={`p-5 ${isCorrect ? "bg-success-50/50": "bg-error-50/50"}`}
                     >
                       <div className="flex items-start gap-4">
                         <div
                           className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                            isCorrect ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-600"
+                            isCorrect ? "bg-success-100 text-success-600" : "bg-error-100 text-error-600"
                           }`}
                         >
                           {isCorrect ? <CheckCircle className="w-5 h-5" /> : <X className="w-5 h-5" />}
                         </div>
                         <div className="flex-1 space-y-3">
                           <div>
-                            <span className="text-xs font-medium text-slate-400 uppercase">Question {idx + 1}</span>
-                            <p className="font-medium text-slate-800 dark:text-white mt-1">{q.question || q.text}</p>
+                            <span className="text-xs font-medium text-muted-foreground uppercase">
+                              Question {idx + 1}
+                            </span>
+                            <p className="font-medium text-foreground mt-1">{q.question || q.text}</p>
                           </div>
 
-                          {/* Options for multiple choice */}
                           {q.options && (
                             <div className="grid grid-cols-1 gap-2 mt-3">
                               {q.options.map((opt: string, optIdx: number) => {
@@ -795,45 +783,46 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
                                     key={optIdx}
                                     className={`px-4 py-2 rounded-lg text-sm flex items-center gap-3 ${
                                       isCorrectAnswer
-                                        ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                                        ? "bg-success-100 text-success-800 border border-success-300"
                                         : isUserAnswer && !isCorrectAnswer
-                                          ? "bg-red-100 text-red-800 border border-red-300"
-                                          : "bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600"
+                                          ? "bg-error-100 text-error-800 border border-error-300"
+                                          : "bg-card text-muted-foreground border border-border"
                                     }`}
                                   >
                                     <span
                                       className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
                                         isCorrectAnswer
-                                          ? "bg-emerald-600 text-white"
+                                          ? "bg-success-600 text-white"
                                           : isUserAnswer && !isCorrectAnswer
-                                            ? "bg-red-600 text-white"
-                                            : "bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-300"
+                                            ? "bg-error-600 text-white"
+                                            : "bg-muted text-muted-foreground"
                                       }`}
                                     >
                                       {String.fromCharCode(65 + optIdx)}
                                     </span>
                                     <span>{opt}</span>
-                                    {isCorrectAnswer && <CheckCircle className="w-4 h-4 ml-auto text-emerald-600" />}
-                                    {isUserAnswer && !isCorrectAnswer && <X className="w-4 h-4 ml-auto text-red-600" />}
+                                    {isCorrectAnswer && <CheckCircle className="w-4 h-4 ml-auto text-success-600" />}
+                                    {isUserAnswer && !isCorrectAnswer && (
+                                      <X className="w-4 h-4 ml-auto text-error-600" />
+                                    )}
                                   </div>
                                 )
                               })}
                             </div>
                           )}
 
-                          {/* Fill in blank answer */}
                           {q.type === "fill-blank" && (
                             <div className="flex gap-4 mt-3">
                               <div
                                 className={`px-4 py-2 rounded-lg text-sm ${
-                                  isCorrect ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"
+                                  isCorrect ? "bg-success-100 text-success-800" : "bg-error-100 text-error-800"
                                 }`}
                               >
                                 <span className="text-xs uppercase font-medium opacity-70">Your answer:</span>
                                 <p className="font-medium">{String(userAnswer) || "(empty)"}</p>
                               </div>
                               {!isCorrect && (
-                                <div className="px-4 py-2 rounded-lg text-sm bg-emerald-100 text-emerald-800">
+                                <div className="px-4 py-2 rounded-lg text-sm bg-success-100 text-success-800">
                                   <span className="text-xs uppercase font-medium opacity-70">Correct answer:</span>
                                   <p className="font-medium">{q.correctAnswer}</p>
                                 </div>
@@ -841,30 +830,29 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
                             </div>
                           )}
 
-                          {/* Writing answer */}
                           {q.type === "writing" && (
-                            <div className="mt-3 p-4 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600">
-                              <span className="text-xs uppercase font-medium text-slate-400">Your response:</span>
-                              <p className="mt-1 text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
+                            <div className="mt-3 p-4 bg-card rounded-lg border border-border">
+                              <span className="text-xs uppercase font-medium text-muted-foreground">
+                                Your response:
+                              </span>
+                              <p className="mt-1 text-foreground whitespace-pre-wrap">
                                 {String(userAnswer) || "(No response)"}
                               </p>
                             </div>
                           )}
 
-                          {/* Speaking indicator */}
                           {q.type === "speaking" && (
-                            <div className="mt-3 flex items-center gap-2 text-blue-600">
+                            <div className="mt-3 flex items-center gap-2 text-primary-600">
                               <Mic className="w-4 h-4" />
                               <span className="text-sm">Audio response recorded</span>
                             </div>
                           )}
 
-                          {/* Feedback */}
                           <div
                             className={`mt-3 p-3 rounded-lg text-sm ${
                               isCorrect
-                                ? "bg-emerald-100/50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                                : "bg-amber-100/50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                                ? "bg-success-100/50 text-success-700"
+                                : "bg-warning-100/50 text-warning-700"
                             }`}
                           >
                             <div className="flex items-start gap-2">
@@ -886,7 +874,7 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
             <Button
               onClick={handleContinueFromFeedback}
               size="lg"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
+              className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-6 rounded-xl text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
             >
               {completedTests.length + 1 >= TEST_STEPS.length ? (
                 <>
@@ -951,7 +939,7 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
             key={idx}
             className={cn(
               "px-0.5 rounded",
-              segment.highlight.color === "green" ? "bg-green-200 text-green-900" : "bg-red-200 text-red-900",
+              segment.highlight.color === "green" ? "bg-success-200 text-success-900" : "bg-error-200 text-error-900",
             )}
           >
             {segment.text}
@@ -1011,102 +999,105 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
 
   const isReadingQuestionAnswered = currentReadingQuestion in readingAnswers
   const isReadingQuestionChecked = checkedReadingQuestions.has(currentReadingQuestion)
-  const isReadingAnswerCorrect =
-    readingAnswers[currentReadingQuestion] === readingPassage.questions[currentReadingQuestion]?.correctAnswer
-  const allReadingQuestionsChecked = checkedReadingQuestions.size === readingPassage.questions.length
 
-  // Function to render the content of the active test
   const renderTestContent = () => {
-    if (!activeTestId) return null
-
-    const testStep = TEST_STEPS.find((s) => s.id === activeTestId)!
-    const questions = mockQuestions[activeTestId]
-    const currentQ = questions[currentQuestion]
-    const questionProgress = Math.round(((currentQuestion + 1) / questions.length) * 100)
-    const Icon = testStep.icon
-
     if (activeTestId === "reading") {
       return renderReadingTest()
     }
 
+    const questions = mockQuestions[activeTestId!]
+    const currentQ = questions[currentQuestion]
+    const testInfo = TEST_STEPS.find((s) => s.id === activeTestId)!
+
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-8">
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-8">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Test Header */}
-          <div className="mb-6">
+          <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <Button
                 variant="ghost"
                 onClick={() => setActiveTestId(null)}
-                className="gap-2 text-gray-600 hover:text-gray-900"
+                className="gap-2 text-muted-foreground hover:text-foreground"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Exit Test
               </Button>
-              <div className="flex items-center gap-2 text-sm text-gray-500">
+              <div className="flex items-center gap-2 text-muted-foreground">
                 <Clock className="w-4 h-4" />
-                <span>
-                  Question {currentQuestion + 1} of {questions.length}
-                </span>
+                <span className="text-sm">No time limit</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 mb-4">
-              <div
-                className={`w-12 h-12 bg-${testStep.color}-100 dark:bg-${testStep.color}-900/30 rounded-xl flex items-center justify-center`}
-              >
-                <Icon className={`w-6 h-6 text-${testStep.color}-600`} />
+            <Card className="p-4 bg-primary-50 border-primary-200 ">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center">
+                  <testInfo.icon className="w-6 h-6 text-primary-600" />
+                </div>
+                <div className="flex-1">
+                  <h1 className="text-xl font-bold text-foreground">{testInfo.label} Test</h1>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-sm text-muted-foreground">
+                      Question {currentQuestion + 1} of {questions.length}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-primary-600">
+                    {Math.round(((currentQuestion + 1) / questions.length) * 100)}%
+                  </div>
+                </div>
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">{testStep.label} Test</h1>
-                <p className="text-sm text-gray-500">{testStep.description}</p>
-              </div>
-            </div>
-
-            <Progress value={questionProgress} className="h-2" />
+              <Progress value={((currentQuestion + 1) / questions.length) * 100} className="mt-4 h-2" />
+            </Card>
           </div>
 
           {/* Question Card */}
-          <Card className="p-6 rounded-2xl border-0 shadow-lg bg-white dark:bg-slate-800 mb-6">
-            {/* Reading Passage */}
-            {currentQ.type === "reading" && currentQ.passage && (
-              <div className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl mb-6 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                {currentQ.passage}
-              </div>
-            )}
-
+          <Card className="p-6 mb-6 rounded-2xl border-0 shadow-lg">
             {/* Listening Audio */}
             {currentQ.type === "listening" && (
               <div className="flex items-center justify-center mb-6">
-                <Button
+                <button
                   onClick={playAudio}
                   disabled={isPlaying}
-                  className={`gap-2 px-6 py-3 rounded-xl ${isPlaying ? "bg-blue-100 text-blue-600" : "bg-blue-600 hover:bg-blue-700 text-white"}`}
+                  className={`w-20 h-20 rounded-full flex items-center justify-center transition-all ${
+                    isPlaying ? "bg-primary-100" : "bg-primary-600 hover:bg-primary-700"
+                  }`}
                 >
-                  <Volume2 className={`w-5 h-5 ${isPlaying ? "animate-pulse" : ""}`} />
-                  {isPlaying ? "Playing..." : "Play Audio"}
-                </Button>
+                  {isPlaying ? (
+                    <Volume2 className="w-10 h-10 text-primary-600 animate-pulse" />
+                  ) : (
+                    <PlayCircle className="w-10 h-10 text-white" />
+                  )}
+                </button>
+              </div>
+            )}
+
+            {/* Reading Passage */}
+            {currentQ.type === "reading" && currentQ.passage && (
+              <div className="p-4 bg-muted/50 rounded-xl mb-6">
+                <p className="text-sm leading-relaxed text-foreground">{currentQ.passage}</p>
               </div>
             )}
 
             {/* Speaking Prompt */}
             {currentQ.type === "speaking" && currentQ.prompt && (
-              <div className="p-4 bg-blue-50 dark:bg-blue-900/30 rounded-xl mb-6">
-                <p className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-1">Prompt:</p>
-                <p className="text-gray-700 dark:text-gray-300">{currentQ.prompt}</p>
+              <div className="p-4 bg-secondary-50 rounded-xl mb-6">
+                <p className="text-sm font-medium text-secondary-800 mb-1">Topic:</p>
+                <p className="text-foreground">{currentQ.prompt}</p>
               </div>
             )}
 
             {/* Writing Prompt */}
             {currentQ.type === "writing" && currentQ.prompt && (
-              <div className="p-4 bg-cyan-50 dark:bg-cyan-900/30 rounded-xl mb-6">
-                <p className="text-sm font-medium text-cyan-800 dark:text-cyan-300 mb-1">Task:</p>
-                <p className="text-gray-700 dark:text-gray-300">{currentQ.prompt}</p>
+              <div className="p-4 bg-info-50 rounded-xl mb-6">
+                <p className="text-sm font-medium text-info-800 mb-1">Task:</p>
+                <p className="text-foreground">{currentQ.prompt}</p>
               </div>
             )}
 
             {/* Question */}
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">{currentQ.question}</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-6">{currentQ.question}</h2>
 
             {/* Answer Options */}
             {currentQ.type === "multiple-choice" || currentQ.type === "reading" || currentQ.type === "listening" ? (
@@ -1117,21 +1108,19 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
                     onClick={() => handleSelectAnswer(idx)}
                     className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
                       selectedAnswer === idx
-                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30"
-                        : "border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500"
+                        ? "border-primary-500 bg-primary-50"
+                        : "border-border hover:border-primary-300"
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <div
                         className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                          selectedAnswer === idx
-                            ? "bg-blue-600 text-white"
-                            : "bg-slate-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300"
+                          selectedAnswer === idx ? "bg-primary-600 text-white" : "bg-muted text-muted-foreground"
                         }`}
                       >
                         {String.fromCharCode(65 + idx)}
                       </div>
-                      <span className="text-gray-700 dark:text-gray-200">{option}</span>
+                      <span className="text-foreground">{option}</span>
                     </div>
                   </button>
                 ))}
@@ -1149,10 +1138,10 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
                   onClick={toggleRecording}
                   className={`w-24 h-24 rounded-full flex items-center justify-center transition-all ${
                     isRecording
-                      ? "bg-red-500 animate-pulse"
+                      ? "bg-error-500 animate-pulse"
                       : selectedAnswer === "recorded"
-                        ? "bg-green-500"
-                        : "bg-blue-600 hover:bg-blue-700"
+                        ? "bg-success-500"
+                        : "bg-primary-600 hover:bg-primary-700"
                   }`}
                 >
                   {isRecording ? (
@@ -1163,7 +1152,7 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
                     <Mic className="w-10 h-10 text-white" />
                   )}
                 </button>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   {isRecording
                     ? "Recording... Click to stop"
                     : selectedAnswer === "recorded"
@@ -1203,7 +1192,7 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
                 (currentQ.type === "writing" && !writingAnswer) ||
                 (currentQ.type === "speaking" && selectedAnswer !== "recorded")
               }
-              className="gap-2 rounded-xl bg-blue-600 hover:bg-blue-700"
+              className="gap-2 rounded-xl bg-primary-600 hover:bg-primary-700"
             >
               {currentQuestion === questions.length - 1 ? "Complete Test" : "Next"}
               <ArrowRight className="w-4 h-4" />
@@ -1214,7 +1203,6 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
     )
   }
 
-  // Changed the renderReadingTest to display all questions at once
   const renderReadingTest = () => {
     const highlights = readingHighlights.filter((h) => h.type === "user")
     return (
@@ -1222,7 +1210,7 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
         <div className="grid lg:grid-cols-5 gap-8 items-start">
           <Card className="lg:col-span-3 p-8 space-y-4 lg:sticky lg:top-6 max-h-[calc(100vh-8rem)] overflow-y-auto">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">{readingPassage.title}</h2>
+              <h2 className="text-xl font-bold text-foreground">{readingPassage.title}</h2>
               <Button
                 variant={isHighlightMode ? "default" : "outline"}
                 size="sm"
@@ -1238,42 +1226,39 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
               ref={passageRef}
               onMouseUp={handleTextSelection}
               className={cn(
-                "prose prose-base max-w-none dark:prose-invert",
+                "prose prose-base max-w-none",
                 isHighlightMode ? "cursor-text select-text" : "select-none",
               )}
             >
-              <p className="text-base leading-relaxed text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
+              <p className="text-base leading-relaxed text-foreground whitespace-pre-wrap">
                 {renderHighlightedContent()}
               </p>
             </div>
 
             {highlights.length > 0 && (
-              <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
-                <p className="text-xs text-slate-500">{highlights.length} highlight(s) saved</p>
+              <div className="pt-4 border-t border-border">
+                <p className="text-xs text-muted-foreground">{highlights.length} highlight(s) saved</p>
               </div>
             )}
           </Card>
 
           <Card className="lg:col-span-2 p-6 space-y-6 max-h-[calc(100vh-8rem)] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-4">
-              <h3 className="font-bold text-lg text-slate-800 dark:text-slate-200">Questions</h3>
-              <span className="text-sm text-slate-500">
+            <div className="flex items-center justify-between border-b border-border pb-4">
+              <h3 className="font-bold text-lg text-foreground">Questions</h3>
+              <span className="text-sm text-muted-foreground">
                 {Object.keys(readingAnswers).length} of {readingPassage.questions.length} answered
               </span>
             </div>
 
             <div className="space-y-8">
               {readingPassage.questions.map((q, qIdx) => (
-                <div
-                  key={qIdx}
-                  className="space-y-3 pb-6 border-b border-slate-100 dark:border-slate-800 last:border-0"
-                >
+                <div key={qIdx} className="space-y-3 pb-6 border-b border-border last:border-0">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3">
-                      <div className="w-7 h-7 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 flex items-center justify-center font-bold text-sm flex-shrink-0">
+                      <div className="w-7 h-7 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-sm flex-shrink-0">
                         {qIdx + 1}
                       </div>
-                      <p className="text-sm font-medium text-slate-700 dark:text-slate-300 pt-0.5">{q.question}</p>
+                      <p className="text-sm font-medium text-foreground pt-0.5">{q.question}</p>
                     </div>
                     <Button
                       variant="ghost"
@@ -1283,7 +1268,7 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
                         newHints[qIdx] = !newHints[qIdx]
                         setReadingHints(newHints)
                       }}
-                      className="text-xs text-slate-500 hover:text-blue-600 flex-shrink-0"
+                      className="text-xs text-muted-foreground hover:text-primary-600 flex-shrink-0"
                     >
                       <Lightbulb className="h-3.5 w-3.5 mr-1" />
                       Hint
@@ -1291,7 +1276,7 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
                   </div>
 
                   {readingHints[qIdx] && (
-                    <div className="ml-10 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 text-sm text-yellow-800 dark:text-yellow-200">
+                    <div className="ml-10 p-3 rounded-lg bg-warning-50 border border-warning-200 text-sm text-warning-800">
                       <p>{q.explanation}</p>
                     </div>
                   )}
@@ -1304,21 +1289,21 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
                         className={cn(
                           "w-full text-left p-3 rounded-lg border transition-all text-sm flex items-center gap-3",
                           readingAnswers[qIdx] === optIdx
-                            ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 ring-1 ring-blue-500"
-                            : "border-slate-200 dark:border-slate-700 hover:border-blue-300 hover:bg-slate-50 dark:hover:bg-slate-800",
+                            ? "border-primary-500 bg-primary-50 ring-1 ring-primary-500"
+                            : "border-border hover:border-primary-300 hover:bg-muted/50",
                         )}
                       >
                         <span
                           className={cn(
                             "w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0",
                             readingAnswers[qIdx] === optIdx
-                              ? "bg-blue-600 text-white"
-                              : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400",
+                              ? "bg-primary-600 text-white"
+                              : "bg-muted text-muted-foreground",
                           )}
                         >
                           {String.fromCharCode(65 + optIdx)}
                         </span>
-                        <span className="text-slate-700 dark:text-slate-300">{option}</span>
+                        <span className="text-foreground">{option}</span>
                       </button>
                     ))}
                   </div>
@@ -1326,10 +1311,9 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
               ))}
             </div>
 
-            <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+            <div className="pt-4 border-t border-border">
               <Button
                 onClick={() => {
-                  // Calculate score
                   let correct = 0
                   readingPassage.questions.forEach((q, idx) => {
                     if (readingAnswers[idx] === q.correctAnswer) correct++
@@ -1343,12 +1327,14 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
                   setActiveTestId(null)
                 }}
                 disabled={Object.keys(readingAnswers).length < readingPassage.questions.length}
-                className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                className="w-full bg-primary-600 hover:bg-primary-700 disabled:opacity-50"
               >
                 Submit All Answers
               </Button>
               {Object.keys(readingAnswers).length < readingPassage.questions.length && (
-                <p className="text-xs text-center text-slate-500 mt-2">Please answer all questions before submitting</p>
+                <p className="text-xs text-center text-muted-foreground mt-2">
+                  Please answer all questions before submitting
+                </p>
               )}
             </div>
           </Card>
@@ -1357,7 +1343,6 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
     )
   }
 
-  // Results Page
   const renderResults = () => {
     const overallScore = calculateOverallScore()
     const cefrResult = calculateCEFRLevel(overallScore)
@@ -1374,65 +1359,80 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
     }))
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-emerald-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-8">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-emerald-500 rounded-full mb-4">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full mb-4">
               <Trophy className="w-10 h-10 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Test Completed!</h1>
-            <p className="text-gray-600 dark:text-gray-400">Here's your comprehensive English assessment</p>
+            <h1 className="text-3xl font-bold text-foreground mb-2">Test Completed!</h1>
+            <p className="text-muted-foreground">Here's your comprehensive English assessment</p>
           </div>
 
           {/* CEFR Level Card */}
-          <Card className="p-8 mb-8 rounded-2xl border-0 shadow-xl bg-white dark:bg-slate-800 text-center">
+          <Card className="p-8 mb-8 rounded-2xl border-0 shadow-xl bg-card text-center">
             <div className="flex items-center justify-center gap-3 mb-4">
-              <Award className="w-8 h-8 text-blue-600" />
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Your CEFR Level</h2>
+              <Award className="w-8 h-8 text-primary-600" />
+              <h2 className="text-xl font-bold text-foreground">Your CEFR Level</h2>
             </div>
             <div className={`text-7xl font-black ${cefrResult.color} mb-2`}>{cefrResult.level}</div>
-            <p className="text-lg text-gray-600 dark:text-gray-400 mb-4">{cefrResult.description}</p>
-            <div className="flex items-center justify-center gap-2 bg-blue-50 dark:bg-blue-900/30 rounded-full px-6 py-3 inline-flex">
-              <Target className="w-5 h-5 text-blue-600" />
-              <span className="font-bold text-blue-600">Overall Score: {overallScore}%</span>
+            <p className="text-lg text-muted-foreground mb-4">{cefrResult.description}</p>
+            <div className="flex items-center justify-center gap-2 bg-primary-50 rounded-full px-6 py-3 inline-flex">
+              <Target className="w-5 h-5 text-primary-600" />
+              <span className="font-bold text-primary-600">Overall Score: {overallScore}%</span>
             </div>
           </Card>
 
           {/* Skill Breakdown */}
           <div className="grid lg:grid-cols-2 gap-6 mb-8">
             {/* Radar Chart */}
-            <Card className="p-6 rounded-2xl border-0 shadow-lg bg-white dark:bg-slate-800">
-              <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-blue-600" />
+            <Card className="p-6 rounded-2xl border-0 shadow-lg bg-card">
+              <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-primary-600" />
                 Skills Overview
               </h3>
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={radarData}>
-                    <PolarGrid stroke="#e2e8f0" />
-                    <PolarAngleAxis dataKey="skill" tick={{ fill: "#64748b", fontSize: 12 }} />
-                    <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: "#94a3b8", fontSize: 10 }} />
-                    <Radar name="Score" dataKey="score" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.5} />
+                    <PolarGrid stroke="var(--border)" />
+                    <PolarAngleAxis dataKey="skill" tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} />
+                    <PolarRadiusAxis
+                      angle={30}
+                      domain={[0, 100]}
+                      tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
+                    />
+                    <Radar
+                      name="Score"
+                      dataKey="score"
+                      stroke="var(--primary-500)"
+                      fill="var(--primary-500)"
+                      fillOpacity={0.5}
+                    />
                   </RadarChart>
                 </ResponsiveContainer>
               </div>
             </Card>
 
             {/* Bar Chart */}
-            <Card className="p-6 rounded-2xl border-0 shadow-lg bg-white dark:bg-slate-800">
-              <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <Target className="w-5 h-5 text-emerald-600" />
+            <Card className="p-6 rounded-2xl border-0 shadow-lg bg-card">
+              <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
+                <Target className="w-5 h-5 text-accent-600" />
                 Score by Skill
               </h3>
               <div className="h-[300px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={barData} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                    <XAxis type="number" domain={[0, 100]} tick={{ fill: "#64748b", fontSize: 12 }} />
-                    <YAxis type="category" dataKey="name" tick={{ fill: "#64748b", fontSize: 12 }} width={80} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                    <XAxis type="number" domain={[0, 100]} tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} />
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
+                      width={80}
+                    />
                     <Tooltip />
-                    <Bar dataKey="score" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+                    <Bar dataKey="score" fill="var(--primary-500)" radius={[0, 4, 4, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -1440,29 +1440,27 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
           </div>
 
           {/* Detailed Scores */}
-          <Card className="p-6 rounded-2xl border-0 shadow-lg bg-white dark:bg-slate-800 mb-8">
-            <h3 className="font-bold text-gray-900 dark:text-white mb-6">Detailed Scores</h3>
+          <Card className="p-6 rounded-2xl border-0 shadow-lg bg-card mb-8">
+            <h3 className="font-bold text-foreground mb-6">Detailed Scores</h3>
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {TEST_STEPS.map((step) => {
                 const score = testScores[step.id] || 0
                 const Icon = step.icon
                 const skillCefr = calculateCEFRLevel(score)
                 return (
-                  <div key={step.id} className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
+                  <div key={step.id} className="p-4 bg-muted/50 rounded-xl">
                     <div className="flex items-center gap-3 mb-3">
-                      <div
-                        className={`w-10 h-10 bg-${step.color}-100 dark:bg-${step.color}-900/30 rounded-lg flex items-center justify-center`}
-                      >
-                        <Icon className={`w-5 h-5 text-${step.color}-600`} />
+                      <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
+                        <Icon className="w-5 h-5 text-primary-600" />
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900 dark:text-white">{step.label}</p>
+                        <p className="font-semibold text-foreground">{step.label}</p>
                         <p className={`text-sm font-medium ${skillCefr.color}`}>{skillCefr.level}</p>
                       </div>
                     </div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-gray-500">Score</span>
-                      <span className="font-bold text-gray-900 dark:text-white">{score}%</span>
+                      <span className="text-sm text-muted-foreground">Score</span>
+                      <span className="font-bold text-foreground">{score}%</span>
                     </div>
                     <Progress value={score} className="h-2" />
                   </div>
@@ -1478,7 +1476,7 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
               Retake Test
             </Button>
             <Link href="/">
-              <Button className="gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700">
+              <Button className="gap-2 px-6 py-3 rounded-xl bg-primary-600 hover:bg-primary-700">
                 <Home className="w-4 h-4" />
                 Back to Home
               </Button>
@@ -1489,7 +1487,7 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
     )
   }
 
-  // Test Feedback View - must be checked before activeTestId
+  // Test Feedback View
   if (showTestFeedback) {
     return renderTestFeedback()
   }
@@ -1499,15 +1497,19 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
     return renderTestContent()
   }
 
-  // Main Test Selection with Progress Stepper
+  // Results View
+  if (showResults) {
+    return renderResults()
+  }
+
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-8">
+    <div className="min-h-screen bg-background py-8">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
           >
             <Home className="w-5 h-5" />
             <span>Back to Home</span>
@@ -1515,143 +1517,112 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
         </div>
 
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-3">English Placement Test</h1>
-          <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          <h1 className="text-3xl font-bold text-foreground mb-3">English Placement Test</h1>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
             Complete each test in order to receive your comprehensive English level assessment.
           </p>
         </div>
 
-        <Card className="p-6 mb-8 rounded-2xl border-0 shadow-lg bg-white dark:bg-slate-800">
-          {/* Header with title and percentage */}
+        <Card className="p-6 mb-8 rounded-2xl border-0 shadow-lg bg-card">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="font-bold text-gray-900 dark:text-white">Overall Progress</h2>
-              <p className="text-sm text-gray-500 mt-1">
+              <h2 className="font-bold text-foreground">Overall Progress</h2>
+              <p className="text-sm text-muted-foreground">
                 {completedTests.length} of {TEST_STEPS.length} tests completed
               </p>
             </div>
-            <span className="text-3xl font-bold text-blue-600">{overallProgress}%</span>
+            <div className="text-right">
+              <span className="text-3xl font-bold text-primary-600">{overallProgress}%</span>
+            </div>
           </div>
+          <Progress value={overallProgress} className="h-3 mb-6" />
 
-          {/* Progress Stepper */}
-          <div className="relative">
-            {/* Progress Line */}
-            <div className="absolute top-8 left-0 right-0 h-1 bg-slate-200 dark:bg-slate-700 mx-12" />
-            <div
-              className="absolute top-8 left-0 h-1 bg-green-500 mx-12 transition-all duration-500"
-              style={{ width: `calc(${(completedTests.length / TEST_STEPS.length) * 100}% - 6rem)` }}
-            />
+          {/* Test Steps */}
+          <div className="space-y-4">
+            {TEST_STEPS.map((step, index) => {
+              const Icon = step.icon
+              const isUnlocked = isStepUnlocked(step.id)
+              const isCompleted = isStepCompleted(step.id)
+              const score = testScores[step.id]
 
-            {/* Steps */}
-            <div className="relative flex justify-between">
-              {TEST_STEPS.map((step, index) => {
-                const Icon = step.icon
-                const isCompleted = isStepCompleted(step.id)
-                const isUnlocked = isStepUnlocked(step.id)
-                const isNext = !isCompleted && isUnlocked
-
-                return (
-                  <div key={step.id} className="flex flex-col items-center gap-2">
-                    <button
-                      onClick={() => isUnlocked && handleStartTest(step.id)}
-                      disabled={!isUnlocked}
-                      className={`
-                        w-16 h-16 rounded-full flex items-center justify-center border-2 transition-all duration-300 z-10
-                        ${
-                          isCompleted
-                            ? "bg-green-500 border-green-500 text-white"
-                            : isNext
-                              ? "bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200 scale-110 cursor-pointer hover:bg-blue-700"
-                              : isUnlocked
-                                ? "bg-white border-blue-200 text-blue-600 hover:border-blue-400 cursor-pointer"
-                                : "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
-                        }
-                      `}
+              return (
+                <div
+                  key={step.id}
+                  className={cn(
+                    "p-4 rounded-xl border-2 transition-all cursor-pointer",
+                    isCompleted
+                      ? "border-success-300 bg-success-50"
+                      : isUnlocked
+                        ? "border-primary-300 bg-primary-50 hover:border-primary-400"
+                        : "border-border bg-muted/50 opacity-60 cursor-not-allowed",
+                  )}
+                  onClick={() => isUnlocked && !isCompleted && handleStartTest(step.id)}
+                >
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={cn(
+                        "w-12 h-12 rounded-xl flex items-center justify-center",
+                        isCompleted
+                          ? "bg-success-100"
+                          : isUnlocked
+                            ? "bg-primary-100"
+                            : "bg-muted",
+                      )}
                     >
                       {isCompleted ? (
-                        <CheckCircle2 className="h-7 w-7" />
-                      ) : isNext ? (
-                        <PlayCircle className="h-7 w-7" />
-                      ) : !isUnlocked ? (
-                        <Lock className="h-5 w-5" />
+                        <CheckCircle2 className="w-6 h-6 text-success-600" />
+                      ) : isUnlocked ? (
+                        <Icon className="w-6 h-6 text-primary-600" />
                       ) : (
-                        <Icon className="h-6 w-6" />
+                        <Lock className="w-6 h-6 text-muted-foreground" />
                       )}
-                    </button>
-                    <span
-                      className={`
-                      text-xs font-medium text-center transition-colors duration-300
-                      ${isNext ? "text-blue-700 font-bold" : isUnlocked ? "text-slate-600" : "text-gray-400"}
-                    `}
-                    >
-                      {step.label}
-                    </span>
-                    {isCompleted && testScores[step.id] !== undefined && (
-                      <span className="text-xs font-bold text-green-600">{testScores[step.id]}%</span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-foreground">{step.label}</h3>
+                        {isCompleted && score !== undefined && (
+                          <Badge className="bg-success-100 text-success-700 border-success-200">{score}%</Badge>
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground">{step.description}</p>
+                    </div>
+                    {isUnlocked && !isCompleted && (
+                      <Button size="sm" className="bg-primary-600 hover:bg-primary-700">
+                        Start
+                      </Button>
+                    )}
+                    {isCompleted && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleStartTest(step.id)
+                        }}
+                      >
+                        Retake
+                      </Button>
                     )}
                   </div>
-                )
-              })}
-            </div>
+                </div>
+              )
+            })}
           </div>
         </Card>
 
-        {/* Test Cards */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {TEST_STEPS.map((step, index) => {
-            const Icon = step.icon
-            const isCompleted = isStepCompleted(step.id)
-            const isUnlocked = isStepUnlocked(step.id)
-            const isNext = !isCompleted && isUnlocked
-            const questions = mockQuestions[step.id]
-
-            return (
-              <Card
-                key={step.id}
-                onClick={() => isUnlocked && !isCompleted && handleStartTest(step.id)}
-                className={`p-5 rounded-2xl border-0 shadow-md transition-all ${
-                  isCompleted
-                    ? "bg-green-50 dark:bg-green-900/20 ring-2 ring-green-500"
-                    : isNext
-                      ? "bg-white dark:bg-slate-800 hover:shadow-xl hover:-translate-y-1 cursor-pointer ring-2 ring-blue-500"
-                      : isUnlocked
-                        ? "bg-white dark:bg-slate-800 hover:shadow-lg cursor-pointer"
-                        : "bg-gray-100 dark:bg-slate-800/50 opacity-60 cursor-not-allowed"
-                }`}
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div
-                    className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                      isCompleted ? "bg-green-100" : `bg-${step.color}-100 dark:bg-${step.color}-900/30`
-                    }`}
-                  >
-                    {isCompleted ? (
-                      <CheckCircle2 className="w-6 h-6 text-green-600" />
-                    ) : !isUnlocked ? (
-                      <Lock className="w-5 h-5 text-gray-400" />
-                    ) : (
-                      <Icon className={`w-6 h-6 text-${step.color}-600`} />
-                    )}
-                  </div>
-                  {isNext && (
-                    <span className="px-3 py-1 bg-blue-100 text-blue-600 text-xs font-bold rounded-full">START</span>
-                  )}
-                  {isCompleted && (
-                    <span className="px-3 py-1 bg-green-100 text-green-600 text-xs font-bold rounded-full">
-                      {testScores[step.id]}%
-                    </span>
-                  )}
-                </div>
-                <h3 className="font-bold text-gray-900 dark:text-white mb-1">{step.label}</h3>
-                <p className="text-sm text-gray-500 mb-3">{step.description}</p>
-                <div className="flex items-center gap-4 text-xs text-gray-400">
-                  <span>{questions.length} questions</span>
-                  <span>~{Math.round(questions.length * 1.5)} mins</span>
-                </div>
-              </Card>
-            )
-          })}
-        </div>
+        {/* Complete All Button */}
+        {completedTests.length === TEST_STEPS.length && (
+          <div className="text-center">
+            <Button
+              size="lg"
+              onClick={() => setShowResults(true)}
+              className="bg-gradient-to-r from-primary-600 to-accent-600 hover:from-primary-700 hover:to-accent-700 text-white px-8 py-6 rounded-xl text-lg font-semibold shadow-lg"
+            >
+              <Trophy className="w-5 h-5 mr-2" />
+              View Final Results
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   )

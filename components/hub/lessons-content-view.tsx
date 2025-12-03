@@ -73,7 +73,7 @@ export function LessonsContentView({ subTopicTitle, lessonGroups, onLessonClick 
   }
 
   return (
-    <Card className="rounded-3xl border-2 border-primary-200 bg-card overflow-hidden shadow-lg">
+    <Card className="rounded-3xl border-[1.4px] border-primary-200 bg-card overflow-hidden shadow-lg">
       <div className="relative p-6 bg-gradient-to-r from-primary-500 to-primary-600 overflow-hidden">
         {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
@@ -81,7 +81,7 @@ export function LessonsContentView({ subTopicTitle, lessonGroups, onLessonClick 
         <Sparkles className="absolute top-4 right-8 h-6 w-6 text-white/30" />
 
         <div className="relative flex items-center gap-4">
-          <div className="p-3 bg-white/20 rounded-2xl backdrop-blur-sm">
+          <div className="p-3 bg-white/20 rounded-2xl">
             <BookOpen className="h-8 w-8 text-white" />
           </div>
           <div>
@@ -98,17 +98,14 @@ export function LessonsContentView({ subTopicTitle, lessonGroups, onLessonClick 
           const Icon = config.icon
 
           return (
-            <div
-              key={group.id}
-              className="rounded-2xl border-2 border-primary-200 dark:border-primary-700 overflow-hidden"
-            >
+            <div key={group.id} className="rounded-2xl border-[1.4px] border-primary-200 overflow-hidden">
               {/* Group Header - primary color */}
-              <div className="px-5 py-4 bg-primary-50 dark:bg-primary-900/30 border-b border-primary-200 dark:border-primary-700">
+              <div className="px-5 py-4 bg-primary-50 border-b-[1.4px] border-primary-200">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 text-white shadow-md">
                     <Icon className="h-5 w-5" />
                   </div>
-                  <h3 className="font-bold text-lg text-primary-600 dark:text-primary-400">{group.title}</h3>
+                  <h3 className="font-bold text-lg text-primary-600">{group.title}</h3>
                   <span className="ml-auto text-sm text-muted-foreground">{group.lessons.length} lessons</span>
                 </div>
               </div>
@@ -119,19 +116,16 @@ export function LessonsContentView({ subTopicTitle, lessonGroups, onLessonClick 
                   const isFirstNotStarted = lesson.id === globalFirstNotStartedId
 
                   return (
-                    <div
-                      key={lesson.id}
-                      className="flex items-center justify-between px-5 py-4 hover:bg-muted/50 transition-colors"
-                    >
+                    <div key={lesson.id} className="flex items-center justify-between px-5 py-4">
                       <div className="flex items-center gap-4">
                         {/* Status Icon */}
                         <div className="flex-shrink-0">
                           {lesson.status === "completed" ? (
-                            <div className="p-2 rounded-full bg-success-100 dark:bg-success-900/30">
+                            <div className="p-2 rounded-full bg-success-100">
                               <CheckCircle2 className="h-5 w-5 text-success-500" />
                             </div>
                           ) : lesson.status === "in_progress" ? (
-                            <div className="p-2 rounded-full bg-warning-100 dark:bg-warning-900/30">
+                            <div className="p-2 rounded-full bg-warning-100">
                               <PlayCircle className="h-5 w-5 text-warning-500" />
                             </div>
                           ) : (
@@ -152,14 +146,10 @@ export function LessonsContentView({ subTopicTitle, lessonGroups, onLessonClick 
                               </span>
                             )}
                             {lesson.status === "completed" && lesson.score && (
-                              <span className="text-sm text-success-600 dark:text-success-400 font-medium">
-                                Score: {lesson.score}%
-                              </span>
+                              <span className="text-sm text-success-600 font-medium">Score: {lesson.score}%</span>
                             )}
                             {lesson.status === "in_progress" && lesson.progress && (
-                              <span className="text-sm text-warning-600 dark:text-warning-400 font-medium">
-                                {lesson.progress}% complete
-                              </span>
+                              <span className="text-sm text-warning-600 font-medium">{lesson.progress}% complete</span>
                             )}
                           </div>
                         </div>
@@ -171,7 +161,7 @@ export function LessonsContentView({ subTopicTitle, lessonGroups, onLessonClick 
                             variant="outline"
                             size="sm"
                             onClick={() => onLessonClick?.(lesson.id)}
-                            className="rounded-full border-primary-300 text-primary-600 hover:bg-primary-50 dark:border-primary-700 dark:text-primary-400 dark:hover:bg-primary-900/30"
+                            className="rounded-full border-primary-300 text-primary-600 hover:bg-primary-50"
                           >
                             Review
                           </Button>

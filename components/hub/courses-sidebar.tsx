@@ -27,8 +27,8 @@ export function CoursesSidebar({
   title = "Courses",
 }: CoursesSidebarProps) {
   return (
-    <Card className="p-5 bg-primary-50 dark:bg-slate-900 rounded-3xl border-2 border-primary-200 dark:border-primary-800 shadow-sm">
-      <h3 className="font-bold text-base mb-4 text-primary-900 dark:text-primary-100">{title}</h3>
+    <Card className="p-5 bg-primary-50 rounded-3xl border-[1.4px] border-primary-200 shadow-sm">
+      <h3 className="font-bold text-base mb-4 text-primary-900">{title}</h3>
       <div className="space-y-3">
         {courses.map((course) => (
           <label key={course.id} className="flex items-center gap-3 cursor-pointer group">
@@ -43,9 +43,7 @@ export function CoursesSidebar({
             </div>
             <span
               className={`text-sm font-medium transition-colors ${
-                selectedCourse === course.id
-                  ? "text-primary-700 dark:text-primary-300"
-                  : "text-slate-600 dark:text-slate-400 group-hover:text-primary-700 dark:group-hover:text-primary-300"
+                selectedCourse === course.id ? "text-primary-700" : "text-slate-600 group-hover:text-primary-700"
               }`}
             >
               {course.name}

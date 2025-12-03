@@ -181,7 +181,7 @@ export default function StudyPlanPage() {
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-grid-cols-12 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
               {/* Left Side: Stats & Calendar (8 cols) */}
               <div className="lg:col-span-7 space-y-8">
                 {/* Stats Row */}
@@ -262,7 +262,7 @@ export default function StudyPlanPage() {
                       1:00
                     </div>
                     <div className="border-r border-primary-50 p-1">
-                      <div className="w-full h-full rounded-lg bg-indigo-100 text-indigo-900 font-medium flex items-center justify-center text-[10px] shadow-sm">
+                      <div className="w-full h-full rounded-lg bg-primary-100 text-primary-900 font-medium flex items-center justify-center text-[10px] shadow-sm">
                         Vocabulary
                       </div>
                     </div>
@@ -347,10 +347,10 @@ export default function StudyPlanPage() {
                             asChild
                             variant="secondary"
                             size="sm"
-                            className="h-7 text-xs bg-primary-100 text-primary-700 hover:bg-primary-200"
+                            className="h-7 text-xs bg-secondary-50 text-secondary-700 hover:bg-secondary-100"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <Link href={lesson.link || "#"}>h{"u\x63"} ngay</Link>
+                            <Link href={lesson.link || "#"}>Learning now</Link>
                           </Button>
                         </div>
                       </div>
@@ -465,39 +465,39 @@ export default function StudyPlanPage() {
             </Card>
 
             {/* Reminders - Takes up 1 Column */}
-            <Card className="p-6 border-blue-100 shadow-md flex flex-col lg:col-span-1">
+            <Card className="p-6 border-primary-100 shadow-md flex flex-col lg:col-span-1">
               <h2 className="text-xl font-bold mb-6 text-slate-800">Lời nhắc</h2>
 
               <div className="space-y-4 flex-1">
-                <div className="border border-indigo-100 bg-indigo-50/30 rounded-xl p-4 text-center space-y-3">
-                  <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center mx-auto text-indigo-600">
+                <div className="border border-primary-100 bg-primary-50/30 rounded-xl p-4 text-center space-y-3">
+                  <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center mx-auto text-primary-600">
                     <Mic className="w-5 h-5" />
                   </div>
-                  <h3 className="font-bold text-sm text-indigo-900">Speaking Room</h3>
-                  <p className="text-xs text-slate-500 px-4">Bạn chưa luyện nói lần nào</p>
+                  <h3 className="font-bold text-sm text-primary-900">Speaking Room</h3>
+                  <p className="text-xs text-slate-500 px-4">You have not practiced speaking today</p>
                   <Button
                     asChild
-                    variant="secondary"
+                    variant="default"
                     size="sm"
-                    className="w-full bg-indigo-100 hover:bg-indigo-200 text-indigo-700"
+                    className="w-full bg-primary-100 hover:bg-primary-200 text-primary-700"
                   >
-                    <Link href="/speaking">Luyện ngay</Link>
+                    <Link href="/speaking">Practice Now</Link>
                   </Button>
                 </div>
 
-                <div className="border border-emerald-100 bg-emerald-50/30 rounded-xl p-4 text-center space-y-3">
-                  <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-600">
+                <div className="border border-secondary-100 bg-secondary-50/30 rounded-xl p-4 text-center space-y-3">
+                  <div className="w-10 h-10 bg-secondary-100 rounded-full flex items-center justify-center mx-auto text-secondary-600">
                     <BookOpen className="w-5 h-5" />
                   </div>
-                  <h3 className="font-bold text-sm text-emerald-900">Notebook</h3>
-                  <p className="text-xs text-slate-500 px-4">Bạn có 34 từ đang đợi ôn tập</p>
+                  <h3 className="font-bold text-sm text-secondary-900">Notebook</h3>
+                  <p className="text-xs text-slate-500 px-4">You have 34 words on reviewing</p>
                   <Button
                     asChild
                     variant="secondary"
                     size="sm"
-                    className="w-full bg-emerald-100 hover:bg-emerald-200 text-emerald-700"
+                    className="w-full bg-secondary-50 hover:bg-secondary-100 text-secondary-700"
                   >
-                    <Link href="/notebook">ôn tập ngay</Link>
+                    <Link href="/notebook">Review Now</Link>
                   </Button>
                 </div>
               </div>
@@ -507,10 +507,10 @@ export default function StudyPlanPage() {
           {/* 4. Plans Grid Section (GRID LAYOUT UPDATED) */}
           <div className="grid grid-cols-1 lg:grid-cols-7 gap-8">
             {/* My Study Plan - Takes up 1 Column */}
-            <Card className="p-6 h-full border-blue-100 shadow-md lg:col-span-2">
+            <Card className="p-6 h-full border-primary-100 shadow-md lg:col-span-2">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-slate-800">My Study Plan</h2>
-                <Button variant="secondary" size="sm" className="bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs">
+                <Button variant="secondary" size="sm" className="bg-secondary-100 hover:bg-secondary-200 text-secondary-700 text-xs">
                   New plan
                 </Button>
               </div>
@@ -522,14 +522,14 @@ export default function StudyPlanPage() {
                     onClick={() => setSelectedPlanId(plan.id)}
                     className={`rounded-xl border p-4 cursor-pointer transition-all ${
                       selectedPlanId === plan.id
-                        ? "ring-2 ring-blue-500 border-transparent bg-blue-50 shadow-sm"
-                        : "border-gray-200 hover:border-blue-300 hover:shadow-sm bg-white"
+                        ? "ring-2 ring-primary-500 border-transparent bg-primary-50 shadow-sm"
+                        : "border-gray-200 hover:border-primary-300 hover:shadow-sm bg-white"
                     }`}
                   >
                     <div className="flex items-center justify-between mb-3">
                       <h3
                         className={`font-bold text-sm ${
-                          selectedPlanId === plan.id ? "text-blue-900" : "text-slate-700"
+                          selectedPlanId === plan.id ? "text-primary-900" : "text-slate-700"
                         }`}
                       >
                         {plan.name}
@@ -547,7 +547,7 @@ export default function StudyPlanPage() {
                         <span>Progress</span>
                         <span>{plan.progress}%</span>
                       </div>
-                      <Progress value={plan.progress} className="h-1.5 bg-blue-100" />
+                      <Progress value={plan.progress} className="h-1.5 bg-primary-100" />
                       <p className="text-[10px] text-slate-400 mt-1">Remain: {plan.remainHours}h to complete</p>
                     </div>
                   </div>
@@ -556,50 +556,50 @@ export default function StudyPlanPage() {
             </Card>
 
             {/* Detail Study Plan - Takes up 3 Columns */}
-            <Card className="p-6 border-blue-100 shadow-md lg:col-span-5">
+            <Card className="p-6 border-primary-100 shadow-md lg:col-span-5">
               <div className="flex items-center justify-between mb-1">
                 <h2 className="text-xl font-bold text-slate-800">Detail Study Plan</h2>
-                <Button variant="ghost" size="icon" className="text-slate-400 hover:text-blue-600">
+                <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary-600">
                   <Brain className="w-5 h-5" />
                 </Button>
               </div>
 
-              <h3 className="text-lg font-bold mb-4 text-blue-900">{selectedPlan.name}</h3>
+              <h3 className="text-lg font-bold mb-4 text-primary-900">{selectedPlan.name}</h3>
               <p className="text-sm text-slate-500 mb-6 border-b border-gray-100 pb-4">{selectedPlan.goal}</p>
 
               {/* Detailed Stats */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-                <div className="border border-blue-100 bg-blue-50/50 rounded-xl p-3 text-center">
-                  <p className="text-xs text-blue-600 font-medium mb-1">Progress</p>
+                <div className="border border-primary-100 bg-primary-50/50 rounded-xl p-3 text-center">
+                  <p className="text-xs text-primary-600 font-medium mb-1">Progress</p>
                   <p className="font-bold text-slate-800">{selectedPlan.progress}%</p>
                 </div>
-                <div className="border border-blue-100 bg-blue-50/50 rounded-xl p-3 text-center">
-                  <p className="text-xs text-blue-600 font-medium mb-1">Studied</p>
+                <div className="border border-primary-100 bg-primary-50/50 rounded-xl p-3 text-center">
+                  <p className="text-xs text-primary-600 font-medium mb-1">Studied</p>
                   <p className="font-bold text-slate-800">{selectedPlan.studiedHours}h</p>
                 </div>
-                <div className="border border-blue-100 bg-blue-50/50 rounded-xl p-3 text-center">
-                  <p className="text-xs text-blue-600 font-medium mb-1">Remain</p>
+                <div className="border border-primary-100 bg-primary-50/50 rounded-xl p-3 text-center">
+                  <p className="text-xs text-primary-600 font-medium mb-1">Remain</p>
                   <p className="font-bold text-slate-800">{selectedPlan.remainHours}h</p>
                 </div>
-                <div className="border border-blue-100 bg-blue-50/50 rounded-xl p-3 text-center">
-                  <p className="text-xs text-blue-600 font-medium mb-1">Level</p>
+                <div className="border border-primary-100 bg-primary-50/50 rounded-xl p-3 text-center">
+                  <p className="text-xs text-primary-600 font-medium mb-1">Level</p>
                   <p className="font-bold text-slate-800">{selectedPlan.level}</p>
                 </div>
               </div>
 
               {/* Gamification Placeholders */}
               <div className="space-y-6">
-                <div className="w-full h-48 bg-gradient-to-r from-blue-100 to-indigo-50 rounded-2xl flex flex-col items-center justify-center text-center p-6 border border-blue-200 relative overflow-hidden group">
+                <div className="w-full h-48 bg-gradient-to-r from-primary-100 to-primary-50 rounded-2xl flex flex-col items-center justify-center text-center p-6 border border-primary-200 relative overflow-hidden group">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full -mr-10 -mt-10" />
                   <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/20 rounded-full -ml-8 -mb-8" />
-                  <Target className="w-12 h-12 text-blue-500 mb-2 group-hover:scale-110 transition-transform" />
-                  <p className="font-bold text-blue-900 text-sm">Gamification Map Overview</p>
-                  <p className="text-xs text-blue-600 mt-1">Unlock new islands as you progress!</p>
+                  <Target className="w-12 h-12 text-primary-500 mb-2 group-hover:scale-110 transition-transform" />
+                  <p className="font-bold text-primary-900 text-sm">Gamification Map Overview</p>
+                  <p className="text-xs text-primary-600 mt-1">Unlock new islands as you progress!</p>
                 </div>
 
                 <div className="space-y-2">
                   <h4 className="font-bold text-sm text-slate-800 flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center">
+                    <span className="w-6 h-6 rounded-full bg-primary-600 text-white text-xs flex items-center justify-center">
                       1
                     </span>
                     Chặng 1: Foundation

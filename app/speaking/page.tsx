@@ -12,6 +12,7 @@ import { useState, useEffect, useRef } from "react"
 import { ProtectedRoute, PageIcons } from "@/components/auth/protected-route"
 import {
   HubHero,
+  HubTabs,
   TopicGroupsSidebar,
   LevelsSidebar,
   SubcategoryPills,
@@ -339,30 +340,7 @@ export default function SpeakingRoomPage() {
           decorativeWords={["speaking", "fluency", "practice"]}
         />
 
-        <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 border-b border-gray-200 dark:border-gray-700 pb-0">
-          <div className="flex gap-8 overflow-x-auto pb-px">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as TabType)}
-                className={`pb-3 px-2 text-lg font-bold transition-colors border-b-2 whitespace-nowrap cursor-pointer ${
-                  activeTab === tab.id
-                    ? "border-primary text-primary"
-                    : "border-transparent text-muted-foreground hover:text-gray-900 dark:hover:text-gray-100"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-          <div className="flex-1 hidden sm:block" />
-          <Input
-            placeholder="Search"
-            className="max-w-xs mb-4 sm:mb-0"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
+        <HubTabs tabs={tabs} activeTab={activeTab} onTabChange={(tabId) => setActiveTab(tabId as TabType)} />
 
         <div>
           {activeTab === "available" && (
@@ -389,7 +367,7 @@ export default function SpeakingRoomPage() {
                   onSubcategoryChange={setSelectedSubcategory}
                 />
 
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                   {filteredScenarios.map((topic) => (
                     <TopicCard
                       key={topic.id}
@@ -491,9 +469,9 @@ export default function SpeakingRoomPage() {
 
                 <Card className="p-6 rounded-3xl border-2 border-blue-100 dark:border-blue-900/50">
                   <h3 className="text-lg font-bold mb-4">Topic Performance</h3>
-                    <div className="h-64">
-                      <RadarChart data={DEMO_TOPICS.map((t) => ({ label: t.title, value: t.score }))} />
-                    </div>
+                  <div className="h-64">
+                    <RadarChart data={DEMO_TOPICS.map((t) => ({ label: t.title, value: t.score }))} />
+                  </div>
                 </Card>
               </div>
 

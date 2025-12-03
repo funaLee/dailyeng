@@ -379,7 +379,7 @@ const allCourses: Course[] = [
     duration: "12 weeks",
     level: "Intermediate - Advanced",
     category: "Exam Prep",
-    image: "/ielts-exam-preparation-study.jpg",
+    image: "/learning.png",
     skills: ["Speaking", "Listening", "Reading", "Writing"],
     lessons: 50, // Added lessons
     match: 90, // Added match
@@ -391,7 +391,7 @@ const allCourses: Course[] = [
     duration: "8 weeks",
     level: "Intermediate",
     category: "Exam Prep",
-    image: "/toeic-business-english-test.jpg",
+    image: "/learning.png",
     skills: ["Listening", "Reading", "Vocabulary"],
     lessons: 40, // Added lessons
     match: 85, // Added match
@@ -403,7 +403,7 @@ const allCourses: Course[] = [
     duration: "10 weeks",
     level: "Intermediate - Advanced",
     category: "Business",
-    image: "/business-meeting-professional-english.jpg",
+    image: "/learning.png",
     skills: ["Speaking", "Writing", "Vocabulary"],
     lessons: 45, // Added lessons
     match: 80, // Added match
@@ -415,7 +415,7 @@ const allCourses: Course[] = [
     duration: "6 weeks",
     level: "All Levels",
     category: "Speaking",
-    image: "/confident-speaker-presentation.jpg",
+    image: "/learning.png",
     skills: ["Speaking", "Pronunciation", "Fluency"],
     lessons: 30, // Added lessons
     match: 95, // Added match
@@ -427,7 +427,7 @@ const allCourses: Course[] = [
     duration: "8 weeks",
     level: "Intermediate - Advanced",
     category: "Academic",
-    image: "/academic-writing-university-essay.jpg",
+    image: "/learning.png",
     skills: ["Writing", "Grammar", "Vocabulary"],
     lessons: 40, // Added lessons
     match: 75, // Added match
@@ -439,7 +439,7 @@ const allCourses: Course[] = [
     duration: "Ongoing",
     level: "All Levels",
     category: "Vocabulary",
-    image: "/vocabulary-flashcards-learning-words.jpg",
+    image: "/learning.png",
     skills: ["Vocabulary", "Reading"],
     lessons: 60, // Added lessons
     match: 88, // Added match
@@ -451,7 +451,7 @@ const allCourses: Course[] = [
     duration: "10 weeks",
     level: "Beginner - Intermediate",
     category: "Grammar",
-    image: "/english-grammar-book-study.jpg",
+    image: "/learning.png",
     skills: ["Grammar", "Writing"],
     lessons: 50, // Added lessons
     match: 82, // Added match
@@ -463,7 +463,7 @@ const allCourses: Course[] = [
     duration: "8 weeks",
     level: "Intermediate",
     category: "Listening",
-    image: "/listening-english-podcast-headphones.jpg",
+    image: "/learning.png",
     skills: ["Listening", "Vocabulary"],
     lessons: 40, // Added lessons
     match: 78, // Added match
@@ -475,7 +475,7 @@ const allCourses: Course[] = [
     duration: "10 weeks",
     level: "Intermediate - Advanced",
     category: "Exam Prep",
-    image: "/toefl-test-preparation-study.jpg",
+    image: "/learning.png",
     skills: ["Speaking", "Listening", "Reading", "Writing"],
     lessons: 55, // Added lessons
     match: 92, // Added match
@@ -487,7 +487,7 @@ const allCourses: Course[] = [
     duration: "Ongoing",
     level: "All Levels",
     category: "Speaking",
-    image: "/casual-conversation-friends-talking.jpg",
+    image: "/learning.png",
     skills: ["Speaking", "Listening", "Fluency"],
     lessons: 70, // Added lessons
     match: 88, // Added match
@@ -499,7 +499,7 @@ const allCourses: Course[] = [
     duration: "6 weeks",
     level: "Intermediate",
     category: "Reading",
-    image: "/reading-book-comprehension.jpg",
+    image: "/learning.png",
     skills: ["Reading", "Vocabulary"],
     lessons: 35, // Added lessons
     match: 70, // Added match
@@ -511,7 +511,7 @@ const allCourses: Course[] = [
     duration: "6 weeks",
     level: "All Levels",
     category: "Speaking",
-    image: "/pronunciation-speaking-mouth.jpg",
+    image: "/learning.png",
     skills: ["Pronunciation", "Speaking"],
     lessons: 30, // Added lessons
     match: 85, // Added match
@@ -528,14 +528,14 @@ export default function BuildPlanPage() {
   // Intro Screen
   if (stage === "intro") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100">
         {/* Close button */}
         <div className="absolute top-6 right-6">
           <Link href="/">
             <Button
               variant="ghost"
               size="icon"
-              className="rounded-full hover:bg-primary-100 dark:hover:bg-slate-700 cursor-pointer"
+              className="rounded-full hover:bg-primary-100 cursor-pointer"
             >
               <X className="w-5 h-5" />
             </Button>
@@ -544,19 +544,19 @@ export default function BuildPlanPage() {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 flex flex-col items-center justify-center min-h-screen">
           <div className="text-center max-w-2xl mx-auto">
-            <div className="inline-flex items-center gap-2 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 px-4 py-2 rounded-full text-sm font-medium mb-8 cursor-pointer">
+            <div className="inline-flex items-center gap-2 bg-primary-100 text-primary-700 px-4 py-2 rounded-full text-sm font-medium mb-8 cursor-pointer">
               <Sparkles className="w-4 h-4" />
               Personalized Learning Path
             </div>
 
-            <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-6">
+            <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6">
               Let's Build Your
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-primary-400">
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-primary-400 pt-2.5">
                 Perfect Study Plan
               </span>
             </h1>
 
-            <p className="text-lg text-slate-600 dark:text-slate-300 mb-12">
+            <p className="text-lg text-slate-600 mb-12">
               Answer 10 quick questions about your goals, schedule, and preferences. We'll create a customized learning
               roadmap just for you.
             </p>
@@ -570,13 +570,13 @@ export default function BuildPlanPage() {
               ].map((feature, idx) => (
                 <Card
                   key={idx}
-                  className="p-6 border border-primary-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm cursor-pointer hover:border-primary-300 dark:hover:border-primary-700 transition-colors"
+                  className="p-6 border border-primary-200 bg-white/80 backdrop-blur-sm cursor-pointer hover:border-primary-300 transition-colors"
                 >
-                  <div className="w-12 h-12 bg-primary-100 dark:bg-primary-900/30 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <feature.icon className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+                  <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <feature.icon className="w-6 h-6 text-primary-600" />
                   </div>
-                  <h3 className="font-semibold text-slate-900 dark:text-white">{feature.title}</h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">{feature.desc}</p>
+                  <h3 className="font-semibold text-slate-900">{feature.title}</h3>
+                  <p className="text-sm text-slate-500">{feature.desc}</p>
                 </Card>
               ))}
             </div>
@@ -694,24 +694,24 @@ export default function BuildPlanPage() {
     }
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100">
         {/* Header */}
-        <div className="border-b border-primary-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm sticky top-0 z-10">
+        <div className="border-b border-primary-200 bg-white/80 backdrop-blur-sm sticky top-0 z-10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <Link href="/">
-                <Button variant="ghost" className="gap-2 cursor-pointer hover:bg-blue-50 dark:hover:bg-slate-700">
+                <Button variant="ghost" className="gap-2 cursor-pointer hover:bg-primary_50">
                   <ArrowLeft className="w-4 h-4" />
                   Exit
                 </Button>
               </Link>
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                  <Target className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                <div className="w-8 h-8 bg-bprimary-100 rounded-lg flex items-center justify-center">
+                  <Target className="w-4 h-4 text-primary-500" />
                 </div>
-                <span className="font-semibold text-slate-900 dark:text-white">Study Plan Builder</span>
+                <span className="font-semibold text-slate-900">Study Plan Builder</span>
               </div>
-              <div className="text-sm text-slate-500 dark:text-slate-400">
+              <div className="text-sm text-slate-500">
                 {currentQuestion + 1} of {questions.length}
               </div>
             </div>
@@ -720,25 +720,25 @@ export default function BuildPlanPage() {
 
         {/* Progress */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <Progress value={progress} className="h-2 [&>div]:bg-blue-500" />
+          <Progress value={progress} className="h-2 [&>div]:bg-primary-400" />
         </div>
 
         {/* Question Content */}
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            {/* <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
               {React.isValidElement(currentQ.icon)
                 ? currentQ.icon
                 : currentQ.icon
                   ? // Render component-type icons (e.g. Lucide components) and pass default styling
                     (() => {
                       const Icon = currentQ.icon as React.ElementType
-                      return <Icon className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                      return <Icon className="w-8 h-8 text-primary-500" />
                     })()
                   : null}
-            </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-4">{currentQ.question}</h2>
-            {currentQ.subtitle && <p className="text-slate-500 dark:text-slate-400">{currentQ.subtitle}</p>}
+            </div> */}
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 pb-3">{currentQ.question}</h2>
+            {currentQ.subtitle && <p className="text-slate-500">{currentQ.subtitle}</p>}
           </div>
 
           {/* Options */}
@@ -751,14 +751,14 @@ export default function BuildPlanPage() {
                   onClick={() => handleSelectOption(currentQ.id, option.value, currentQ.multiSelect)} // Changed handler
                   className={`w-full p-5 rounded-2xl border-2 text-left transition-all cursor-pointer ${
                     isSelected
-                      ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-md"
-                      : "border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-700 bg-white dark:bg-slate-800"
+                      ? "border-primary-500 bg-primary-50 shadow-md"
+                      : "border-slate-200 hover:border-primary-300 bg-white"
                   }`}
                 >
                   <div className="flex items-center gap-4">
                     <div
                       className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                        isSelected ? "border-blue-500 bg-blue-500" : "border-slate-300 dark:border-slate-500"
+                        isSelected ? "border-primary-700 bg-primary-700" : "border-slate-300"
                       }`}
                     >
                       {isSelected && <Check className="w-4 h-4 text-white" />}
@@ -766,13 +766,13 @@ export default function BuildPlanPage() {
                     <div>
                       <div
                         className={`font-medium ${
-                          isSelected ? "text-blue-700 dark:text-blue-300" : "text-slate-900 dark:text-white"
+                          isSelected ? "text-primary-700" : "text-slate-900"
                         }`}
                       >
                         {option.label}
                       </div>
                       {option.description && ( // Changed from option.desc
-                        <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">{option.description}</div>
+                        <div className="text-sm text-slate-500 mt-1">{option.description}</div>
                       )}
                     </div>
                   </div>
@@ -787,7 +787,7 @@ export default function BuildPlanPage() {
               variant="outline"
               onClick={handlePrevious}
               disabled={currentQuestion === 0}
-              className="gap-2 cursor-pointer bg-transparent hover:bg-blue-50 dark:hover:bg-slate-700"
+              className="gap-2 cursor-pointer bg-transparent hover:bg-primary-50"
             >
               <ArrowLeft className="w-4 h-4" />
               Previous
@@ -795,7 +795,7 @@ export default function BuildPlanPage() {
             <Button
               onClick={handleNext}
               disabled={currentAnswers.length === 0} // Changed from !answers[currentQ.id]
-              className="gap-2 cursor-pointer bg-gradient-to-r from-blue-500 to-sky-500 hover:from-blue-600 hover:to-sky-600"
+              className="gap-2 cursor-pointer bg-gradient-to-r from-primary-400 to-primary-500 hover:from-primary-500 hover:to-primary-600"
             >
               {currentQuestion === questions.length - 1 ? "See My Courses" : "Next"}
               <ArrowRight className="w-4 h-4" />
@@ -808,33 +808,33 @@ export default function BuildPlanPage() {
 
   // Results Stage
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 px-4 py-2 rounded-full text-sm font-medium mb-6">
+          <div className="inline-flex items-center gap-2 bg-primary-100 text-primary-700 px-4 py-2 rounded-full text-sm font-medium mb-6">
             <Sparkles className="w-4 h-4" />
             Plan Generated Successfully
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
+          <h1 className="text-3xl md:text-4xl font-bold text-slate-900">
             Your Personalized Study Plan is Ready!
           </h1>
-          <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+          <p className="text-lg text-slate-600 max-w-2xl mx-auto">
             Based on your answers, we've selected the best courses to help you achieve your goals.
           </p>
         </div>
 
         {/* Recommended Courses */}
         <div className="mb-12">
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-            <Star className="w-5 h-5 text-yellow-500" />
+          <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+            <Star className="w-5 h-5 text-primary-500" />
             Recommended for You
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {recommendedCourses.map((course) => (
               <Card
                 key={course.id}
-                className="overflow-hidden border-2 border-primary-200 dark:border-primary-800 hover:border-primary-300 dark:hover:border-primary-700 transition-all hover:shadow-lg"
+                className="overflow-hidden border-2 border-primary-200 hover:border-primary-300 transition-all hover:shadow-lg"
               >
                 <div className="relative h-40">
                   <Image src={course.image || "/placeholder.svg"} alt={course.title} fill className="object-cover" />
@@ -843,9 +843,9 @@ export default function BuildPlanPage() {
                   </div>
                 </div>
                 <div className="p-4">
-                  <h3 className="font-bold text-slate-900 dark:text-white mb-2">{course.title}</h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-3 line-clamp-2">{course.description}</p>
-                  <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-4">
+                  <h3 className="font-bold text-slate-900 mb-2">{course.title}</h3>
+                  <p className="text-sm text-slate-500 mb-3 line-clamp-2">{course.description}</p>
+                  <div className="flex items-center gap-2 text-xs text-slate-500 mb-4">
                     <Clock className="w-3 h-3" />
                     {course.duration}
                     <span className="mx-1">•</span>
@@ -867,24 +867,24 @@ export default function BuildPlanPage() {
 
         {/* Other Courses */}
         <div className="mb-12">
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-6">Other Courses You Might Like</h2>
+          <h2 className="text-xl font-bold text-slate-900 mb-6">Other Courses You Might Like</h2>
           <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
             {otherCourses.map((course) => (
               <Card
                 key={course.id}
-                className="p-4 hover:shadow-md transition-all border border-slate-200 dark:border-slate-700"
+                className="p-4 hover:shadow-md transition-all border border-slate-200"
               >
                 <div className="flex gap-3">
                   <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
                     <Image src={course.image || "/placeholder.svg"} alt={course.title} fill className="object-cover" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm text-slate-900 dark:text-white mb-1 truncate">
+                    <h3 className="font-semibold text-sm text-slate-900 mb-1 truncate">
                       {course.title}
                     </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">{course.duration}</p>
+                    <p className="text-xs text-slate-500 mb-2">{course.duration}</p>
                     <div className="flex gap-1">
-                      <Button variant="ghost" size="sm" className="h-6 text-xs px-2 text-primary-600">
+                      <Button variant="ghost" size="sm" className="h-6 text-xs px-2 text-primary-600 bg-primary-100">
                         View
                       </Button>
                       <Button variant="ghost" size="sm" className="h-6 text-xs px-2 text-primary-600">

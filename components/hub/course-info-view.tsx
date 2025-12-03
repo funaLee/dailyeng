@@ -51,7 +51,7 @@ export function CourseInfoView({
   topics,
 }: CourseInfoViewProps) {
   return (
-    <Card className="rounded-3xl border-2 border-accent-200 bg-card overflow-hidden">
+    <Card className="rounded-3xl border-[1.4px] border-accent-200 bg-card overflow-hidden">
       <div className="p-6 bg-gradient-to-r from-accent-500 to-accent-600">
         <div className="flex items-center gap-3 text-white">
           <Info className="h-6 w-6" />
@@ -71,34 +71,34 @@ export function CourseInfoView({
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-accent-50 to-accent-100 dark:from-accent-900/30 dark:to-accent-900/20 border border-accent-200 dark:border-accent-800">
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-accent-50 to-accent-100 border-[1.4px] border-accent-200">
             <Clock className="h-5 w-5 text-accent-500 mb-2" />
-            <p className="text-2xl font-bold text-accent-700 dark:text-accent-300">{totalHours}</p>
+            <p className="text-2xl font-bold text-accent-700">{totalHours}</p>
             <p className="text-xs text-muted-foreground">Total Hours</p>
           </div>
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-accent-50 to-accent-100 dark:from-accent-900/30 dark:to-accent-900/20 border border-accent-200 dark:border-accent-800">
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-accent-50 to-accent-100 border-[1.4px] border-accent-200">
             <FolderOpen className="h-5 w-5 text-accent-500 mb-2" />
-            <p className="text-2xl font-bold text-accent-700 dark:text-accent-300">{totalTopics}</p>
+            <p className="text-2xl font-bold text-accent-700">{totalTopics}</p>
             <p className="text-xs text-muted-foreground">Topics</p>
           </div>
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-accent-50 to-accent-100 dark:from-accent-900/30 dark:to-accent-900/20 border border-accent-200 dark:border-accent-800">
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-accent-50 to-accent-100 border-[1.4px] border-accent-200">
             <BookOpen className="h-5 w-5 text-accent-500 mb-2" />
-            <p className="text-2xl font-bold text-accent-700 dark:text-accent-300">{totalSubTopics}</p>
+            <p className="text-2xl font-bold text-accent-700">{totalSubTopics}</p>
             <p className="text-xs text-muted-foreground">Sub-topics</p>
           </div>
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-accent-50 to-accent-100 dark:from-accent-900/30 dark:to-accent-900/20 border border-accent-200 dark:border-accent-800">
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-accent-50 to-accent-100 border-[1.4px] border-accent-200">
             <Calendar className="h-5 w-5 text-accent-500 mb-2" />
-            <p className="text-2xl font-bold text-accent-700 dark:text-accent-300">{totalLessons}</p>
+            <p className="text-2xl font-bold text-accent-700">{totalLessons}</p>
             <p className="text-xs text-muted-foreground">Lessons</p>
           </div>
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-accent-50 to-accent-100 dark:from-accent-900/30 dark:to-accent-900/20 border border-accent-200 dark:border-accent-800">
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-accent-50 to-accent-100 border-[1.4px] border-accent-200">
             <Award className="h-5 w-5 text-accent-500 mb-2" />
-            <p className="text-2xl font-bold text-accent-700 dark:text-accent-300">{level}</p>
+            <p className="text-2xl font-bold text-accent-700">{level}</p>
             <p className="text-xs text-muted-foreground">Level</p>
           </div>
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-accent-50 to-accent-100 dark:from-accent-900/30 dark:to-accent-900/20 border border-accent-200 dark:border-accent-800">
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-accent-50 to-accent-100 border-[1.4px] border-accent-200">
             <Users className="h-5 w-5 text-accent-500 mb-2" />
-            <p className="text-sm font-bold text-accent-700 dark:text-accent-300 line-clamp-1">{targetAudience}</p>
+            <p className="text-sm font-bold text-accent-700 line-clamp-1">{targetAudience}</p>
             <p className="text-xs text-muted-foreground">Target</p>
           </div>
         </div>
@@ -110,7 +110,7 @@ export function CourseInfoView({
           </h4>
           <div className="space-y-2">
             {objectives.map((objective, index) => (
-              <div key={index} className="flex items-start gap-3 p-3 rounded-xl bg-accent-50 dark:bg-accent-900/20">
+              <div key={index} className="flex items-start gap-3 p-3 rounded-xl bg-accent-50">
                 <CheckCircle2 className="h-5 w-5 text-accent-500 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-foreground">{objective}</p>
               </div>
@@ -125,12 +125,9 @@ export function CourseInfoView({
           </h4>
           <div className="space-y-6">
             {topics.map((topic, topicIndex) => (
-              <div
-                key={topic.id}
-                className="rounded-2xl border-2 border-accent-200 dark:border-accent-800 overflow-hidden"
-              >
+              <div key={topic.id} className="rounded-2xl border-[1.4px] border-accent-200 overflow-hidden">
                 {/* Topic Header - accent color */}
-                <div className="p-4 bg-gradient-to-r from-accent-100 to-accent-50 dark:from-accent-900/40 dark:to-accent-900/20">
+                <div className="p-4 bg-gradient-to-r from-accent-100 to-accent-50">
                   <h5 className="font-bold text-foreground flex items-center gap-2">
                     <span className="w-7 h-7 rounded-full bg-accent-500 text-white text-sm flex items-center justify-center">
                       {topicIndex + 1}
@@ -162,17 +159,14 @@ export function CourseInfoView({
                       {/* Lessons in Sub-topic */}
                       <div className="ml-9 space-y-2">
                         {subTopic.lessons.map((lesson) => (
-                          <div
-                            key={lesson.id}
-                            className="p-3 rounded-xl bg-accent-50 dark:bg-accent-900/20 hover:bg-accent-100 dark:hover:bg-accent-900/30 transition-colors"
-                          >
+                          <div key={lesson.id} className="p-3 rounded-xl bg-accent-50">
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
                                 <p className="font-medium text-foreground text-sm">{lesson.title}</p>
                                 <p className="text-xs text-muted-foreground mt-1">{lesson.description}</p>
                               </div>
                               <div className="flex items-center gap-2 text-muted-foreground text-xs ml-4">
-                                <span className="px-2 py-0.5 rounded-full bg-accent-200 dark:bg-accent-800 text-accent-700 dark:text-accent-300 text-xs capitalize">
+                                <span className="px-2 py-0.5 rounded-full bg-accent-200 text-accent-700 text-xs capitalize">
                                   {lesson.type}
                                 </span>
                                 <Clock className="h-3 w-3" />

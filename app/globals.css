@@ -1,13 +1,13 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+/* Removed dark mode variant and .dark class completely */
 
 /* New color palette based on user's design system */
 :root {
   /* Base background + text */
   --background: #ffffff;
-  --foreground: #18181b;
+  --foreground: #1e1e3a;
 
   /* Primary scale (blue-violet) */
   --primary-50: #f4f6ff;
@@ -20,7 +20,6 @@
   --primary-700: #5a70e6;
   --primary-800: #4658b8;
   --primary-900: #3d4a91;
-
 
   /* Secondary scale (pink) */
   --secondary-50: #fff0f5;
@@ -76,7 +75,7 @@
   --info-300: #154aa0;
 
   /* Alias for compatibility */
-  --primary: var(--primary-700);
+  --primary: var(--primary-500);
   --primary-foreground: #ffffff;
   --secondary: var(--secondary-500);
   --secondary-foreground: #ffffff;
@@ -113,40 +112,6 @@
   --sidebar-accent-foreground: var(--gray-800);
   --sidebar-border: var(--gray-200);
   --sidebar-ring: var(--primary-200);
-}
-
-.dark {
-  --background: #18181b;
-  --foreground: #fafafa;
-
-  --primary: var(--primary-400);
-  --primary-foreground: var(--gray-900);
-  --secondary: var(--secondary-400);
-  --secondary-foreground: var(--gray-900);
-  --accent: var(--accent-500);
-  --accent-foreground: var(--gray-900);
-  --muted: var(--gray-800);
-  --muted-foreground: var(--gray-400);
-  --destructive: var(--error-200);
-  --destructive-foreground: #ffffff;
-
-  --card: var(--gray-800);
-  --card-foreground: var(--foreground);
-  --popover: var(--gray-800);
-  --popover-foreground: var(--foreground);
-
-  --border: var(--gray-700);
-  --input: var(--gray-700);
-  --ring: var(--primary-400);
-
-  --sidebar: var(--gray-900);
-  --sidebar-foreground: var(--foreground);
-  --sidebar-primary: var(--primary-400);
-  --sidebar-primary-foreground: var(--gray-900);
-  --sidebar-accent: var(--gray-800);
-  --sidebar-accent-foreground: var(--foreground);
-  --sidebar-border: var(--gray-700);
-  --sidebar-ring: var(--primary-500);
 }
 
 @theme inline {
