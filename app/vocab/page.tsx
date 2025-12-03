@@ -4,13 +4,14 @@ import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { mockTopics } from "@/lib/mock-data"
+import { mockTopics, mockVocab } from "@/lib/mock-data"
 import type { Topic } from "@/types"
-import { Plus, Edit } from "lucide-react"
+import { Plus, Edit, Bookmark, Network } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { ProtectedRoute, PageIcons } from "@/components/auth/protected-route"
 import { HubHero, HubTabs, CoursesSidebar, LevelsSidebar, CourseDetail, TopicCard, type Course } from "@/components/hub"
+import { VocabMindmap } from "@/components/hub/vocab-mindmap"
 
 const COURSES: Course[] = [
   {
@@ -45,7 +46,7 @@ const CURRENT_TOPIC = {
   progress: 40,
 }
 
-type TabType = "courses" | "statistic"
+type TabType = "courses" | "bookmarks" | "statistic" | "mindmap"
 
 export default function VocabPage() {
   const [topics, setTopics] = useState<Topic[]>([])
@@ -54,6 +55,7 @@ export default function VocabPage() {
   const [selectedLevels, setSelectedLevels] = useState<string[]>(["A1", "A2"])
   const [activeTab, setActiveTab] = useState<TabType>("courses")
   const [selectedCourse, setSelectedCourse] = useState<string>("ielts-7")
+  const [bookmarkedTopics, setBookmarkedTopics] = useState<string[]>([])
 
   const [dictionaryWords] = useState([
     {
@@ -91,7 +93,19 @@ export default function VocabPage() {
   useEffect(() => {
     setTopics(mockTopics)
     setLoading(false)
+    const saved = localStorage.getItem("vocab-bookmarks")
+    if (saved) {
+      setBookmarkedTopics(JSON.parse(saved))
+    }
   }, [])
+
+  const handleBookmarkToggle = (topicId: string) => {
+    setBookmarkedTopics((prev) => {
+      const newBookmarks = prev.includes(topicId) ? prev.filter((id) => id !== topicId) : [...prev, topicId]
+      localStorage.setItem("vocab-bookmarks", JSON.stringify(newBookmarks))
+      return newBookmarks
+    })
+  }
 
   const filteredTopics = topics.filter((topic) => {
     const matchesSearch =
@@ -101,6 +115,8 @@ export default function VocabPage() {
     return matchesSearch && matchesLevel
   })
 
+  const bookmarkedTopicsList = topics.filter((topic) => bookmarkedTopics.includes(topic.id))
+
   const toggleLevel = (level: string) => {
     setSelectedLevels((prev) => (prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level]))
   }
@@ -109,7 +125,53 @@ export default function VocabPage() {
 
   const tabs = [
     { id: "courses", label: "Courses" },
-    { id: "statistic", label: "Statistic" },
+    { id: "bookmarks", label: "Bookmarks" },
+    { id: "mindmap", label: "Mindmap" },
+    { id: "statistic", label: "Dictionary" },
+  ]
+
+  const mindmapData = [
+    {
+      id: "daily-life",
+      name: "Daily Life",
+      color: "primary" as const,
+      topics: [
+        {
+          id: "1",
+          title: "Travel",
+          words: mockVocab["1"] || [],
+        },
+        {
+          id: "2",
+          title: "Food & Dining",
+          words: mockVocab["2"] || [],
+        },
+      ],
+    },
+    {
+      id: "professional",
+      name: "Professional",
+      color: "secondary" as const,
+      topics: [
+        {
+          id: "3",
+          title: "Job Interview",
+          words: mockVocab["3"] || [],
+        },
+      ],
+    },
+    {
+      id: "academic",
+      name: "Academic",
+      color: "accent" as const,
+      topics: [
+        {
+          id: "academic-1",
+          title: "Science",
+          words: mockVocab["1"]?.slice(0, 3) || [],
+        },
+      ],
+    },
   ]
 
   return (
@@ -189,6 +251,8 @@ export default function VocabPage() {
                       href={`/vocab/${topic.id}`}
                       onNotYet={() => {}}
                       type="vocabulary"
+                      isBookmarked={bookmarkedTopics.includes(topic.id)}
+                      onBookmarkToggle={handleBookmarkToggle}
                     />
                   ))}
                 </div>
@@ -196,8 +260,64 @@ export default function VocabPage() {
             </div>
           )}
 
+          {activeTab === "bookmarks" && (
+            <div className="space-y-6">
+              {bookmarkedTopicsList.length > 0 ? (
+                <>
+                  <div className="flex items-center gap-3 mb-6">
+                    <Bookmark className="h-6 w-6 text-primary-500 fill-primary-500" />
+                    <h2 className="text-xl font-bold text-foreground">
+                      Your Bookmarked Topics ({bookmarkedTopicsList.length})
+                    </h2>
+                  </div>
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    {bookmarkedTopicsList.map((topic) => (
+                      <TopicCard
+                        key={topic.id}
+                        id={topic.id}
+                        title={topic.title}
+                        description={topic.description}
+                        level={topic.level}
+                        wordCount={topic.wordCount || 25}
+                        thumbnail={topic.thumbnail}
+                        progress={topic.progress}
+                        href={`/vocab/${topic.id}`}
+                        onNotYet={() => {}}
+                        type="vocabulary"
+                        isBookmarked={true}
+                        onBookmarkToggle={handleBookmarkToggle}
+                      />
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <Card className="p-12 rounded-3xl border-[1.4px] border-primary-200 text-center">
+                  <Bookmark className="h-16 w-16 text-primary-200 mx-auto mb-4" />
+                  <h3 className="text-xl font-bold text-foreground mb-2">No Bookmarks Yet</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Click the bookmark icon on any topic card to save it here for quick access.
+                  </p>
+                  <Button variant="default" onClick={() => setActiveTab("courses")} className="cursor-pointer">
+                    Browse Topics
+                  </Button>
+                </Card>
+              )}
+            </div>
+          )}
+
+          {activeTab === "mindmap" && (
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 mb-6">
+                <Network className="h-6 w-6 text-primary-500" />
+                <h2 className="text-xl font-bold text-foreground">Vocabulary Mindmap</h2>
+                <span className="text-sm text-muted-foreground">Explore words organized by topic groups</span>
+              </div>
+              <VocabMindmap topicGroups={mindmapData} />
+            </div>
+          )}
+
           {activeTab === "statistic" && (
-            <Card className="p-6 rounded-3xl border-2 border-blue-100 dark:border-blue-900/50">
+            <Card className="p-6 rounded-3xl border-2 border-primary-100">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold">My Dictionary</h3>
                 <div className="flex items-center gap-3">
@@ -212,7 +332,7 @@ export default function VocabPage() {
               <div className="rounded-xl border overflow-hidden">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-slate-50 dark:bg-slate-800/50">
+                    <TableRow className="bg-slate-50">
                       <TableHead className="font-bold">Word</TableHead>
                       <TableHead className="font-bold">Pronunciation</TableHead>
                       <TableHead className="font-bold">Meaning</TableHead>
@@ -224,11 +344,8 @@ export default function VocabPage() {
                   </TableHeader>
                   <TableBody>
                     {dictionaryWords.map((word) => (
-                      <TableRow
-                        key={word.id}
-                        className="hover:bg-blue-50/50 dark:hover:bg-blue-900/20 transition-colors"
-                      >
-                        <TableCell className="font-semibold text-blue-600 dark:text-blue-400">{word.word}</TableCell>
+                      <TableRow key={word.id} className="hover:bg-primary-50/50 transition-colors">
+                        <TableCell className="font-semibold text-primary-600">{word.word}</TableCell>
                         <TableCell className="text-slate-500 font-mono text-sm">{word.pronunciation}</TableCell>
                         <TableCell className="max-w-xs truncate">{word.meaning}</TableCell>
                         <TableCell>
@@ -237,15 +354,13 @@ export default function VocabPage() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 text-xs">
-                            {word.level}
-                          </Badge>
+                          <Badge className="bg-primary-100 text-primary-700 text-xs">{word.level}</Badge>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <div className="w-16 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                            <div className="w-16 h-2 bg-slate-200 rounded-full overflow-hidden">
                               <div
-                                className="h-full bg-blue-500 rounded-full"
+                                className="h-full bg-primary-500 rounded-full"
                                 style={{ width: `${word.masteryLevel}%` }}
                               />
                             </div>
