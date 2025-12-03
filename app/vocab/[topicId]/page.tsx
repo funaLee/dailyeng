@@ -18,6 +18,12 @@ const mockCourseData = {
         { id: "dogs", title: "Dogs" },
         { id: "cats", title: "Cats" },
         { id: "birds", title: "Birds" },
+        { id: "dogs2", title: "Dogs" },
+        { id: "cats2", title: "Cats" },
+        { id: "birds2", title: "Birds" },
+        { id: "dogs3", title: "Dogs" },
+        { id: "cats3", title: "Cats" },
+        { id: "birds3", title: "Birds" },
       ],
     },
     {
