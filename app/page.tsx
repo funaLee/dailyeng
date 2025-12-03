@@ -124,7 +124,7 @@ export default function HomePage() {
       courses: ["IELTS Speaking Mastery", "Academic Writing", "Pronunciation Pro"],
       result: { type: "IELTS", score: "7.5", previousScore: "5.5" },
       duration: "6 months",
-      photo: "/student-studying-with-laptop-celebrating.jpg",
+      photo: "/learning.png",
     },
     {
       name: "Tran Thi B",
@@ -137,7 +137,7 @@ export default function HomePage() {
       courses: ["Vocabulary Builder", "IELTS Complete Preparation", "Grammar Fundamentals"],
       result: { type: "IELTS", score: "8.0", previousScore: "6.0" },
       duration: "4 months",
-      photo: "/happy-student-with-certificate.jpg",
+      photo: "/learning.png",
     },
     {
       name: "Le Van C",
@@ -150,7 +150,7 @@ export default function HomePage() {
       courses: ["Business English", "Daily Conversation", "Listening Skills"],
       result: { type: "IELTS", score: "7.0", previousScore: "5.0" },
       duration: "8 months",
-      photo: "/professional-working-on-laptop-in-office.jpg",
+      photo: "/learning.png",
     },
     {
       name: "Pham Thi D",
@@ -163,7 +163,7 @@ export default function HomePage() {
       courses: ["IELTS Writing Excellence", "Speaking Room Premium", "Reading Strategies"],
       result: { type: "IELTS", score: "8.5", previousScore: "6.5" },
       duration: "5 months",
-      photo: "/female-student-graduation-celebration.jpg",
+      photo: "/learning.png",
     },
     {
       name: "Hoang Van E",
@@ -176,7 +176,7 @@ export default function HomePage() {
       courses: ["IELTS Full Preparation", "Test Strategies", "Time Management Skills"],
       result: { type: "IELTS", score: "7.5", previousScore: "6.0" },
       duration: "3 months",
-      photo: "/student-taking-exam-confidently.jpg",
+      photo: "/learning.png",
     },
     {
       name: "Nguyen Thi F",
@@ -189,7 +189,7 @@ export default function HomePage() {
       courses: ["TOEIC Complete", "Business Communication", "Email Writing"],
       result: { type: "TOEIC", score: "890", previousScore: "650" },
       duration: "2 months",
-      photo: "/businesswoman-presenting-in-meeting-room.jpg",
+      photo: "/learning.png",
     },
   ]
 
@@ -254,7 +254,8 @@ export default function HomePage() {
                 <Link href="/auth/signup" className="pointer-events-auto w-full sm:w-auto cursor-pointer">
                   <Button
                     size="lg"
-                    className="w-full sm:w-auto bg-primary-500 hover:bg-primary-600 text-white px-8 py-6 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-lg font-semibold cursor-pointer"
+                    variant="default"
+                    className="w-full sm:w-auto bg-primary-400 hover:bg-primary-500 text-white px-8 py-6 rounded-full text-lg font-bold border-2 border-primary-700 cursor-pointer"
                   >
                     Start Learning Free
                   </Button>
@@ -263,7 +264,7 @@ export default function HomePage() {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="w-full sm:w-auto border-2 border-gray-200 text-gray-700 hover:border-primary-300 hover:bg-primary-50 px-8 py-6 rounded-full text-lg bg-transparent cursor-pointer"
+                    className="w-full sm:w-auto border-2 border-primary-200 text-primary-700 hover:border-primary-300 hover:bg-primary-50 px-8 py-6 rounded-full text-lg bg-transparent cursor-pointer"
                   >
                     How it works
                   </Button>
@@ -287,7 +288,7 @@ export default function HomePage() {
               className="relative w-full pointer-events-auto lg:pl-10 animate-fade-in-up"
               style={{ animationDelay: "600ms" }}
             >
-              <div className="absolute -inset-4 bg-gradient-to-r from-primary-100 to-secondary-100 rounded-full opacity-30 blur-3xl -z-10" />
+              <div className="absolute -inset-4 bg-linear-to-r from-primary-100 to-secondary-100 rounded-full opacity-30 blur-3xl z-0" />
               <StackedCardBackground
                 images={[
                   "/learning.png",
@@ -371,7 +372,7 @@ export default function HomePage() {
                     incredibly realistic."
                   </p>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md">
+                    <div className="w-10 h-10 bg-linear-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md">
                       TT
                     </div>
                     <div>
@@ -387,10 +388,10 @@ export default function HomePage() {
       </section>
 
       {/* Features Section - Bento Grid */}
-      <section className="py-24 bg-gray-50">
+      <section className="py-20 bg-linear-to-br from-primary-200 via-primary-50 to-secondary-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <RevealOnScroll className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-6">Why Learners Choose DailyEng</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-primary-800 mb-6">Why Learners Choose DailyEng</h2>
             <p className="text-xl text-gray-600">
               We combine advanced AI with proven learning methods to help you achieve fluency faster.
             </p>
@@ -487,7 +488,7 @@ export default function HomePage() {
                   </Button>
                 </div>
                 <div className="flex-1 relative h-64 w-full md:h-full rounded-2xl overflow-hidden bg-secondary-50/50">
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/40 to-transparent z-10" />
+                  <div className="absolute inset-0 bg-linear-to-r from-white/40 to-transparent z-10" />
                   <Image
                     src="/abstract-job-concept.png"
                     alt="AI Companion"
@@ -546,27 +547,27 @@ export default function HomePage() {
 
             {/* Tab Content Display */}
             <div className="lg:w-2/3">
-              <div className="relative h-[500px] w-full bg-gray-50 rounded-[2.5rem] border border-gray-100 p-2 overflow-hidden shadow-lg">
+              <div className="relative h-[500px] w-full bg-primary-100 rounded-[2.5rem] border border-primary-100 p-2 overflow-hidden shadow-lg">
                 {featureTabs.map((tab) => (
                   <div
                     key={tab.id}
-                    className={`absolute inset-2 bg-white rounded-[2rem] flex flex-col transition-all duration-500 ease-in-out ${
+                    className={`absolute inset-2 bg-white rounded-4xl flex flex-col transition-all duration-500 ease-in-out ${
                       activeTab === tab.id
                         ? "opacity-100 translate-y-0 z-10"
                         : "opacity-0 translate-y-8 z-0 pointer-events-none"
                     }`}
                   >
-                    <div className="relative h-64 w-full overflow-hidden rounded-t-[2rem]">
-                      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 z-10" />
+                    <div className="relative h-64 w-full overflow-hidden rounded-t-4xl">
+                      <div className="absolute inset-0 bg-linear-to-b from-transparent to-black/60 z-10" />
                       <Image src={tab.image || "/placeholder.svg"} alt={tab.title} fill className="object-cover" />
                       <div className="absolute bottom-6 left-8 z-20">
-                        <div className="inline-block bg-primary-500 text-white text-xs font-bold px-3 py-1 rounded-full mb-2">
+                        <div className="inline-block bg-secondary-400 text-white text-xs font-bold px-3 py-1 rounded-full mb-2">
                           FEATURE
                         </div>
                         <h3 className="text-3xl font-bold text-white">{tab.title}</h3>
                       </div>
                     </div>
-                    <div className="p-8 flex flex-col justify-between flex-1 bg-white rounded-b-[2rem]">
+                    <div className="p-8 flex flex-col justify-between flex-1 bg-white rounded-b-4xl">
                       <p className="text-lg text-gray-600 leading-relaxed">{tab.description}</p>
                       <div className="flex gap-4 mt-6">
                         <Button
@@ -586,22 +587,22 @@ export default function HomePage() {
       </section>
 
       {/* Reviews Marquee Section */}
-      <section className="py-24 bg-gray-50 overflow-hidden">
+      <section className="py-24 bg-primary-50 overflow-hidden">
         <RevealOnScroll className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12 flex items-end justify-between">
           <div>
-            <h2 className="text-4xl font-bold text-gray-900 mb-2">Learner Stories</h2>
+            <h2 className="text-4xl font-bold text-primary-900 mb-2">Learner Stories</h2>
             <div className="flex items-center gap-2">
               <div className="flex text-yellow-400">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-5 h-5 fill-current" />
                 ))}
               </div>
-              <span className="font-medium text-gray-600">4.8/5 average rating</span>
+              <span className="font-medium text-primary-600">4.8/5 average rating</span>
             </div>
           </div>
           <Button
             variant="outline"
-            className="hidden sm:flex bg-transparent cursor-pointer"
+            className="hidden sm:flex bg-white hover:bg-white cursor-pointer"
             onClick={() => setShowReviewsDialog(true)}
           >
             View all reviews
@@ -610,15 +611,15 @@ export default function HomePage() {
 
         <div className="relative w-full">
           {/* Fade masks for smooth scrolling edges */}
-          <div className="absolute top-0 left-0 right-0 h-12 bg-gradient-to-b from-gray-50 to-transparent z-10 pointer-events-none" />
-          <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-gray-50 to-transparent z-10 pointer-events-none" />
+          <div className="absolute top-0 left-0 right-0 h-12 bg-linear-to-b from-primary-50 to-transparent z-10 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 right-0 h-12 bg-linear-to-t from-primary-50 to-transparent z-10 pointer-events-none" />
 
           <div
             className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-6 h-[500px] overflow-hidden"
             style={{ maskImage: "linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)" }}
           >
             {/* Column 1 - Scroll Up */}
-            <div className="space-y-6 animate-scroll-up hover:[animation-play-state:paused]">
+            <div className="space-y-6 animate-scroll-up hover:paused">
               {[...reviews, ...reviews].map((review, idx) => (
                 <Card
                   key={`col1-${idx}`}
@@ -627,7 +628,7 @@ export default function HomePage() {
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden relative">
                       <Image
-                        src={review.avatar || "/placeholder.svg"}
+                        src={review.avatar || "/learning.png"}
                         alt={review.name}
                         fill
                         className="object-cover"
@@ -644,7 +645,7 @@ export default function HomePage() {
             </div>
 
             {/* Column 2 - Scroll Down */}
-            <div className="space-y-6 animate-scroll-down hover:[animation-play-state:paused] hidden md:block">
+            <div className="space-y-6 animate-scroll-down hover:paused hidden md:block">
               {[...reviews.reverse(), ...reviews].map((review, idx) => (
                 <Card
                   key={`col2-${idx}`}
@@ -666,7 +667,7 @@ export default function HomePage() {
               ))}
             </div>
             {/* Column 3 - Scroll Up */}
-            <div className="space-y-6 animate-scroll-up hover:[animation-play-state:paused] hidden lg:block">
+            <div className="space-y-6 animate-scroll-up hover:paused hidden lg:block">
               {[...reviews, ...reviews].map((review, idx) => (
                 <Card
                   key={`col3-${idx}`}
@@ -870,11 +871,11 @@ export default function HomePage() {
       <section className="py-20 bg-background">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <RevealOnScroll>
-            <Card className="relative overflow-hidden border-0 shadow-xl rounded-3xl bg-white cursor-pointer">
+            <Card className="relative overflow-hidden border-0 shadow-xl rounded-3xl bg-linear-to-r from-secondary-50 to-white cursor-pointer">
               <div className="grid md:grid-cols-2 gap-0">
                 {/* Left Content */}
                 <div className="p-8 md:p-12 flex flex-col justify-center">
-                  <div className="inline-flex items-center gap-2 bg-primary-50 text-primary-600 text-sm font-semibold px-4 py-1.5 rounded-full mb-6 w-fit border border-primary-100 cursor-pointer hover:bg-primary-100 transition-colors">
+                  <div className="inline-flex items-center gap-2 bg-secondary-50 text-secondary-600 text-sm font-semibold px-4 py-1.5 rounded-full mb-6 w-fit border border-secondary-100 cursor-pointer hover:bg-primary-100 transition-colors">
                     <GraduationCap className="w-4 h-4" />
                     <span>Free Assessment</span>
                   </div>
@@ -888,7 +889,7 @@ export default function HomePage() {
                     recommendations based on your results.
                   </p>
 
-                  <blockquote className="border-l-4 border-primary-400 pl-4 mb-8 italic text-gray-500">
+                  <blockquote className="border-l-4 border-secondary-400 pl-4 mb-8 italic text-gray-500">
                     "Knowing where you stand is the first step to reaching where you want to be."
                   </blockquote>
 
@@ -896,7 +897,7 @@ export default function HomePage() {
                     <Link href="/placement-test" className="cursor-pointer">
                       <Button
                         size="lg"
-                        className="bg-primary-500 hover:bg-primary-600 text-white px-8 py-6 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-lg font-semibold group cursor-pointer"
+                        className="bg-secondary-500 hover:bg-secondary-600 text-white px-8 py-6 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-lg font-semibold group cursor-pointer"
                       >
                         Take the Test
                         <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -917,12 +918,12 @@ export default function HomePage() {
                   {/* Floating badges */}
                   <div className="absolute top-6 right-6 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg cursor-pointer hover:shadow-xl transition-shadow">
                     <div className="text-xs text-gray-500 font-medium">CEFR Levels</div>
-                    <div className="text-lg font-bold text-primary-600">A1 - C2</div>
+                    <div className="text-lg font-bold text-secondary-600">A1 - C2</div>
                   </div>
 
                   <div className="absolute bottom-6 left-6 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg cursor-pointer hover:shadow-xl transition-shadow">
                     <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4 text-primary-500" />
+                      <Users className="w-4 h-4 text-secondary-500" />
                       <span className="text-sm font-semibold text-gray-700">50K+ tests taken</span>
                     </div>
                   </div>
@@ -1067,12 +1068,12 @@ export default function HomePage() {
       </section>
 
       {/* Final CTA Section */}
-      <section className="relative py-28 overflow-hidden">
-        <div className="absolute inset-0 bg-primary-500">
+      <section className="relative py-24 overflow-hidden">
+        <div className="absolute inset-0 bg-primary-600">
           {/* Decorative pattern overlay */}
           <div
-            className="absolute inset-0 opacity-10"
-            style={{ backgroundImage: "radial-gradient(#fff 1px, transparent 1px)", backgroundSize: "24px 24px" }}
+            className="absolute inset-0 opacity-15"
+            style={{ backgroundImage: "radial-gradient(var(--primary-50) 2px, transparent 2px)", backgroundSize: "24px 24px" }}
           ></div>
         </div>
 
@@ -1080,14 +1081,15 @@ export default function HomePage() {
           <h2 className="text-4xl sm:text-5xl font-bold mb-8 text-white tracking-tight">
             Ready to speak English with confidence?
           </h2>
-          <p className="text-xl text-primary-100 mb-12 max-w-2xl mx-auto">
+          <p className="text-xl text-primary-200 mb-12 max-w-2xl mx-auto">
             Join thousands of learners who are already improving their careers and lives with DailyEng.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/auth/signup" className="cursor-pointer">
               <Button
                 size="lg"
-                className="bg-white text-primary-500 hover:bg-primary-50 rounded-full px-10 py-7 text-lg font-bold shadow-xl hover:shadow-2xl transition-all hover:-translate-y-1 w-full sm:w-auto cursor-pointer"
+                variant="default"
+                className="border-2 border-primary-700 bg-primary-50 hover:bg-primary-100 text-primary-700 hover:text-primary-800 rounded-full px-10 py-7 text-lg font-bold sm:w-auto cursor-pointer"
               >
                 Get Started for Free
               </Button>
@@ -1095,8 +1097,8 @@ export default function HomePage() {
             <Link href="/placement-test" className="cursor-pointer">
               <Button
                 size="lg"
-                variant="outline"
-                className="border-2 border-white/30 text-white hover:bg-primary-600 hover:border-primary-400 bg-transparent rounded-full px-10 py-7 text-lg font-semibold w-full sm:w-auto cursor-pointer"
+                variant="default"
+                className="border-2 border-primary-700 text-white hover:bg-primary-700 hover:border-primary-800 bg-transparent rounded-full px-10 py-7 text-lg font-semibold w-full sm:w-auto cursor-pointer"
               >
                 Take Placement Test
               </Button>
