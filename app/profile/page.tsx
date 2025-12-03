@@ -30,7 +30,7 @@ export default function ProfileNewPage() {
       pageDescription="View and manage your account settings and personal information."
       pageIcon={<UserIcon className="w-10 h-10 text-primary" />}
     >
-      <div className="container mx-auto px-8 py-8">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid lg:grid-cols-12 gap-8">
           {/* Left Sidebar */}
           <div className="lg:col-span-3">
@@ -53,7 +53,8 @@ export default function ProfileNewPage() {
                     </div>
                     <Button
                       size="icon"
-                      className="absolute bottom-0 right-0 rounded-full w-10 h-10 bg-primary hover:bg-primary/90 shadow-lg"
+                      variant={"default"}
+                      className="absolute bottom-0 right-0 rounded-full w-10 h-10 bg-primary hover:bg-primary/90"
                     >
                       <Upload className="h-5 w-5 text-primary-foreground" />
                     </Button>

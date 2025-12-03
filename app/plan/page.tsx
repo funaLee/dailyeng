@@ -8,6 +8,8 @@ import { Progress } from "@/components/ui/progress"
 import { Gift, Check, Edit2, PlayCircle, BookOpen, Mic, Brain, Target } from "lucide-react"
 import Image from "next/image"
 import { ProtectedRoute, PageIcons } from "@/components/auth/protected-route"
+import { HubHero } from "@/components/hub"
+
 
 interface StudyPlan {
   id: string
@@ -139,30 +141,17 @@ export default function StudyPlanPage() {
       pageDescription="View and manage your personalized learning schedule."
       pageIcon={PageIcons.studyPlan}
     >
-      <div className="container mx-auto max-w-7xl py-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="space-y-8">
           {/* 1. Header Section */}
-          <div className="relative overflow-hidden rounded-3xl border border-primary-200 bg-white p-8 shadow-sm">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-              <div className="max-w-xl space-y-4">
-                <h1 className="text-4xl font-black uppercase tracking-tight text-primary-950">Your Study Plan</h1>
-                <p className="text-lg text-slate-600">
-                  Practice real conversations with AI tutors and get instant feedback on your pronunciation, fluency,
-                  grammar, and content.
-                </p>
-              </div>
-              <div className="relative h-48 w-48 md:h-64 md:w-64 flex-shrink-0">
-                <div className="absolute inset-0 bg-primary-200/40 rounded-full blur-3xl animate-pulse" />
-                <Image
-                  src="learning.png"
-                  alt="Study Plan Illustration"
-                  width={300}
-                  height={300}
-                  className="relative z-10 object-contain drop-shadow-lg"
-                />
-              </div>
-            </div>
-          </div>
+          <HubHero
+            title="YOUR STUDY PLAN"
+            description="Practice real conversations with AI tutors and get instant feedback on your pronunciation, fluency, grammar, and content."
+            primaryAction={{ label: "See All Study Plan" }}
+            secondaryAction={{ label: "Add Study Plan" }}
+            notification={{ text: "You have 2 lessons to complete today", actionLabel: "Learning now" }}
+            decorativeWords={["study", "plan", "learning"]}
+          />
 
           {/* 2. This week's plan Section */}
           <Card className="p-6 border-primary-200 shadow-md">
@@ -188,15 +177,15 @@ export default function StudyPlanPage() {
                 <div className="grid grid-cols-3 gap-4">
                   <div className="rounded-xl border border-primary-200 bg-primary-50/50 p-4 text-center">
                     <p className="text-xs text-primary-600 font-medium mb-1">Số giờ học trong ngày</p>
-                    <p className="text-xl font-bold text-slate-800">1.5h</p>
+                    <p className="text-xl font-bold text-primary-900">1.5h</p>
                   </div>
                   <div className="rounded-xl border border-primary-200 bg-primary-50/50 p-4 text-center">
                     <p className="text-xs text-primary-600 font-medium mb-1">Số giờ học trong tuần</p>
-                    <p className="text-xl font-bold text-slate-800">13h</p>
+                    <p className="text-xl font-bold text-primary-900">13h</p>
                   </div>
                   <div className="rounded-xl border border-primary-200 bg-primary-50/50 p-4 text-center">
                     <p className="text-xs text-primary-600 font-medium mb-1">Total Hours</p>
-                    <p className="text-xl font-bold text-slate-800">70h</p>
+                    <p className="text-xl font-bold text-primary-900">70h</p>
                   </div>
                 </div>
 
@@ -286,7 +275,7 @@ export default function StudyPlanPage() {
                       5:00
                     </div>
                     <div className="border-r border-primary-50 p-1">
-                      <div className="w-full h-full rounded-lg bg-orange-100 text-orange-900 font-medium flex items-center justify-center text-[10px] shadow-sm">
+                      <div className="w-full h-full rounded-lg bg-secondary-100 text-orange-900 font-medium flex items-center justify-center text-[10px] shadow-sm">
                         Grammar
                       </div>
                     </div>

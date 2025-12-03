@@ -91,7 +91,7 @@ export default function NotificationsPage() {
       pageDescription="Stay updated with your learning progress, achievements, and important announcements."
       pageIcon={<Bell className="w-10 h-10 text-primary" />}
     >
-      <div className="container mx-auto px-8 py-8">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid lg:grid-cols-12 gap-8">
           {/* Left Sidebar */}
           <div className="lg:col-span-3">

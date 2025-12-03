@@ -228,8 +228,8 @@ export default function DashboardPage() {
       pageDescription="Track your learning progress, complete daily missions, and view your achievements."
       pageIcon={PageIcons.dashboard}
     >
-      <div className="container mx-auto px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
           {/* ================= LEFT SIDEBAR ================= */}
           <div className="md:col-span-3 lg:col-span-3 space-y-6">
             <UserProfileSidebar activePage="dashboard" />
