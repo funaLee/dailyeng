@@ -101,7 +101,7 @@ export function TopicCard({
             className={`flex-1 h-10 rounded-full font-semibold text-sm cursor-pointer transition-all ${
               isCompleted
                 ? "bg-secondary-100 hover:bg-secondary-200 text-secondary-700"
-                : "bg-primary-100 hover:bg-primary-200 text-primary-700"
+                : "bg-primary-300 hover:bg-primary-500 text-primary-900"
             }`}
           >
             {getButtonLabel()}
