@@ -1,11 +1,14 @@
 "use client"
 
+import type React from "react"
+
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
 import Link from "next/link"
 import { Tag } from "@/components/ui/tag"
+import { Bookmark } from "lucide-react"
 
 interface TopicCardProps {
   id: string
@@ -18,6 +21,8 @@ interface TopicCardProps {
   href?: string
   onNotYet?: () => void
   type?: "vocabulary" | "grammar" | "speaking"
+  isBookmarked?: boolean
+  onBookmarkToggle?: (id: string) => void
 }
 
 export function TopicCard({
@@ -31,6 +36,8 @@ export function TopicCard({
   href,
   onNotYet,
   type = "vocabulary",
+  isBookmarked = false,
+  onBookmarkToggle,
 }: TopicCardProps) {
   const isCompleted = progress === 100
   const isInProgress = progress > 0 && progress < 100
@@ -60,9 +67,25 @@ export function TopicCard({
     return "notYet" as const
   }
 
+  const handleBookmarkClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    onBookmarkToggle?.(id)
+  }
 
   const cardContent = (
-    <Card className="group relative overflow-hidden rounded-3xl border-[1.4px] border-primary-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:border-primary-300 flex flex-col min-w-[280px] h-[420px]">
+    <Card className="group relative overflow-hidden rounded-3xl border-[1.4px] border-primary-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-primary-300 flex flex-col min-w-[280px] h-[420px]">
+      <button
+        onClick={handleBookmarkClick}
+        className={`absolute top-3 right-3 z-10 p-2 rounded-full transition-all duration-200 cursor-pointer ${
+          isBookmarked
+            ? "bg-primary-500 text-white shadow-md"
+            : "bg-white/80 text-primary-400 hover:bg-primary-100 hover:text-primary-600"
+        }`}
+      >
+        <Bookmark className={`h-5 w-5 transition-all ${isBookmarked ? "fill-current" : ""}`} />
+      </button>
+
       <div className="p-4 pt-0 pb-0">
         <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl">
           <Image
@@ -95,7 +118,6 @@ export function TopicCard({
               }}
             />
           )}
-
         </div>
 
         <h4 className="mb-2 text-lg font-bold text-slate-900 group-hover:text-primary-600 transition-colors">
@@ -109,9 +131,11 @@ export function TopicCard({
             className={`flex-1 h-10 rounded-full font-semibold text-sm cursor-pointer transition-all ${
               isCompleted
                 ? "bg-accent-100 hover:bg-accent-200 text-accent-700"
-                : (isInProgress ? "bg-secondary-100 hover:bg-secondary-300 text-secondary-800" : "bg-primary-300 hover:bg-primary-500 text-primary-900")
+                : isInProgress
+                  ? "bg-secondary-100 hover:bg-secondary-300 text-secondary-800"
+                  : "bg-primary-200 hover:bg-primary-300 text-primary-700"
             }`}
-            variant={isCompleted ? "accent" : ( isInProgress? "secondary" : "default")}
+            variant={isCompleted ? "accent" : isInProgress ? "secondary" : "default"}
           >
             {getButtonLabel()}
           </Button>
@@ -121,11 +145,7 @@ export function TopicCard({
   )
 
   if (href) {
-    return (
-      <Link href={href}>
-        {cardContent}
-      </Link>
-    )
+    return <Link href={href}>{cardContent}</Link>
   }
 
   return cardContent

@@ -23,8 +23,8 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
           {/* About DailyEng */}
           <div>
-            <h4 className="font-semibold text-foreground mb-4">
-              About Daily<span className="text-primary-500">Eng</span>
+            <h4 className="font-bold text-foreground mb-4">
+              About Daily<span className="text-primary-600">Eng</span>
             </h4>
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li>
@@ -52,7 +52,7 @@ export function Footer() {
 
           {/* Privacy and Terms */}
           <div>
-            <h4 className="font-semibold text-foreground mb-4">Privacy and Terms</h4>
+            <h4 className="font-bold text-foreground mb-4">Privacy and Terms</h4>
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li>
                 <Link href="/community-guidelines" className="hover:text-primary-500 transition-colors">
@@ -79,7 +79,7 @@ export function Footer() {
 
           {/* Support */}
           <div>
-            <h4 className="font-semibold text-foreground mb-4">Support</h4>
+            <h4 className="font-bold text-foreground mb-4">Support</h4>
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li>
                 <Link href="/help" className="hover:text-primary-500 transition-colors">
@@ -105,7 +105,7 @@ export function Footer() {
 
           {/* Connect with us */}
           <div>
-            <h4 className="font-semibold text-foreground mb-4">Connect with us</h4>
+            <h4 className="font-bold text-foreground mb-4">Connect with us</h4>
             <div className="flex gap-3 mb-6">
               <a
                 href="mailto:contact@dailyeng.com"
@@ -155,12 +155,12 @@ export function Footer() {
       </div>
 
       {/* Bottom Section - Company Info */}
-      <div className="border-t border-border bg-muted/50">
+      <div className="border-t border-border bg-muted/30">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Copyright & Registration */}
             <div className="text-sm text-muted-foreground space-y-2">
-              <p className="font-medium text-foreground">Copyright © {new Date().getFullYear()} DAILYENG</p>
+              <p className="font-bold text-foreground">Copyright © {new Date().getFullYear()} DAILYENG</p>
               <p>Mã số thuế: 0106799375, do Sở Kế hoạch và Đầu tư TP. Hà Nội cấp ngày 24/03/2015</p>
               <p>
                 Quyết định thành lập Trung tâm Ngoại ngữ DAILYENG, số 3920 do Sở Giáo dục và Đào tạo Hà Nội cấp ngày
@@ -170,8 +170,8 @@ export function Footer() {
 
             {/* Company Addresses */}
             <div className="text-sm">
-              <p className="font-semibold text-foreground mb-3">
-                Công ty cổ phần công nghệ Daily<span className="text-primary-500">Eng</span>
+              <p className="font-bold text-foreground mb-3">
+                Công ty cổ phần công nghệ Daily<span className="text-primary-600">Eng</span>
               </p>
               <ul className="space-y-2 text-muted-foreground">
                 <li className="flex items-start gap-2">

@@ -38,7 +38,7 @@ export function Navbar() {
   }
 
   return (
-    <nav className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
+    <nav className="sticky top-0 z-40 border-b-2 border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
@@ -46,7 +46,7 @@ export function Navbar() {
             <img
               src="/logo.png"
               alt="DailyEng Logo"
-              className="h-15 w-15 rounded-lg object-cover"
+              className="h-10 w-10 rounded-lg object-cover"
             />
             <div className="px-0"><span className="hidden text-xl sm:inline">Daily</span><span className="hidden text-xl sm:inline text-primary-700">Eng</span></div>
           </Link>
