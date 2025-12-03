@@ -107,7 +107,8 @@ export default function SignUpPage() {
 
               <Button
                 type="submit"
-                className="w-full py-6 text-lg font-semibold bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 rounded-xl shadow-lg shadow-primary-200 transition-all hover:shadow-xl hover:shadow-primary-300 group"
+                variant={"default"}
+                className="w-full py-6 text-lg font-semibold bg-primary-500 hover:bg-primary-600 rounded-xl transition-all group"
                 disabled={isLoading}
               >
                 {isLoading ? (

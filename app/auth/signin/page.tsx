@@ -72,7 +72,7 @@ export default function SignInPage() {
           <h1 className="text-5xl font-bold mb-6 leading-tight">
             Master English
             <br />
-            <span className="text-accent-300">Your Way</span>
+            <span className="text-accent-200">Your Way</span>
           </h1>
           <p className="text-xl text-white/80 mb-8 max-w-md">
             Join thousands of learners improving their English skills with our AI-powered platform.
@@ -153,7 +153,8 @@ export default function SignInPage() {
 
               <Button
                 type="submit"
-                className="w-full py-6 text-lg font-semibold bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 rounded-xl shadow-lg shadow-primary-200 transition-all hover:shadow-xl hover:shadow-primary-300 group"
+                variant={"default"}
+                className="w-full py-6 text-lg font-semibold bg-primary-500 hover:bg-primary-600 rounded-xl transition-all group"
                 disabled={isLoading}
               >
                 {isLoading ? (
