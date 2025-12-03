@@ -43,10 +43,12 @@ export function Navbar() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 font-bold text-lg">
-            <div className="h-8 w-8 rounded-lg bg-linear-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs">
-              DE
-            </div>
-            <span className="hidden sm:inline">DailyEng</span>
+            <img
+              src="/logo.png"
+              alt="DailyEng Logo"
+              className="h-15 w-15 rounded-lg object-cover"
+            />
+            <div className="px-0"><span className="hidden text-xl sm:inline">Daily</span><span className="hidden text-xl sm:inline text-primary-700">Eng</span></div>
           </Link>
 
           {/* Desktop Nav */}
