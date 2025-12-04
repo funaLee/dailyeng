@@ -1,5 +1,10 @@
-import { describe, it, expect } from "vitest"
-import { TopicSchema, VocabItemSchema, FlashcardSchema, ProfileStatsSchema } from "@/types"
+import { describe, it, expect } from "vitest";
+import {
+  TopicSchema,
+  VocabItemSchema,
+  FlashcardSchema,
+  ProfileStatsSchema,
+} from "@/src/types";
 
 describe("Zod Schemas", () => {
   describe("TopicSchema", () => {
@@ -11,9 +16,9 @@ describe("Zod Schemas", () => {
         level: "A2",
         wordCount: 25,
         estimatedTime: 45,
-      }
-      expect(() => TopicSchema.parse(validTopic)).not.toThrow()
-    })
+      };
+      expect(() => TopicSchema.parse(validTopic)).not.toThrow();
+    });
 
     it("should reject invalid level", () => {
       const invalidTopic = {
@@ -23,10 +28,10 @@ describe("Zod Schemas", () => {
         level: "C3",
         wordCount: 25,
         estimatedTime: 45,
-      }
-      expect(() => TopicSchema.parse(invalidTopic)).toThrow()
-    })
-  })
+      };
+      expect(() => TopicSchema.parse(invalidTopic)).toThrow();
+    });
+  });
 
   describe("VocabItemSchema", () => {
     it("should validate a valid vocab item", () => {
@@ -40,9 +45,9 @@ describe("Zod Schemas", () => {
         collocations: ["renew a passport"],
         exampleSentence: "I need a passport.",
         exampleTranslation: "Tôi cần hộ chiếu.",
-      }
-      expect(() => VocabItemSchema.parse(validVocab)).not.toThrow()
-    })
+      };
+      expect(() => VocabItemSchema.parse(validVocab)).not.toThrow();
+    });
 
     it("should reject invalid part of speech", () => {
       const invalidVocab = {
@@ -55,10 +60,10 @@ describe("Zod Schemas", () => {
         collocations: ["renew a passport"],
         exampleSentence: "I need a passport.",
         exampleTranslation: "Tôi cần hộ chiếu.",
-      }
-      expect(() => VocabItemSchema.parse(invalidVocab)).toThrow()
-    })
-  })
+      };
+      expect(() => VocabItemSchema.parse(invalidVocab)).toThrow();
+    });
+  });
 
   describe("FlashcardSchema", () => {
     it("should validate a valid flashcard", () => {
@@ -71,10 +76,10 @@ describe("Zod Schemas", () => {
         interval: 1,
         easeFactor: 2.5,
         repetitions: 0,
-      }
-      expect(() => FlashcardSchema.parse(validCard)).not.toThrow()
-    })
-  })
+      };
+      expect(() => FlashcardSchema.parse(validCard)).not.toThrow();
+    });
+  });
 
   describe("ProfileStatsSchema", () => {
     it("should validate a valid profile stats", () => {
@@ -91,9 +96,9 @@ describe("Zod Schemas", () => {
           listening: 65,
           reading: 85,
         },
-      }
-      expect(() => ProfileStatsSchema.parse(validStats)).not.toThrow()
-    })
+      };
+      expect(() => ProfileStatsSchema.parse(validStats)).not.toThrow();
+    });
 
     it("should reject skill scores outside 0-100 range", () => {
       const invalidStats = {
@@ -109,8 +114,8 @@ describe("Zod Schemas", () => {
           listening: 65,
           reading: 85,
         },
-      }
-      expect(() => ProfileStatsSchema.parse(invalidStats)).toThrow()
-    })
-  })
-})
+      };
+      expect(() => ProfileStatsSchema.parse(invalidStats)).toThrow();
+    });
+  });
+});

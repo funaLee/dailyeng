@@ -1,5 +1,12 @@
-import type { Topic, VocabItem, GrammarNote, QuizItem } from "@/types"
-import { Coffee, ShoppingBag, Users, TrendingUp, Plane, MessageCircle } from "lucide-react"
+import type { Topic, VocabItem, GrammarNote, QuizItem } from "@/src/types";
+import {
+  Coffee,
+  ShoppingBag,
+  Users,
+  TrendingUp,
+  Plane,
+  MessageCircle,
+} from "lucide-react";
 
 export const mockTopics: Topic[] = [
   {
@@ -32,7 +39,7 @@ export const mockTopics: Topic[] = [
     estimatedTime: 60,
     thumbnail: "/abstract-job-concept.png",
   },
-]
+];
 
 export const mockVocab: Record<string, VocabItem[]> = {
   "1": [
@@ -206,14 +213,15 @@ export const mockVocab: Record<string, VocabItem[]> = {
       exampleTranslation: "Cô ấy có 10 năm kinh nghiệm chuyên nghiệp.",
     },
   ],
-}
+};
 
 export const mockGrammar: Record<string, GrammarNote[]> = {
   "1": [
     {
       id: "g1",
       title: "Present Perfect for Recent Experiences",
-      explanation: "Use present perfect to talk about experiences you have had. Form: have/has + past participle",
+      explanation:
+        "Use present perfect to talk about experiences you have had. Form: have/has + past participle",
       examples: [
         {
           en: "I have traveled to five countries.",
@@ -228,7 +236,8 @@ export const mockGrammar: Record<string, GrammarNote[]> = {
     {
       id: "g2",
       title: "Conditional Sentences (Type 1)",
-      explanation: "Use for real or possible situations. Form: If + present simple, will + base verb",
+      explanation:
+        "Use for real or possible situations. Form: If + present simple, will + base verb",
       examples: [
         {
           en: "If you book early, you will get a discount.",
@@ -263,7 +272,8 @@ export const mockGrammar: Record<string, GrammarNote[]> = {
     {
       id: "g4",
       title: "Reported Speech",
-      explanation: "Change direct speech to reported speech. Shift tenses back one level and change pronouns.",
+      explanation:
+        "Change direct speech to reported speech. Shift tenses back one level and change pronouns.",
       examples: [
         {
           en: 'Direct: "I am interested in this position." Reported: He said he was interested in that position.',
@@ -272,7 +282,7 @@ export const mockGrammar: Record<string, GrammarNote[]> = {
       ],
     },
   ],
-}
+};
 
 export const mockQuizzes: Record<string, QuizItem[]> = {
   "1": [
@@ -304,7 +314,12 @@ export const mockQuizzes: Record<string, QuizItem[]> = {
       id: "q4",
       question: "Match: accommodation",
       type: "matching",
-      options: ["A place to stay", "Bags for travel", "A travel plan", "A souvenir"],
+      options: [
+        "A place to stay",
+        "Bags for travel",
+        "A travel plan",
+        "A souvenir",
+      ],
       correctAnswer: "A place to stay",
       explanation: "Accommodation refers to lodging or a place to stay.",
     },
@@ -344,18 +359,25 @@ export const mockQuizzes: Record<string, QuizItem[]> = {
         "Your favorite hobbies",
       ],
       correctAnswer: "Your qualifications and experience",
-      explanation: "A resume should highlight your skills and professional background.",
+      explanation:
+        "A resume should highlight your skills and professional background.",
     },
     {
       id: "q8",
       question: "Match: professional",
       type: "matching",
-      options: ["Relating to a job or career", "A type of food", "A travel destination", "A learning method"],
+      options: [
+        "Relating to a job or career",
+        "A type of food",
+        "A travel destination",
+        "A learning method",
+      ],
       correctAnswer: "Relating to a job or career",
-      explanation: "Professional refers to work-related or career-related matters.",
+      explanation:
+        "Professional refers to work-related or career-related matters.",
     },
   ],
-}
+};
 
 export const mockListeningTasks: Record<string, any[]> = {
   "1": [
@@ -372,8 +394,14 @@ export const mockListeningTasks: Record<string, any[]> = {
       type: "mcq",
       question: "What is the main topic of the conversation?",
       audio: "/audio/travel-2.mp3",
-      transcript: "A: Where are you going for vacation? B: I'm planning to visit Thailand next month.",
-      options: ["Planning a vacation", "Discussing work", "Talking about weather", "Booking a hotel"],
+      transcript:
+        "A: Where are you going for vacation? B: I'm planning to visit Thailand next month.",
+      options: [
+        "Planning a vacation",
+        "Discussing work",
+        "Talking about weather",
+        "Booking a hotel",
+      ],
       correctAnswer: "Planning a vacation",
     },
     {
@@ -391,7 +419,8 @@ export const mockListeningTasks: Record<string, any[]> = {
       type: "mcq",
       question: "What does the customer order?",
       audio: "/audio/food-1.mp3",
-      transcript: "Waiter: What would you like? Customer: I'll have the pasta with garlic sauce.",
+      transcript:
+        "Waiter: What would you like? Customer: I'll have the pasta with garlic sauce.",
       options: ["Pizza", "Pasta with garlic sauce", "Salad", "Soup"],
       correctAnswer: "Pasta with garlic sauce",
     },
@@ -410,12 +439,18 @@ export const mockListeningTasks: Record<string, any[]> = {
       type: "mcq",
       question: "What is the interviewer asking about?",
       audio: "/audio/interview-1.mp3",
-      transcript: "Interviewer: Can you tell me about your professional experience?",
-      options: ["Education", "Professional experience", "Hobbies", "Family background"],
+      transcript:
+        "Interviewer: Can you tell me about your professional experience?",
+      options: [
+        "Education",
+        "Professional experience",
+        "Hobbies",
+        "Family background",
+      ],
       correctAnswer: "Professional experience",
     },
   ],
-}
+};
 
 export const mockReadingPassages: Record<string, any> = {
   "1": {
@@ -427,10 +462,26 @@ When packing, remember to bring essential documents like your passport, travel i
 
 During your trip, try to immerse yourself in the local culture. Eat local food, visit local markets, and interact with local people. Learn a few basic phrases in the local language. This will help you communicate better and show respect to the locals. Finally, always keep your valuables secure and be aware of your surroundings.`,
     glossary: [
-      { word: "rewarding", definition: "giving satisfaction or benefit", vietnamese: "đáng giá, bổ ích" },
-      { word: "accommodation", definition: "a place to stay", vietnamese: "chỗ ở" },
-      { word: "immerse", definition: "to involve oneself deeply", vietnamese: "đắm chìm, hòa mình" },
-      { word: "valuables", definition: "items of worth or importance", vietnamese: "đồ vật quý giá" },
+      {
+        word: "rewarding",
+        definition: "giving satisfaction or benefit",
+        vietnamese: "đáng giá, bổ ích",
+      },
+      {
+        word: "accommodation",
+        definition: "a place to stay",
+        vietnamese: "chỗ ở",
+      },
+      {
+        word: "immerse",
+        definition: "to involve oneself deeply",
+        vietnamese: "đắm chìm, hòa mình",
+      },
+      {
+        word: "valuables",
+        definition: "items of worth or importance",
+        vietnamese: "đồ vật quý giá",
+      },
     ],
     questions: [
       {
@@ -451,7 +502,12 @@ During your trip, try to immerse yourself in the local culture. Eat local food, 
         id: "q2",
         question: "How long should your passport be valid?",
         type: "multiple-choice",
-        options: ["At least 3 months", "At least 6 months", "At least 1 year", "At least 2 years"],
+        options: [
+          "At least 3 months",
+          "At least 6 months",
+          "At least 1 year",
+          "At least 2 years",
+        ],
         correctAnswer: "At least 6 months",
         explanation:
           "According to the passage, your passport should be valid for at least six months beyond your travel dates.",
@@ -460,9 +516,15 @@ During your trip, try to immerse yourself in the local culture. Eat local food, 
         id: "q3",
         question: "What does 'immerse' mean in the context of the passage?",
         type: "multiple-choice",
-        options: ["To swim in water", "To involve oneself deeply", "To travel quickly", "To stay in a hotel"],
+        options: [
+          "To swim in water",
+          "To involve oneself deeply",
+          "To travel quickly",
+          "To stay in a hotel",
+        ],
         correctAnswer: "To involve oneself deeply",
-        explanation: "'Immerse' means to involve oneself deeply in something, in this case, the local culture.",
+        explanation:
+          "'Immerse' means to involve oneself deeply in something, in this case, the local culture.",
       },
       {
         id: "q4",
@@ -480,7 +542,8 @@ During your trip, try to immerse yourself in the local culture. Eat local food, 
       },
       {
         id: "q5",
-        question: "What should you bring when traveling? (List at least 2 items)",
+        question:
+          "What should you bring when traveling? (List at least 2 items)",
         type: "short-answer",
         correctAnswer: "passport, travel insurance, booking confirmations",
         explanation:
@@ -504,9 +567,21 @@ Finally, presentation matters. A well-plated dish is more enjoyable to eat. Use 
         definition: "preparation of ingredients before cooking",
         vietnamese: "chuẩn bị nguyên liệu",
       },
-      { word: "sautéing", definition: "cooking quickly in a small amount of fat", vietnamese: "xào nhanh" },
-      { word: "garnish", definition: "to decorate a dish with small items", vietnamese: "trang trí" },
-      { word: "gourmet", definition: "of high quality and expensive", vietnamese: "cao cấp, tinh tế" },
+      {
+        word: "sautéing",
+        definition: "cooking quickly in a small amount of fat",
+        vietnamese: "xào nhanh",
+      },
+      {
+        word: "garnish",
+        definition: "to decorate a dish with small items",
+        vietnamese: "trang trí",
+      },
+      {
+        word: "gourmet",
+        definition: "of high quality and expensive",
+        vietnamese: "cao cấp, tinh tế",
+      },
     ],
     questions: [
       {
@@ -529,7 +604,8 @@ Finally, presentation matters. A well-plated dish is more enjoyable to eat. Use 
         type: "multiple-choice",
         options: ["Baking", "Grilling", "Steaming", "Sautéing"],
         correctAnswer: "Steaming",
-        explanation: "According to the passage, steaming preserves nutrients and keeps food healthy.",
+        explanation:
+          "According to the passage, steaming preserves nutrients and keeps food healthy.",
       },
       {
         id: "q8",
@@ -542,7 +618,8 @@ Finally, presentation matters. A well-plated dish is more enjoyable to eat. Use 
           "It reduces cooking time",
         ],
         correctAnswer: "We eat with our eyes first",
-        explanation: "The passage states that presentation matters because we eat with our eyes first.",
+        explanation:
+          "The passage states that presentation matters because we eat with our eyes first.",
       },
     ],
   },
@@ -562,9 +639,21 @@ Finally, don't underestimate the value of soft skills such as communication, lea
         definition: "the path or direction of development",
         vietnamese: "quỹ đạo, hướng phát triển",
       },
-      { word: "constructive", definition: "serving a useful purpose", vietnamese: "xây dựng, có ích" },
-      { word: "networking", definition: "building professional relationships", vietnamese: "xây dựng mạng lưới" },
-      { word: "soft skills", definition: "personal attributes and interpersonal skills", vietnamese: "kỹ năng mềm" },
+      {
+        word: "constructive",
+        definition: "serving a useful purpose",
+        vietnamese: "xây dựng, có ích",
+      },
+      {
+        word: "networking",
+        definition: "building professional relationships",
+        vietnamese: "xây dựng mạng lưới",
+      },
+      {
+        word: "soft skills",
+        definition: "personal attributes and interpersonal skills",
+        vietnamese: "kỹ năng mềm",
+      },
     ],
     questions: [
       {
@@ -597,7 +686,7 @@ Finally, don't underestimate the value of soft skills such as communication, lea
       },
     ],
   },
-}
+};
 
 export const mockSpeakingScenarios = {
   daily: [
@@ -649,7 +738,7 @@ export const mockSpeakingScenarios = {
       difficulty: "A2",
       icon: Plane,
       context: "You are checking in at a hotel reception.",
-    }
+    },
   ],
   social: [
     {
@@ -660,11 +749,11 @@ export const mockSpeakingScenarios = {
       difficulty: "B1",
       icon: MessageCircle,
       context: "You are at a social event meeting new people.",
-    }
-  ]
-}
+    },
+  ],
+};
 
-export const mockCustomScenarios: any[] = []
+export const mockCustomScenarios: any[] = [];
 
 export const mockSpeakingTurns = {
   session1: [
@@ -708,7 +797,7 @@ export const mockSpeakingTurns = {
       },
     },
   ],
-}
+};
 
 export const mockSpeakingTurnsExtended = {
   session1: [
@@ -752,4 +841,4 @@ export const mockSpeakingTurnsExtended = {
       },
     },
   ],
-}
+};

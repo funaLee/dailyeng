@@ -1,6 +1,6 @@
-"use server"
+"use server";
 
-import { z } from "zod"
+import { z } from "zod";
 
 const StudyPlanDataSchema = z.object({
   goal: z.enum(["conversation", "travel", "work", "exam"]),
@@ -8,9 +8,9 @@ const StudyPlanDataSchema = z.object({
   interests: z.array(z.string()).min(1),
   minutesPerDay: z.number().min(10).max(60),
   wordsPerDay: z.number().int().positive(),
-})
+});
 
-export type StudyPlanData = z.infer<typeof StudyPlanDataSchema>
+export type StudyPlanData = z.infer<typeof StudyPlanDataSchema>;
 
 export async function createStudyPlanAction(data: StudyPlanData) {
   try {
@@ -46,19 +46,19 @@ export async function createStudyPlanAction(data: StudyPlanData) {
       plan,
     };
   } catch (error) {
-    console.error("Error creating study plan:", error)
+    console.error("Error creating study plan:", error);
 
     if (error instanceof z.ZodError) {
       return {
         success: false,
         error: "Invalid data provided",
         details: error.errors,
-      }
+      };
     }
 
     return {
       success: false,
       error: "Failed to create study plan",
-    }
+    };
   }
 }
