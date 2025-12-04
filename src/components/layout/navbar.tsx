@@ -48,7 +48,12 @@ export function Navbar() {
               alt="DailyEng Logo"
               className="h-10 w-10 rounded-lg object-cover"
             />
-            <div className="px-0"><span className="hidden text-xl sm:inline">Daily</span><span className="hidden text-xl sm:inline text-primary-700">Eng</span></div>
+            <div className="px-0">
+              <span className="hidden text-xl sm:inline">Daily</span>
+              <span className="hidden text-xl sm:inline text-primary-700">
+                Eng
+              </span>
+            </div>
           </Link>
 
           {/* Desktop Nav */}
@@ -67,7 +72,9 @@ export function Navbar() {
                           <Link
                             href={subItem.href}
                             className={`w-full cursor-pointer ${
-                              pathname.startsWith(subItem.href) ? "bg-secondary" : ""
+                              pathname.startsWith(subItem.href)
+                                ? "bg-secondary"
+                                : ""
                             }`}
                           >
                             {subItem.label}
@@ -76,7 +83,7 @@ export function Navbar() {
                       ))}
                     </DropdownMenuContent>
                   </DropdownMenu>
-                )
+                );
               }
 
               return (
@@ -91,7 +98,7 @@ export function Navbar() {
                 >
                   {item.label}
                 </Link>
-              )
+              );
             })}
           </div>
 
@@ -99,12 +106,17 @@ export function Navbar() {
           <div className="flex items-center gap-2">
             {isAuthenticated ? (
               <>
-                <Link href="/dashboard">
-                  <Button variant="ghost" size="icon" className="hidden sm:flex" title="Dashboard">
+                <Link href="/user/dashboard">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="hidden sm:flex"
+                    title="Dashboard"
+                  >
                     <LayoutDashboard className="h-5 w-5" />
                   </Button>
                 </Link>
-                <Link href="/profile">
+                <Link href="/user/profile">
                   <Button variant="ghost" size="icon" title="Profile">
                     <User className="h-5 w-5" />
                   </Button>
@@ -124,8 +136,16 @@ export function Navbar() {
             )}
 
             {/* Mobile Menu Toggle */}
-            <button className="md:hidden p-2" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Toggle menu">
-              {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            <button
+              className="md:hidden p-2"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
             </button>
           </div>
         </div>
@@ -137,7 +157,9 @@ export function Navbar() {
               if ("dropdown" in item && item.dropdown) {
                 return (
                   <div key={item.label} className="space-y-1">
-                    <div className="px-3 py-2 text-sm font-semibold text-muted-foreground">{item.label}</div>
+                    <div className="px-3 py-2 text-sm font-semibold text-muted-foreground">
+                      {item.label}
+                    </div>
                     {item.dropdown.map((subItem) => (
                       <Link
                         key={subItem.href}
@@ -153,7 +175,7 @@ export function Navbar() {
                       </Link>
                     ))}
                   </div>
-                )
+                );
               }
 
               return (
@@ -169,11 +191,11 @@ export function Navbar() {
                 >
                   {item.label}
                 </Link>
-              )
+              );
             })}
           </div>
         )}
       </div>
     </nav>
-  )
+  );
 }

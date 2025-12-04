@@ -28,22 +28,34 @@ export function Footer() {
             </h4>
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li>
-                <Link href="/courses" className="hover:text-primary-500 transition-colors">
+                <Link
+                  href="/user/courses"
+                  className="hover:text-primary-500 transition-colors"
+                >
                   Courses
                 </Link>
               </li>
               <li>
-                <Link href="/about/mission" className="hover:text-primary-500 transition-colors">
+                <Link
+                  href="/about/mission"
+                  className="hover:text-primary-500 transition-colors"
+                >
                   Mission
                 </Link>
               </li>
               <li>
-                <Link href="/about/approach" className="hover:text-primary-500 transition-colors">
+                <Link
+                  href="/about/approach"
+                  className="hover:text-primary-500 transition-colors"
+                >
                   Approach
                 </Link>
               </li>
               <li>
-                <Link href="/about/team" className="hover:text-primary-500 transition-colors">
+                <Link
+                  href="/about/team"
+                  className="hover:text-primary-500 transition-colors"
+                >
                   Our Team
                 </Link>
               </li>
@@ -52,25 +64,39 @@ export function Footer() {
 
           {/* Privacy and Terms */}
           <div>
-            <h4 className="font-bold text-foreground mb-4">Privacy and Terms</h4>
+            <h4 className="font-bold text-foreground mb-4">
+              Privacy and Terms
+            </h4>
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li>
-                <Link href="/community-guidelines" className="hover:text-primary-500 transition-colors">
+                <Link
+                  href="/community-guidelines"
+                  className="hover:text-primary-500 transition-colors"
+                >
                   Community Guidelines
                 </Link>
               </li>
               <li>
-                <Link href="/terms" className="hover:text-primary-500 transition-colors">
+                <Link
+                  href="/terms"
+                  className="hover:text-primary-500 transition-colors"
+                >
                   Terms of Service
                 </Link>
               </li>
               <li>
-                <Link href="/privacy" className="hover:text-primary-500 transition-colors">
+                <Link
+                  href="/privacy"
+                  className="hover:text-primary-500 transition-colors"
+                >
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link href="/cookies" className="hover:text-primary-500 transition-colors">
+                <Link
+                  href="/cookies"
+                  className="hover:text-primary-500 transition-colors"
+                >
                   Cookie Policy
                 </Link>
               </li>
@@ -82,17 +108,26 @@ export function Footer() {
             <h4 className="font-bold text-foreground mb-4">Support</h4>
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li>
-                <Link href="/help" className="hover:text-primary-500 transition-colors">
+                <Link
+                  href="/help"
+                  className="hover:text-primary-500 transition-colors"
+                >
                   Help Center
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="hover:text-primary-500 transition-colors">
+                <Link
+                  href="/contact"
+                  className="hover:text-primary-500 transition-colors"
+                >
                   Contact Us
                 </Link>
               </li>
               <li>
-                <Link href="/feedback" className="hover:text-primary-500 transition-colors">
+                <Link
+                  href="/feedback"
+                  className="hover:text-primary-500 transition-colors"
+                >
                   Send Feedback
                 </Link>
               </li>
@@ -160,36 +195,45 @@ export function Footer() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Copyright & Registration */}
             <div className="text-sm text-muted-foreground space-y-2">
-              <p className="font-bold text-foreground">Copyright © {new Date().getFullYear()} DAILYENG</p>
-              <p>Mã số thuế: 0106799375, do Sở Kế hoạch và Đầu tư TP. Hà Nội cấp ngày 24/03/2015</p>
+              <p className="font-bold text-foreground">
+                Copyright © {new Date().getFullYear()} DAILYENG
+              </p>
               <p>
-                Quyết định thành lập Trung tâm Ngoại ngữ DAILYENG, số 3920 do Sở Giáo dục và Đào tạo Hà Nội cấp ngày
-                9/9/2019
+                Mã số thuế: 0106799375, do Sở Kế hoạch và Đầu tư TP. Hà Nội cấp
+                ngày 24/03/2015
+              </p>
+              <p>
+                Quyết định thành lập Trung tâm Ngoại ngữ DAILYENG, số 3920 do Sở
+                Giáo dục và Đào tạo Hà Nội cấp ngày 9/9/2019
               </p>
             </div>
 
             {/* Company Addresses */}
             <div className="text-sm">
               <p className="font-bold text-foreground mb-3">
-                Công ty cổ phần công nghệ Daily<span className="text-primary-600">Eng</span>
+                Công ty cổ phần công nghệ Daily
+                <span className="text-primary-600">Eng</span>
               </p>
               <ul className="space-y-2 text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-primary-500" />
                   <span>
-                    <strong>Trụ sở:</strong> Số 49 Galaxy 3, Vạn Phúc, Hà Đông, Hà Nội.
+                    <strong>Trụ sở:</strong> Số 49 Galaxy 3, Vạn Phúc, Hà Đông,
+                    Hà Nội.
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-primary-500" />
                   <span>
-                    <strong>Cơ sở 2:</strong> Nhà liền kề số 03 VNT TOWER, Số 19 Nguyễn Trãi, Thanh Xuân, Hà Nội
+                    <strong>Cơ sở 2:</strong> Nhà liền kề số 03 VNT TOWER, Số 19
+                    Nguyễn Trãi, Thanh Xuân, Hà Nội
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <MapPin className="h-4 w-4 mt-0.5 shrink-0 text-primary-500" />
                   <span>
-                    <strong>Cơ sở 3:</strong> Số 457 Hoàng Quốc Việt, Cổ Nhuế, Bắc Từ Liêm, Hà Nội
+                    <strong>Cơ sở 3:</strong> Số 457 Hoàng Quốc Việt, Cổ Nhuế,
+                    Bắc Từ Liêm, Hà Nội
                   </span>
                 </li>
               </ul>
@@ -198,5 +242,5 @@ export function Footer() {
         </div>
       </div>
     </footer>
-  )
+  );
 }

@@ -81,19 +81,19 @@ export function UserProfileSidebar({ activePage = "dashboard" }: UserProfileSide
           <NavButton
             icon={<BookOpen size={16} />}
             label="Collections"
-            href="/collections"
+            href="/user/collections"
             active={activePage === "collections"}
           />
           <NavButton
             icon={<LayoutDashboard size={16} />}
             label="Dashboard"
-            href="/dashboard"
+            href="/user/dashboard"
             active={activePage === "dashboard"}
           />
           <NavButton
             icon={<Target size={16} />}
             label="Registered Courses"
-            href="/courses"
+            href="/user/courses"
             active={activePage === "courses"}
           />
 
@@ -105,25 +105,25 @@ export function UserProfileSidebar({ activePage = "dashboard" }: UserProfileSide
           <NavButton
             icon={<UserIcon size={16} />}
             label="Profile"
-            href="/profile"
+            href="/user/profile"
             active={activePage === "profile"}
           />
           <NavButton
             icon={<Bell size={16} />}
             label="Notification"
-            href="/notifications"
+            href="/user/notifications"
             active={activePage === "notifications"}
           />
           <NavButton
             icon={<Settings size={16} />}
             label="Settings"
-            href="/settings"
+            href="/user/settings"
             active={activePage === "settings"}
           />
           <NavButton
             icon={<HeartHandshake size={16} />}
             label="Support"
-            href="/support"
+            href="/user/support"
             active={activePage === "supports"}
           />
 
@@ -138,5 +138,5 @@ export function UserProfileSidebar({ activePage = "dashboard" }: UserProfileSide
         </div>
       </div>
     </Card>
-  )
+  );
 }
