@@ -10,6 +10,7 @@
  * npx tsx prisma/seed.ts
  * hoặc
  * npm run db:seed
+ * test 
  */
 
 import { PrismaClient } from '../lib/generated/prisma'
