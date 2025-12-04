@@ -7,7 +7,7 @@
  * - Turns (hội thoại) cho mỗi session
  */
 
-import { PrismaClient } from '../lib/generated/prisma'
+import { PrismaClient } from "../src/lib/generated/prisma";
 
 const prisma = new PrismaClient()
 
