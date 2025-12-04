@@ -29,3 +29,5 @@ next-env.d.ts
 
 _docs/
 .vscode/
+
+data/
