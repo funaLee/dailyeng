@@ -15,7 +15,7 @@ export type StudyPlanData = z.infer<typeof StudyPlanDataSchema>
 export async function createStudyPlanAction(data: StudyPlanData) {
   try {
     // Validate input data
-    const validatedData = StudyPlanDataSchema.parse(data)
+    const validatedData = StudyPlanDataSchema.parse(data);
 
     // In a real app, this would save to Prisma database:
     // const plan = await prisma.studyPlan.create({
@@ -36,15 +36,15 @@ export async function createStudyPlanAction(data: StudyPlanData) {
       ...validatedData,
       createdAt: new Date(),
       tasks: [],
-    }
+    };
 
-    // Simulate database delay
-    await new Promise((resolve) => setTimeout(resolve, 500))
+    // Simulate database delayyy
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     return {
       success: true,
       plan,
-    }
+    };
   } catch (error) {
     console.error("Error creating study plan:", error)
 
