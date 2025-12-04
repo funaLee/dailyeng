@@ -229,7 +229,7 @@ export default function HomePage() {
 
               <RevealOnScroll delay={100}>
                 <h1 className="text-6xl sm:text-7xl lg:text-7xl xl:text-8xl font-bold mb-6 leading-[1.1] tracking-tight text-gray-700">
-                  Daily<span className="text-primary-600">Eng</span>
+                  Daily<span className="text-primary">Eng</span>
                 </h1>
               </RevealOnScroll>
 
@@ -360,7 +360,7 @@ export default function HomePage() {
             {/* Quote Card */}
             <RevealOnScroll delay={200}>
               <Card className="bg-gray-50 border border-gray-200 p-6 shadow-lg rounded-2xl relative flex flex-col justify-center group hover:border-primary-200 transition-colors h-full cursor-pointer">
-                <Quote className="absolute top-4 right-4 w-10 h-10 text-primary-100 -z-0 rotate-12" />
+                <Quote className="absolute top-4 right-4 w-10 h-10 text-primary-100 z-0 rotate-12" />
                 <div className="relative z-10">
                   <div className="mb-4 flex gap-1">
                     {[...Array(5)].map((_, i) => (
@@ -697,7 +697,7 @@ export default function HomePage() {
 
       {/* Reviews Dialog */}
       <Dialog open={showReviewsDialog} onOpenChange={setShowReviewsDialog}>
-        <DialogContent className="!max-w-[1400px] w-[95vw] max-h-[90vh] overflow-y-auto p-0">
+        <DialogContent className="max-w-[1400px]! w-[95vw] max-h-[90vh] overflow-y-auto p-0">
           <div className="relative">
             {/* Header */}
             <div className="sticky top-0 z-10 bg-white border-b px-10 py-6">
@@ -720,7 +720,7 @@ export default function HomePage() {
 
             {/* Current Review Card */}
             <div className="p-10">
-              <div className="bg-gradient-to-br from-primary-50 to-gray-50 rounded-3xl p-10">
+              <div className="bg-linear-to-br from-primary-50 to-gray-50 rounded-3xl p-10">
                 <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
                   {/* Left Column - Photo and Result (2 cols) */}
                   <div className="lg:col-span-2">
@@ -732,7 +732,7 @@ export default function HomePage() {
                         fill
                         className="object-cover"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                      <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
                       <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between">
                         <Quote className="w-10 h-10 text-white/70" />
                         {/* Result badge on photo */}
@@ -760,7 +760,7 @@ export default function HomePage() {
                         <div className="flex-1 mx-4">
                           <div className="h-2 bg-gray-200 rounded-full relative">
                             <div
-                              className="absolute inset-y-0 left-0 bg-gradient-to-r from-gray-400 to-primary-600 rounded-full"
+                              className="absolute inset-y-0 left-0 bg-linear-to-r from-gray-400 to-primary-600 rounded-full"
                               style={{ width: "100%" }}
                             />
                             <ArrowRight className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-5 h-5 text-primary-600" />
@@ -783,7 +783,7 @@ export default function HomePage() {
                   <div className="lg:col-span-3 flex flex-col">
                     {/* Top section with avatar and basic info */}
                     <div className="flex items-start gap-5 mb-6">
-                      <div className="relative flex-shrink-0">
+                      <div className="relative shrink-0">
                         <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-xl">
                           <Image
                             src={reviews[currentReviewIndex].avatar || "/placeholder.svg"}
@@ -897,7 +897,8 @@ export default function HomePage() {
                     <Link href="/placement-test" className="cursor-pointer">
                       <Button
                         size="lg"
-                        className="bg-secondary-500 hover:bg-secondary-600 text-white px-8 py-6 rounded-full shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-lg font-semibold group cursor-pointer"
+                        variant={"secondary"}
+                        className="bg-secondary-200 hover:bg-secondary-300 text-secondary-800 px-8 py-6 rounded-full hover:-translate-y-0.5 transition-all text-lg font-semibold group cursor-pointer"
                       >
                         Take the Test
                         <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -913,7 +914,7 @@ export default function HomePage() {
                 {/* Right Image */}
                 <div className="relative h-64 md:h-auto min-h-[300px] bg-primary-50">
                   <Image src="/learning.png" alt="English Level Test" fill className="object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-l from-white/20 to-transparent" />
+                  <div className="absolute inset-0 bg-linear-to-t md:bg-linear-to-l from-white/20 to-transparent" />
 
                   {/* Floating badges */}
                   <div className="absolute top-6 right-6 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg cursor-pointer hover:shadow-xl transition-shadow">
@@ -935,10 +936,10 @@ export default function HomePage() {
       </section>
 
       {/* Build Study Plan Section */}
-      <section className="py-24 bg-gradient-to-br from-primary-200 via-primary-100 to-accent-50 relative overflow-hidden">
+      <section className="py-24 bg-linear-to-br from-primary-200 via-primary-100 to-accent-50 relative overflow-hidden">
         {/* Background decorations */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-primary-200/30 to-accent-200/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-primary-200/30 to-secondary-200/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-linear-to-br from-primary-200/30 to-accent-200/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-80 h-80 bg-linear-to-tr from-primary-200/30 to-secondary-200/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -951,7 +952,7 @@ export default function HomePage() {
 
               <h2 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
                 Build Your
-                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-accent-500">
+                <span className="block text-transparent bg-clip-text bg-linear-to-r from-primary-600 to-accent-500">
                   Study Plan
                 </span>
               </h2>
@@ -965,7 +966,7 @@ export default function HomePage() {
                 <Link href="/build-plan">
                   <Button
                     size="lg"
-                    className="px-8 py-6 text-lg rounded-full bg-gradient-to-r from-primary-600 to-primary-600 hover:from-primary-600 hover:to-primary-700 shadow-lg cursor-pointer"
+                    className="px-8 py-6 text-lg rounded-full cursor-pointer"
                   >
                     Build My Plan
                     <ArrowRight className="w-5 h-5 ml-2" />

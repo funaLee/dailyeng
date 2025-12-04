@@ -137,19 +137,12 @@ const mockScenarios: Scenario[] = [
   },
 ]
 
-const DEMO_TOPICS = [
-  { title: "Space", score: 95 },
-  { title: "Magic", score: 92 },
-  { title: "Future Tech", score: 93 },
-  { title: "Shopping", score: 85 },
-  { title: "Travel", score: 83 },
-  { title: "Business", score: 88 },
-  { title: "Healthcare", score: 72 },
-  { title: "Education", score: 68 },
-  { title: "Sports", score: 75 },
-  { title: "Interviews", score: 52 },
-  { title: "Presentations", score: 48 },
-  { title: "Negotiations", score: 55 },
+const DEMO_CRITERIA = [
+  { title: "Vocabulary", score: 95 },
+  { title: "Grammar", score: 92 },
+  { title: "Pronounciation", score: 93 },
+  { title: "Fluency", score: 85 },
+  { title: "Coherence", score: 83 }
 ]
 
 const HISTORY_GRAPH_DATA = Array.from({ length: 50 }, (_, i) => ({
@@ -557,9 +550,12 @@ export default function SpeakingPage() {
                 </Card>
 
                 <Card className="p-6 rounded-3xl border-2 border-primary-100">
-                  <h3 className="text-lg font-bold mb-4">Topic Performance</h3>
-                  <div className="h-64">
-                    <RadarChart data={DEMO_TOPICS.map((t) => ({ label: t.title, value: t.score }))} />
+                  <h3 className="text-lg font-bold mb-4">Criteria Score</h3>
+                  <div className="h-64 w-full flex items-center justify-center">
+                    <RadarChart 
+                      data={DEMO_CRITERIA.map((t) => ({ label: t.title, value: t.score }))} 
+                      size={300}
+                    />
                   </div>
                 </Card>
               </div>

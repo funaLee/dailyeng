@@ -16,11 +16,11 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { href: "/", label: "Home" },
+  { href: "/plan", label: "Study Plan" },
   { href: "/speaking", label: "Speaking Room" },
   { href: "/vocab", label: "Vocabulary Hub" },
   { href: "/grammar", label: "Grammar Hub" },
   { href: "/notebook", label: "Notebook" },
-  { href: "/plan", label: "Study Plan" },
 ]
 
 export function Navbar() {

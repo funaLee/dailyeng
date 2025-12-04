@@ -87,7 +87,7 @@ export function TopicCard({
       </button>
 
       <div className="p-4 pt-0 pb-0">
-        <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl">
+        <div className="relative aspect-video w-full overflow-hidden rounded-xl">
           <Image
             src={thumbnail || "/placeholder.svg"}
             alt={title}
@@ -124,7 +124,7 @@ export function TopicCard({
           {title}
         </h4>
 
-        <p className="text-sm text-slate-500 mb-4 line-clamp-2 leading-relaxed min-h-[2.75rem]">{description}</p>
+        <p className="text-sm text-slate-500 mb-4 line-clamp-2 leading-relaxed min-h-11">{description}</p>
 
         <div className="flex items-center gap-3 mt-auto">
           <Button

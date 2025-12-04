@@ -583,8 +583,9 @@ export default function BuildPlanPage() {
 
             <Button
               size="lg"
+              variant={"default"}
               onClick={() => setStage("questions")}
-              className="bg-primary-500 hover:bg-primary-600 text-white px-8 py-6 text-lg rounded-xl shadow-lg hover:shadow-xl transition-all"
+              className="bg-primary-400 hover:bg-primary-500 text-white px-8 py-6 text-lg rounded-xl transition-all"
             >
               Start Building My Plan
               <ArrowRight className="ml-2 w-5 h-5" />

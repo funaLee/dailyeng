@@ -56,7 +56,7 @@ export function HubHero({
           </div>
         )}
       </div>
-      <div className="absolute right-0 top-0 h-full w-1/2 bg-gradient-to-br from-primary-200/50 to-primary-400/30 rounded-lg pointer-events-none">
+      <div className="absolute right-0 top-0 h-full w-1/2 bg-linear-to-br from-primary-200/50 to-primary-400/30 rounded-lg pointer-events-none">
         {decorativeWords[0] && (
           <div className="absolute right-12 top-12 text-primary-500/20 text-6xl font-bold rotate-12">
             {decorativeWords[0]}
