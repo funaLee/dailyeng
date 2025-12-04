@@ -75,7 +75,7 @@
   --info-300: #154aa0;
 
   /* Alias for compatibility */
-  --primary: var(--primary-500);
+  --primary: var(--primary-600);
   --primary-foreground: #ffffff;
   --secondary: var(--secondary-500);
   --secondary-foreground: #ffffff;

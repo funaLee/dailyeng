@@ -40,7 +40,7 @@ export function HubHero({
         <h1 className="text-4xl font-bold mb-2">{title}</h1>
         <p className="text-muted-foreground mb-6">{description}</p>
         <div className="flex flex-wrap gap-3 mb-4">
-          {primaryAction && <Button variant="default" className="border-2px gap-2 cursor-pointer">{primaryAction.label}</Button>}
+          {primaryAction && <Button variant="default" className="gap-2 cursor-pointer">{primaryAction.label}</Button>}
           {secondaryAction && (
             <Button variant="outline" className="gap-2 bg-transparent cursor-pointer">
               {secondaryAction.label}

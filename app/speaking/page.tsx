@@ -437,7 +437,7 @@ export default function SpeakingPage() {
               {bookmarkedTopicsList.length > 0 ? (
                 <>
                   <div className="flex items-center gap-3 mb-6">
-                    <Bookmark className="h-6 w-6 text-primary-500 fill-primary-500" />
+                    <Bookmark className="h-6 w-6 text-primary-600 fill-primary-600" />
                     <h2 className="text-xl font-bold text-foreground">
                       Your Bookmarked Topics ({bookmarkedTopicsList.length})
                     </h2>
@@ -478,7 +478,7 @@ export default function SpeakingPage() {
           )}
 
           {activeTab === "custom" && (
-            <Card className="p-8 rounded-3xl border-2 border-blue-100 dark:border-blue-900/50">
+            <Card className="p-8 rounded-3xl border-2 border-primary-100">
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h3 className="text-xl font-bold mb-1">Create Custom Topic</h3>
@@ -493,30 +493,30 @@ export default function SpeakingPage() {
               </div>
 
               <div className="grid md:grid-cols-3 gap-6">
-                <Card className="p-6 rounded-2xl border-2 border-dashed border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/20 hover:border-blue-400 dark:hover:border-blue-600 transition-colors cursor-pointer group">
+                <Card className="p-6 rounded-2xl border-2 border-dashed border-primary-200 bg-primary-50/50 hover:border-primary-400 transition-colors cursor-pointer group">
                   <div className="text-center">
-                    <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors">
-                      <MessageSquarePlus className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                    <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-primary-100 flex items-center justify-center group-hover:bg-primary-200 transition-colors">
+                      <MessageSquarePlus className="h-6 w-6 text-primary-600" />
                     </div>
                     <h4 className="font-bold mb-2">Role Play</h4>
                     <p className="text-sm text-muted-foreground">Create a custom role-play scenario</p>
                   </div>
                 </Card>
 
-                <Card className="p-6 rounded-2xl border-2 border-dashed border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/20 hover:border-blue-400 dark:hover:border-blue-600 transition-colors cursor-pointer group">
+                <Card className="p-6 rounded-2xl border-2 border-dashed border-primary-200 bg-primary-50/50 hover:border-primary-400 transition-colors cursor-pointer group">
                   <div className="text-center">
-                    <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors">
-                      <Gift className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                    <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-primary-100 flex items-center justify-center group-hover:bg-primary-200 transition-colors">
+                      <Gift className="h-6 w-6 text-primary-600" />
                     </div>
                     <h4 className="font-bold mb-2">Topic Discussion</h4>
                     <p className="text-sm text-muted-foreground">Discuss any topic of your choice</p>
                   </div>
                 </Card>
 
-                <Card className="p-6 rounded-2xl border-2 border-dashed border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/20 hover:border-blue-400 dark:hover:border-blue-600 transition-colors cursor-pointer group">
+                <Card className="p-6 rounded-2xl border-2 border-dashed border-primary-200 bg-primary-50/50 hover:border-primary-400 transition-colors cursor-pointer group">
                   <div className="text-center">
-                    <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors">
-                      <Play className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                    <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-primary-100 flex items-center justify-center group-hover:bg-primary-200 transition-colors">
+                      <Play className="h-6 w-6 text-primary-600" />
                     </div>
                     <h4 className="font-bold mb-2">Free Practice</h4>
                     <p className="text-sm text-muted-foreground">Open conversation with AI tutor</p>
@@ -529,7 +529,7 @@ export default function SpeakingPage() {
           {activeTab === "history" && (
             <div className="space-y-8">
               <div className="grid lg:grid-cols-2 gap-8">
-                <Card className="p-6 rounded-3xl border-2 border-blue-100 dark:border-blue-900/50">
+                <Card className="p-6 rounded-3xl border-2 border-primary-100">
                   <h3 className="text-lg font-bold mb-4">Performance Overview</h3>
                   <div className="h-64">
                     <ResponsiveContainer width="100%" height="100%">
@@ -556,7 +556,7 @@ export default function SpeakingPage() {
                   </div>
                 </Card>
 
-                <Card className="p-6 rounded-3xl border-2 border-blue-100 dark:border-blue-900/50">
+                <Card className="p-6 rounded-3xl border-2 border-primary-100">
                   <h3 className="text-lg font-bold mb-4">Topic Performance</h3>
                   <div className="h-64">
                     <RadarChart data={DEMO_TOPICS.map((t) => ({ label: t.title, value: t.score }))} />
@@ -564,7 +564,7 @@ export default function SpeakingPage() {
                 </Card>
               </div>
 
-              <Card className="p-6 rounded-3xl border-2 border-blue-100 dark:border-blue-900/50">
+              <Card className="p-6 rounded-3xl border-2 border-primary-100">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-bold">Session History</h3>
                   <div className="flex gap-2">
@@ -589,7 +589,7 @@ export default function SpeakingPage() {
                   {currentHistoryItems.map((item) => (
                     <Card
                       key={item.id}
-                      className="p-4 rounded-2xl border-2 border-blue-100 dark:border-blue-900/50 hover:shadow-lg transition-all cursor-pointer"
+                      className="p-4 rounded-2xl border-2 border-primary-100 hover:shadow-lg transition-all cursor-pointer"
                     >
                       <div className="relative aspect-video w-full overflow-hidden rounded-xl mb-3">
                         <Image src={item.image || "/placeholder.svg"} alt={item.title} fill className="object-cover" />
@@ -599,7 +599,7 @@ export default function SpeakingPage() {
                               item.score >= 90
                                 ? "bg-green-500"
                                 : item.score >= 80
-                                  ? "bg-blue-500"
+                                  ? "bg-primary-600"
                                   : item.score >= 60
                                     ? "bg-yellow-500"
                                     : "bg-red-500"

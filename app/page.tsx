@@ -223,20 +223,20 @@ export default function HomePage() {
             {/* Left Content */}
             <div className="pointer-events-none flex flex-col items-center lg:items-start text-center lg:text-left">
               <RevealOnScroll className="inline-flex items-center gap-2 bg-primary-50 text-primary-700 text-sm font-semibold px-4 py-1.5 rounded-full mb-6 border border-primary-100 shadow-sm cursor-pointer hover:bg-primary-100 transition-colors">
-                <Sparkles className="w-4 h-4 fill-primary-400 text-primary-500" />
+                <Sparkles className="w-4 h-4 fill-primary-400 text-primary-600" />
                 <span>The #1 AI-Powered English Platform</span>
               </RevealOnScroll>
 
               <RevealOnScroll delay={100}>
                 <h1 className="text-6xl sm:text-7xl lg:text-7xl xl:text-8xl font-bold mb-6 leading-[1.1] tracking-tight text-gray-700">
-                  Daily<span className="text-primary-500">Eng</span>
+                  Daily<span className="text-primary-600">Eng</span>
                 </h1>
               </RevealOnScroll>
 
               <RevealOnScroll delay={200}>
                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-medium mb-6 leading-relaxed text-gray-500">
                   Master English the <br className="hidden lg:block" />
-                  <span className="text-primary-500 font-semibold">Smart & Fun Way!</span>
+                  <span className="text-primary-600 font-semibold">Smart & Fun Way!</span>
                 </h2>
               </RevealOnScroll>
 
@@ -255,7 +255,7 @@ export default function HomePage() {
                   <Button
                     size="lg"
                     variant="default"
-                    className="w-full sm:w-auto bg-primary-400 hover:bg-primary-500 text-white px-8 py-6 rounded-full text-lg font-bold border-2 border-primary-700 cursor-pointer"
+                    className="w-full sm:w-auto bg-primary-400 hover:bg-primary-600 text-white px-8 py-6 rounded-full text-lg font-bold cursor-pointer"
                   >
                     Start Learning Free
                   </Button>
@@ -327,7 +327,7 @@ export default function HomePage() {
           <div className="grid md:grid-cols-2 gap-6">
             {/* Rating Card */}
             <RevealOnScroll>
-              <Card className="bg-primary-500 text-white border-0 p-6 shadow-xl rounded-2xl relative overflow-hidden group transition-transform hover:scale-[1.02] h-full cursor-pointer">
+              <Card className="bg-primary-600 text-white border-0 p-6 shadow-xl rounded-2xl relative overflow-hidden group transition-transform hover:scale-[1.02] h-full cursor-pointer">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-12 -mt-12 blur-2xl group-hover:bg-white/20 transition-colors"></div>
                 <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary-400/20 rounded-full -ml-10 -mb-10 blur-xl"></div>
 
@@ -364,7 +364,7 @@ export default function HomePage() {
                 <div className="relative z-10">
                   <div className="mb-4 flex gap-1">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-primary-500 text-primary-500" />
+                      <Star key={i} className="h-4 w-4 fill-primary-600 text-primary-600" />
                     ))}
                   </div>
                   <p className="text-gray-900 text-lg font-medium leading-relaxed mb-6">
@@ -372,12 +372,12 @@ export default function HomePage() {
                     incredibly realistic."
                   </p>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-linear-to-br from-primary-500 to-secondary-500 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md">
+                    <div className="w-10 h-10 bg-linear-to-br from-primary-600 to-secondary-500 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md">
                       TT
                     </div>
                     <div>
                       <div className="font-bold text-gray-900 text-sm">Thanh Truc</div>
-                      <div className="text-primary-500 text-xs font-medium">Software Engineer</div>
+                      <div className="text-primary-600 text-xs font-medium">Software Engineer</div>
                     </div>
                   </div>
                 </div>
@@ -402,7 +402,7 @@ export default function HomePage() {
             <RevealOnScroll className="md:col-span-2">
               <Card className="h-full bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all p-8 rounded-3xl flex flex-col md:flex-row items-center gap-8 overflow-hidden group cursor-pointer">
                 <div className="flex-1 z-10">
-                  <div className="w-12 h-12 bg-primary-100 text-primary-500 rounded-2xl flex items-center justify-center mb-6">
+                  <div className="w-12 h-12 bg-primary-100 text-primary-600 rounded-2xl flex items-center justify-center mb-6">
                     <Mic className="w-6 h-6" />
                   </div>
                   <h3 className="text-2xl font-bold mb-4">Speak From Day One</h3>
@@ -524,8 +524,8 @@ export default function HomePage() {
                   <div
                     className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
                       activeTab === tab.id
-                        ? "bg-primary-500 text-white shadow-md"
-                        : "bg-white text-gray-400 border border-gray-200 group-hover:border-primary-200 group-hover:text-primary-500"
+                        ? "bg-primary-600 text-white shadow-md"
+                        : "bg-white text-gray-400 border border-gray-200 group-hover:border-primary-200 group-hover:text-primary-600"
                     }`}
                   >
                     {tab.icon}
@@ -537,10 +537,10 @@ export default function HomePage() {
                       {tab.label}
                     </h3>
                     {activeTab === tab.id && (
-                      <p className="text-sm text-primary-500 mt-1 font-medium animate-fade-in">Active Feature</p>
+                      <p className="text-sm text-primary-600 mt-1 font-medium animate-fade-in">Active Feature</p>
                     )}
                   </div>
-                  {activeTab === tab.id && <ChevronRight className="ml-auto w-5 h-5 text-primary-500" />}
+                  {activeTab === tab.id && <ChevronRight className="ml-auto w-5 h-5 text-primary-600" />}
                 </button>
               ))}
             </div>
@@ -571,7 +571,7 @@ export default function HomePage() {
                       <p className="text-lg text-gray-600 leading-relaxed">{tab.description}</p>
                       <div className="flex gap-4 mt-6">
                         <Button
-                          className="rounded-full px-6 bg-primary-500 hover:bg-primary-600 cursor-pointer"
+                          className="rounded-full px-6 bg-primary-600 hover:bg-primary-600 cursor-pointer"
                           onClick={() => (window.location.href = "/auth/signup")}
                         >
                           Try for free
@@ -652,12 +652,12 @@ export default function HomePage() {
                   className="p-6 border-0 shadow-sm bg-white rounded-2xl cursor-pointer hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-full bg-primary-50 text-primary-500 flex items-center justify-center font-bold text-sm">
+                    <div className="w-10 h-10 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center font-bold text-sm">
                       {review.name.charAt(0)}
                     </div>
                     <div>
                       <p className="font-semibold text-sm text-gray-900">{review.name}</p>
-                      <p className="text-xs text-primary-500 bg-primary-50 px-2 py-0.5 rounded-full inline-block">
+                      <p className="text-xs text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full inline-block">
                         Verified Student
                       </p>
                     </div>
@@ -711,7 +711,7 @@ export default function HomePage() {
                     key={idx}
                     onClick={() => setCurrentReviewIndex(idx)}
                     className={`h-2.5 rounded-full transition-all cursor-pointer ${
-                      idx === currentReviewIndex ? "bg-primary-500 w-8" : "bg-gray-300 hover:bg-gray-400 w-2.5"
+                      idx === currentReviewIndex ? "bg-primary-600 w-8" : "bg-gray-300 hover:bg-gray-400 w-2.5"
                     }`}
                   />
                 ))}
@@ -760,15 +760,15 @@ export default function HomePage() {
                         <div className="flex-1 mx-4">
                           <div className="h-2 bg-gray-200 rounded-full relative">
                             <div
-                              className="absolute inset-y-0 left-0 bg-gradient-to-r from-gray-400 to-primary-500 rounded-full"
+                              className="absolute inset-y-0 left-0 bg-gradient-to-r from-gray-400 to-primary-600 rounded-full"
                               style={{ width: "100%" }}
                             />
-                            <ArrowRight className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-5 h-5 text-primary-500" />
+                            <ArrowRight className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-5 h-5 text-primary-600" />
                           </div>
                         </div>
                         <div className="text-center">
                           <p className="text-sm text-gray-500 mb-1">After</p>
-                          <p className="text-2xl font-bold text-primary-500">
+                          <p className="text-2xl font-bold text-primary-600">
                             {reviews[currentReviewIndex].result.score}
                           </p>
                         </div>
@@ -856,7 +856,7 @@ export default function HomePage() {
 
                 <Button
                   onClick={nextReview}
-                  className="bg-primary-500 hover:bg-primary-600 text-white cursor-pointer px-6 py-5"
+                  className="bg-primary-600 hover:bg-primary-600 text-white cursor-pointer px-6 py-5"
                 >
                   Next
                   <ChevronRight className="w-5 h-5 ml-2" />
@@ -951,7 +951,7 @@ export default function HomePage() {
 
               <h2 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
                 Build Your
-                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-accent-500">
+                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-accent-500">
                   Study Plan
                 </span>
               </h2>
@@ -965,7 +965,7 @@ export default function HomePage() {
                 <Link href="/build-plan">
                   <Button
                     size="lg"
-                    className="px-8 py-6 text-lg rounded-full bg-gradient-to-r from-primary-500 to-primary-600 hover:from-primary-600 hover:to-primary-700 shadow-lg cursor-pointer"
+                    className="px-8 py-6 text-lg rounded-full bg-gradient-to-r from-primary-600 to-primary-600 hover:from-primary-600 hover:to-primary-700 shadow-lg cursor-pointer"
                   >
                     Build My Plan
                     <ArrowRight className="w-5 h-5 ml-2" />
@@ -1012,7 +1012,7 @@ export default function HomePage() {
                     </div>
                   </div>
 
-                  <Progress value={10} className="h-2 [&>div]:bg-primary-500" />
+                  <Progress value={10} className="h-2 [&>div]:bg-primary-600" />
 
                   <div>
                     <h3 className="font-semibold text-gray-900">What is your primary goal?</h3>
@@ -1023,7 +1023,7 @@ export default function HomePage() {
                             key={option}
                             className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
                               idx === 0
-                                ? "border-primary-500 bg-primary-50"
+                                ? "border-primary-600 bg-primary-50"
                                 : "border-gray-200 hover:border-primary-300"
                             }`}
                           >
@@ -1031,7 +1031,7 @@ export default function HomePage() {
                               <div
                                 className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                                   idx === 0
-                                    ? "border-primary-500 bg-primary-500"
+                                    ? "border-primary-600 bg-primary-600"
                                     : "border-gray-300"
                                 }`}
                               >
@@ -1056,7 +1056,7 @@ export default function HomePage() {
               </div>
 
               {/* Floating elements */}
-              <div className="absolute -top-4 -right-4 bg-primary-500 text-white rounded-2xl p-4 shadow-lg cursor-pointer">
+              <div className="absolute -top-4 -right-4 bg-primary-600 text-white rounded-2xl p-4 shadow-lg cursor-pointer">
                 <BookOpen className="w-6 h-6" />
               </div>
               <div className="absolute -bottom-4 -left-4 bg-accent-500 text-white rounded-2xl p-4 shadow-lg cursor-pointer">
