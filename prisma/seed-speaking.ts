@@ -4,7 +4,7 @@
  * Tạo đầy đủ 24 speaking scenarios theo 6 categories
  */
 
-import { PrismaClient } from '../lib/generated/prisma'
+import { PrismaClient } from "../src/lib/generated/prisma";
 
 const prisma = new PrismaClient()
 
