@@ -143,14 +143,7 @@ export default function StudyPlanPage() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="space-y-8">
           {/* 1. Header Section */}
-          <HubHero
-            title="YOUR STUDY PLAN"
-            description="Practice real conversations with AI tutors and get instant feedback on your pronunciation, fluency, grammar, and content."
-            primaryAction={{ label: "See All Study Plan" }}
-            secondaryAction={{ label: "Add Study Plan" }}
-            notification={{ text: "You have 2 lessons to complete today", actionLabel: "Learning now" }}
-            decorativeWords={["study", "plan", "learning"]}
-          />
+
 
           {/* 2. This week's plan Section */}
           <Card className="p-6 border-primary-200 shadow-md">
@@ -292,7 +285,7 @@ export default function StudyPlanPage() {
               <div className="lg:col-span-5 flex flex-col">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-bold text-slate-800">Today&apos;s lesson</h3>
-                  <span className="bg-primary-100 text-primary-700 font-semibold text-xs px-2.5 py-1 rounded-full">
+                  <span className="bg-success-100 text-success-300 font-semibold text-xs px-2.5 py-1 rounded-full">
                     Complete {completedLessons.length}/{todayLessons.length}
                   </span>
                 </div>
@@ -306,15 +299,15 @@ export default function StudyPlanPage() {
                         onClick={() => toggleLesson(lesson.id)}
                         className={`relative flex items-start gap-4 p-4 border rounded-xl transition-all cursor-pointer group ${
                           isCompleted
-                            ? "bg-primary-50 border-primary-200"
-                            : "bg-white border-gray-100 hover:border-primary-300 hover:shadow-md"
+                            ? "bg-success-100 border-2 border-success-200"
+                            : "bg-white border-primary-200 border-2 hover:border-primary-300 hover:shadow-md"
                         }`}
                       >
                         <div className="mt-1">
                           <div
                             className={`h-5 w-5 rounded border flex items-center justify-center transition-colors ${
                               isCompleted
-                                ? "bg-primary-500 border-primary-500"
+                                ? "bg-success-300 border-success-300"
                                 : "border-gray-300 group-hover:border-primary-400"
                             }`}
                           >
@@ -322,7 +315,7 @@ export default function StudyPlanPage() {
                           </div>
                         </div>
                         <div className="flex-1 space-y-1">
-                          <h4 className={`font-bold text-sm ${isCompleted ? "text-primary-900" : "text-slate-800"}`}>
+                          <h4 className={`font-bold text-sm ${isCompleted ? "text-success-300" : "text-primary-800"}`}>
                             {lesson.title}
                           </h4>
                           <p className="text-xs text-slate-500 whitespace-pre-line">{lesson.topic}</p>
