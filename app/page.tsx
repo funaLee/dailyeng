@@ -60,9 +60,8 @@ function RevealOnScroll({
   return (
     <div
       ref={ref}
-      className={`transition-all duration-1000 ease-out transform ${className} ${
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
-      }`}
+      className={`transition-all duration-1000 ease-out transform ${className} ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"
+        }`}
       style={{ transitionDelay: `${delay}ms` }}
     >
       {children}
@@ -517,16 +516,14 @@ export default function HomePage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`group flex items-center gap-4 p-4 rounded-2xl text-left transition-all duration-300 cursor-pointer ${
-                    activeTab === tab.id ? "bg-primary-50 ring-1 ring-primary-200 shadow-sm" : "hover:bg-gray-50"
-                  }`}
+                  className={`group flex items-center gap-4 p-4 rounded-2xl text-left transition-all duration-300 cursor-pointer ${activeTab === tab.id ? "bg-primary-50 ring-1 ring-primary-200 shadow-sm" : "hover:bg-gray-50"
+                    }`}
                 >
                   <div
-                    className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
-                      activeTab === tab.id
+                    className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${activeTab === tab.id
                         ? "bg-primary-500 text-white shadow-md"
                         : "bg-white text-gray-400 border border-gray-200 group-hover:border-primary-200 group-hover:text-primary-500"
-                    }`}
+                      }`}
                   >
                     {tab.icon}
                   </div>
@@ -551,11 +548,10 @@ export default function HomePage() {
                 {featureTabs.map((tab) => (
                   <div
                     key={tab.id}
-                    className={`absolute inset-2 bg-white rounded-4xl flex flex-col transition-all duration-500 ease-in-out ${
-                      activeTab === tab.id
+                    className={`absolute inset-2 bg-white rounded-4xl flex flex-col transition-all duration-500 ease-in-out ${activeTab === tab.id
                         ? "opacity-100 translate-y-0 z-10"
                         : "opacity-0 translate-y-8 z-0 pointer-events-none"
-                    }`}
+                      }`}
                   >
                     <div className="relative h-64 w-full overflow-hidden rounded-t-4xl">
                       <div className="absolute inset-0 bg-linear-to-b from-transparent to-black/60 z-10" />
@@ -710,9 +706,8 @@ export default function HomePage() {
                   <button
                     key={idx}
                     onClick={() => setCurrentReviewIndex(idx)}
-                    className={`h-2.5 rounded-full transition-all cursor-pointer ${
-                      idx === currentReviewIndex ? "bg-primary-500 w-8" : "bg-gray-300 hover:bg-gray-400 w-2.5"
-                    }`}
+                    className={`h-2.5 rounded-full transition-all cursor-pointer ${idx === currentReviewIndex ? "bg-primary-500 w-8" : "bg-gray-300 hover:bg-gray-400 w-2.5"
+                      }`}
                   />
                 ))}
               </div>
@@ -1021,19 +1016,17 @@ export default function HomePage() {
                         (option, idx) => (
                           <div
                             key={option}
-                            className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                              idx === 0
+                            className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${idx === 0
                                 ? "border-primary-500 bg-primary-50"
                                 : "border-gray-200 hover:border-primary-300"
-                            }`}
+                              }`}
                           >
                             <div className="flex items-center gap-3">
                               <div
-                                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                                  idx === 0
+                                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${idx === 0
                                     ? "border-primary-500 bg-primary-500"
                                     : "border-gray-300"
-                                }`}
+                                  }`}
                               >
                                 {idx === 0 && <Check className="w-3 h-3 text-white" />}
                               </div>
@@ -1178,5 +1171,6 @@ function UsersIcon({ className }: { className?: string }) {
       <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
       <path d="M16 3.13a4 4 0 0 1 0 7.75" />
     </svg>
+    // new code
   )
 }
