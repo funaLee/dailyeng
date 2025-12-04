@@ -2,6 +2,7 @@
 
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Check } from "lucide-react"
 
 export const CEFR_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"]
 
@@ -21,30 +22,35 @@ export function LevelsSidebar({
   badgeLabel = "CEFR",
 }: LevelsSidebarProps) {
   return (
-    <Card className="p-5 bg-primary-50 rounded-3xl border-[1.4px] border-primary-200 shadow-sm">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-bold text-base text-primary-900">{title}</h3>
-        <Badge variant="outline" className="text-xs">
-          {badgeLabel}
-        </Badge>
+    <Card className="p-6 bg-primary-100 rounded-3xl border-[1.4px] border-primary-200 shadow-md">
+      <div className="flex items-center justify-between mb-5">
+        <h3 className="font-bold text-lg text-primary-900">{title}</h3>
+        <Badge className="text-xs bg-primary-500 text-white border-0 px-3 py-1">{badgeLabel}</Badge>
       </div>
-      <div className="space-y-2.5">
-        {levels.map((level) => (
-          <label
-            key={level}
-            className="flex items-center gap-3 cursor-pointer group hover:bg-primary-100 p-1.5 rounded-md text-sm transition-colors -mx-1.5"
-          >
-            <div className="relative flex items-center">
-              <input
-                type="checkbox"
-                checked={selectedLevels.includes(level)}
-                onChange={() => onLevelToggle(level)}
-                className="peer h-4 w-4 rounded border-gray-300 text-primary-500 focus:ring-primary-500"
-              />
-            </div>
-            <span className="text-sm font-medium text-slate-700 group-hover:text-primary-800">{level} CEFR</span>
-          </label>
-        ))}
+      <div className="space-y-1.5">
+        {levels.map((level) => {
+          const isSelected = selectedLevels.includes(level)
+          return (
+            <button
+              key={level}
+              onClick={() => onLevelToggle(level)}
+              className={`w-full flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg text-sm transition-all border ${
+                isSelected
+                  ? "bg-primary-500 text-white border-primary-500"
+                  : "bg-white text-foreground hover:bg-primary-50 hover:border-primary-400 border-primary-200"
+              }`}
+            >
+              <div
+                className={`h-4 w-4 rounded flex items-center justify-center flex-shrink-0 transition-all ${
+                  isSelected ? "bg-white" : "border border-primary-300 bg-transparent"
+                }`}
+              >
+                {isSelected && <Check className="h-3 w-3 text-primary-500" />}
+              </div>
+              <span className="font-medium">{level} CEFR</span>
+            </button>
+          )
+        })}
       </div>
     </Card>
   )

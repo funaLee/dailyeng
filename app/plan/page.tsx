@@ -5,11 +5,10 @@ import Link from "next/link" // Added Link for navigation
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { Gift, Check, Edit2, PlayCircle, BookOpen, Mic, Brain, Target } from "lucide-react"
-import Image from "next/image"
+import { Gift, Check, Edit2, PlayCircle, BookOpen, Mic, Brain } from "lucide-react"
 import { ProtectedRoute, PageIcons } from "@/components/auth/protected-route"
 import { HubHero } from "@/components/hub"
-
+import { GamificationRoadmap } from "./components/gamification-roadmap"
 
 interface StudyPlan {
   id: string
@@ -144,14 +143,7 @@ export default function StudyPlanPage() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="space-y-8">
           {/* 1. Header Section */}
-          <HubHero
-            title="YOUR STUDY PLAN"
-            description="Practice real conversations with AI tutors and get instant feedback on your pronunciation, fluency, grammar, and content."
-            primaryAction={{ label: "See All Study Plan" }}
-            secondaryAction={{ label: "Add Study Plan" }}
-            notification={{ text: "You have 2 lessons to complete today", actionLabel: "Learning now" }}
-            decorativeWords={["study", "plan", "learning"]}
-          />
+
 
           {/* 2. This week's plan Section */}
           <Card className="p-6 border-primary-200 shadow-md">
@@ -293,7 +285,7 @@ export default function StudyPlanPage() {
               <div className="lg:col-span-5 flex flex-col">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-bold text-slate-800">Today&apos;s lesson</h3>
-                  <span className="bg-primary-100 text-primary-700 font-semibold text-xs px-2.5 py-1 rounded-full">
+                  <span className="bg-success-100 text-success-300 font-semibold text-xs px-2.5 py-1 rounded-full">
                     Complete {completedLessons.length}/{todayLessons.length}
                   </span>
                 </div>
@@ -307,15 +299,15 @@ export default function StudyPlanPage() {
                         onClick={() => toggleLesson(lesson.id)}
                         className={`relative flex items-start gap-4 p-4 border rounded-xl transition-all cursor-pointer group ${
                           isCompleted
-                            ? "bg-primary-50 border-primary-200"
-                            : "bg-white border-gray-100 hover:border-primary-300 hover:shadow-md"
+                            ? "bg-success-100 border-2 border-success-200"
+                            : "bg-white border-primary-200 border-2 hover:border-primary-300 hover:shadow-md"
                         }`}
                       >
                         <div className="mt-1">
                           <div
                             className={`h-5 w-5 rounded border flex items-center justify-center transition-colors ${
                               isCompleted
-                                ? "bg-primary-500 border-primary-500"
+                                ? "bg-success-300 border-success-300"
                                 : "border-gray-300 group-hover:border-primary-400"
                             }`}
                           >
@@ -323,7 +315,7 @@ export default function StudyPlanPage() {
                           </div>
                         </div>
                         <div className="flex-1 space-y-1">
-                          <h4 className={`font-bold text-sm ${isCompleted ? "text-primary-900" : "text-slate-800"}`}>
+                          <h4 className={`font-bold text-sm ${isCompleted ? "text-success-300" : "text-primary-800"}`}>
                             {lesson.title}
                           </h4>
                           <p className="text-xs text-slate-500 whitespace-pre-line">{lesson.topic}</p>
@@ -388,7 +380,7 @@ export default function StudyPlanPage() {
                     ))}
                   </div>
 
-                  <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-4 text-center space-y-2 border border-primary-200">
+                  <div className="bg-linear-to-br from-primary-50 to-primary-100 rounded-xl p-4 text-center space-y-2 border border-primary-200">
                     <h4 className="font-bold text-sm text-slate-700">Countdown</h4>
                     <div className="bg-white/80 py-2 px-4 rounded-lg font-mono font-bold text-sm text-primary-600 shadow-sm border border-primary-200">
                       14:59 hours remains
@@ -436,7 +428,7 @@ export default function StudyPlanPage() {
 
                 {/* Gift/Reward */}
                 <div className="md:col-span-4 flex flex-col items-center justify-center">
-                  <div className="bg-gradient-to-br from-primary-100 to-primary-200 rounded-2xl p-6 text-center w-full">
+                  <div className="bg-linear-to-br from-primary-100 to-primary-200 rounded-2xl p-6 text-center w-full">
                     <div className="w-20 h-20 mx-auto mb-4 relative">
                       <Gift className="w-full h-full text-primary-600" />
                     </div>
@@ -495,11 +487,15 @@ export default function StudyPlanPage() {
 
           {/* 4. Plans Grid Section (GRID LAYOUT UPDATED) */}
           <div className="grid grid-cols-1 lg:grid-cols-7 gap-8">
-            {/* My Study Plan - Takes up 1 Column */}
+            {/* My Study Plan - Takes up 2 Columns */}
             <Card className="p-6 h-full border-primary-100 shadow-md lg:col-span-2">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-slate-800">My Study Plan</h2>
-                <Button variant="secondary" size="sm" className="bg-secondary-100 hover:bg-secondary-200 text-secondary-700 text-xs">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="bg-secondary-100 hover:bg-secondary-200 text-secondary-700 text-xs"
+                >
                   New plan
                 </Button>
               </div>
@@ -544,7 +540,7 @@ export default function StudyPlanPage() {
               </div>
             </Card>
 
-            {/* Detail Study Plan - Takes up 3 Columns */}
+            {/* Detail Study Plan - Takes up 5 Columns */}
             <Card className="p-6 border-primary-100 shadow-md lg:col-span-5">
               <div className="flex items-center justify-between mb-1">
                 <h2 className="text-xl font-bold text-slate-800">Detail Study Plan</h2>
@@ -577,34 +573,12 @@ export default function StudyPlanPage() {
               </div>
 
               {/* Gamification Placeholders */}
-              <div className="space-y-6">
-                <div className="w-full h-48 bg-gradient-to-r from-primary-100 to-primary-50 rounded-2xl flex flex-col items-center justify-center text-center p-6 border border-primary-200 relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full -mr-10 -mt-10" />
-                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/20 rounded-full -ml-8 -mb-8" />
-                  <Target className="w-12 h-12 text-primary-500 mb-2 group-hover:scale-110 transition-transform" />
-                  <p className="font-bold text-primary-900 text-sm">Gamification Map Overview</p>
-                  <p className="text-xs text-primary-600 mt-1">Unlock new islands as you progress!</p>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-sm text-slate-800">Learning Journey</h4>
+                  <span className="text-xs text-primary-600">10 Modules</span>
                 </div>
-
-                <div className="space-y-2">
-                  <h4 className="font-bold text-sm text-slate-800 flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-primary-600 text-white text-xs flex items-center justify-center">
-                      1
-                    </span>
-                    Chặng 1: Foundation
-                  </h4>
-                  <div className="w-full h-64 bg-slate-50 rounded-2xl border border-dashed border-slate-300 flex items-center justify-center text-xs text-slate-400 relative">
-                    <Image
-                      src="/placeholder.svg?height=400&width=800"
-                      alt="Gamification Path"
-                      fill
-                      className="object-cover opacity-50 rounded-2xl"
-                    />
-                    <span className="relative z-10 bg-white/80 px-4 py-2 rounded-full backdrop-blur-sm font-medium">
-                      Map Visualization Loading...
-                    </span>
-                  </div>
-                </div>
+                <GamificationRoadmap />
               </div>
             </Card>
           </div>

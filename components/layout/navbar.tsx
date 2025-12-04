@@ -19,8 +19,8 @@ const navItems: NavItem[] = [
   { href: "/speaking", label: "Speaking Room" },
   { href: "/vocab", label: "Vocabulary Hub" },
   { href: "/grammar", label: "Grammar Hub" },
-  { href: "/notebook", label: "Notebook" },
   { href: "/plan", label: "Study Plan" },
+  { href: "/notebook", label: "Notebook" },
 ]
 
 export function Navbar() {
@@ -83,9 +83,9 @@ export function Navbar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`text-[14px] px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
                     pathname === item.href
-                      ? "bg-primary text-primary-foreground"
+                      ? "bg-primary-200 text-primary-800"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >

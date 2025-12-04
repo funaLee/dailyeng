@@ -14,12 +14,15 @@ const tagVariants = cva(
         active: "bg-success-100 text-success-300 border-success-200",
 
         // Warning states - yellow/amber
-        pending: "bg-warning-100 text-warning-300",
-        inProgress: "bg-warning-100 text-warning-300",
-        waiting: "bg-warning-100 text-warning-300",
+        pending: "bg-warning-100 text-warning-300 border-warning-200",
+        inProgress: "bg-warning-100 text-warning-300 border-warning-200",
+        waiting: "bg-warning-100 text-warning-300 border-warning-200",
+
+        //blue
+        notYet: "bg-info-100 text-info-200 border-info-200",
 
         // Error states - red
-        notYet: "bg-error-100 text-error-300",
+        
         failed: "bg-error-100 text-error-300",
         cancelled: "bg-error-100 text-error-300",
 

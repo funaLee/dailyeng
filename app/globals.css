@@ -58,13 +58,13 @@
   --gray-900: #18181b;
 
   /* Semantic colors */
-  --success-100: #c3ffc6;
-  --success-200: #4caf50;
-  --success-300: #177c1b;
+  --success-100: #defbdf;
+  --success-200: #56d25a;
+  --success-300: #229326;
 
   --warning-100: #fff2cc;
   --warning-200: #ffc107;
-  --warning-300: #a1801c;
+  --warning-300: #db9807;
 
   --error-100: #ffd4d4;
   --error-200: #ef4444;
@@ -75,7 +75,7 @@
   --info-300: #154aa0;
 
   /* Alias for compatibility */
-  --primary: var(--primary-500);
+  --primary: var(--primary-600);
   --primary-foreground: #ffffff;
   --secondary: var(--secondary-500);
   --secondary-foreground: #ffffff;

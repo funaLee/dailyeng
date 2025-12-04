@@ -27,35 +27,34 @@ export function CoursesSidebar({
   title = "Courses",
 }: CoursesSidebarProps) {
   return (
-    <Card className="p-5 bg-primary-50 rounded-3xl border-[1.4px] border-primary-200 shadow-sm">
-      <h3 className="font-bold text-base mb-4 text-primary-900">{title}</h3>
-      <div className="space-y-3">
+    <Card className="p-6 bg-primary-100 rounded-3xl border-[1.4px] border-primary-200 shadow-sm">
+      <h3 className="font-bold text-lg mb-4 text-primary-900">{title}</h3>
+      <div className="space-y-2">
         {courses.map((course) => (
-          <label key={course.id} className="flex items-center gap-3 cursor-pointer group">
-            <div className="relative flex items-center">
-              <input
-                type="radio"
-                name="course"
-                checked={selectedCourse === course.id}
-                onChange={() => onCourseChange(course.id)}
-                className="peer h-4 w-4 border-gray-300 text-primary-500 focus:ring-primary-500"
-              />
-            </div>
+          <Button
+            key={course.id}
+            variant="ghost"
+            onClick={() => onCourseChange(course.id)}
+            className={`w-full justify-start py-2 px-3 text-sm font-medium rounded-xl cursor-pointer transition-all ${
+              selectedCourse === course.id
+                ? "bg-primary-500 text-white border-[1.4px] border-primary-500 shadow-[2px_2px_0px_0px_rgba(99,102,241,0.3)]"
+                : "bg-white text-slate-700 border-[1.4px] border-primary-200 hover:border-primary-400 hover:text-primary-700"
+            }`}
+          >
             <span
-              className={`text-sm font-medium transition-colors ${
-                selectedCourse === course.id ? "text-primary-700" : "text-slate-600 group-hover:text-primary-700"
+              className={`w-2 h-2 rounded-full mr-3 transition-colors ${
+                selectedCourse === course.id ? "bg-white" : "bg-primary-300"
               }`}
-            >
-              {course.name}
-            </span>
-          </label>
+            />
+            {course.name}
+          </Button>
         ))}
       </div>
       {onAddCourse && (
         <Button
           variant="outline"
           size="sm"
-          className="w-full mt-4 text-xs cursor-pointer bg-transparent"
+          className="w-full mt-4 text-xs cursor-pointer"
           onClick={onAddCourse}
         >
           Add Course
