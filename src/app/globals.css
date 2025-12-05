@@ -99,7 +99,7 @@
   --destructive: var(--error-200);
   --destructive-foreground: #ffffff;
 
-  --card: var(--background);
+  --card: var(--white);
   --card-foreground: var(--foreground);
   --popover: var(--background);
   --popover-foreground: var(--foreground);

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -133,6 +133,8 @@ export default function SpeakingSessionPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null)
 
+  const conversationRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     const allScenarios = Object.values(mockSpeakingScenarios)
       .reduce((acc, curr) => [...acc, ...curr], [])
@@ -177,9 +179,16 @@ export default function SpeakingSessionPage() {
 
     setScenario(found)
 
-    setTurns(mockSpeakingTurns.session1 as Turn[])
-    calculateStats(mockSpeakingTurns.session1 as Turn[])
+    const firstTurn = mockSpeakingTurns.session1[0]
+    setTurns([firstTurn] as Turn[])
+    calculateStats([firstTurn] as Turn[])
   }, [scenarioId])
+
+  useEffect(() => {
+    if (conversationRef.current) {
+      conversationRef.current.scrollTop = conversationRef.current.scrollHeight
+    }
+  }, [turns])
 
   const calculateStats = (allTurns: Turn[]) => {
     const allScores = allTurns.filter((t) => t.scores)
@@ -379,19 +388,19 @@ export default function SpeakingSessionPage() {
               </div>
               <div className="space-y-3">
                 <div className="flex gap-3 p-4 bg-primary-50 rounded-xl">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-bold">
+                  <div className="shrink-0 w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-bold">
                     1
                   </div>
                   <p className="text-sm">Talk about being tired of a small room.</p>
                 </div>
                 <div className="flex gap-3 p-4 bg-primary-50 rounded-xl">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-bold">
+                  <div className="shrink-0 w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-bold">
                     2
                   </div>
                   <p className="text-sm">Describe your dream house.</p>
                 </div>
                 <div className="flex gap-3 p-4 bg-primary-50 rounded-xl">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-bold">
+                  <div className="shrink-0 w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-bold">
                     3
                   </div>
                   <p className="text-sm">Compare and talk about two types of houses.</p>
@@ -441,7 +450,7 @@ export default function SpeakingSessionPage() {
 
           <div className="space-y-6">
             <Card className="p-8 bg-white">
-              <div className="aspect-video bg-gradient-to-br from-primary-200 to-primary-300 rounded-2xl mb-6 relative overflow-hidden">
+              <div className="aspect-video bg-linear-to-br from-primary-200 to-primary-300 rounded-2xl mb-6 relative overflow-hidden">
                 <Image src="/learning.png" alt={scenario.title} fill className="object-cover rounded-2xl" />
               </div>
 
@@ -491,7 +500,7 @@ export default function SpeakingSessionPage() {
     return (
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-3 gap-6">
-          <div className="rounded-2xl border bg-card p-8 col-span-2">
+          <div className="rounded-2xl border-2 border-border p-8 col-span-2 bg-white">
             <div className="flex items-center justify-between mb-6">
               <Button variant="ghost" size="icon" onClick={() => setViewState("preparation")} className="rounded-xl">
                 <ArrowLeft className="h-5 w-5" />
@@ -508,31 +517,37 @@ export default function SpeakingSessionPage() {
                 </Button>
               </div>
             </div>
+            <div
+              ref={conversationRef}
+              className="space-y-4 mb-8 max-h-[560px] overflow-y-auto pr-2"
+              style={{
+                scrollbarWidth: "thin",
+                scrollbarColor: "rgb(199, 210, 254) transparent",
+              }}
+            >
+              <div className="mb-6 p-2 px-5 border-2 border-primary-200 bg-primary-50 rounded-2xl">
+                <h3 className="font-bold mb-1">Situation Description</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  In a shabby room, A dreams of a mansion with countless rooms: a game room, a cinema room, and a spa. B
+                  dreams of a cottage surrounded by flowers and butterflies. While they are arguing, the power suddenly
+                  goes out, and the sounds of neighbors complaining bring them both back to reality.
+                </p>
+              </div>
 
-            <div className="mb-6">
-              <h3 className="font-bold mb-2">Situation Description</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                In a shabby room, A dreams of a mansion with countless rooms: a game room, a cinema room, and a spa. B
-                dreams of a cottage surrounded by flowers and butterflies. While they are arguing, the power suddenly
-                goes out, and the sounds of neighbors complaining bring them both back to reality.
-              </p>
-            </div>
+              <div className="mb-6 p-2 px-5 border-2 border-primary-200 bg-primary-50 rounded-2xl">
+                <h3 className="font-bold mb-1">Objectives</h3>
+                <ol className="space-y-1 text-sm">
+                  <li>1. Express frustration with the small rented room.</li>
+                  <li>2. Describe your dream house.</li>
+                  <li>3. Compare and discuss the two types of houses.</li>
+                </ol>
+              </div>
 
-            <div className="mb-8">
-              <h3 className="font-bold mb-3">Objectives</h3>
-              <ol className="space-y-2 text-sm">
-                <li>1. Express frustration with the small rented room.</li>
-                <li>2. Describe your dream house.</li>
-                <li>3. Compare and discuss the two types of houses.</li>
-              </ol>
-            </div>
-
-            <div className="space-y-4 mb-8 min-h-[300px]">
               {turns.map((turn) => (
                 <div key={turn.id} className={`flex ${turn.role === "user" ? "justify-end" : "justify-start"}`}>
                   <div className="flex gap-3 max-w-lg">
                     {turn.role === "tutor" && (
-                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                      <div className="shrink-0 w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
                         <Bot className="h-5 w-5 text-primary-600" />
                       </div>
                     )}
@@ -581,7 +596,7 @@ export default function SpeakingSessionPage() {
                     </div>
 
                     {turn.role === "user" && (
-                      <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center">
+                      <div className="shrink-0 w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center">
                         <User className="h-5 w-5 text-white" />
                       </div>
                     )}
@@ -601,7 +616,7 @@ export default function SpeakingSessionPage() {
               <button
                 onClick={handleToggleRecording}
                 className={`
-                  w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300
+                  w-15 h-15 rounded-full flex items-center justify-center transition-all duration-300
                   ${
                     isRecording
                       ? "bg-secondary-500 animate-pulse shadow-lg shadow-secondary-200"
@@ -609,7 +624,7 @@ export default function SpeakingSessionPage() {
                   }
                 `}
               >
-                {isRecording ? <MicOff className="h-8 w-8 text-white" /> : <Mic className="h-8 w-8 text-white" />}
+                {isRecording ? <MicOff className="h-5 w-5 text-white" /> : <Mic className="h-4 w-4 text-white" />}
               </button>
             </div>
             <p className="text-center text-sm text-muted-foreground mt-4">
@@ -651,16 +666,16 @@ export default function SpeakingSessionPage() {
 
         <div className="grid lg:grid-cols-2 gap-8">
           <div className="space-y-8">
-            <Card className="p-12 bg-gradient-to-br from-gray-50 to-gray-100">
+            <Card className="p-12 bg-linear-to-br from-gray-50 to-gray-100">
               <div className="flex flex-col items-center">
-                <div className="w-64 h-64 rounded-full bg-gradient-to-br from-blue-300 to-blue-400 flex items-center justify-center shadow-lg mb-6">
+                <div className="w-64 h-64 rounded-full bg-linear-to-br from-blue-300 to-blue-400 flex items-center justify-center shadow-lg mb-6">
                   <span className="text-8xl font-bold text-white">{overallScore}</span>
                 </div>
                 <p className="text-xl font-bold text-center">Overall speaking score</p>
               </div>
             </Card>
 
-            <Card className="p-8 bg-gradient-to-br from-gray-50 to-gray-100">
+            <Card className="p-8 bg-linear-to-br from-gray-50 to-gray-100">
               <h2 className="text-3xl font-bold mb-4">Amazing context understanding</h2>
               <p className="text-base text-muted-foreground leading-relaxed">
                 Amazing work! You seem to understand the context really well, you also got nice pronunciation and good
