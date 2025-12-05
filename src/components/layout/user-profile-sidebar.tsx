@@ -4,7 +4,7 @@ import type React from "react"
 import { Card } from "@/components/ui/card"
 import Link from "next/link"
 // Loại bỏ usePathname để tránh xung đột logic với prop active
-import { LayoutDashboard, BookOpen, Target, UserIcon, Bell, Settings, HeartHandshake, LogOut } from "lucide-react"
+import { LayoutDashboard, BookOpen, Target, UserIcon, Bell, Settings, HeartHandshake, LogOut, ShoppingBasket } from "lucide-react"
 
 interface NavButtonProps {
   icon: React.ReactNode
@@ -59,7 +59,7 @@ interface UserProfileSidebarProps {
 
 export function UserProfileSidebar({ activePage = "dashboard" }: UserProfileSidebarProps) {
   return (
-    <Card className="border-primary-200 shadow-sm bg-white overflow-hidden">
+    <Card className="border-border border-2 shadow-sm bg-white overflow-hidden">
       <div className="px-6 py-6">
         <div className="flex flex-col items-center mb-6">
           <div className="w-24 h-24 rounded-full border-2 border-primary-200 bg-primary-200 overflow-hidden shadow-sm mb-3">
@@ -79,16 +79,22 @@ export function UserProfileSidebar({ activePage = "dashboard" }: UserProfileSide
             Learning
           </h3>
           <NavButton
+            icon={<LayoutDashboard size={16} />}
+            label="Dashboard"
+            href="/user/dashboard"
+            active={activePage === "dashboard"}
+          />
+          <NavButton
             icon={<BookOpen size={16} />}
             label="Collections"
             href="/user/collections"
             active={activePage === "collections"}
           />
           <NavButton
-            icon={<LayoutDashboard size={16} />}
-            label="Dashboard"
-            href="/user/dashboard"
-            active={activePage === "dashboard"}
+            icon={<ShoppingBasket size={16} />}
+            label="Items Shop"
+            href="/user/shop"
+            active={activePage === "shop"}
           />
           <NavButton
             icon={<Target size={16} />}

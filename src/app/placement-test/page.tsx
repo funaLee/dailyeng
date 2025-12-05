@@ -1010,7 +1010,7 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
     const testInfo = TEST_STEPS.find((s) => s.id === activeTestId)!
 
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-8">
+      <div className="min-h-screen py-8">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Test Header */}
           <div className="mb-8">
@@ -1029,7 +1029,7 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
               </div>
             </div>
 
-            <Card className="p-4 bg-primary-50 border-primary-200 ">
+            <Card className="p-4 bg-primary-50 border-primary-200">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center">
                   <testInfo.icon className="w-6 h-6 text-primary-600" />
@@ -1053,7 +1053,7 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
           </div>
 
           {/* Question Card */}
-          <Card className="p-6 mb-6 rounded-2xl border-0 shadow-lg">
+          <Card className="p-6 mb-6 rounded-2xl shadow-lg bg-white">
             {/* Listening Audio */}
             {currentQ.type === "listening" && (
               <div className="flex items-center justify-center mb-6">
@@ -1523,7 +1523,7 @@ Despite these challenges, the momentum toward renewable energy appears unstoppab
           </p>
         </div>
 
-        <Card className="p-6 mb-8 rounded-2xl border-0 shadow-lg bg-card">
+        <Card className="p-6 mb-8 rounded-2xl shadow-lg bg-white">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="font-bold text-foreground">Overall Progress</h2>

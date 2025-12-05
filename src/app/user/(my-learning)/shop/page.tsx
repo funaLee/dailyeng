@@ -116,13 +116,14 @@ export default function ShopPage() {
       pageDescription="Exchange your earned points for amazing rewards and power-ups."
       pageIcon={<ShoppingCart className="w-10 h-10 text-primary" />}
     >
-      <div className="min-h-screen bg-muted/50">
-        <div className="container mx-auto px-8 py-8">
+      <div className="min-h-screen">
+        <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
             <div className="md:col-span-3 lg:col-span-3 space-y-6">
               <UserProfileSidebar activePage="shop" />
             </div>
 
+            
             <div className="md:col-span-9 lg:col-span-9">
               <div className="mb-8">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">

@@ -9,7 +9,7 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
       data-slot="card"
       className={cn(
         // Updated border to primary-200, stroke 1.4px, removed blur, added hover lift and active sink
-        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border-[1.4px] border-primary-200 py-6 shadow-sm",
+        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border-2 border-border py-6 shadow-sm",
         className,
       )}
       {...props}

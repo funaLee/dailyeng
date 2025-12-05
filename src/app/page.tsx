@@ -388,16 +388,16 @@ export default function HomePage() {
       </section>
 
       {/* Features Section - Bento Grid */}
-      <section className="py-20 bg-linear-to-br from-primary-200 via-primary-50 to-secondary-100">
+      <section className="py-15 bg-linear-to-br from-primary-200 via-primary-50 to-secondary-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <RevealOnScroll className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-primary-800 mb-6">Why Learners Choose DailyEng</h2>
+            <h2 className="text-4xl sm:text-4xl font-bold text-primary-800 mb-6">Why Learners Choose DailyEng</h2>
             <p className="text-xl text-gray-600">
               We combine advanced AI with proven learning methods to help you achieve fluency faster.
             </p>
           </RevealOnScroll>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[minmax(250px,auto)]">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[minmax(200px,auto)]">
             {/* Large Feature - Speak First */}
             <RevealOnScroll className="md:col-span-2">
               <Card className="h-full bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all p-8 rounded-3xl flex flex-col md:flex-row items-center gap-8 overflow-hidden group cursor-pointer">
@@ -419,7 +419,7 @@ export default function HomePage() {
                     </li>
                   </ul>
                 </div>
-                <div className="flex-1 relative h-64 w-full md:h-full bg-primary-50 rounded-2xl overflow-hidden group-hover:scale-[1.02] transition-transform duration-500">
+                <div className="flex-1 relative h-50 w-full md:h-full bg-primary-50 rounded-2xl overflow-hidden group-hover:scale-[1.02] transition-transform duration-500">
                   <Image src="/learning.png" alt="Speaking Practice" fill className="object-cover" />
                 </div>
               </Card>

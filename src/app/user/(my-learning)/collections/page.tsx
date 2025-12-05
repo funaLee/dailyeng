@@ -886,7 +886,7 @@ export default function CollectionsPage() {
           {/* Main Content */}
           <div className="lg:col-span-9 space-y-6">
             {/* Header */}
-            <Card className="border-[1.4px] border-primary-200">
+            <Card className="border-2 border-primary-200">
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-12 h-12 rounded-full bg-primary-100 flex items-center justify-center">
