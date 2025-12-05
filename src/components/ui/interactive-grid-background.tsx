@@ -86,7 +86,7 @@ export function InteractiveGridBackground({ rows = 6, cols = 8, className = "" }
                   ${!isHovered && !isFading ? "bg-white" : ""}
                   ${isHovered ? "bg-primary-200 border-foreground" : ""}
                   ${isFading ? "bg-primary-50 border-foreground" : ""}
-                  ${!isHovered && !isFading ? "bg-transparent" : ""}
+                  ${!isHovered && !isFading ? "bg-white" : ""}
                 `}
               />
             )

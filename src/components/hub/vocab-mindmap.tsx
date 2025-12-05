@@ -323,7 +323,7 @@ export function VocabMindmap({ topicGroups }: VocabMindmapProps) {
 
   return (
     <div
-      className={`${containerClasses} flex flex-col font-sans text-foreground rounded-xl overflow-hidden border border-border`}
+      className={`${containerClasses} flex flex-col font-sans text-foreground rounded-xl overflow-hidden border border-border bg-white`}
       ref={containerRef}
     >
       {/* Controls */}

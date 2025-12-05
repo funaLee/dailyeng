@@ -7,6 +7,8 @@ import { Card } from "@/components/ui/card"
 import { SessionChat } from "@/components/speaking/session-chat"
 import { SessionTranscript } from "@/components/speaking/session-transcript"
 import { RadarChart } from "@/components/speaking/radar-chart"
+import { LearningHistory } from "@/components/speaking/learning-history"
+import { DetailedFeedback } from "@/components/speaking/detailed-feedback"
 import { mockSpeakingScenarios, mockSpeakingTurns, mockCustomScenarios } from "@/lib/mock-data"
 import { useAppStore } from "@/lib/store"
 import {
@@ -25,10 +27,15 @@ import {
   MoreVertical,
   RefreshCw,
   MicOff,
+  Target,
+  Mic2,
+  AudioWaveform as Waveform,
+  Zap,
+  Languages,
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import VocabHelperChatbot from "@/components/speaking/vocab-helper-chatbot" // Import the new component
+import VocabHelperChatbot from "@/components/speaking/vocab-helper-chatbot"
 
 interface Turn {
   id: string
@@ -43,7 +50,69 @@ interface Turn {
   }
 }
 
-type ViewState = "preparation" | "active" | "complete"
+type ViewState = "preparation" | "active" | "complete" | "history" | "detail"
+
+const mockLearningRecords = [
+  {
+    id: "record-1",
+    overallScore: 74,
+    completedTurns: 2,
+    totalTurns: 3,
+    date: new Date("2025-07-28T00:30:00"),
+  },
+  {
+    id: "record-2",
+    overallScore: 36,
+    completedTurns: 2,
+    totalTurns: 3,
+    date: new Date("2025-07-28T06:50:00"),
+  },
+  {
+    id: "record-3",
+    overallScore: 18,
+    completedTurns: 2,
+    totalTurns: 3,
+    date: new Date("2025-07-28T09:53:00"),
+  },
+]
+
+const mockDetailedFeedback = {
+  scores: [
+    { label: "Relevance", value: 86, icon: <Target className="h-4 w-4" /> },
+    { label: "Pronunciation", value: 90, icon: <Mic2 className="h-4 w-4" /> },
+    { label: "Intonation & Stress", value: 71, icon: <Waveform className="h-4 w-4" /> },
+    { label: "Fluency", value: 80, icon: <Zap className="h-4 w-4" /> },
+    { label: "Grammar", value: 85, icon: <Languages className="h-4 w-4" /> },
+  ],
+  errorCategories: [
+    { name: "Prepositions", count: 10 },
+    { name: "Articles", count: 3 },
+    { name: "Verb Tense Conjugation", count: 7 },
+    { name: "Adjective Choice", count: 9 },
+    { name: "Verb Choice", count: 1 },
+  ],
+  conversation: [
+    {
+      role: "tutor" as const,
+      text: "Ugh, this room feels smaller every day. No light, no space. I'm so over it. I need a real house with actual windows and breathing room!",
+    },
+    {
+      role: "user" as const,
+      text: "Same for me. Actually, I feel dizzy with this such small room already, and I need [...] small hug house with a swimming pool working closes and also the home theater.",
+      userErrors: [
+        { word: "with", correction: "in", type: "Prepositions" },
+        { word: "such", correction: "this", type: "Articles" },
+        { word: "working", correction: "that", type: "Verb Choice" },
+        { word: "the", correction: "a", type: "Articles" },
+      ],
+      correctedSentence:
+        "Same for me. Actually, I feel dizzy in this small room already, and I need a small hug house with a swimming pool that closes and also a home theater.",
+      audioUrl: "/audio/user-response.mp3",
+    },
+  ],
+  overallRating: "Good",
+  tip: "Your grammar needs improvement. Please pay attention to tenses, types, and sentence structure. Keep trying!",
+}
 
 export default function SpeakingSessionPage() {
   const params = useParams()
@@ -62,11 +131,9 @@ export default function SpeakingSessionPage() {
     avgContent: 0,
   })
   const [copiedId, setCopiedId] = useState<string | null>(null)
-
-  const TURNS_FOR_COMPLETION = 6
+  const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null)
 
   useEffect(() => {
-    // Flatten all scenarios from all categories
     const allScenarios = Object.values(mockSpeakingScenarios)
       .reduce((acc, curr) => [...acc, ...curr], [])
       .concat(mockCustomScenarios)
@@ -79,7 +146,6 @@ export default function SpeakingSessionPage() {
 
     let found = allScenarios.find((s) => s.id === scenarioId)
 
-    // Fallbacks for mismatched ids (numeric ids or slight formatting differences)
     if (!found) {
       const numeric = Number.parseInt(scenarioId, 10)
       if (!isNaN(numeric) && numeric > 0 && numeric <= allScenarios.length) {
@@ -89,7 +155,6 @@ export default function SpeakingSessionPage() {
     }
 
     if (!found) {
-      // try loose match ignoring hyphens/underscores
       const normalized = (id: string) => id.replace(/[-_]/g, "").toLowerCase()
       const normalizedScenarioId = normalized(scenarioId)
       found = allScenarios.find((s) => {
@@ -171,7 +236,7 @@ export default function SpeakingSessionPage() {
           setTurns(finalTurns)
           calculateStats(finalTurns)
 
-          if (finalTurns.length >= TURNS_FOR_COMPLETION) {
+          if (finalTurns.length >= 6) {
             setViewState("complete")
             addXP(50)
           }
@@ -214,7 +279,7 @@ export default function SpeakingSessionPage() {
       setTurns(finalTurns)
       calculateStats(finalTurns)
 
-      if (finalTurns.length >= TURNS_FOR_COMPLETION) {
+      if (finalTurns.length >= 6) {
         setViewState("complete")
         addXP(50)
       }
@@ -255,10 +320,42 @@ export default function SpeakingSessionPage() {
     document.body.removeChild(element)
   }
 
+  const handleSelectRecord = (recordId: string) => {
+    setSelectedRecordId(recordId)
+    setViewState("detail")
+  }
+
   if (!scenario) {
     return (
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="h-96 bg-muted animate-pulse rounded-2xl" />
+      </div>
+    )
+  }
+
+  if (viewState === "history") {
+    return (
+      <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
+        <LearningHistory
+          records={mockLearningRecords}
+          onSelectRecord={handleSelectRecord}
+          onBack={() => setViewState("preparation")}
+        />
+      </div>
+    )
+  }
+
+  if (viewState === "detail") {
+    return (
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+        <DetailedFeedback
+          scores={mockDetailedFeedback.scores}
+          errorCategories={mockDetailedFeedback.errorCategories}
+          conversation={mockDetailedFeedback.conversation}
+          overallRating={mockDetailedFeedback.overallRating}
+          tip={mockDetailedFeedback.tip}
+          onBack={() => setViewState(selectedRecordId ? "history" : "complete")}
+        />
       </div>
     )
   }
@@ -274,7 +371,6 @@ export default function SpeakingSessionPage() {
         </Link>
 
         <div className="grid lg:grid-cols-2 gap-6">
-          {/* Left side: Learning Goals and Key Expressions */}
           <Card className="p-8 space-y-8">
             <div>
               <div className="flex items-center gap-2 mb-6">
@@ -343,7 +439,6 @@ export default function SpeakingSessionPage() {
             </div>
           </Card>
 
-          {/* Right side: Topic card with play button */}
           <div className="space-y-6">
             <Card className="p-8">
               <div className="aspect-video bg-gradient-to-br from-primary-200 to-primary-300 rounded-2xl mb-6 relative overflow-hidden">
@@ -352,11 +447,7 @@ export default function SpeakingSessionPage() {
 
               <h1 className="text-3xl font-bold mb-4">{scenario.title || "Share about your dream house"}</h1>
 
-              <p className="text-muted-foreground mb-6 leading-relaxed">
-                In their shabby little room, A dreams of a mansion with countless rooms — for gaming, movies, and spa. B
-                dreams of a cozy home surrounded by flowers and butterflies. While they are arguing, the power suddenly
-                goes out, and the sounds of neighbors complaining bring them both back to reality.
-              </p>
+              <p className="text-muted-foreground mt-2">{scenario.context}</p>
 
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
@@ -380,7 +471,12 @@ export default function SpeakingSessionPage() {
                   <Play className="h-5 w-5" />
                   Start Speaking
                 </Button>
-                <Button variant="outline" size="lg" className="px-6 bg-transparent">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="px-6 bg-transparent"
+                  onClick={() => setViewState("history")}
+                >
                   <RotateCcw className="h-5 w-5" />
                 </Button>
               </div>
@@ -395,9 +491,7 @@ export default function SpeakingSessionPage() {
     return (
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-3 gap-6">
-          {/* Main Speaking Section */}
           <div className="rounded-2xl border bg-card p-8 col-span-2">
-            {/* Header */}
             <div className="flex items-center justify-between mb-6">
               <Button variant="ghost" size="icon" onClick={() => setViewState("preparation")} className="rounded-xl">
                 <ArrowLeft className="h-5 w-5" />
@@ -415,7 +509,6 @@ export default function SpeakingSessionPage() {
               </div>
             </div>
 
-            {/* Situation Description */}
             <div className="mb-6">
               <h3 className="font-bold mb-2">Situation Description</h3>
               <p className="text-sm text-muted-foreground leading-relaxed">
@@ -425,7 +518,6 @@ export default function SpeakingSessionPage() {
               </p>
             </div>
 
-            {/* Objectives */}
             <div className="mb-8">
               <h3 className="font-bold mb-3">Objectives</h3>
               <ol className="space-y-2 text-sm">
@@ -435,7 +527,6 @@ export default function SpeakingSessionPage() {
               </ol>
             </div>
 
-            {/* Conversation Area */}
             <div className="space-y-4 mb-8 min-h-[300px]">
               {turns.map((turn) => (
                 <div key={turn.id} className={`flex ${turn.role === "user" ? "justify-end" : "justify-start"}`}>
@@ -457,7 +548,6 @@ export default function SpeakingSessionPage() {
                         <p className="text-sm leading-relaxed">{turn.text}</p>
                       </div>
 
-                      {/* Action buttons below message */}
                       <div className="flex gap-2 mt-2 ml-2">
                         <button
                           onClick={() => {
@@ -507,7 +597,6 @@ export default function SpeakingSessionPage() {
               )}
             </div>
 
-            {/* Tap to Speak Button */}
             <div className="flex justify-center">
               <button
                 onClick={handleToggleRecording}
@@ -528,7 +617,6 @@ export default function SpeakingSessionPage() {
             </p>
           </div>
 
-          {/* Right Sidebar - Vocab Helper */}
           <div className="col-span-1">
             <VocabHelperChatbot />
           </div>
@@ -562,9 +650,7 @@ export default function SpeakingSessionPage() {
         </Link>
 
         <div className="grid lg:grid-cols-2 gap-8">
-          {/* Left Column: Overall Score and Feedback */}
           <div className="space-y-8">
-            {/* Overall Score Badge */}
             <Card className="p-12 bg-gradient-to-br from-gray-50 to-gray-100">
               <div className="flex flex-col items-center">
                 <div className="w-64 h-64 rounded-full bg-gradient-to-br from-blue-300 to-blue-400 flex items-center justify-center shadow-lg mb-6">
@@ -574,7 +660,6 @@ export default function SpeakingSessionPage() {
               </div>
             </Card>
 
-            {/* Feedback Section */}
             <Card className="p-8 bg-gradient-to-br from-gray-50 to-gray-100">
               <h2 className="text-3xl font-bold mb-4">Amazing context understanding</h2>
               <p className="text-base text-muted-foreground leading-relaxed">
@@ -585,54 +670,45 @@ export default function SpeakingSessionPage() {
             </Card>
           </div>
 
-          {/* Right Column: Radar Chart and Learning Goals */}
           <div className="space-y-8">
-            {/* Radar Chart */}
             <Card className="p-8">
               <RadarChart data={radarData} size={400} className="mb-4" />
             </Card>
 
-            {/* Learning Goals */}
-            <Card className="p-8">
-              <div className="flex items-center gap-2 mb-6">
-                <BookOpen className="h-6 w-6" />
-                <h2 className="text-2xl font-bold">Learning Goals</h2>
-              </div>
-              <div className="space-y-3">
-                <div className="flex gap-3 p-4 bg-primary-50 rounded-xl">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-bold">
-                    1
-                  </div>
-                  <p className="text-sm">Talk about being tired of a small room.</p>
-                </div>
-                <div className="flex gap-3 p-4 bg-primary-50 rounded-xl">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-bold">
-                    2
-                  </div>
-                  <p className="text-sm">Describe your dream house.</p>
-                </div>
-                <div className="flex gap-3 p-4 bg-primary-50 rounded-xl">
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-bold">
-                    3
-                  </div>
-                  <p className="text-sm">Compare and talk about two types of houses.</p>
-                </div>
-              </div>
-            </Card>
-
-            {/* Action Buttons */}
-            <div className="space-y-3">
-              <Button onClick={handleExtractWords} className="w-full gap-2 bg-transparent" variant="outline">
-                <BookOpen className="h-4 w-4" />
-                Extract New Words to Flashcards
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                onClick={() => {
+                  setSelectedRecordId(null)
+                  setViewState("detail")
+                }}
+                className="gap-2 flex-col h-auto py-2"
+              >
+                <BarChart3 className="h-5 w-5" />
+                <span className="text-[14px] text-center">View Detailed Feedback</span>
               </Button>
-              <Button onClick={handleDownloadTranscript} className="w-full gap-2 bg-transparent" variant="outline">
-                <Download className="h-4 w-4" />
-                Download Transcript
+              <Button
+                onClick={handleExtractWords}
+                className="gap-2 flex-col h-auto py-2 bg-transparent"
+                variant="outline"
+              >
+                <BookOpen className="h-5 w-5" />
+                <span className="text-[14px] text-center">Extract New Words</span>
               </Button>
-              <Button onClick={() => router.push("/speaking")} className="w-full gap-2">
-                <RotateCcw className="h-4 w-4" />
-                Start Another Session
+              <Button
+                onClick={handleDownloadTranscript}
+                className="gap-2 flex-col h-auto py-2 bg-transparent"
+                variant="outline"
+              >
+                <Download className="h-5 w-5" />
+                <span className="text-[14px] text-center">Download Transcript</span>
+              </Button>
+              <Button
+                onClick={() => router.push("/speaking")}
+                className="gap-2 flex-col h-auto py-2 bg-transparent"
+                variant="outline"
+              >
+                <RotateCcw className="h-5 w-5" />
+                <span className="text-[14px] text-center">Start Another Session</span>
               </Button>
             </div>
           </div>
@@ -643,7 +719,6 @@ export default function SpeakingSessionPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 h-screen flex flex-col">
-      {/* Header */}
       <div className="mb-6">
         <Link href="/speaking">
           <Button variant="ghost" className="gap-2 mb-4">
@@ -655,9 +730,7 @@ export default function SpeakingSessionPage() {
         <p className="text-muted-foreground mt-2">{scenario.context}</p>
       </div>
 
-      {/* Main Content */}
       <div className="flex-1 grid lg:grid-cols-3 gap-6 min-h-0">
-        {/* Chat */}
         <div className="lg:col-span-2 rounded-2xl border border-border overflow-hidden flex flex-col">
           <SessionChat
             turns={turns}
@@ -667,15 +740,12 @@ export default function SpeakingSessionPage() {
           />
         </div>
 
-        {/* Sidebar */}
         <div className="space-y-6 overflow-y-auto">
-          {/* Goals */}
           <div className="rounded-2xl border border-border p-4">
             <h3 className="font-semibold mb-3">Session Goal</h3>
             <p className="text-sm text-muted-foreground">{scenario.goal}</p>
           </div>
 
-          {/* Stats */}
           <div className="rounded-2xl border border-border p-4">
             <div className="flex items-center gap-2 mb-4">
               <BarChart3 className="h-5 w-5 text-blue-500" />

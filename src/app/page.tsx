@@ -304,7 +304,7 @@ export default function HomePage() {
       </section>
 
       {/* Logos Marquee - Infinite Loop, No Grayscale */}
-      <section className="py-8 bg-background border-y border-gray-200 overflow-hidden">
+      <section className="py-8 bg-white border-y border-gray-200 overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 mb-6 text-center">
           <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Prepared for success with</p>
         </div>
@@ -503,7 +503,7 @@ export default function HomePage() {
       </section>
 
       {/* Comprehensive Features Tabs */}
-      <section className="py-24 bg-background">
+      <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <RevealOnScroll className="text-center mb-12">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">Everything You Need to Fluency</h2>
@@ -868,7 +868,7 @@ export default function HomePage() {
       </Dialog>
 
       {/* Test Your English Level Section */}
-      <section className="py-20 bg-background">
+      <section className="py-20 bg-white">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <RevealOnScroll>
             <Card className="relative overflow-hidden border-0 shadow-xl rounded-3xl bg-linear-to-r from-secondary-50 to-white cursor-pointer">
