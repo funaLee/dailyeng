@@ -4,11 +4,23 @@ import { useState } from "react"
 import Link from "next/link" // Added Link for navigation
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { Gift, Check, Edit2, PlayCircle, BookOpen, Mic, Brain } from "lucide-react"
+import {
+  Check,
+  Edit2,
+  PlayCircle,
+  BookOpen,
+  Mic,
+  Brain,
+  Target,
+  Calendar,
+  Pencil,
+  Sparkles,
+  AlertCircle,
+  Bell,
+} from "lucide-react"
 import { ProtectedRoute, PageIcons } from "@/components/auth/protected-route"
-import { HubHero } from "@/components/hub"
 import { GamificationRoadmap } from "./components/gamification-roadmap"
+import Image from "next/image"
 
 interface StudyPlan {
   id: string
@@ -22,11 +34,25 @@ interface StudyPlan {
   remainHours: number
 }
 
-interface Mission {
+interface StudyGoals {
+  currentLevel: string
+  targetLevel: string
+  hoursPerWeek: number
+  durationMonths: number
+}
+
+interface IELTSExam {
+  examDate: Date
+  daysRemaining: number
+}
+
+interface Reminder {
   id: string
+  type: "speaking" | "notebook" | "missed"
   title: string
-  points: number
-  completed: boolean
+  description: string
+  action: string
+  href: string
 }
 
 interface TodayLesson {
@@ -39,38 +65,25 @@ interface TodayLesson {
   link?: string // Added link property for navigation
 }
 
-export default function StudyPlanPage() {
+export default function PlanPage() {
   const [selectedPlanId, setSelectedPlanId] = useState<string>("plan1")
   const [activeMissionTab, setActiveMissionTab] = useState<"today" | "weekly" | "monthly">("today")
   const [isEditing, setIsEditing] = useState(false)
   const [completedLessons, setCompletedLessons] = useState<string[]>([])
   const [completedMissions, setCompletedMissions] = useState<string[]>([])
+  const [studyGoals] = useState<StudyGoals>({
+    currentLevel: "3.0",
+    targetLevel: "6.0",
+    hoursPerWeek: 10,
+    durationMonths: 4,
+  })
 
-  // Mock Data
-  const studyPlans: StudyPlan[] = [
-    {
-      id: "plan1",
-      name: "IELTS Preparation",
-      goal: "Achieve IELTS Band 7.0",
-      level: "C1",
-      progress: 44,
-      status: "active",
-      studiedHours: 72,
-      totalHours: 104,
-      remainHours: 32,
-    },
-    {
-      id: "plan2",
-      name: "Business English",
-      goal: "Achieve IELTS Band 6.0",
-      level: "B2",
-      progress: 44,
-      status: "active",
-      studiedHours: 45,
-      totalHours: 120,
-      remainHours: 75,
-    },
-  ]
+  const [ieltsExam, setIeltsExam] = useState<IELTSExam>({
+    examDate: new Date("2026-03-28"),
+    daysRemaining: 120,
+  })
+
+  const [isEditingExamDate, setIsEditingExamDate] = useState(false)
 
   const todayLessons: TodayLesson[] = [
     {
@@ -102,14 +115,31 @@ export default function StudyPlanPage() {
     },
   ]
 
-  const missions: Mission[] = [
-    { id: "m1", title: "Enter today", points: 5, completed: false },
-    { id: "m2", title: "Study 30 minutes", points: 10, completed: false },
-    { id: "m3", title: "Learn 10 new flashcard", points: 10, completed: false },
-    { id: "m4", title: "Complete today lesson", points: 40, completed: false },
-    { id: "m5", title: "Speaking 1 time", points: 30, completed: false },
-    { id: "m6", title: "Review all notebook", points: 30, completed: false },
-    { id: "m7", title: "Complete all tasks", points: 30, completed: false },
+  const reminders: Reminder[] = [
+    {
+      id: "r1",
+      type: "speaking",
+      title: "Speaking Room",
+      description: "Bạn chưa luyện nói lần nào",
+      action: "Luyện ngay",
+      href: "/speaking",
+    },
+    {
+      id: "r2",
+      type: "notebook",
+      title: "Notebook",
+      description: "Bạn còn 34 từ cần học hôm nay",
+      action: "Ôn tập ngay",
+      href: "/notebook",
+    },
+    {
+      id: "r3",
+      type: "missed",
+      title: "Missed Tasks",
+      description: "Bạn còn nhiệm vụ hôm qua chưa hoàn thành",
+      action: "Quay lại",
+      href: "/plan",
+    },
   ]
 
   const toggleLesson = (id: string) => {
@@ -120,19 +150,7 @@ export default function StudyPlanPage() {
     setCompletedMissions((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]))
   }
 
-  const selectedPlan = studyPlans.find((p) => p.id === selectedPlanId) || studyPlans[0]
-
-  const displayedMissions = missions.map((m) => ({
-    ...m,
-    // Add some variation for other tabs just for demo
-    title:
-      activeMissionTab === "today"
-        ? m.title
-        : activeMissionTab === "weekly"
-          ? m.title.replace("today", "this week")
-          : m.title.replace("today", "this month"),
-    points: activeMissionTab === "today" ? m.points : m.points * 5,
-  }))
+  const selectedPlan = todayLessons.find((p) => p.id === selectedPlanId) || todayLessons[0]
 
   return (
     <ProtectedRoute
@@ -144,9 +162,8 @@ export default function StudyPlanPage() {
         <div className="space-y-8">
           {/* 1. Header Section */}
 
-
           {/* 2. This week's plan Section */}
-          <Card className="p-6 border-primary-200 shadow-md">
+          <Card className="p-6 border-primary-200 shadow-md bg-white">
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-xl font-bold text-slate-800">This week&apos;s plan</h2>
               <Button
@@ -356,131 +373,174 @@ export default function StudyPlanPage() {
 
           {/* 3. Missions & Reminders Section (GRID LAYOUT UPDATED) */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Missions - Takes up 2 Columns */}
-            <Card className="p-6 border-primary-200 shadow-md lg:col-span-2">
-              <h2 className="text-xl font-bold mb-6 text-slate-800">Mission</h2>
+            {/* Your Goals Section */}
+            <Card className="p-6 border-primary-200 shadow-md lg:col-span-1 bg-white">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                  <Target className="w-5 h-5 text-primary-600" />
+                </div>
+                <h2 className="text-xl font-bold text-slate-800">Mục tiêu của bạn</h2>
+              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                {/* Sidebar Tabs */}
-                <div className="md:col-span-3 space-y-6">
-                  <div className="flex flex-col border border-primary-200 rounded-xl overflow-hidden shadow-sm">
-                    {(["today", "weekly", "monthly"] as const).map((tab) => (
+              <div className="space-y-4">
+                {/* Current Level */}
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <span className="text-sm text-slate-600">Trình độ hiện tại</span>
+                  <span className="px-4 py-1.5 bg-primary-100 text-primary-700 font-bold text-sm rounded-lg border-2 border-primary-200">
+                    IELTS {studyGoals.currentLevel}
+                  </span>
+                </div>
+
+                {/* Target Level */}
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <span className="text-sm text-slate-600">Mục tiêu của bạn</span>
+                  <span className="px-4 py-1.5 bg-success-100 text-success-700 font-bold text-sm rounded-lg border-2 border-success-200">
+                    IELTS {studyGoals.targetLevel}
+                  </span>
+                </div>
+
+                {/* Study Hours */}
+                <div className="mt-6 p-5 bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl border border-primary-200 text-center">
+                  <p className="text-sm text-slate-600 mb-2">Giờ học ước tính mỗi tuần</p>
+                  <div className="flex items-baseline justify-center gap-1">
+                    <span className="text-4xl font-bold text-primary-700">{studyGoals.hoursPerWeek}h</span>
+                    <span className="text-lg text-primary-600">/ tuần</span>
+                  </div>
+                  <p className="text-xs text-slate-500 mt-2">trong {studyGoals.durationMonths} tháng</p>
+                </div>
+              </div>
+            </Card>
+
+            {/* IELTS Exam Schedule Section */}
+            <Card className="p-6 border-primary-200 shadow-md lg:col-span-1 bg-white">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-secondary-100 rounded-full flex items-center justify-center">
+                  <Calendar className="w-5 h-5 text-secondary-600" />
+                </div>
+                <h2 className="text-xl font-bold text-slate-800">Lịch thi IELTS</h2>
+              </div>
+
+              <div className="space-y-4">
+                {/* Exam Date and Days Remaining */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 text-center">
+                    <p className="text-xs text-slate-500 mb-1">Ngày dự thi</p>
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="font-bold text-slate-800">{ieltsExam.examDate.toLocaleDateString("vi-VN")}</span>
                       <button
-                        key={tab}
-                        onClick={() => setActiveMissionTab(tab)}
-                        className={`p-3 text-sm font-medium text-left border-b border-primary-50 last:border-b-0 transition-all capitalize flex items-center justify-between ${
-                          activeMissionTab === tab
-                            ? "bg-primary-200 text-primary-900"
-                            : "bg-white text-slate-600 hover:bg-primary-50"
-                        }`}
+                        onClick={() => setIsEditingExamDate(true)}
+                        className="w-6 h-6 rounded-full bg-primary-100 hover:bg-primary-200 flex items-center justify-center transition-colors"
                       >
-                        {tab}
-                        {activeMissionTab === tab && <div className="w-1.5 h-1.5 rounded-full bg-primary-500" />}
+                        <Pencil className="w-3 h-3 text-primary-600" />
                       </button>
-                    ))}
-                  </div>
-
-                  <div className="bg-linear-to-br from-primary-50 to-primary-100 rounded-xl p-4 text-center space-y-2 border border-primary-200">
-                    <h4 className="font-bold text-sm text-slate-700">Countdown</h4>
-                    <div className="bg-white/80 py-2 px-4 rounded-lg font-mono font-bold text-sm text-primary-600 shadow-sm border border-primary-200">
-                      14:59 hours remains
                     </div>
-                    <p className="text-[10px] text-slate-500">Kết thúc lúc 11:59PM ngày 23/11/2025</p>
+                  </div>
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 text-center">
+                    <p className="text-xs text-slate-500 mb-1">Số ngày còn lại</p>
+                    <span className="font-bold text-primary-600 text-lg">{ieltsExam.daysRemaining} ngày</span>
                   </div>
                 </div>
 
-                {/* Mission List */}
-                <div className="md:col-span-5">
-                  <h3 className="font-bold mb-4 text-slate-800 capitalize">{activeMissionTab} Mission</h3>
-                  <div className="space-y-3">
-                    {displayedMissions.map((mission) => {
-                      const isDone = completedMissions.includes(mission.id)
-                      return (
-                        <div
-                          key={mission.id}
-                          onClick={() => toggleMission(mission.id)}
-                          className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-all ${
-                            isDone
-                              ? "bg-primary-50 border-primary-200"
-                              : "bg-white border-slate-100 hover:border-primary-200 hover:shadow-sm"
-                          }`}
-                        >
-                          <div
-                            className={`w-5 h-5 rounded-full flex items-center justify-center border-2 ${
-                              isDone ? "bg-primary-500 border-primary-500" : "border-slate-300"
-                            }`}
-                          >
-                            {isDone && <Check className="w-3 h-3 text-white" />}
-                          </div>
-                          <span
-                            className={`flex-1 text-sm ${isDone ? "line-through text-slate-400" : "text-slate-700"}`}
-                          >
-                            {mission.title}
-                          </span>
-                          <span className="text-xs font-bold text-orange-500 bg-orange-50 px-2 py-0.5 rounded-md">
-                            +{mission.points}
-                          </span>
-                        </div>
-                      )
-                    })}
-                  </div>
+                {/* Illustration */}
+                <div className="relative h-32 bg-gradient-to-br from-primary-50 to-secondary-50 rounded-xl overflow-hidden border border-primary-100">
+                  <Image src="/learning.png" alt="Study illustration" fill className="object-contain p-4" />
                 </div>
 
-                {/* Gift/Reward */}
-                <div className="md:col-span-4 flex flex-col items-center justify-center">
-                  <div className="bg-linear-to-br from-primary-100 to-primary-200 rounded-2xl p-6 text-center w-full">
-                    <div className="w-20 h-20 mx-auto mb-4 relative">
-                      <Gift className="w-full h-full text-primary-600" />
-                    </div>
-                    <h4 className="font-bold text-slate-800 mb-2">Daily Gift</h4>
-                    <p className="text-xs text-slate-500 mb-4">Complete all missions to claim!</p>
-                    <Button
-                      className="w-full bg-primary-500 hover:bg-primary-600 text-white"
-                      disabled={completedMissions.length < displayedMissions.length}
-                    >
-                      Claim Gift
-                    </Button>
+                {/* Motivational Message */}
+                <div className="p-4 bg-gradient-to-r from-success-50 to-success-100 rounded-xl border border-success-200 text-center">
+                  <div className="flex items-start gap-2 justify-center">
+                    <Sparkles className="w-5 h-5 text-success-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-success-700">
+                      Bạn sẽ đạt được aim nếu học với lịch học hiện tại vào ngày{" "}
+                      <span className="font-bold">28/12</span>!
+                    </p>
                   </div>
                 </div>
               </div>
             </Card>
 
-            {/* Reminders - Takes up 1 Column */}
-            <Card className="p-6 border-primary-100 shadow-md flex flex-col lg:col-span-1">
-              <h2 className="text-xl font-bold mb-6 text-slate-800">Lời nhắc</h2>
-
-              <div className="space-y-4 flex-1">
-                <div className="border border-primary-100 bg-primary-50/30 rounded-xl p-4 text-center space-y-3">
-                  <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center mx-auto text-primary-600">
-                    <Mic className="w-5 h-5" />
-                  </div>
-                  <h3 className="font-bold text-sm text-primary-900">Speaking Room</h3>
-                  <p className="text-xs text-slate-500 px-4">You have not practiced speaking today</p>
-                  <Button
-                    asChild
-                    variant="default"
-                    size="sm"
-                    className="w-full bg-primary-100 hover:bg-primary-200 text-primary-700"
-                  >
-                    <Link href="/speaking">Practice Now</Link>
-                  </Button>
+            <Card className="p-6 border-primary-100 shadow-md flex flex-col lg:col-span-1 bg-white">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 bg-warning-100 rounded-full flex items-center justify-center">
+                  <Bell className="w-5 h-5 text-warning-600" />
                 </div>
+                <h2 className="text-xl font-bold text-slate-800">Lời nhắc</h2>
+              </div>
 
-                <div className="border border-secondary-100 bg-secondary-50/30 rounded-xl p-4 text-center space-y-3">
-                  <div className="w-10 h-10 bg-secondary-100 rounded-full flex items-center justify-center mx-auto text-secondary-600">
-                    <BookOpen className="w-5 h-5" />
-                  </div>
-                  <h3 className="font-bold text-sm text-secondary-900">Notebook</h3>
-                  <p className="text-xs text-slate-500 px-4">You have 34 words on reviewing</p>
-                  <Button
-                    asChild
-                    variant="secondary"
-                    size="sm"
-                    className="w-full bg-secondary-50 hover:bg-secondary-100 text-secondary-700"
-                  >
-                    <Link href="/notebook">Review Now</Link>
-                  </Button>
-                </div>
+              <div className="space-y-3 flex-1">
+                {reminders.map((reminder) => {
+                  const getIcon = () => {
+                    switch (reminder.type) {
+                      case "speaking":
+                        return <Mic className="w-5 h-5" />
+                      case "notebook":
+                        return <BookOpen className="w-5 h-5" />
+                      case "missed":
+                        return <AlertCircle className="w-5 h-5" />
+                    }
+                  }
+
+                  const getColors = () => {
+                    switch (reminder.type) {
+                      case "speaking":
+                        return {
+                          bg: "bg-primary-50/50",
+                          border: "border-primary-100",
+                          iconBg: "bg-primary-100",
+                          iconColor: "text-primary-600",
+                          titleColor: "text-primary-900",
+                          btnBg: "bg-primary-100 hover:bg-primary-200",
+                          btnText: "text-primary-700",
+                        }
+                      case "notebook":
+                        return {
+                          bg: "bg-secondary-50/50",
+                          border: "border-secondary-100",
+                          iconBg: "bg-secondary-100",
+                          iconColor: "text-secondary-600",
+                          titleColor: "text-secondary-900",
+                          btnBg: "bg-secondary-100 hover:bg-secondary-200",
+                          btnText: "text-secondary-700",
+                        }
+                      case "missed":
+                        return {
+                          bg: "bg-warning-50/50",
+                          border: "border-warning-100",
+                          iconBg: "bg-warning-100",
+                          iconColor: "text-warning-600",
+                          titleColor: "text-warning-900",
+                          btnBg: "bg-warning-100 hover:bg-warning-200",
+                          btnText: "text-warning-700",
+                        }
+                    }
+                  }
+
+                  const colors = getColors()
+
+                  return (
+                    <div key={reminder.id} className={`${colors.bg} ${colors.border} border rounded-xl p-4 space-y-3`}>
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-9 h-9 ${colors.iconBg} rounded-full flex items-center justify-center ${colors.iconColor}`}
+                        >
+                          {getIcon()}
+                        </div>
+                        <div className="flex-1">
+                          <h3 className={`font-bold text-sm ${colors.titleColor}`}>{reminder.title}</h3>
+                          <p className="text-xs text-slate-500">{reminder.description}</p>
+                        </div>
+                      </div>
+                      <Button
+                        asChild
+                        variant="ghost"
+                        size="sm"
+                        className={`w-full ${colors.btnBg} ${colors.btnText} font-medium`}
+                      >
+                        <Link href={reminder.href}>{reminder.action}</Link>
+                      </Button>
+                    </div>
+                  )
+                })}
               </div>
             </Card>
           </div>
@@ -488,7 +548,7 @@ export default function StudyPlanPage() {
           {/* 4. Plans Grid Section (GRID LAYOUT UPDATED) */}
           <div className="grid grid-cols-1 lg:grid-cols-7 gap-8">
             {/* My Study Plan - Takes up 2 Columns */}
-            <Card className="p-6 h-full border-primary-100 shadow-md lg:col-span-2">
+            <Card className="p-6 h-full border-primary-100 shadow-md lg:col-span-2 bg-white">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-slate-800">My Study Plan</h2>
                 <Button
@@ -501,7 +561,7 @@ export default function StudyPlanPage() {
               </div>
 
               <div className="space-y-4">
-                {studyPlans.map((plan) => (
+                {todayLessons.map((plan) => (
                   <div
                     key={plan.id}
                     onClick={() => setSelectedPlanId(plan.id)}
@@ -517,23 +577,21 @@ export default function StudyPlanPage() {
                           selectedPlanId === plan.id ? "text-primary-900" : "text-slate-700"
                         }`}
                       >
-                        {plan.name}
+                        {plan.title}
                       </h3>
-                      {plan.status === "active" && (
+                      {plan.completed && (
                         <span className="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">
-                          active
+                          completed
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-slate-500 mb-4">{plan.goal}</p>
+                    <p className="text-xs text-slate-500 mb-4">{plan.topic}</p>
 
                     <div className="space-y-1">
                       <div className="flex justify-between text-xs font-bold text-slate-700">
-                        <span>Progress</span>
-                        <span>{plan.progress}%</span>
+                        <span>Duration</span>
+                        <span>{plan.duration}</span>
                       </div>
-                      <Progress value={plan.progress} className="h-1.5 bg-primary-100" />
-                      <p className="text-[10px] text-slate-400 mt-1">Remain: {plan.remainHours}h to complete</p>
                     </div>
                   </div>
                 ))}
@@ -541,7 +599,7 @@ export default function StudyPlanPage() {
             </Card>
 
             {/* Detail Study Plan - Takes up 5 Columns */}
-            <Card className="p-6 border-primary-100 shadow-md lg:col-span-5">
+            <Card className="p-6 border-primary-100 shadow-md lg:col-span-5 bg-white">
               <div className="flex items-center justify-between mb-1">
                 <h2 className="text-xl font-bold text-slate-800">Detail Study Plan</h2>
                 <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary-600">
@@ -549,26 +607,14 @@ export default function StudyPlanPage() {
                 </Button>
               </div>
 
-              <h3 className="text-lg font-bold mb-4 text-primary-900">{selectedPlan.name}</h3>
-              <p className="text-sm text-slate-500 mb-6 border-b border-gray-100 pb-4">{selectedPlan.goal}</p>
+              <h3 className="text-lg font-bold mb-4 text-primary-900">{selectedPlan.title}</h3>
+              <p className="text-sm text-slate-500 mb-6 border-b border-gray-100 pb-4">{selectedPlan.topic}</p>
 
               {/* Detailed Stats */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
                 <div className="border border-primary-100 bg-primary-50/50 rounded-xl p-3 text-center">
-                  <p className="text-xs text-primary-600 font-medium mb-1">Progress</p>
-                  <p className="font-bold text-slate-800">{selectedPlan.progress}%</p>
-                </div>
-                <div className="border border-primary-100 bg-primary-50/50 rounded-xl p-3 text-center">
-                  <p className="text-xs text-primary-600 font-medium mb-1">Studied</p>
-                  <p className="font-bold text-slate-800">{selectedPlan.studiedHours}h</p>
-                </div>
-                <div className="border border-primary-100 bg-primary-50/50 rounded-xl p-3 text-center">
-                  <p className="text-xs text-primary-600 font-medium mb-1">Remain</p>
-                  <p className="font-bold text-slate-800">{selectedPlan.remainHours}h</p>
-                </div>
-                <div className="border border-primary-100 bg-primary-50/50 rounded-xl p-3 text-center">
-                  <p className="text-xs text-primary-600 font-medium mb-1">Level</p>
-                  <p className="font-bold text-slate-800">{selectedPlan.level}</p>
+                  <p className="text-xs text-primary-600 font-medium mb-1">Duration</p>
+                  <p className="font-bold text-slate-800">{selectedPlan.duration}</p>
                 </div>
               </div>
 
