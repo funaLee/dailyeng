@@ -876,7 +876,7 @@ export default function CollectionsPage() {
       pageDescription="Collect beautiful cards by completing missions and achievements."
       pageIcon={<FolderOpen className="w-10 h-10 text-primary" />}
     >
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-7xl">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid lg:grid-cols-12 gap-8">
           {/* Left Sidebar */}
           <div className="lg:col-span-3">

@@ -74,7 +74,7 @@ export function TopicCard({
   }
 
   const cardContent = (
-    <Card className="group relative overflow-hidden rounded-3xl border-[1.4px] border-primary-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-primary-300 flex flex-col min-w-[280px] h-[420px]">
+    <Card className="group relative overflow-hidden rounded-3xl border-2 border-border bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-primary-300 flex flex-col min-w-[280px] h-[420px]">
       <button
         onClick={handleBookmarkClick}
         className={`absolute top-3 right-3 z-10 p-2 rounded-full transition-all duration-200 cursor-pointer ${

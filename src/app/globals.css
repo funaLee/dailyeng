@@ -9,41 +9,54 @@
   --background: rgb(247, 248, 255);
   --foreground: #1e1e3a;
 
-  /* Primary scale (blue-violet) */
-  --primary-50: #f4f6ff;
-  --primary-100: #e7ebff;
-  --primary-200: #d5daff;
-  --primary-300: #bbc2ff;
-  --primary-400: #a1adff;
-  --primary-500: #8ea8ff;
-  --primary-600: #748dff;
-  --primary-700: #5a70e6;
-  --primary-800: #4658b8;
-  --primary-900: #3d4a91;
+  /* 
+   * PRIMARY SCALE: ULTRAMARINE (XANH LƯU LY)
+   * Đặc điểm: Thiên về Xanh dương (Blue) > Tím (Purple).
+   * Cảm giác: Điện tử, Sâu thẳm, Mạnh mẽ.
+   * So với bản cũ: Ít đỏ hơn, nhiều xanh hơn.
+   */
+  --primary-50:  #eef2ff;
+  --primary-100: #e0e7ff;
+  --primary-200: #c7d2fe;
+  --primary-300: #a5b4fc;
+  --primary-400: #818cf8;
+  --primary-500: #4f46e5; /* Màu cơ bản: Xanh tím thiên xanh */
+  --primary-600: #4b3fd4; /* MÀU CHÍNH: Đậm đà, độ bão hòa cao */
+  --primary-700: #3d35af; /* Dùng cho hover */
+  --primary-800: #312e81;
+  --primary-900: #1e1b4b; /* Màu mực rất sâu, thay cho màu đen */
 
-  /* Secondary scale (pink) */
-  --secondary-50: #fff0f5;
-  --secondary-100: #ffe4eb;
-  --secondary-200: #ffc8d9;
-  --secondary-300: #ffb6c1;
-  --secondary-400: #ff9cb0;
-  --secondary-500: #ff819a;
-  --secondary-600: #e56b85;
-  --secondary-700: #c75771;
-  --secondary-800: #a4425b;
-  --secondary-900: #893f53;
+  /* 
+   * SECONDARY SCALE: VIVID MAGENTA
+   * Đặc điểm: Đậm và Rực. Không còn là hồng phấn nhạt.
+   * Tác dụng: Tạo sự quyến rũ và cân bằng lại sắc lạnh của màu xanh.
+   */
+  --secondary-50:  #fdf2f8;
+  --secondary-100: #fce7f3;
+  --secondary-200: #fbcfe8;
+  --secondary-300: #f9a8d4;
+  --secondary-400: #f472b6;
+  --secondary-500: #ec4899;
+  --secondary-600: #db2777; /* Màu phụ dùng cho icon/text nhấn */
+  --secondary-700: #be185d;
+  --secondary-800: #9d174d;
+  --secondary-900: #831843;
 
-  /* Accent scale (mint) */
-  --accent-50: #e2fff9;
-  --accent-100: #c1fff1;
-  --accent-200: #a0fbe4;
-  --accent-300: #7bf5d8;
-  --accent-400: #57e1c1;
-  --accent-500: #3fc1a7;
-  --accent-600: #2fa48d;
-  --accent-700: #1f7a69;
-  --accent-800: #1a5f54;
-  --accent-900: #1c4a44;
+  /* 
+   * ACCENT SCALE: NEON LIME
+   * Đặc điểm: Rất sáng, rất "chua", cắt ngang nền xanh tím.
+   * Tác dụng: Dùng cho nút CTA quan trọng nhất để mắt người dùng bị hút vào ngay.
+   */
+  --accent-50:  #f7fee7;
+  --accent-100: #ecfccb;
+  --accent-200: #d9f99d;
+  --accent-300: #bef264;
+  --accent-400: #a3e635;
+  --accent-500: #84cc16; /* Màu xanh lá mạ rực rỡ */
+  --accent-600: #65a30d; /* Dùng làm màu nền nút */
+  --accent-700: #4d7c0f;
+  --accent-800: #3f6212;
+  --accent-900: #365314;
 
   /* Gray scale */
   --gray-50: #fafafa;
@@ -75,7 +88,7 @@
   --info-300: #154aa0;
 
   /* Alias for compatibility */
-  --primary: var(--primary-600);
+  --primary: var(--primary-500);
   --primary-foreground: #ffffff;
   --secondary: var(--secondary-500);
   --secondary-foreground: #ffffff;
