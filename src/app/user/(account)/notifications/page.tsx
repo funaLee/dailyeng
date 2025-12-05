@@ -107,79 +107,83 @@ export default function NotificationsPage() {
               </CardContent>
             </Card>
 
-            {/* Title */}
-            <h2 className="text-xl font-bold text-foreground">Your Notifications</h2>
+            <div className="space-y-4 bg-white p-10 border-border border-2 shadow-sm rounded-2xl">
 
-            {/* Search and Filter Controls */}
-            <div className="flex gap-4 items-center">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input
-                  placeholder="Search"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 border-input focus:border-primary focus:ring-primary"
-                />
+              
+              {/* Title */}
+              <h2 className="text-xl font-bold text-foreground">Your Notifications</h2>
+
+              {/* Search and Filter Controls */}
+              <div className="flex gap-4 items-center">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    placeholder="Search"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 border-input focus:border-primary focus:ring-primary"
+                  />
+                </div>
+
+                <Select value={filterCategory} onValueChange={setFilterCategory}>
+                  <SelectTrigger className="w-[200px] border-input">
+                    <Filter className="h-4 w-4 mr-2" />
+                    <SelectValue placeholder="Filter by type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="speaking">Speaking</SelectItem>
+                    <SelectItem value="vocabulary">Vocabulary</SelectItem>
+                    <SelectItem value="grammar">Grammar</SelectItem>
+                    <SelectItem value="achievement">Achievement</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Button
+                  variant="outline"
+                  onClick={() => setSortOrder(sortOrder === "newest" ? "oldest" : "newest")}
+                  className="border-input"
+                >
+                  <ArrowUpDown className="h-4 w-4 mr-2" />
+                  {sortOrder === "newest" ? "Newest" : "Oldest"}
+                </Button>
               </div>
 
-              <Select value={filterCategory} onValueChange={setFilterCategory}>
-                <SelectTrigger className="w-[200px] border-input">
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Filter by type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="speaking">Speaking</SelectItem>
-                  <SelectItem value="vocabulary">Vocabulary</SelectItem>
-                  <SelectItem value="grammar">Grammar</SelectItem>
-                  <SelectItem value="achievement">Achievement</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Button
-                variant="outline"
-                onClick={() => setSortOrder(sortOrder === "newest" ? "oldest" : "newest")}
-                className="border-input"
-              >
-                <ArrowUpDown className="h-4 w-4 mr-2" />
-                {sortOrder === "newest" ? "Newest" : "Oldest"}
-              </Button>
-            </div>
-
-            {/* Notifications List */}
-            <div className="space-y-4">
-              {filteredNotifications.map((notification) => (
-                <Card
-                  key={notification.id}
-                  className={`border-border shadow-sm transition-all hover:shadow-md ${
-                    !notification.read ? "bg-primary/5" : ""
-                  }`}
-                >
-                  <CardContent className="p-5 pt-1 pb-1">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-bold text-lg text-foreground">{notification.title}</h3>
-                          <Badge variant="outline" className="border-input text-muted-foreground text-xs px-3 py-0.5">
-                            {notification.category}
-                          </Badge>
+              {/* Notifications List */}
+              <div className="space-y-4">
+                {filteredNotifications.map((notification) => (
+                  <Card
+                    key={notification.id}
+                    className={`border-border shadow-sm transition-all hover:shadow-md ${
+                      !notification.read ? "bg-primary/5" : ""
+                    }`}
+                  >
+                    <CardContent className="p-5 pt-1 pb-1">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="font-bold text-lg text-foreground">{notification.title}</h3>
+                            <Badge variant="outline" className="border-input text-muted-foreground text-xs px-3 py-0.5">
+                              {notification.category}
+                            </Badge>
+                          </div>
+                          <p className="text-muted-foreground text-sm leading-relaxed">{notification.description}</p>
                         </div>
-                        <p className="text-muted-foreground text-sm leading-relaxed">{notification.description}</p>
-                      </div>
 
-                      <div className="text-right flex flex-col items-end gap-1">
-                        <span className="text-xs font-medium text-muted-foreground italic">
-                          {notification.timestamp}
-                        </span>
-                        <span className="text-xs text-foreground font-semibold">
-                          {notification.timestamp.includes(":") ? notification.timestamp : ""}
-                        </span>
-                        <span className="text-xs text-muted-foreground">{notification.date}</span>
+                        <div className="text-right flex flex-col items-end gap-1">
+                          <span className="text-xs font-medium text-muted-foreground italic">
+                            {notification.timestamp}
+                          </span>
+                          <span className="text-xs text-foreground font-semibold">
+                            {notification.timestamp.includes(":") ? notification.timestamp : ""}
+                          </span>
+                          <span className="text-xs text-muted-foreground">{notification.date}</span>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
           </div>
         </div>

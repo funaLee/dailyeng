@@ -1,11 +1,9 @@
 "use client"
-import Image from "next/image"
 import { Bookmark } from "lucide-react"
 
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 import { Play, Gift, MessageSquarePlus, ChevronRight, ChevronLeft, Plus } from "lucide-react"
 import { RadarChart } from "@/components/speaking/radar-chart"
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
@@ -152,76 +150,92 @@ const HISTORY_GRAPH_DATA = Array.from({ length: 50 }, (_, i) => ({
 
 const HISTORY_TOPICS_DATA = [
   {
-    id: 1,
+    id: "1",
     title: "Space Exploration",
     description: "Learn vocabulary used in space travel, astronomy, and scientific discovery.",
     score: 95,
     date: "2024-03-10",
-    tags: ["Science", "B2"],
+    level: "B2",
     image: "/learning.png",
+    progress: 100,
+    wordCount: 8,
   },
   {
-    id: 2,
+    id: "2",
     title: "Magic & Fantasy",
     description: "Discuss magical worlds, spells, and fantasy creatures in descriptive English.",
     score: 92,
     date: "2024-03-09",
-    tags: ["Fiction", "C1"],
+    level: "C1",
     image: "/learning.png",
+    progress: 100,
+    wordCount: 10,
   },
   {
-    id: 3,
+    id: "3",
     title: "Future Technology",
     description: "Debate the implications of AI, robotics, and future tech trends.",
     score: 94,
     date: "2024-03-08",
-    tags: ["Tech", "C1"],
+    level: "C1",
     image: "/learning.png",
+    progress: 100,
+    wordCount: 12,
   },
   {
-    id: 4,
+    id: "4",
     title: "Sustainable Living",
     description: "Talk about eco-friendly habits and saving the planet.",
     score: 91,
     date: "2024-03-05",
-    tags: ["Environment", "B2"],
+    level: "B2",
     image: "/learning.png",
+    progress: 100,
+    wordCount: 9,
   },
   {
-    id: 5,
+    id: "5",
     title: "Job Interview",
     description: "Practice answering common interview questions professionally.",
     score: 85,
     date: "2024-03-04",
-    tags: ["Business", "B2"],
+    level: "B2",
     image: "/learning.png",
+    progress: 100,
+    wordCount: 15,
   },
   {
-    id: 6,
+    id: "6",
     title: "Coffee Culture",
     description: "Describe different types of coffee and café experiences.",
     score: 88,
     date: "2024-03-03",
-    tags: ["Daily Life", "A2"],
+    level: "A2",
     image: "/learning.png",
+    progress: 100,
+    wordCount: 7,
   },
   {
-    id: 7,
+    id: "7",
     title: "Travel Planning",
     description: "Plan a trip, book hotels, and discuss itineraries.",
     score: 82,
     date: "2024-03-01",
-    tags: ["Travel", "B1"],
+    level: "B1",
     image: "/learning.png",
+    progress: 100,
+    wordCount: 10,
   },
   {
-    id: 8,
+    id: "8",
     title: "Movie Reviews",
     description: "Share your opinions on recent movies and actors.",
     score: 89,
     date: "2024-02-28",
-    tags: ["Entertainment", "B1"],
+    level: "B1",
     image: "/learning.png",
+    progress: 100,
+    wordCount: 8,
   },
 ]
 
@@ -421,7 +435,7 @@ export default function SpeakingPage() {
                     </div>
                   </>
                 ) : (
-                  <Card className="p-12 rounded-3xl border-[1.4px] border-primary-200 text-center">
+                  <Card className="p-12 rounded-3xl border-[1.4px] border-primary-200 text-center bg-white">
                     <Bookmark className="h-16 w-16 text-primary-200 mx-auto mb-4" />
                     <h3 className="text-xl font-bold text-foreground mb-2">No Bookmarks Yet</h3>
                     <p className="text-muted-foreground mb-6">
@@ -436,7 +450,7 @@ export default function SpeakingPage() {
             )}
 
             {activeTab === "custom" && (
-              <Card className="p-8 rounded-3xl border-2 border-primary-100">
+              <Card className="p-8 rounded-3xl border-2 border-primary-100 bg-white">
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <h3 className="text-xl font-bold mb-1">Create Custom Topic</h3>
@@ -487,7 +501,7 @@ export default function SpeakingPage() {
             {activeTab === "history" && (
               <div className="space-y-8">
                 <div className="grid lg:grid-cols-2 gap-8">
-                  <Card className="p-6 rounded-3xl border-2 border-primary-100">
+                  <Card className="p-6 rounded-3xl border-2 border-primary-100 bg-white">
                     <h3 className="text-lg font-bold mb-4">Performance Overview</h3>
                     <div className="h-64">
                       <ResponsiveContainer width="100%" height="100%">
@@ -514,7 +528,7 @@ export default function SpeakingPage() {
                     </div>
                   </Card>
 
-                  <Card className="p-6 rounded-3xl border-2 border-primary-100">
+                  <Card className="p-6 rounded-3xl border-2 border-primary-100 bg-white">
                     <h3 className="text-lg font-bold mb-4">Criteria Score</h3>
                     <div className="h-64 w-full flex items-center justify-center">
                       <RadarChart data={DEMO_CRITERIA.map((t) => ({ label: t.title, value: t.score }))} size={300} />
@@ -522,7 +536,7 @@ export default function SpeakingPage() {
                   </Card>
                 </div>
 
-                <Card className="p-6 rounded-3xl border-2 border-primary-100">
+                <Card className="p-6 rounded-3xl border-2 border-primary-100 bg-white">
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="text-lg font-bold">Session History</h3>
                     <div className="flex gap-2">
@@ -544,45 +558,20 @@ export default function SpeakingPage() {
                     </div>
                   </div>
 
-                  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                  <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
                     {currentHistoryItems.map((item) => (
-                      <Card
+                      <TopicCard
                         key={item.id}
-                        className="p-4 rounded-2xl border-2 border-primary-100 hover:shadow-lg transition-all cursor-pointer"
-                      >
-                        <div className="relative aspect-video w-full overflow-hidden rounded-xl mb-3">
-                          <Image
-                            src={item.image || "/placeholder.svg"}
-                            alt={item.title}
-                            fill
-                            className="object-cover"
-                          />
-                          <div className="absolute top-2 right-2">
-                            <Badge
-                              className={`${
-                                item.score >= 90
-                                  ? "bg-green-500"
-                                  : item.score >= 80
-                                    ? "bg-primary-600"
-                                    : item.score >= 60
-                                      ? "bg-yellow-500"
-                                      : "bg-red-500"
-                              } text-white`}
-                            >
-                              {item.score}%
-                            </Badge>
-                          </div>
-                        </div>
-                        <h4 className="font-bold text-sm mb-1 line-clamp-1">{item.title}</h4>
-                        <p className="text-xs text-muted-foreground mb-2">{item.date}</p>
-                        <div className="flex gap-1">
-                          {item.tags.map((tag) => (
-                            <Badge key={tag} variant="outline" className="text-[10px]">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      </Card>
+                        id={item.id}
+                        title={item.title}
+                        description={item.description}
+                        level={item.level}
+                        wordCount={item.wordCount}
+                        thumbnail={item.image}
+                        progress={item.progress}
+                        href={`/speaking/session/${item.id}`}
+                        type="speaking"
+                      />
                     ))}
                   </div>
 

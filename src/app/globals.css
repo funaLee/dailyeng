@@ -6,7 +6,7 @@
 /* New color palette based on user's design system */
 :root {
   /* Base background + text */
-  --background: #ffffff;
+  --background: rgb(247, 248, 255);
   --foreground: #1e1e3a;
 
   /* Primary scale (blue-violet) */

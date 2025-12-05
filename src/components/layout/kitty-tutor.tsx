@@ -116,7 +116,7 @@ export function KittyTutor() {
 
       {/* Chat Panel - Bigger and more decorated */}
       {kittyOpen && (
-        <div className="fixed bottom-28 right-6 z-50 w-[420px] max-w-[calc(100vw-24px)] rounded-3xl bg-background border-[1.4px] border-primary-200 shadow-[6px_6px_0px_0px_rgba(var(--primary-200))] flex flex-col h-[520px] overflow-hidden">
+        <div className="fixed bottom-28 right-6 z-50 w-[420px] max-w-[calc(100vw-24px)] rounded-3xl bg-white border-[1.4px] border-primary-200 shadow-[6px_6px_0px_0px_rgba(var(--primary-200))] flex flex-col h-[520px] overflow-hidden">
           {/* Header - Decorated with gradient */}
           <div className="bg-gradient-to-l from-primary-500 to-primary-600 p-4">
             <div className="flex items-center justify-between">
@@ -171,7 +171,7 @@ export function KittyTutor() {
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-primary-50/50 to-background">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white">
             {messages.map((msg) => (
               <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                 {msg.role === "tutor" && (
@@ -187,7 +187,7 @@ export function KittyTutor() {
                   className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm ${
                     msg.role === "user"
                       ? "bg-primary-500 text-white rounded-br-md shadow-[2px_2px_0px_0px_rgba(var(--primary-700))]"
-                      : "bg-white text-foreground rounded-bl-md border border-primary-100 shadow-[2px_2px_0px_0px_rgba(var(--primary-100))]"
+                      : "bg-background text-foreground rounded-bl-md border border-primary-100 shadow-[2px_2px_0px_0px_rgba(var(--primary-100))]"
                   }`}
                 >
                   {msg.content}

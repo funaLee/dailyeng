@@ -64,7 +64,7 @@ export default function ProfileNewPage() {
             </Card>
 
             {/* Tabs and Form */}
-            <Card className="border-border shadow-sm">
+            <Card className="border-border shadow-sm bg-white">
               <CardContent className="p-8">
                 {/* Tabs */}
                 <div className="flex gap-8 mb-8 border-b border-border">

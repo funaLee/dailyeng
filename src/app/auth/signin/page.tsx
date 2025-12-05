@@ -108,7 +108,7 @@ export default function SignInPage() {
             <p className="text-muted-foreground mt-2">Sign in to continue your learning journey</p>
           </div>
 
-          <Card className="p-8 border-2 border-primary-100 rounded-3xl shadow-xl shadow-primary-100/20">
+          <Card className="p-8 border-2 border-primary-100 rounded-3xl shadow-xl shadow-primary-100/20 bg-white">
             {error && (
               <div className="mb-6 p-4 rounded-2xl bg-error-50 border border-error-200 flex gap-3">
                 <AlertCircle className="h-5 w-5 text-error-500 flex-shrink-0 mt-0.5" />
