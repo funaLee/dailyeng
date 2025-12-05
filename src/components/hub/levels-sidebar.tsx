@@ -22,7 +22,7 @@ export function LevelsSidebar({
   badgeLabel = "CEFR",
 }: LevelsSidebarProps) {
   return (
-    <Card className="p-6 bg-primary-100 rounded-3xl border-[1.4px] border-primary-200 shadow-md">
+    <Card className="p-6 bg-primary-100 rounded-3xl border-2 border-primary-300 shadow-md">
       <div className="flex items-center justify-between mb-5">
         <h3 className="font-bold text-lg text-primary-900">{title}</h3>
         <Badge className="text-xs bg-primary-500 text-white border-0 px-3 py-1">{badgeLabel}</Badge>

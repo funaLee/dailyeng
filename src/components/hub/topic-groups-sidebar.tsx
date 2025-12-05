@@ -24,7 +24,7 @@ export function TopicGroupsSidebar({
   showViewMore = true,
 }: TopicGroupsSidebarProps) {
   return (
-    <Card className="p-6 bg-primary-100 rounded-3xl border-[1.4px] border-primary-200 shadow-md">
+    <Card className="p-6 bg-primary-100 rounded-3xl border-2 border-primary-300 shadow-md">
       <h3 className="font-bold text-lg mb-5 text-primary-900">{title}</h3>
       <div className="space-y-1.5">
         {groups.map((group) => (

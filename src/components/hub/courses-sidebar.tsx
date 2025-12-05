@@ -27,7 +27,7 @@ export function CoursesSidebar({
   title = "Courses",
 }: CoursesSidebarProps) {
   return (
-    <Card className="p-6 bg-primary-100 rounded-3xl border-[1.4px] border-primary-200 shadow-sm">
+    <Card className="p-6 bg-primary-100 rounded-3xl border-2 border-primary-300 shadow-sm">
       <h3 className="font-bold text-lg mb-4 text-primary-900">{title}</h3>
       <div className="space-y-2">
         {courses.map((course) => (
