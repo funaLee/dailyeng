@@ -371,7 +371,7 @@ export default function SpeakingSessionPage() {
         </Link>
 
         <div className="grid lg:grid-cols-2 gap-6">
-          <Card className="p-8 space-y-8">
+          <Card className="p-8 space-y-8 bg-white">
             <div>
               <div className="flex items-center gap-2 mb-6">
                 <BookOpen className="h-6 w-6" />
@@ -440,7 +440,7 @@ export default function SpeakingSessionPage() {
           </Card>
 
           <div className="space-y-6">
-            <Card className="p-8">
+            <Card className="p-8 bg-white">
               <div className="aspect-video bg-gradient-to-br from-primary-200 to-primary-300 rounded-2xl mb-6 relative overflow-hidden">
                 <Image src="/learning.png" alt={scenario.title} fill className="object-cover rounded-2xl" />
               </div>
