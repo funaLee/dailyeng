@@ -361,7 +361,7 @@ export default function DashboardPage() {
               {/* LEFT COLUMN (2/3) */}
               <div className="lg:col-span-2 space-y-6">
                 {/* Mission List */}
-                <Card className="border-none shadow-md overflow-hidden flex flex-col">
+                <Card className="border-none shadow-md overflow-hidden flex flex-col bg-white">
                   <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-white">
                     <div className="flex items-center gap-2">
                       <Target className="text-primary-600" size={20} />
