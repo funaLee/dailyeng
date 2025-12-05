@@ -327,7 +327,7 @@ export default function HomePage() {
           <div className="grid md:grid-cols-2 gap-6">
             {/* Rating Card */}
             <RevealOnScroll>
-              <Card className="bg-primary-600 text-white border-0 p-6 shadow-xl rounded-2xl relative overflow-hidden group transition-transform hover:scale-[1.02] h-full cursor-pointer">
+              <Card className="bg-primary text-white border-0 p-6 shadow-xl rounded-2xl relative overflow-hidden group transition-transform hover:scale-[1.02] h-full cursor-pointer">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-12 -mt-12 blur-2xl group-hover:bg-white/20 transition-colors"></div>
                 <div className="absolute bottom-0 left-0 w-24 h-24 bg-primary-400/20 rounded-full -ml-10 -mb-10 blur-xl"></div>
 
@@ -359,7 +359,7 @@ export default function HomePage() {
 
             {/* Quote Card */}
             <RevealOnScroll delay={200}>
-              <Card className="bg-gray-50 border border-gray-200 p-6 shadow-lg rounded-2xl relative flex flex-col justify-center group hover:border-primary-200 transition-colors h-full cursor-pointer">
+              <Card className="bg-gray-50 p-6 shadow-lg rounded-2xl relative flex flex-col justify-center group hover:border-primary-200 transition-colors h-full cursor-pointer">
                 <Quote className="absolute top-4 right-4 w-10 h-10 text-primary-100 z-0 rotate-12" />
                 <div className="relative z-10">
                   <div className="mb-4 flex gap-1">
@@ -400,7 +400,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[minmax(200px,auto)]">
             {/* Large Feature - Speak First */}
             <RevealOnScroll className="md:col-span-2">
-              <Card className="h-full bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all p-8 rounded-3xl flex flex-col md:flex-row items-center gap-8 overflow-hidden group cursor-pointer">
+              <Card className="h-full bg-white shadow-sm hover:shadow-md transition-all p-8 rounded-3xl flex flex-col md:flex-row items-center gap-8 overflow-hidden group cursor-pointer">
                 <div className="flex-1 z-10">
                   <div className="w-12 h-12 bg-primary-100 text-primary-600 rounded-2xl flex items-center justify-center mb-6">
                     <Mic className="w-6 h-6" />
@@ -427,7 +427,7 @@ export default function HomePage() {
 
             {/* Feature 2 - Context Learning */}
             <RevealOnScroll delay={100}>
-              <Card className="h-full bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all p-8 rounded-3xl flex flex-col justify-between group cursor-pointer">
+              <Card className="h-full bg-white shadow-sm hover:shadow-md transition-all p-8 rounded-3xl flex flex-col justify-between group cursor-pointer">
                 <div>
                   <div className="w-12 h-12 bg-secondary-100 text-secondary-600 rounded-2xl flex items-center justify-center mb-6">
                     <BookOpen className="w-6 h-6" />
@@ -447,7 +447,7 @@ export default function HomePage() {
 
             {/* Feature 3 - Gamification */}
             <RevealOnScroll delay={200}>
-              <Card className="h-full bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all p-8 rounded-3xl flex flex-col justify-between group cursor-pointer">
+              <Card className="h-full bg-white shadow-sm hover:shadow-md transition-all p-8 rounded-3xl flex flex-col justify-between group cursor-pointer">
                 <div>
                   <div className="w-12 h-12 bg-accent-100 text-accent-600 rounded-2xl flex items-center justify-center mb-6">
                     <Zap className="w-6 h-6" />
@@ -470,7 +470,7 @@ export default function HomePage() {
 
             {/* Large Feature - AI Companion */}
             <RevealOnScroll className="md:col-span-2" delay={300}>
-              <Card className="h-full bg-white border border-secondary-100 shadow-sm hover:shadow-lg transition-all p-8 rounded-3xl flex flex-col md:flex-row-reverse items-center gap-8 overflow-hidden group cursor-pointer">
+              <Card className="h-full bg-white shadow-sm hover:shadow-lg transition-all p-8 rounded-3xl flex flex-col md:flex-row-reverse items-center gap-8 overflow-hidden group cursor-pointer">
                 <div className="flex-1 z-10">
                   <div className="w-12 h-12 bg-secondary-50 text-secondary-600 rounded-2xl flex items-center justify-center mb-6 border border-secondary-100">
                     <Sparkles className="w-6 h-6" />
@@ -623,7 +623,7 @@ export default function HomePage() {
               {[...reviews, ...reviews].map((review, idx) => (
                 <Card
                   key={`col1-${idx}`}
-                  className="p-6 border-0 shadow-sm bg-white rounded-2xl cursor-pointer hover:shadow-md transition-shadow"
+                  className="p-6 shadow-sm bg-white rounded-2xl cursor-pointer hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden relative">
@@ -649,7 +649,7 @@ export default function HomePage() {
               {[...reviews.reverse(), ...reviews].map((review, idx) => (
                 <Card
                   key={`col2-${idx}`}
-                  className="p-6 border-0 shadow-sm bg-white rounded-2xl cursor-pointer hover:shadow-md transition-shadow"
+                  className="p-6 shadow-sm bg-white rounded-2xl cursor-pointer hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center font-bold text-sm">
@@ -671,7 +671,7 @@ export default function HomePage() {
               {[...reviews, ...reviews].map((review, idx) => (
                 <Card
                   key={`col3-${idx}`}
-                  className="p-6 border-0 shadow-sm bg-white rounded-2xl cursor-pointer hover:shadow-md transition-shadow"
+                  className="p-6 shadow-sm bg-white rounded-2xl cursor-pointer hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden relative">
@@ -871,7 +871,7 @@ export default function HomePage() {
       <section className="py-20 bg-white">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <RevealOnScroll>
-            <Card className="relative overflow-hidden border-0 shadow-xl rounded-3xl bg-linear-to-r from-secondary-50 to-white cursor-pointer">
+            <Card className="relative overflow-hidden border-secondary-200 shadow-xl rounded-3xl bg-linear-to-r from-secondary-50 to-white cursor-pointer">
               <div className="grid md:grid-cols-2 gap-0">
                 {/* Left Content */}
                 <div className="p-8 md:p-12 flex flex-col justify-center">

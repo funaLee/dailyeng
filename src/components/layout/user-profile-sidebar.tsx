@@ -53,7 +53,7 @@ interface UserProfileSidebarProps {
     | "profile"
     | "notifications"
     | "settings"
-    | "supports"
+    | "help"
     | "courses"
 }
 
@@ -128,9 +128,9 @@ export function UserProfileSidebar({ activePage = "dashboard" }: UserProfileSide
           />
           <NavButton
             icon={<HeartHandshake size={16} />}
-            label="Support"
-            href="/user/support"
-            active={activePage === "supports"}
+            label="Helps"
+            href="/help"
+            active={activePage === "help"}
           />
 
           <div className="my-3 border-t border-slate-200" />
