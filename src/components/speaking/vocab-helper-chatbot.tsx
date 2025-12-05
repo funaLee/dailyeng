@@ -92,7 +92,7 @@ export default function VocabHelperChatbot() {
   }
 
   return (
-    <Card className="flex flex-col h-full max-h-[800px]">
+    <Card className="flex flex-col h-full max-h-[800px] bg-white border-2 border-border sticky top-8">
       {/* Header */}
       <div className="p-4 border-b">
         <div className="flex items-center gap-2">
