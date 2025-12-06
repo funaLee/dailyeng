@@ -1,10 +1,11 @@
 "use client"
-import { Bookmark } from "lucide-react"
-
-import { Card } from "@/components/ui/card"
+import { Bookmark, Flame, ChevronLeft, ChevronRight, Plus } from "lucide-react"
+import Image from "next/image"
+import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Play, Gift, MessageSquarePlus, ChevronRight, ChevronLeft, Plus } from "lucide-react"
+import { Play, Gift, MessageSquarePlus } from "lucide-react"
 import { RadarChart } from "@/components/speaking/radar-chart"
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 import { useState, useEffect, useRef } from "react"
@@ -135,6 +136,29 @@ const mockScenarios: Scenario[] = [
   },
 ]
 
+const HOT_TOPICS = [
+  [
+    { id: "hot1", title: "Job Interview Practice", level: "B1", duration: "8 min", image: "/learning.png" },
+    { id: "hot2", title: "Airport Check-in", level: "A2", duration: "6 min", image: "/learning.png" },
+    { id: "hot3", title: "Restaurant Ordering", level: "A2", duration: "5 min", image: "/learning.png" },
+  ],
+  [
+    { id: "hot4", title: "Hotel Reservation", level: "B1", duration: "7 min", image: "/learning.png" },
+    { id: "hot5", title: "Doctor Appointment", level: "B2", duration: "10 min", image: "/learning.png" },
+    { id: "hot6", title: "Shopping for Clothes", level: "A2", duration: "6 min", image: "/learning.png" },
+  ],
+  [
+    { id: "hot7", title: "Business Meeting", level: "B2", duration: "12 min", image: "/learning.png" },
+    { id: "hot8", title: "Phone Call Practice", level: "B1", duration: "8 min", image: "/learning.png" },
+    { id: "hot9", title: "Giving Directions", level: "A2", duration: "5 min", image: "/learning.png" },
+  ],
+  [
+    { id: "hot10", title: "Negotiation Skills", level: "C1", duration: "15 min", image: "/learning.png" },
+    { id: "hot11", title: "Presentation Practice", level: "B2", duration: "10 min", image: "/learning.png" },
+    { id: "hot12", title: "Small Talk", level: "B1", duration: "6 min", image: "/learning.png" },
+  ],
+]
+
 const DEMO_CRITERIA = [
   { title: "Vocabulary", score: 95 },
   { title: "Grammar", score: 92 },
@@ -247,6 +271,7 @@ export default function SpeakingPage() {
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>("Shopping")
   const [activeTab, setActiveTab] = useState<TabType>("available")
   const [bookmarkedTopics, setBookmarkedTopics] = useState<string[]>([])
+  const [hotTopicPage, setHotTopicPage] = useState(0)
 
   const [historyFilter, setHistoryFilter] = useState<string>("excellent")
   const [historyPage, setHistoryPage] = useState(1)
@@ -437,7 +462,7 @@ export default function SpeakingPage() {
                 ) : (
                   <Card className="p-12 rounded-3xl border-[1.4px] border-primary-200 text-center bg-white">
                     <Bookmark className="h-16 w-16 text-primary-200 mx-auto mb-4" />
-                    <h3 className="text-xl font-bold text-foreground mb-2">No Bookmarks Yet</h3>
+                    <h3 className="text-xl font-bold mb-2">No Bookmarks Yet</h3>
                     <p className="text-muted-foreground mb-6">
                       Click the bookmark icon on any topic card to save it here for quick access.
                     </p>
