@@ -1,10 +1,5 @@
-"use client"
-
-import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
-import { TopicHeader, CourseOutlineSidebar, LessonsContentView, GradesView, CourseInfoView } from "@/components/hub"
-import { ProtectedRoute } from "@/components/auth/protected-route"
-import { mockTopics, mockVocab } from "@/lib/mock-data"
+import VocabTopicPageClient from "@/components/page/VocabTopicPageClient";
+import { mockTopics, mockVocab } from "@/lib/mock-data";
 
 const mockCourseData = {
   courseName: "IELTS 7.0 Academic",
@@ -44,22 +39,28 @@ const mockCourseData = {
       subTopics: [{ id: "climate", title: "Climate Change" }],
     },
   ],
-}
+};
 
 const subTopicLessons: Record<
   string,
   Array<{
-    id: string
-    title: string
-    type: "vocabulary" | "translate" | "listening" | "reading" | "writing" | "quiz"
+    id: string;
+    title: string;
+    type:
+      | "vocabulary"
+      | "translate"
+      | "listening"
+      | "reading"
+      | "writing"
+      | "quiz";
     lessons: Array<{
-      id: string
-      title: string
-      duration: string
-      status: "not_started" | "in_progress" | "completed"
-      progress?: number
-      score?: number
-    }>
+      id: string;
+      title: string;
+      duration: string;
+      status: "not_started" | "in_progress" | "completed";
+      progress?: number;
+      score?: number;
+    }>;
   }>
 > = {
   dogs: [
@@ -68,9 +69,26 @@ const subTopicLessons: Record<
       title: "Vocabulary Learning",
       type: "vocabulary",
       lessons: [
-        { id: "dogs-vocab-1", title: "Vocab Pack 1", duration: "30 min", status: "completed", score: 85 },
-        { id: "dogs-vocab-2", title: "Vocab Pack 2", duration: "30 min", status: "in_progress", progress: 45 },
-        { id: "dogs-vocab-3", title: "Flashcard Vocab", duration: "30 min", status: "not_started" },
+        {
+          id: "dogs-vocab-1",
+          title: "Vocab Pack 1",
+          duration: "30 min",
+          status: "completed",
+          score: 85,
+        },
+        {
+          id: "dogs-vocab-2",
+          title: "Vocab Pack 2",
+          duration: "30 min",
+          status: "in_progress",
+          progress: 45,
+        },
+        {
+          id: "dogs-vocab-3",
+          title: "Flashcard Vocab",
+          duration: "30 min",
+          status: "not_started",
+        },
       ],
     },
     {
@@ -78,9 +96,24 @@ const subTopicLessons: Record<
       title: "Translate Practice",
       type: "translate",
       lessons: [
-        { id: "dogs-translate-1", title: "Translate Practice 1", duration: "30 min", status: "not_started" },
-        { id: "dogs-translate-2", title: "Translate Practice 2", duration: "30 min", status: "not_started" },
-        { id: "dogs-translate-3", title: "Translate Practice 3", duration: "30 min", status: "not_started" },
+        {
+          id: "dogs-translate-1",
+          title: "Translate Practice 1",
+          duration: "30 min",
+          status: "not_started",
+        },
+        {
+          id: "dogs-translate-2",
+          title: "Translate Practice 2",
+          duration: "30 min",
+          status: "not_started",
+        },
+        {
+          id: "dogs-translate-3",
+          title: "Translate Practice 3",
+          duration: "30 min",
+          status: "not_started",
+        },
       ],
     },
     {
@@ -88,8 +121,18 @@ const subTopicLessons: Record<
       title: "Listening Practice",
       type: "listening",
       lessons: [
-        { id: "dogs-listening-1", title: "Listening Practice 1", duration: "30 min", status: "not_started" },
-        { id: "dogs-listening-2", title: "Listening Practice 2", duration: "30 min", status: "not_started" },
+        {
+          id: "dogs-listening-1",
+          title: "Listening Practice 1",
+          duration: "30 min",
+          status: "not_started",
+        },
+        {
+          id: "dogs-listening-2",
+          title: "Listening Practice 2",
+          duration: "30 min",
+          status: "not_started",
+        },
       ],
     },
     {
@@ -97,8 +140,18 @@ const subTopicLessons: Record<
       title: "Reading Practice",
       type: "reading",
       lessons: [
-        { id: "dogs-reading-1", title: "Reading Practice 1", duration: "30 min", status: "not_started" },
-        { id: "dogs-reading-2", title: "Reading Practice 2", duration: "30 min", status: "not_started" },
+        {
+          id: "dogs-reading-1",
+          title: "Reading Practice 1",
+          duration: "30 min",
+          status: "not_started",
+        },
+        {
+          id: "dogs-reading-2",
+          title: "Reading Practice 2",
+          duration: "30 min",
+          status: "not_started",
+        },
       ],
     },
     {
@@ -106,8 +159,18 @@ const subTopicLessons: Record<
       title: "Writing Practice",
       type: "writing",
       lessons: [
-        { id: "dogs-writing-1", title: "Writing Practice 1", duration: "30 min", status: "not_started" },
-        { id: "dogs-writing-2", title: "Writing Practice 2", duration: "30 min", status: "not_started" },
+        {
+          id: "dogs-writing-1",
+          title: "Writing Practice 1",
+          duration: "30 min",
+          status: "not_started",
+        },
+        {
+          id: "dogs-writing-2",
+          title: "Writing Practice 2",
+          duration: "30 min",
+          status: "not_started",
+        },
       ],
     },
     {
@@ -115,8 +178,18 @@ const subTopicLessons: Record<
       title: "Quiz Practice",
       type: "quiz",
       lessons: [
-        { id: "dogs-quiz-1", title: "Quiz Practice 1", duration: "30 min", status: "not_started" },
-        { id: "dogs-quiz-2", title: "Quiz Practice 2", duration: "30 min", status: "not_started" },
+        {
+          id: "dogs-quiz-1",
+          title: "Quiz Practice 1",
+          duration: "30 min",
+          status: "not_started",
+        },
+        {
+          id: "dogs-quiz-2",
+          title: "Quiz Practice 2",
+          duration: "30 min",
+          status: "not_started",
+        },
       ],
     },
   ],
@@ -126,15 +199,32 @@ const subTopicLessons: Record<
       title: "Vocabulary Learning",
       type: "vocabulary",
       lessons: [
-        { id: "cats-vocab-1", title: "Vocab Pack 1", duration: "30 min", status: "not_started" },
-        { id: "cats-vocab-2", title: "Vocab Pack 2", duration: "30 min", status: "not_started" },
+        {
+          id: "cats-vocab-1",
+          title: "Vocab Pack 1",
+          duration: "30 min",
+          status: "not_started",
+        },
+        {
+          id: "cats-vocab-2",
+          title: "Vocab Pack 2",
+          duration: "30 min",
+          status: "not_started",
+        },
       ],
     },
     {
       id: "translate-practice",
       title: "Translate Practice",
       type: "translate",
-      lessons: [{ id: "cats-translate-1", title: "Translate Practice 1", duration: "30 min", status: "not_started" }],
+      lessons: [
+        {
+          id: "cats-translate-1",
+          title: "Translate Practice 1",
+          duration: "30 min",
+          status: "not_started",
+        },
+      ],
     },
   ],
   birds: [
@@ -142,7 +232,14 @@ const subTopicLessons: Record<
       id: "vocab-learning",
       title: "Vocabulary Learning",
       type: "vocabulary",
-      lessons: [{ id: "birds-vocab-1", title: "Vocab Pack 1", duration: "30 min", status: "not_started" }],
+      lessons: [
+        {
+          id: "birds-vocab-1",
+          title: "Vocab Pack 1",
+          duration: "30 min",
+          status: "not_started",
+        },
+      ],
     },
   ],
   culture: [
@@ -150,13 +247,27 @@ const subTopicLessons: Record<
       id: "vocab-learning",
       title: "Vocabulary Learning",
       type: "vocabulary",
-      lessons: [{ id: "culture-vocab-1", title: "Vocab Pack 1", duration: "30 min", status: "not_started" }],
+      lessons: [
+        {
+          id: "culture-vocab-1",
+          title: "Vocab Pack 1",
+          duration: "30 min",
+          status: "not_started",
+        },
+      ],
     },
     {
       id: "reading-practice",
       title: "Reading Practice",
       type: "reading",
-      lessons: [{ id: "culture-reading-1", title: "Cultural Essays", duration: "40 min", status: "not_started" }],
+      lessons: [
+        {
+          id: "culture-reading-1",
+          title: "Cultural Essays",
+          duration: "40 min",
+          status: "not_started",
+        },
+      ],
     },
   ],
   history: [
@@ -164,7 +275,14 @@ const subTopicLessons: Record<
       id: "vocab-learning",
       title: "Vocabulary Learning",
       type: "vocabulary",
-      lessons: [{ id: "history-vocab-1", title: "Historical Terms", duration: "30 min", status: "not_started" }],
+      lessons: [
+        {
+          id: "history-vocab-1",
+          title: "Historical Terms",
+          duration: "30 min",
+          status: "not_started",
+        },
+      ],
     },
   ],
   climate: [
@@ -172,22 +290,83 @@ const subTopicLessons: Record<
       id: "vocab-learning",
       title: "Vocabulary Learning",
       type: "vocabulary",
-      lessons: [{ id: "climate-vocab-1", title: "Climate Vocabulary", duration: "30 min", status: "not_started" }],
+      lessons: [
+        {
+          id: "climate-vocab-1",
+          title: "Climate Vocabulary",
+          duration: "30 min",
+          status: "not_started",
+        },
+      ],
     },
   ],
-}
+};
 
 const mockLessonGrades = [
-  { id: "vocab-1", title: "Vocab Pack 1", type: "vocabulary", score: 85, status: "completed" as const },
-  { id: "vocab-2", title: "Vocab Pack 2", type: "vocabulary", score: null, status: "in_progress" as const },
-  { id: "vocab-3", title: "Flashcard Vocab", type: "vocabulary", score: null, status: "not_started" as const },
-  { id: "translate-1", title: "Translate Practice 1", type: "translate", score: null, status: "not_started" as const },
-  { id: "translate-2", title: "Translate Practice 2", type: "translate", score: null, status: "not_started" as const },
-  { id: "listening-1", title: "Listening Practice 1", type: "listening", score: null, status: "not_started" as const },
-  { id: "reading-1", title: "Reading Practice 1", type: "reading", score: null, status: "not_started" as const },
-  { id: "writing-1", title: "Writing Practice 1", type: "writing", score: null, status: "not_started" as const },
-  { id: "quiz-1", title: "Quiz Practice 1", type: "quiz", score: null, status: "not_started" as const },
-]
+  {
+    id: "vocab-1",
+    title: "Vocab Pack 1",
+    type: "vocabulary",
+    score: 85,
+    status: "completed" as const,
+  },
+  {
+    id: "vocab-2",
+    title: "Vocab Pack 2",
+    type: "vocabulary",
+    score: null,
+    status: "in_progress" as const,
+  },
+  {
+    id: "vocab-3",
+    title: "Flashcard Vocab",
+    type: "vocabulary",
+    score: null,
+    status: "not_started" as const,
+  },
+  {
+    id: "translate-1",
+    title: "Translate Practice 1",
+    type: "translate",
+    score: null,
+    status: "not_started" as const,
+  },
+  {
+    id: "translate-2",
+    title: "Translate Practice 2",
+    type: "translate",
+    score: null,
+    status: "not_started" as const,
+  },
+  {
+    id: "listening-1",
+    title: "Listening Practice 1",
+    type: "listening",
+    score: null,
+    status: "not_started" as const,
+  },
+  {
+    id: "reading-1",
+    title: "Reading Practice 1",
+    type: "reading",
+    score: null,
+    status: "not_started" as const,
+  },
+  {
+    id: "writing-1",
+    title: "Writing Practice 1",
+    type: "writing",
+    score: null,
+    status: "not_started" as const,
+  },
+  {
+    id: "quiz-1",
+    title: "Quiz Practice 1",
+    type: "quiz",
+    score: null,
+    status: "not_started" as const,
+  },
+];
 
 const mockSkillScores = [
   { skill: "Vocabulary", score: 85, fullMark: 100 },
@@ -196,7 +375,7 @@ const mockSkillScores = [
   { skill: "Reading", score: 0, fullMark: 100 },
   { skill: "Writing", score: 0, fullMark: 100 },
   { skill: "Quiz", score: 0, fullMark: 100 },
-]
+];
 
 const mockCourseInfo = {
   courseName: "IELTS 7.0 Academic",
@@ -220,12 +399,14 @@ const mockCourseInfo = {
     {
       id: "animal-behaviour",
       title: "Animal Behaviour",
-      description: "Explore vocabulary related to animal behaviours, habitats, and wildlife conservation.",
+      description:
+        "Explore vocabulary related to animal behaviours, habitats, and wildlife conservation.",
       subTopics: [
         {
           id: "dogs",
           title: "Dogs",
-          description: "Learn vocabulary about domestic dogs, breeds, and canine behaviour.",
+          description:
+            "Learn vocabulary about domestic dogs, breeds, and canine behaviour.",
           lessons: [
             {
               id: "dogs-vocab-1",
@@ -281,7 +462,8 @@ const mockCourseInfo = {
         {
           id: "birds",
           title: "Birds",
-          description: "Learn about bird species, migration, and ornithology vocabulary.",
+          description:
+            "Learn about bird species, migration, and ornithology vocabulary.",
           lessons: [
             {
               id: "birds-vocab",
@@ -297,12 +479,14 @@ const mockCourseInfo = {
     {
       id: "humanity",
       title: "Humanity",
-      description: "Vocabulary covering human culture, society, and historical developments.",
+      description:
+        "Vocabulary covering human culture, society, and historical developments.",
       subTopics: [
         {
           id: "culture",
           title: "Culture",
-          description: "Cultural vocabulary including traditions, arts, and social customs.",
+          description:
+            "Cultural vocabulary including traditions, arts, and social customs.",
           lessons: [
             {
               id: "culture-vocab",
@@ -323,7 +507,8 @@ const mockCourseInfo = {
         {
           id: "history",
           title: "History",
-          description: "Historical vocabulary and terms for discussing past events.",
+          description:
+            "Historical vocabulary and terms for discussing past events.",
           lessons: [
             {
               id: "history-vocab",
@@ -339,12 +524,14 @@ const mockCourseInfo = {
     {
       id: "environment",
       title: "Environment",
-      description: "Environmental vocabulary including climate change, ecology, and sustainability.",
+      description:
+        "Environmental vocabulary including climate change, ecology, and sustainability.",
       subTopics: [
         {
           id: "climate",
           title: "Climate Change",
-          description: "Vocabulary for discussing climate change and environmental issues.",
+          description:
+            "Vocabulary for discussing climate change and environmental issues.",
           lessons: [
             {
               id: "climate-vocab",
@@ -358,132 +545,44 @@ const mockCourseInfo = {
       ],
     },
   ],
+};
+
+interface PageProps {
+  params: Promise<{ topicId: string }>;
 }
 
-export default function TopicDetailPage() {
-  const params = useParams()
-  const router = useRouter()
-  const topicId = params.topicId as string
+export default async function TopicDetailPage({ params }: PageProps) {
+  const { topicId } = await params;
 
-  const [topic, setTopic] = useState<any>(null)
-  const [activeSubTopic, setActiveSubTopic] = useState<string>("dogs")
-  const [activeView, setActiveView] = useState<"outline" | "grades" | "info">("outline")
+  // Mock data - will be replaced with actual data fetching from DB/API later
+  const foundTopic = mockTopics.find((t) => t.id === topicId);
+  const topic = foundTopic
+    ? {
+        id: foundTopic.id,
+        title: foundTopic.title,
+        description: foundTopic.description,
+        level: foundTopic.level,
+        thumbnail: foundTopic.thumbnail,
+      }
+    : {
+        id: topicId,
+        title: "Topic",
+        description: "Topic description",
+        level: "A2",
+      };
 
-  useEffect(() => {
-    const foundTopic = mockTopics.find((t) => t.id === topicId)
-    setTopic(foundTopic)
-  }, [topicId])
-
-  const handleSubTopicSelect = (subTopicId: string) => {
-    setActiveSubTopic(subTopicId)
-    setActiveView("outline")
-  }
-
-  const handleStartLesson = (lessonId: string) => {
-    router.push(`/vocab/${topicId}/lesson/${lessonId}`)
-  }
-
-  const handleViewChange = (view: "outline" | "grades" | "info") => {
-    setActiveView(view)
-  }
-
-  const getCurrentSubTopicTitle = () => {
-    for (const topic of mockCourseData.topics) {
-      const subTopic = topic.subTopics.find((st) => st.id === activeSubTopic)
-      if (subTopic) return subTopic.title
-    }
-    return "Lessons"
-  }
-
-  const getCurrentLessonGroups = () => {
-    return subTopicLessons[activeSubTopic] || []
-  }
-
-  if (!topic) {
-    return (
-      <ProtectedRoute>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-          <div className="h-96 bg-muted animate-pulse rounded-2xl" />
-        </div>
-      </ProtectedRoute>
-    )
-  }
-
-  const vocab = mockVocab[topicId] || []
-  const wordCount = vocab.length || 12
-
-  const renderRightContent = () => {
-    switch (activeView) {
-      case "grades":
-        return (
-          <GradesView
-            lessonGrades={mockLessonGrades}
-            skillScores={mockSkillScores}
-            overallProgress={12}
-            averageScore={85}
-          />
-        )
-      case "info":
-        return (
-          <CourseInfoView
-            courseName={mockCourseInfo.courseName}
-            courseDescription={mockCourseInfo.courseDescription}
-            totalHours={mockCourseInfo.totalHours}
-            totalLessons={mockCourseInfo.totalLessons}
-            totalTopics={mockCourseInfo.totalTopics}
-            totalSubTopics={mockCourseInfo.totalSubTopics}
-            level={mockCourseInfo.level}
-            targetAudience={mockCourseInfo.targetAudience}
-            objectives={mockCourseInfo.objectives}
-            topics={mockCourseInfo.topics}
-          />
-        )
-      case "outline":
-      default:
-        return (
-          <LessonsContentView
-            subTopicTitle={getCurrentSubTopicTitle()}
-            lessonGroups={getCurrentLessonGroups()}
-            onLessonClick={handleStartLesson}
-          />
-        )
-    }
-  }
+  const vocab = mockVocab[topicId] || [];
 
   return (
-    <ProtectedRoute>
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        {/* Topic Header */}
-        <TopicHeader
-          title={topic.title}
-          description={topic.description}
-          wordCount={wordCount}
-          duration="30 mins"
-          levels={[topic.level, "A2"]}
-          backUrl="/vocab"
-          backLabel="Back to Topic"
-        />
-
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
-          {/* Left Sidebar - Course Outline (only topics and sub-topics) */}
-          <div className="lg:col-span-1">
-            <CourseOutlineSidebar
-              courseName={mockCourseData.courseName}
-              topics={mockCourseData.topics}
-              activeSubTopic={activeSubTopic}
-              onSubTopicSelect={handleSubTopicSelect}
-              showGrades={true}
-              showInfo={true}
-              activeView={activeView}
-              onViewChange={handleViewChange}
-            />
-          </div>
-
-          {/* Right Content - Dynamic based on activeView */}
-          <div className="lg:col-span-3">{renderRightContent()}</div>
-        </div>
-      </div>
-    </ProtectedRoute>
-  )
+    <VocabTopicPageClient
+      topicId={topicId}
+      topic={topic}
+      vocab={vocab}
+      courseData={mockCourseData}
+      subTopicLessons={subTopicLessons}
+      lessonGrades={mockLessonGrades}
+      skillScores={mockSkillScores}
+      courseInfo={mockCourseInfo}
+    />
+  );
 }
