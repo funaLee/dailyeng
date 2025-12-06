@@ -73,7 +73,7 @@ export function LessonsContentView({ subTopicTitle, lessonGroups, onLessonClick 
   }
 
   return (
-    <Card className="rounded-3xl border-[1.4px] border-primary-200 bg-card overflow-hidden shadow-lg">
+    <Card className="rounded-3xl border-[1.4px] border-primary-200 bg-white overflow-hidden shadow-lg">
       <div className="relative p-6 bg-gradient-to-r from-primary-500 to-primary-600 overflow-hidden">
         {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />

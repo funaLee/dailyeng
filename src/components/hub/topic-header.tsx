@@ -37,7 +37,7 @@ export function TopicHeader({
         {backLabel}
       </Button>
 
-      <Card className="p-6 rounded-3xl border-[1.4px] border-primary-200 bg-gradient-to-br from-card via-card to-primary-50/30 relative overflow-hidden">
+      <Card className="p-6 rounded-3xl border-[1.4px] border-primary-200 bg-white relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary-200/20 to-secondary-200/20 rounded-full" />
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-accent-200/20 to-primary-200/20 rounded-full" />
 
@@ -71,11 +71,10 @@ export function TopicHeader({
               {levels.map((level, index) => (
                 <span
                   key={level}
-                  className={`px-4 py-1.5 rounded-full text-sm font-semibold shadow-sm ${
-                    index === 0
-                      ? "bg-gradient-to-r from-primary-500 to-primary-600 text-white"
-                      : "bg-white text-foreground border-2 border-primary-200"
-                  }`}
+                  className={`px-4 py-1.5 rounded-full text-sm font-semibold shadow-sm ${index === 0
+                    ? "bg-gradient-to-r from-primary-500 to-primary-600 text-white"
+                    : "bg-white text-foreground border-2 border-primary-200"
+                    }`}
                 >
                   {level}
                 </span>

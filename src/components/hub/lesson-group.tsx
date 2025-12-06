@@ -23,10 +23,10 @@ export function LessonGroup({ title, lessons, onLessonClick }: LessonGroupProps)
   const firstNotStartedIndex = lessons.findIndex((l) => l.status === "not_started")
 
   return (
-    <Card className="rounded-3xl border-2 border-primary-100 bg-card overflow-hidden">
+    <Card className="rounded-3xl border-[1.4px] overflow-hidden bg-white">
       <div className="p-6">
         <h3 className="font-semibold text-lg text-foreground mb-2">{title}</h3>
-        <div className="border-t-2 border-secondary-300 mb-4" />
+        <div className="border-t-[1.4px] border-primary-200 mb-4" />
         <div className="space-y-0">
           {lessons.map((lesson, index) => (
             <LessonCard
