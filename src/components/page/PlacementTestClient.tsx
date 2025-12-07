@@ -440,13 +440,12 @@ export default function PlacementTestClient({
                   return (
                     <div
                       key={idx}
-                      className={`p-5 ${isCorrect ? "bg-success-50/50": "bg-error-50/50"}`}
+                      className={`p-5 ${isCorrect ? "bg-success-50/50" : "bg-error-50/50"}`}
                     >
                       <div className="flex items-start gap-4">
                         <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                            isCorrect ? "bg-success-100 text-success-600" : "bg-error-100 text-error-600"
-                          }`}
+                          className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isCorrect ? "bg-success-100 text-success-600" : "bg-error-100 text-error-600"
+                            }`}
                         >
                           {isCorrect ? <CheckCircle className="w-5 h-5" /> : <X className="w-5 h-5" />}
                         </div>
@@ -467,22 +466,20 @@ export default function PlacementTestClient({
                                 return (
                                   <div
                                     key={optIdx}
-                                    className={`px-4 py-2 rounded-lg text-sm flex items-center gap-3 ${
-                                      isCorrectAnswer
+                                    className={`px-4 py-2 rounded-lg text-sm flex items-center gap-3 ${isCorrectAnswer
                                         ? "bg-success-100 text-success-800 border border-success-300"
                                         : isUserAnswer && !isCorrectAnswer
                                           ? "bg-error-100 text-error-800 border border-error-300"
                                           : "bg-card text-muted-foreground border border-border"
-                                    }`}
+                                      }`}
                                   >
                                     <span
-                                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                                        isCorrectAnswer
+                                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isCorrectAnswer
                                           ? "bg-success-600 text-white"
                                           : isUserAnswer && !isCorrectAnswer
                                             ? "bg-error-600 text-white"
                                             : "bg-muted text-muted-foreground"
-                                      }`}
+                                        }`}
                                     >
                                       {String.fromCharCode(65 + optIdx)}
                                     </span>
@@ -500,9 +497,8 @@ export default function PlacementTestClient({
                           {q.type === "fill-blank" && (
                             <div className="flex gap-4 mt-3">
                               <div
-                                className={`px-4 py-2 rounded-lg text-sm ${
-                                  isCorrect ? "bg-success-100 text-success-800" : "bg-error-100 text-error-800"
-                                }`}
+                                className={`px-4 py-2 rounded-lg text-sm ${isCorrect ? "bg-success-100 text-success-800" : "bg-error-100 text-error-800"
+                                  }`}
                               >
                                 <span className="text-xs uppercase font-medium opacity-70">Your answer:</span>
                                 <p className="font-medium">{String(userAnswer) || "(empty)"}</p>
@@ -535,11 +531,10 @@ export default function PlacementTestClient({
                           )}
 
                           <div
-                            className={`mt-3 p-3 rounded-lg text-sm ${
-                              isCorrect
+                            className={`mt-3 p-3 rounded-lg text-sm ${isCorrect
                                 ? "bg-success-100/50 text-success-700"
                                 : "bg-warning-100/50 text-warning-700"
-                            }`}
+                              }`}
                           >
                             <div className="flex items-start gap-2">
                               <Lightbulb className="w-4 h-4 mt-0.5 flex-shrink-0" />
@@ -657,9 +652,9 @@ export default function PlacementTestClient({
           <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
               <Button
-                variant="ghost"
+                variant="outline"
                 onClick={() => setActiveTestId(null)}
-                className="gap-2 text-muted-foreground hover:text-foreground"
+                className="gap-2 text-muted-foreground hover:text-foreground bg-white"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Exit Test
@@ -701,9 +696,8 @@ export default function PlacementTestClient({
                 <button
                   onClick={playAudio}
                   disabled={isPlaying}
-                  className={`w-20 h-20 rounded-full flex items-center justify-center transition-all ${
-                    isPlaying ? "bg-primary-100" : "bg-primary-600 hover:bg-primary-700"
-                  }`}
+                  className={`w-20 h-20 rounded-full flex items-center justify-center transition-all ${isPlaying ? "bg-primary-100" : "bg-primary-600 hover:bg-primary-700"
+                    }`}
                 >
                   {isPlaying ? (
                     <Volume2 className="w-10 h-10 text-primary-600 animate-pulse" />
@@ -747,17 +741,15 @@ export default function PlacementTestClient({
                   <button
                     key={idx}
                     onClick={() => handleSelectAnswer(idx)}
-                    className={`w-full p-4 rounded-xl border-2 text-left transition-all ${
-                      selectedAnswer === idx
+                    className={`w-full p-4 rounded-xl border-2 text-left transition-all ${selectedAnswer === idx
                         ? "border-primary-500 bg-primary-50"
                         : "border-border hover:border-primary-300"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-3">
                       <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                          selectedAnswer === idx ? "bg-primary-600 text-white" : "bg-muted text-muted-foreground"
-                        }`}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${selectedAnswer === idx ? "bg-primary-600 text-white" : "bg-muted text-muted-foreground"
+                          }`}
                       >
                         {String.fromCharCode(65 + idx)}
                       </div>
@@ -777,13 +769,12 @@ export default function PlacementTestClient({
               <div className="flex flex-col items-center gap-4">
                 <button
                   onClick={toggleRecording}
-                  className={`w-24 h-24 rounded-full flex items-center justify-center transition-all ${
-                    isRecording
+                  className={`w-24 h-24 rounded-full flex items-center justify-center transition-all ${isRecording
                       ? "bg-error-500 animate-pulse"
                       : selectedAnswer === "recorded"
                         ? "bg-success-500"
                         : "bg-primary-600 hover:bg-primary-700"
-                  }`}
+                    }`}
                 >
                   {isRecording ? (
                     <MicOff className="w-10 h-10 text-white" />

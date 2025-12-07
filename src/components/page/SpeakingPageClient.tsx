@@ -4,7 +4,7 @@ import { Bookmark, Loader2 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Play, Gift, MessageSquarePlus, ChevronRight, ChevronLeft, Plus } from "lucide-react"
+import { Play, Gift, MessageSquarePlus, ChevronRight, ChevronLeft, Plus, Search, X } from "lucide-react"
 import { RadarChart } from "@/components/speaking/radar-chart"
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 import { useState, useEffect, useRef } from "react"
@@ -112,20 +112,30 @@ export default function SpeakingPageClient({
     }
   }, [])
 
+  // Check if we're in search mode
+  const isSearchMode = searchQuery.trim().length > 0
+
+  // Filter scenarios based on search or normal mode
   const filteredScenarios = scenarios.filter((scenario) => {
+    // In search mode, search ALL topics (both regular and custom)
+    if (isSearchMode) {
+      const matchesSearch =
+        scenario.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        scenario.description.toLowerCase().includes(searchQuery.toLowerCase())
+      return matchesSearch
+    }
+
+    // Normal mode: respect tab and filters
     if (activeTab === "custom" && !scenario.isCustom) return false;
     if (activeTab === "available" && scenario.isCustom) return false;
 
-    const matchesSearch =
-      scenario.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      scenario.description.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesLevel = selectedLevels.length === 0 || selectedLevels.includes(scenario.level)
 
     // Group and Subcategory filtering (only for 'available' tab)
     const matchesGroup = activeTab === "available" ? scenario.category === selectedGroup : true
     const matchesSubcategory = activeTab === "available" ? (!selectedSubcategory || selectedSubcategory === "All" || scenario.subcategory === selectedSubcategory) : true
 
-    return matchesSearch && matchesLevel && matchesGroup && matchesSubcategory
+    return matchesLevel && matchesGroup && matchesSubcategory
   })
 
   const toggleLevel = (level: string) => {
@@ -230,31 +240,88 @@ export default function SpeakingPageClient({
           />
 
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 border-b border-gray-200 pb-0">
-            <div className="flex gap-8 overflow-x-auto pb-px">
-              {tabs.map((tab) => (
+            {!isSearchMode && (
+              <div className="flex gap-8 overflow-x-auto pb-px">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as TabType)}
+                    className={`pb-3 px-2 text-lg font-bold transition-colors border-b-2 whitespace-nowrap cursor-pointer ${activeTab === tab.id
+                      ? "border-primary text-primary"
+                      : "border-transparent text-muted-foreground hover:text-gray-900"
+                      }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="flex-1" />
+            <div className="relative mb-4 sm:mb-0">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-primary-400" />
+              <Input
+                placeholder="Search all topics..."
+                className={`pl-10 pr-10 h-12 text-base rounded-full border-2 transition-all ${isSearchMode ? 'w-80 border-primary-400 shadow-lg bg-white' : 'w-64 border-primary-200 hover:border-primary-300'}`}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {isSearchMode && (
                 <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as TabType)}
-                  className={`pb-3 px-2 text-lg font-bold transition-colors border-b-2 whitespace-nowrap cursor-pointer ${activeTab === tab.id
-                    ? "border-primary text-primary"
-                    : "border-transparent text-muted-foreground hover:text-gray-900"
-                    }`}
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-primary-100 transition-colors cursor-pointer"
                 >
-                  {tab.label}
+                  <X className="h-4 w-4 text-primary-500" />
                 </button>
-              ))}
+              )}
             </div>
-            <div className="flex-1 hidden sm:block" />
-            <Input
-              placeholder="Search"
-              className="max-w-xs mb-4 sm:mb-0"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
           </div>
 
           <div>
-            {activeTab === "available" && (
+            {/* Search Results Mode */}
+            {isSearchMode && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-bold">
+                    Search Results for "{searchQuery}" ({filteredScenarios.length} found)
+                  </h2>
+                </div>
+                {filteredScenarios.length > 0 ? (
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {filteredScenarios.map((topic) => (
+                      <TopicCard
+                        key={topic.id}
+                        id={topic.id}
+                        title={topic.title}
+                        description={topic.description}
+                        level={topic.level}
+                        wordCount={topic.duration || 7}
+                        thumbnail={topic.image}
+                        progress={topic.progress}
+                        href={`/speaking/session/${topic.id}`}
+                        onNotYet={() => { }}
+                        type="speaking"
+                        isBookmarked={bookmarkedTopics.includes(topic.id)}
+                        onBookmarkToggle={handleBookmarkToggle}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <Card className="p-12 rounded-3xl border-2 border-primary-100 text-center bg-white">
+                    <Search className="h-16 w-16 text-primary-200 mx-auto mb-4" />
+                    <h3 className="text-xl font-bold text-foreground mb-2">No Topics Found</h3>
+                    <p className="text-muted-foreground mb-6">
+                      Try searching with different keywords or check your spelling.
+                    </p>
+                    <Button variant="default" onClick={() => setSearchQuery("")} className="cursor-pointer">
+                      Clear Search
+                    </Button>
+                  </Card>
+                )}
+              </div>
+            )}
+
+            {/* Normal Tab Content */}
+            {!isSearchMode && activeTab === "available" && (
               <div className="grid lg:grid-cols-5 gap-8">
                 <div className="lg:col-span-1 space-y-6">
                   <TopicGroupsSidebar
@@ -301,7 +368,7 @@ export default function SpeakingPageClient({
               </div>
             )}
 
-            {activeTab === "bookmarks" && (
+            {!isSearchMode && activeTab === "bookmarks" && (
               <div className="space-y-6">
                 {bookmarkedTopicsList.length > 0 ? (
                   <>
@@ -346,7 +413,7 @@ export default function SpeakingPageClient({
               </div>
             )}
 
-            {activeTab === "custom" && (
+            {!isSearchMode && activeTab === "custom" && (
               <div className="space-y-6">
                 <Card className="p-8 rounded-3xl border-2 border-primary-100 bg-white">
                   <div className="flex items-center justify-between mb-6">
@@ -430,7 +497,7 @@ export default function SpeakingPageClient({
               </div>
             )}
 
-            {activeTab === "history" && (
+            {!isSearchMode && activeTab === "history" && (
               <div className="space-y-8">
                 <div className="grid lg:grid-cols-2 gap-8">
                   <Card className="p-6 rounded-3xl border-2 border-primary-100 bg-white">

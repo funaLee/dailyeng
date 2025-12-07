@@ -39,11 +39,25 @@ export default async function SpeakingSessionPage({ params }: PageProps) {
   });
 
   if (dbScenario) {
+    // Parse objectives from JSON if stored as string
+    let objectives: string[] = [];
+    if (dbScenario.objectives) {
+      try {
+        objectives = typeof dbScenario.objectives === 'string'
+          ? JSON.parse(dbScenario.objectives)
+          : dbScenario.objectives as string[];
+      } catch (e) {
+        objectives = [];
+      }
+    }
+
     scenario = {
       id: dbScenario.id,
       title: dbScenario.title,
+      description: dbScenario.description,
       context: dbScenario.context,
       goal: dbScenario.goal,
+      objectives: objectives,
     };
     // No initial turns for a fresh scenario (unless we fetch previous sessions, but let's keep it simple)
   } else {
@@ -59,11 +73,25 @@ export default async function SpeakingSessionPage({ params }: PageProps) {
     });
 
     if (dbSession) {
+      // Parse objectives from JSON if stored as string
+      let sessionObjectives: string[] = [];
+      if (dbSession.scenario.objectives) {
+        try {
+          sessionObjectives = typeof dbSession.scenario.objectives === 'string'
+            ? JSON.parse(dbSession.scenario.objectives)
+            : dbSession.scenario.objectives as string[];
+        } catch (e) {
+          sessionObjectives = [];
+        }
+      }
+
       scenario = {
         id: dbSession.scenario.id,
         title: dbSession.scenario.title,
+        description: dbSession.scenario.description,
         context: dbSession.scenario.context,
         goal: dbSession.scenario.goal,
+        objectives: sessionObjectives,
       };
 
       initialTurns = dbSession.turns.map((t: any) => ({

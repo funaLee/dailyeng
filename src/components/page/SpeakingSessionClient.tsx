@@ -9,7 +9,7 @@ import { RadarChart } from "@/components/speaking/radar-chart"
 import { LearningHistory } from "@/components/speaking/learning-history"
 import { DetailedFeedback } from "@/components/speaking/detailed-feedback"
 import { useAppStore } from "@/lib/store"
-import { createSession, submitTurn } from "@/actions/speaking"
+import { createSession, submitTurn, getSessionSummary, getDetailedFeedback } from "@/actions/speaking"
 import { toast } from "sonner"
 import {
   ArrowLeft,
@@ -32,6 +32,8 @@ import {
   AudioWaveform as Waveform,
   Zap,
   Languages,
+  Sparkles,
+  FileText,
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
@@ -95,8 +97,10 @@ export interface DetailedFeedbackData {
 export interface ScenarioData {
   id: string
   title: string
+  description?: string
   context?: string
   goal?: string
+  objectives?: string[]
 }
 
 export interface InitialTurn {
@@ -164,6 +168,9 @@ export default function SpeakingSessionClient({
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [isLoadingFeedback, setIsLoadingFeedback] = useState(false)
+  const [dynamicFeedback, setDynamicFeedback] = useState<DetailedFeedbackData | null>(null)
+  const [aiSummary, setAiSummary] = useState<any | null>(null)
 
   const conversationRef = useRef<HTMLDivElement>(null)
   const recognitionRef = useRef<any>(null)
@@ -171,6 +178,17 @@ export default function SpeakingSessionClient({
   useEffect(() => {
     calculateStats(turns)
   }, [turns])
+
+  // Fetch AI Summary when session is complete
+  useEffect(() => {
+    if (viewState === "complete" && sessionId && !aiSummary) {
+      getSessionSummary(sessionId)
+        .then((data) => {
+          if (data) setAiSummary(data)
+        })
+        .catch((err) => console.error("Failed to get session summary:", err))
+    }
+  }, [viewState, sessionId, aiSummary])
 
   useEffect(() => {
     if (conversationRef.current) {
@@ -338,17 +356,20 @@ export default function SpeakingSessionClient({
   }
 
   const handleExtractWords = () => {
-    const newWords = [
-      { word: "preference", meaning: "a greater liking for one alternative over another" },
-      { word: "confirm", meaning: "to establish the truth or correctness of something" },
-      { word: "booking", meaning: "a reservation or arrangement" },
-    ]
+    // Use AI extracted words if available, otherwise use mock/fallback
+    const wordsToSave = aiSummary?.newWords && aiSummary.newWords.length > 0
+      ? aiSummary.newWords
+      : [
+        { word: "preference", definition: "a greater liking for one alternative over another", example: "I have a preference for tea over coffee." },
+        { word: "confirm", definition: "to establish the truth or correctness of something", example: "Can you confirm your reservation?" },
+        { word: "booking", definition: "a reservation or arrangement", example: "I made a booking for dinner." },
+      ];
 
-    newWords.forEach((item) => {
+    wordsToSave.forEach((item: any) => {
       addFlashcard({
         id: `fc-${Date.now()}-${Math.random()}`,
         front: item.word,
-        back: `${item.meaning}\n\nExample: Used in speaking session "${scenario?.title}"`,
+        back: `${item.definition || item.meaning}\n\nExample: ${item.example || ('Used in speaking session "' + scenario?.title + '"')}`,
         interval: 1,
         easeFactor: 2.5,
         repetitions: 0,
@@ -357,7 +378,7 @@ export default function SpeakingSessionClient({
       })
     })
 
-    alert("3 new words added to your flashcards!")
+    toast.success(`${wordsToSave.length} new words added to your flashcards!`)
   }
 
   const handleDownloadTranscript = () => {
@@ -376,6 +397,41 @@ export default function SpeakingSessionClient({
     setViewState("detail")
   }
 
+  // Build detailed feedback from turns data
+  const handleViewDetailedFeedback = async () => {
+    if (!sessionId) {
+      toast.error("No session ID found");
+      return;
+    }
+
+    setIsLoadingFeedback(true)
+    setViewState("detail")
+
+    try {
+      const data = await getDetailedFeedback(sessionId);
+
+      // Transform server data to client format
+      const clientData: DetailedFeedbackData = {
+        ...data,
+        scores: [
+          { label: "Relevance", value: data.scores.relevance },
+          { label: "Pronunciation", value: data.scores.pronunciation },
+          { label: "Intonation & Stress", value: data.scores.intonation },
+          { label: "Fluency", value: data.scores.fluency },
+          { label: "Grammar", value: data.scores.grammar }
+        ]
+      };
+
+      setDynamicFeedback(clientData);
+    } catch (error) {
+      console.error("Failed to fetch detailed feedback:", error);
+      toast.error("Failed to generate detailed feedback. Please try again.");
+      setViewState("complete"); // Go back if failed
+    } finally {
+      setIsLoadingFeedback(false)
+    }
+  }
+
   // Transform scores with icons for DetailedFeedback component
   const scoresWithIcons = detailedFeedback.scores.map((s) => ({
     ...s,
@@ -390,10 +446,7 @@ export default function SpeakingSessionClient({
     )
   }
 
-  // Render similar to before, but use startSession in preparation view
-
   if (viewState === "history") {
-    // ... same as before
     return (
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
         <LearningHistory
@@ -406,15 +459,44 @@ export default function SpeakingSessionClient({
   }
 
   if (viewState === "detail") {
-    // ... same as before
+    // Use dynamic feedback if available, otherwise fall back to prop
+    const feedbackToUse = dynamicFeedback || detailedFeedback
+
+    // Build scores with icons
+    const detailScoresWithIcons = feedbackToUse.scores.map((s) => ({
+      ...s,
+      icon: getScoreIcon(s.label),
+    }))
+
+    if (isLoadingFeedback) {
+      return (
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-16">
+          <Card className="p-16 text-center border-0 shadow-2xl bg-white rounded-[3rem] relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary-50 via-transparent to-transparent opacity-70" />
+            <div className="relative z-10">
+              <div className="relative mx-auto mb-8 w-24 h-24">
+                <div className="absolute inset-0 rounded-full border-4 border-primary-100"></div>
+                <div className="absolute inset-0 rounded-full border-4 border-primary-500 border-t-transparent animate-spin"></div>
+                <Bot className="absolute inset-0 m-auto h-8 w-8 text-primary-500 animate-pulse" />
+              </div>
+              <h2 className="text-3xl font-bold mb-3 text-slate-800">Analyzing Your Session...</h2>
+              <p className="text-lg text-slate-500 max-w-md mx-auto">
+                AI is reviewing your conversation context, vocabulary, and grammar to provide detailed feedback.
+              </p>
+            </div>
+          </Card>
+        </div>
+      )
+    }
+
     return (
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
         <DetailedFeedback
-          scores={scoresWithIcons}
-          errorCategories={detailedFeedback.errorCategories}
-          conversation={detailedFeedback.conversation}
-          overallRating={detailedFeedback.overallRating}
-          tip={detailedFeedback.tip}
+          scores={detailScoresWithIcons}
+          errorCategories={feedbackToUse.errorCategories}
+          conversation={feedbackToUse.conversation}
+          overallRating={feedbackToUse.overallRating}
+          tip={feedbackToUse.tip}
           onBack={() => setViewState(selectedRecordId ? "history" : "complete")}
         />
       </div>
@@ -425,7 +507,7 @@ export default function SpeakingSessionClient({
     return (
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <Link href="/speaking">
-          <Button variant="ghost" className="gap-2 mb-6">
+          <Button variant="outline" className="gap-2 mb-6 bg-white">
             <ArrowLeft className="h-4 w-4" />
             Back
           </Button>
@@ -440,9 +522,29 @@ export default function SpeakingSessionClient({
                 <h2 className="text-2xl font-bold">Learning Goals</h2>
               </div>
               <div className="space-y-3">
-                <p className="p-4 bg-primary-50 rounded-xl">{scenario.goal || "Practice conversation skill"}</p>
-                <p className="p-4 bg-primary-50 rounded-xl">Improve vocabulary</p>
-                <p className="p-4 bg-primary-50 rounded-xl">Enhance fluency</p>
+                <div className="flex items-center gap-3">
+                  <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-400 text-white flex items-center justify-center font-semibold text-sm">1</span>
+                  <p className="p-4 bg-primary-50 rounded-xl flex-1">{scenario.goal || "Practice conversation skill"}</p>
+                </div>
+                {scenario.objectives && scenario.objectives.length > 0 ? (
+                  scenario.objectives.map((obj, idx) => (
+                    <div key={idx} className="flex items-center gap-3">
+                      <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-400 text-white flex items-center justify-center font-semibold text-sm">{idx + 2}</span>
+                      <p className="p-4 bg-primary-50 rounded-xl flex-1">{obj}</p>
+                    </div>
+                  ))
+                ) : (
+                  <>
+                    <div className="flex items-center gap-3">
+                      <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-semibold text-sm">2</span>
+                      <p className="p-4 bg-primary-50 rounded-xl flex-1">Improve vocabulary</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-semibold text-sm">3</span>
+                      <p className="p-4 bg-primary-50 rounded-xl flex-1">Enhance fluency</p>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
@@ -459,7 +561,7 @@ export default function SpeakingSessionClient({
               </div>
 
               <h1 className="text-3xl font-bold mb-4">{scenario.title}</h1>
-              <p className="text-muted-foreground mt-2">{scenario.context}</p>
+              <p className="text-muted-foreground mt-2">{scenario.description || scenario.context}</p>
 
               <div className="flex gap-3 mt-6">
                 <Button onClick={startSession} className="flex-1 gap-2 text-lg py-6" size="lg">
@@ -654,45 +756,118 @@ export default function SpeakingSessionClient({
     }
 
     const overallScore = Math.round(
-      ((finalStats.avgPronunciation + finalStats.avgFluency + finalStats.avgGrammar + finalStats.avgContent) /
-        4) *
-      10,
+      (finalStats.avgPronunciation + finalStats.avgFluency + finalStats.avgGrammar + finalStats.avgContent) /
+      4,
     )
 
     const radarData = [
-      { label: "Relevance", value: Math.round(finalStats.avgContent * 10) },
-      { label: "Pronunciation", value: Math.round(finalStats.avgPronunciation * 10) },
-      { label: "Intonation & Stress", value: Math.round(finalStats.avgFluency * 0.8 * 10) },
-      { label: "Fluency", value: Math.round(finalStats.avgFluency * 10) },
-      { label: "Grammar", value: Math.round(finalStats.avgGrammar * 10) },
+      { label: "Relevance", value: Math.round(finalStats.avgContent) },
+      { label: "Pronunciation", value: Math.round(finalStats.avgPronunciation) },
+      { label: "Intonation & Stress", value: Math.round(finalStats.avgFluency * 0.8) }, // Intonation approximate
+      { label: "Fluency", value: Math.round(finalStats.avgFluency) },
+      { label: "Grammar", value: Math.round(finalStats.avgGrammar) },
     ]
 
+    // Generate summary title and description based on score
+    const getSummaryTitle = () => {
+      if (aiSummary?.title) return aiSummary.title
+
+      if (overallScore >= 90) return "Outstanding Performance!"
+      if (overallScore >= 80) return "Amazing Context Understanding"
+      if (overallScore >= 70) return "Great Progress!"
+      if (overallScore >= 60) return "Good Effort!"
+      return "Keep Practicing!"
+    }
+
+    const getSummaryDescription = () => {
+      if (aiSummary?.feedback) return aiSummary.feedback
+
+      if (overallScore >= 90)
+        return "Your speaking skills are impressive! You demonstrated excellent control over grammar and vocabulary."
+      if (overallScore >= 80)
+        return "You did a great job conveying your ideas. Your pronunciation is clear, and you used good vocabulary."
+      if (overallScore >= 70)
+        return "You are making steady progress. Focus on improving your sentence structure and fluency."
+      return "Don't give up! Consistency is key. Try listening to native speakers and shadowing their pronunciation."
+    }
+
+
     return (
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
         <Link href="/speaking">
-          <Button variant="ghost" className="gap-2 mb-6">
+          <Button variant="outline" className="gap-2 mb-6 bg-white">
             <ArrowLeft className="h-4 w-4" />
             Back to Speaking Room
           </Button>
         </Link>
 
-        {/* Similar to before... */}
-        <div className="grid lg:grid-cols-2 gap-8">
-          <Card className="p-12 bg-linear-to-br from-gray-50 to-gray-100 flex flex-col items-center">
-            <div className="w-64 h-64 rounded-full bg-primary-500 flex items-center justify-center shadow-lg mb-6 text-white text-8xl font-bold">
-              {overallScore}
+        {/* Score and Radar Chart Row */}
+        <div className="grid lg:grid-cols-2 gap-6 mb-6">
+          {/* Overall Score Card */}
+          <Card className="p-6 border-2 border-border bg-white  hover:border-primary transition-colors">
+            <div className="flex flex-col items-center justify-center py-4">
+              <div className="flex items-center justify-center w-32 h-32 text-white rounded-full bg-primary mb-4">
+                <span className="text-5xl font-bold">{overallScore}</span>
+              </div>
+              <h2 className="text-xl font-bold text-foreground mb-1">Overall Score</h2>
+              <p className="text-sm text-muted-foreground">Based on 5 key criteria</p>
             </div>
-            <h2 className="text-xl font-bold">Session Score</h2>
           </Card>
 
-          <Card className="p-8">
-            <RadarChart data={radarData} size={400} />
+          {/* Radar Chart Card */}
+          <Card className="p-6 border-2 border-border bg-white flex items-center justify-center">
+            <RadarChart data={radarData} size={280} />
           </Card>
         </div>
 
-        <div className="flex justify-center gap-4 mt-8">
-          <Button onClick={() => setViewState("preparation")}>Restart Session</Button>
-          <Button variant="outline" onClick={() => router.push("/speaking")}>Finish</Button>
+        {/* AI Summary Card */}
+        <Card className="p-6 border-2 border-border bg-white mb-6 hover:border-primary transition-colors">
+          <div className="flex items-start gap-4">
+            <div className="shrink-0 p-3 rounded-xl bg-primary-50">
+              <Sparkles className="h-6 w-6 text-primary" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-xl font-bold text-foreground">{getSummaryTitle()}</h3>
+              <p className="text-muted-foreground leading-relaxed">
+                {getSummaryDescription()}
+              </p>
+            </div>
+          </div>
+        </Card>
+
+        {/* Action Buttons */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <Button
+            onClick={handleViewDetailedFeedback}
+            className="h-14 gap-2 bg-primary hover:bg-primary/90"
+          >
+            <BarChart3 className="h-5 w-5" />
+            Detailed Feedback
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleExtractWords}
+            className="h-14 gap-2 border-2 bg-white hover:border-primary"
+          >
+            <BookOpen className="h-5 w-5 text-primary" />
+            New Words
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleDownloadTranscript}
+            className="h-14 gap-2 border-2 bg-white hover:border-primary"
+          >
+            <FileText className="h-5 w-5 text-primary" />
+            Transcript
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => router.push("/speaking")}
+            className="h-14 gap-2 border-2 bg-white hover:border-primary"
+          >
+            <RotateCcw className="h-5 w-5 text-primary" />
+            New Session
+          </Button>
         </div>
       </div>
     )

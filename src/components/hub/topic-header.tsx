@@ -29,8 +29,8 @@ export function TopicHeader({
   return (
     <div className="mb-6">
       <Button
-        variant="ghost"
-        className="gap-2 mb-4 bg-primary-100 hover:bg-primary-200 text-primary-700 rounded-full px-4 shadow-sm"
+        variant="outline"
+        className="gap-2 mb-4 bg-white hover:bg-primary-50 text-foreground rounded-full px-4"
         onClick={() => (backUrl ? router.push(backUrl) : router.back())}
       >
         <ArrowLeft className="h-4 w-4" />

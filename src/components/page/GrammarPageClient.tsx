@@ -5,12 +5,11 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ProtectedRoute, PageIcons } from "@/components/auth/protected-route"
-import { Bookmark } from "lucide-react"
+import { Bookmark, Search, X } from "lucide-react"
 import {
   HubHero,
   TopicGroupsSidebar,
   LevelsSidebar,
-  CourseDetail,
   TopicCard,
   SubcategoryPills,
   type TopicGroup,
@@ -21,6 +20,8 @@ interface GrammarTopic {
   title: string
   description: string
   level: string
+  category: string
+  subcategory: string
   lessonCount: number
   estimatedTime: number
   progress: number
@@ -68,17 +69,39 @@ export default function GrammarPageClient({
   }
 
   const toggleLevel = (level: string) => {
-    setSelectedLevels((prev) => (prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level]))
+    if (level === "All") {
+      const allLevels = ["A1", "A2", "B1", "B2", "C1", "C2"]
+      if (selectedLevels.length === allLevels.length) {
+        setSelectedLevels([])
+      } else {
+        setSelectedLevels(allLevels)
+      }
+    } else {
+      setSelectedLevels((prev) => (prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level]))
+    }
   }
+
+  // Check if we're in search mode
+  const isSearchMode = searchQuery.trim().length > 0
 
   const currentSubcategories = grammarGroups.find((g) => g.name === selectedGroup)?.subcategories || []
 
+  // Filter topics based on search or normal mode (similar to Speaking Room)
   const filteredTopics = grammarTopics.filter((topic) => {
-    const matchesSearch =
-      topic.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      topic.description.toLowerCase().includes(searchQuery.toLowerCase())
+    // In search mode, search ALL topics
+    if (isSearchMode) {
+      const matchesSearch =
+        topic.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        topic.description.toLowerCase().includes(searchQuery.toLowerCase())
+      return matchesSearch
+    }
+
+    // Normal mode: respect filters
     const matchesLevel = selectedLevels.length === 0 || selectedLevels.includes(topic.level)
-    return matchesSearch && matchesLevel
+    const matchesGroup = topic.category === selectedGroup
+    const matchesSubcategory = !selectedSubcategory || selectedSubcategory === "All" || topic.subcategory === selectedSubcategory
+
+    return matchesLevel && matchesGroup && matchesSubcategory
   })
 
   const bookmarkedTopicsList = grammarTopics.filter((topic) => bookmarkedTopics.includes(topic.id))
@@ -104,88 +127,145 @@ export default function GrammarPageClient({
           decorativeWords={["grammar", "structure", "syntax"]}
         />
 
-        <div className="mb-8 flex items-center border-b border-gray-200">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as TabType)}
-              className={`pb-3 px-4 text-lg font-bold transition-colors cursor-pointer ${
-                activeTab === tab.id
-                  ? "border-b-2 border-primary text-primary"
-                  : "border-b-2 border-transparent text-muted-foreground hover:text-gray-900"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 border-b border-gray-200 pb-0">
+          {!isSearchMode && (
+            <div className="flex gap-8 overflow-x-auto pb-px">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as TabType)}
+                  className={`pb-3 px-2 text-lg font-bold transition-colors border-b-2 whitespace-nowrap cursor-pointer ${activeTab === tab.id
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-gray-900"
+                    }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          )}
           <div className="flex-1" />
-          <Input
-            placeholder="Search grammar topics..."
-            className="max-w-xs"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+          <div className="relative mb-4 sm:mb-0">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-primary-400" />
+            <Input
+              placeholder="Search all grammar topics..."
+              className={`pl-10 pr-10 h-12 text-base rounded-full border-2 transition-all ${isSearchMode ? 'w-80 border-primary-400 shadow-lg bg-white' : 'w-64 border-primary-200 hover:border-primary-300'}`}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {isSearchMode && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-primary-100 transition-colors cursor-pointer"
+              >
+                <X className="h-4 w-4 text-primary-500" />
+              </button>
+            )}
+          </div>
         </div>
 
         {activeTab === "topics" && (
-          <div className="grid lg:grid-cols-5 gap-8">
-            <div className="lg:col-span-1 space-y-6">
-              <TopicGroupsSidebar
-                groups={grammarGroups}
-                selectedGroup={selectedGroup}
-                onGroupChange={(name, firstSub) => {
-                  setSelectedGroup(name)
-                  setSelectedSubcategory(firstSub)
-                }}
-              />
+          <>
+            {/* Search Mode - Show results without filters */}
+            {isSearchMode ? (
+              <div className="space-y-6 mt-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-bold">
+                    Search Results for "{searchQuery}" ({filteredTopics.length} found)
+                  </h2>
+                </div>
 
-              <LevelsSidebar selectedLevels={selectedLevels} onLevelToggle={toggleLevel} />
-            </div>
-
-            <div className="lg:col-span-4 space-y-6">
-              <CourseDetail
-                title={`${selectedGroup} - Grammar`}
-                description={`Master ${selectedGroup.toLowerCase()} in English with comprehensive lessons and practice exercises.`}
-                estimatedCompletion="15/01/2026"
-                progress={25}
-                currentTopic={{
-                  id: currentGrammarTopic.id,
-                  title: currentGrammarTopic.title,
-                  subtitle: currentGrammarTopic.subtitle,
-                  href: `/grammar/${currentGrammarTopic.id}`,
-                }}
-              />
-
-              <SubcategoryPills
-                subcategories={currentSubcategories}
-                selectedSubcategory={selectedSubcategory}
-                onSubcategoryChange={setSelectedSubcategory}
-              />
-
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredTopics.map((topic) => (
-                  <TopicCard
-                    key={topic.id}
-                    id={topic.id}
-                    title={topic.title}
-                    description={topic.description}
-                    level={topic.level}
-                    wordCount={topic.lessonCount}
-                    progress={topic.progress}
-                    href={`/grammar/${topic.id}`}
-                    onNotYet={() => {}}
-                    type="grammar"
-                    isBookmarked={bookmarkedTopics.includes(topic.id)}
-                    onBookmarkToggle={handleBookmarkToggle}
-                  />
-                ))}
+                {filteredTopics.length > 0 ? (
+                  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                    {filteredTopics.map((topic) => (
+                      <TopicCard
+                        key={topic.id}
+                        id={topic.id}
+                        title={topic.title}
+                        description={topic.description}
+                        level={topic.level}
+                        wordCount={topic.lessonCount}
+                        progress={topic.progress}
+                        href={`/grammar/${topic.id}`}
+                        onNotYet={() => { }}
+                        type="grammar"
+                        isBookmarked={bookmarkedTopics.includes(topic.id)}
+                        onBookmarkToggle={handleBookmarkToggle}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <Card className="p-12 rounded-3xl border-[1.4px] border-primary-200 text-center">
+                    <Search className="h-16 w-16 text-primary-200 mx-auto mb-4" />
+                    <h3 className="text-xl font-bold text-foreground mb-2">No Results Found</h3>
+                    <p className="text-muted-foreground mb-6">
+                      Try adjusting your search terms or browse topics by category.
+                    </p>
+                    <Button variant="default" onClick={() => setSearchQuery("")} className="cursor-pointer">
+                      Clear Search
+                    </Button>
+                  </Card>
+                )}
               </div>
-            </div>
-          </div>
+            ) : (
+              /* Normal Mode - Show filters and topics */
+              <div className="grid lg:grid-cols-5 gap-8 mt-6">
+                <div className="lg:col-span-1 space-y-6">
+                  <TopicGroupsSidebar
+                    groups={grammarGroups}
+                    selectedGroup={selectedGroup}
+                    onGroupChange={(name, firstSub) => {
+                      setSelectedGroup(name)
+                      setSelectedSubcategory(firstSub)
+                    }}
+                  />
+
+                  <LevelsSidebar selectedLevels={selectedLevels} onLevelToggle={toggleLevel} />
+                </div>
+
+                <div className="lg:col-span-4 space-y-6">
+                  <SubcategoryPills
+                    subcategories={currentSubcategories}
+                    selectedSubcategory={selectedSubcategory}
+                    onSubcategoryChange={setSelectedSubcategory}
+                  />
+
+                  {filteredTopics.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                      {filteredTopics.map((topic) => (
+                        <TopicCard
+                          key={topic.id}
+                          id={topic.id}
+                          title={topic.title}
+                          description={topic.description}
+                          level={topic.level}
+                          wordCount={topic.lessonCount}
+                          progress={topic.progress}
+                          href={`/grammar/${topic.id}`}
+                          onNotYet={() => { }}
+                          type="grammar"
+                          isBookmarked={bookmarkedTopics.includes(topic.id)}
+                          onBookmarkToggle={handleBookmarkToggle}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <Card className="p-12 rounded-3xl border-[1.4px] border-primary-200 text-center">
+                      <Search className="h-16 w-16 text-primary-200 mx-auto mb-4" />
+                      <h3 className="text-xl font-bold text-foreground mb-2">No Topics Found</h3>
+                      <p className="text-muted-foreground">
+                        No grammar topics match your current filters. Try selecting different levels or categories.
+                      </p>
+                    </Card>
+                  )}
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {activeTab === "bookmarks" && (
-          <div className="space-y-6">
+          <div className="space-y-6 mt-6">
             {bookmarkedTopicsList.length > 0 ? (
               <>
                 <div className="flex items-center gap-3 mb-6">
@@ -205,7 +285,7 @@ export default function GrammarPageClient({
                       wordCount={topic.lessonCount}
                       progress={topic.progress}
                       href={`/grammar/${topic.id}`}
-                      onNotYet={() => {}}
+                      onNotYet={() => { }}
                       type="grammar"
                       isBookmarked={true}
                       onBookmarkToggle={handleBookmarkToggle}

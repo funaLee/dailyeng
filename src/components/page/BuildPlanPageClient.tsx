@@ -302,7 +302,7 @@ export default function BuildPlanPageClient({ questions, allCourses }: BuildPlan
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <Link href="/">
-                <Button variant="ghost" className="gap-2 cursor-pointer hover:bg-primary_50">
+                <Button variant="outline" className="gap-2 cursor-pointer bg-white hover:bg-primary-50">
                   <ArrowLeft className="w-4 h-4" />
                   Exit
                 </Button>

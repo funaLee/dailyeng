@@ -1,7 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { generateSpeakingResponse, generateScenario } from "@/lib/gemini";
+import { generateSpeakingResponse, generateScenario, generateSessionSummary, analyzeSessionErrors } from "@/lib/gemini";
 import { revalidatePath } from "next/cache";
 
 // Helper to ensure user exists (Temporary for dev until real auth)
@@ -199,4 +199,100 @@ export async function getOrCreateFreeTalkScenario(userId: string) {
     }
 
     return scenario;
+}
+
+// Get session summary with AI analysis
+export async function getSessionSummary(sessionId: string) {
+    const session = await prisma.speakingSession.findUnique({
+        where: { id: sessionId },
+        include: {
+            scenario: true,
+            turns: {
+                orderBy: { timestamp: 'asc' }
+            }
+        }
+    });
+
+    if (!session) throw new Error("Session not found");
+
+    // Prepare conversation for AI
+    const conversation = session.turns.map((t: any) => ({
+        role: t.role as "user" | "tutor",
+        text: t.text
+    }));
+
+    // Get AI summary
+    const summary = await generateSessionSummary(session.scenario.context, conversation);
+
+    return {
+        ...summary,
+        scenarioTitle: session.scenario.title,
+        turnsCount: session.turns.length
+    };
+}
+
+// Get detailed feedback with error analysis
+export async function getDetailedFeedback(sessionId: string) {
+    const session = await prisma.speakingSession.findUnique({
+        where: { id: sessionId },
+        include: {
+            scenario: true,
+            turns: {
+                orderBy: { timestamp: 'asc' },
+                include: {
+                    errors: true
+                }
+            }
+        }
+    });
+
+    if (!session) throw new Error("Session not found");
+
+    // Get user turns for analysis
+    const userTurns = session.turns
+        .filter((t: any) => t.role === "user")
+        .map((t: any) => ({ text: t.text }));
+
+    // Get AI error analysis
+    const errorAnalysis = await analyzeSessionErrors(userTurns);
+
+    // Calculate average scores from turns
+    const userTurnsWithScores = session.turns.filter((t: any) => t.role === "user");
+    const avgScores = {
+        relevance: 0,
+        pronunciation: 0,
+        intonation: 0,
+        fluency: 0,
+        grammar: 0
+    };
+
+    if (userTurnsWithScores.length > 0) {
+        avgScores.relevance = Math.round(userTurnsWithScores.reduce((sum: number, t: any) => sum + (t.relevanceScore || 0), 0) / userTurnsWithScores.length);
+        avgScores.pronunciation = Math.round(userTurnsWithScores.reduce((sum: number, t: any) => sum + (t.pronunciationScore || 0), 0) / userTurnsWithScores.length);
+        avgScores.intonation = Math.round(userTurnsWithScores.reduce((sum: number, t: any) => sum + (t.intonationScore || 0), 0) / userTurnsWithScores.length);
+        avgScores.fluency = Math.round(userTurnsWithScores.reduce((sum: number, t: any) => sum + (t.fluencyScore || 0), 0) / userTurnsWithScores.length);
+        avgScores.grammar = Math.round(userTurnsWithScores.reduce((sum: number, t: any) => sum + (t.grammarScore || 0), 0) / userTurnsWithScores.length);
+    }
+
+    // Build conversation with merged data
+    const conversation = session.turns.map((t: any) => {
+        const turnAnalysis = t.role === "user"
+            ? errorAnalysis.turnAnalyses.find((a: any) => a.originalText === t.text)
+            : null;
+
+        return {
+            role: t.role as "user" | "tutor",
+            text: t.text,
+            userErrors: turnAnalysis?.errors || [],
+            correctedSentence: turnAnalysis?.correctedSentence || t.text
+        };
+    });
+
+    return {
+        scores: avgScores,
+        errorCategories: errorAnalysis.errorCategories,
+        conversation,
+        overallRating: errorAnalysis.overallRating,
+        tip: errorAnalysis.tip
+    };
 }

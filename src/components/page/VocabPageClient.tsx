@@ -171,26 +171,13 @@ export default function VocabPageClient({
                   courses={courses}
                   selectedCourse={selectedCourse}
                   onCourseChange={setSelectedCourse}
-                  onAddCourse={() => {}}
+                  onAddCourse={() => { }}
                 />
 
                 <LevelsSidebar selectedLevels={selectedLevels} onLevelToggle={toggleLevel} />
               </div>
 
               <div className="lg:col-span-4 space-y-6">
-                <CourseDetail
-                  title={`${currentCourse.name} Academic`}
-                  description={currentCourse.description}
-                  estimatedCompletion={currentCourse.estimatedCompletion}
-                  progress={currentCourse.progress}
-                  currentTopic={{
-                    id: currentTopic.id,
-                    title: currentTopic.title,
-                    subtitle: currentTopic.subtitle,
-                    href: `/vocab/${currentTopic.id}`,
-                  }}
-                />
-
                 <div className="flex justify-end">
                   <Input
                     placeholder="Search vocabulary topics..."
@@ -212,7 +199,7 @@ export default function VocabPageClient({
                       thumbnail={topic.thumbnail}
                       progress={topic.progress}
                       href={`/vocab/${topic.id}`}
-                      onNotYet={() => {}}
+                      onNotYet={() => { }}
                       type="vocabulary"
                       isBookmarked={bookmarkedTopics.includes(topic.id)}
                       onBookmarkToggle={handleBookmarkToggle}
@@ -245,7 +232,7 @@ export default function VocabPageClient({
                         thumbnail={topic.thumbnail}
                         progress={topic.progress}
                         href={`/vocab/${topic.id}`}
-                        onNotYet={() => {}}
+                        onNotYet={() => { }}
                         type="vocabulary"
                         isBookmarked={true}
                         onBookmarkToggle={handleBookmarkToggle}
