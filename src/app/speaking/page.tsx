@@ -9,8 +9,17 @@ import type {
   HistoryTopicItem,
 } from "@/components/page/SpeakingPageClient";
 import type { TopicGroup } from "@/components/hub";
+import {
+  getSpeakingScenarios,
+  getTopicGroups,
+  getUserSessionHistory,
+} from "@/lib/db/speaking";
 
-// Mock data - In the future, this can be replaced with actual data fetching
+// ============================================
+// MOCK DATA (commented out - replaced with DB queries)
+// ============================================
+
+/*
 const TOPIC_GROUPS: TopicGroup[] = [
   {
     name: "Daily Life",
@@ -113,22 +122,6 @@ const mockScenarios: Scenario[] = [
   },
 ];
 
-const DEMO_CRITERIA: CriteriaItem[] = [
-  { title: "Vocabulary", score: 95 },
-  { title: "Grammar", score: 92 },
-  { title: "Pronounciation", score: 93 },
-  { title: "Fluency", score: 85 },
-  { title: "Coherence", score: 83 },
-];
-
-const HISTORY_GRAPH_DATA: HistoryGraphItem[] = Array.from(
-  { length: 50 },
-  (_, i) => ({
-    session: i + 1,
-    score: Math.floor(Math.random() * 40) + 60 + (i % 5) * 2,
-  })
-);
-
 const HISTORY_TOPICS_DATA: HistoryTopicItem[] = [
   {
     id: "1",
@@ -223,20 +216,79 @@ const HISTORY_TOPICS_DATA: HistoryTopicItem[] = [
     wordCount: 8,
   },
 ];
+*/
+
+// Demo criteria data (static - not stored in DB)
+const DEMO_CRITERIA: CriteriaItem[] = [
+  { title: "Vocabulary", score: 95 },
+  { title: "Grammar", score: 92 },
+  { title: "Pronounciation", score: 93 },
+  { title: "Fluency", score: 85 },
+  { title: "Coherence", score: 83 },
+];
+
+// History graph data (generated - could be computed from DB data)
+const HISTORY_GRAPH_DATA: HistoryGraphItem[] = Array.from(
+  { length: 50 },
+  (_, i) => ({
+    session: i + 1,
+    score: Math.floor(Math.random() * 40) + 60 + (i % 5) * 2,
+  })
+);
 
 export default async function SpeakingPage() {
-  // In the future, you can fetch data from DB, API, or File System here
-  // const topicGroups = await fetchTopicGroups()
-  // const scenarios = await fetchScenarios()
-  // etc.
+  // TODO: Get userId from auth session when available
+  const userId: string | undefined = undefined;
+
+  // Fetch data from database
+  const [topicGroupsFromDB, scenariosFromDB] = await Promise.all([
+    getTopicGroups(),
+    getSpeakingScenarios(userId),
+  ]);
+
+  // Get user session history if logged in
+  const historyTopicsFromDB = userId ? await getUserSessionHistory(userId) : [];
+
+  // Transform DB data to match component types
+  const topicGroups: TopicGroup[] = topicGroupsFromDB.map((tg) => ({
+    name: tg.name,
+    subcategories: tg.subcategories,
+  }));
+
+  const scenarios: Scenario[] = scenariosFromDB.map((s) => ({
+    id: s.id,
+    title: s.title,
+    description: s.description,
+    category: s.category,
+    level: s.level,
+    image: s.image,
+    sessionsCompleted: s.sessionsCompleted,
+    totalSessions: s.totalSessions,
+    progress: s.progress,
+    duration: s.duration,
+  }));
+
+  const historyTopicsData: HistoryTopicItem[] = historyTopicsFromDB.map(
+    (h) => ({
+      id: h.id,
+      title: h.title,
+      description: h.description,
+      score: h.score,
+      date: h.date,
+      level: h.level,
+      image: h.image,
+      progress: h.progress,
+      wordCount: h.wordCount,
+    })
+  );
 
   return (
     <SpeakingPageClient
-      topicGroups={TOPIC_GROUPS}
-      scenarios={mockScenarios}
+      topicGroups={topicGroups}
+      scenarios={scenarios}
       demoCriteria={DEMO_CRITERIA}
       historyGraphData={HISTORY_GRAPH_DATA}
-      historyTopicsData={HISTORY_TOPICS_DATA}
+      historyTopicsData={historyTopicsData}
     />
   );
 }

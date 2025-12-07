@@ -7,7 +7,7 @@ import type {
   SpeakingScenario,
   StudyPlan,
   ProfileStats,
-} from "@/src/types";
+} from "@/types";
 import {
   mockTopics,
   mockVocab,

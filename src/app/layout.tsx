@@ -26,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   if (typeof window !== "undefined") {
-    import("@/src/mocks/browser").then(({ worker }) => {
+    import("@/mocks/browser").then(({ worker }) => {
       worker.start();
     });
   }

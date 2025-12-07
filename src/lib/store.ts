@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { ProfileStats } from "@/src/types";
+import type { ProfileStats } from "@/types";
 import { persistUser, clearUser } from "@/lib/auth";
 import type { SRSCard } from "@/lib/srs";
 

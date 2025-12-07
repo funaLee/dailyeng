@@ -17,7 +17,7 @@ import {
   ChevronDown,
   Sparkles,
 } from "lucide-react";
-import type { VocabItem } from "@/src/types";
+import type { VocabItem } from "@/types";
 
 // --- Types ---
 interface TopicGroup {
@@ -27,7 +27,7 @@ interface TopicGroup {
   topics: {
     id: string;
     title: string;
-    words: VocabItem[];
+    words: Partial<VocabItem>[];
   }[];
 }
 
@@ -141,7 +141,9 @@ export function VocabMindmap({ topicGroups }: VocabMindmapProps) {
   // Interaction State
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [selectedWord, setSelectedWord] = useState<VocabItem | null>(null);
+  const [selectedWord, setSelectedWord] = useState<Partial<VocabItem> | null>(
+    null
+  );
   const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
   const [popupPlacement, setPopupPlacement] = useState<"top" | "bottom">("top");
 
@@ -288,7 +290,7 @@ export function VocabMindmap({ topicGroups }: VocabMindmapProps) {
   const handleMouseUp = useCallback(() => setIsDragging(false), []);
 
   const handleWordClick = useCallback(
-    (word: VocabItem, e: React.MouseEvent) => {
+    (word: Partial<VocabItem>, e: React.MouseEvent) => {
       e.stopPropagation();
       const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
       const containerRect = containerRef.current?.getBoundingClientRect();

@@ -9,6 +9,18 @@ import type {
   DetailedFeedbackData,
 } from "@/components/page/SpeakingSessionClient";
 import {
+  getScenarioById,
+  getUserLearningRecords,
+  getInitialTutorGreeting,
+  type ScenarioDataFromDB,
+} from "@/lib/db/speaking";
+
+// ============================================
+// MOCK DATA (commented out - replaced with DB queries)
+// ============================================
+
+/*
+import {
   mockSpeakingScenarios,
   mockSpeakingTurns,
   mockCustomScenarios,
@@ -71,8 +83,10 @@ const mockLearningRecords: LearningRecord[] = [
     date: new Date("2025-07-28T09:53:00"),
   },
 ];
+*/
 
 // Mock detailed feedback (without icon - icons are rendered in client)
+// This is kept as static demo data since it would come from AI analysis
 const mockDetailedFeedback: DetailedFeedbackData = {
   scores: [
     { label: "Relevance", value: 86 },
@@ -118,29 +132,60 @@ interface PageProps {
 export default async function SpeakingSessionPage({ params }: PageProps) {
   const { id: scenarioId } = await params;
 
-  // Find scenario on server
-  const scenario = findScenario(scenarioId);
+  // TODO: Get userId from auth session when available
+  const userId: string | undefined = undefined;
 
-  // Get initial turns and serialize dates
-  const firstTurn = mockSpeakingTurns.session1[0];
-  const initialTurns: InitialTurn[] = firstTurn
+  // Fetch scenario from database
+  const scenarioFromDB = await getScenarioById(scenarioId);
+
+  // Transform to component type
+  const scenario: ScenarioData | null = scenarioFromDB
+    ? {
+        id: scenarioFromDB.id,
+        title: scenarioFromDB.title,
+        context: scenarioFromDB.context,
+        goal: scenarioFromDB.goal,
+      }
+    : null;
+
+  // Get initial tutor greeting if scenario found
+  const initialTurns: InitialTurn[] = scenario
     ? [
         {
-          id: firstTurn.id,
-          role: firstTurn.role,
-          text: firstTurn.text,
-          timestamp: firstTurn.timestamp.toISOString(),
-          scores: firstTurn.scores,
+          id: "initial-turn",
+          role: "tutor" as const,
+          text: getInitialTutorGreeting(scenarioFromDB as ScenarioDataFromDB)
+            .text,
+          timestamp: new Date().toISOString(),
+          scores: {
+            pronunciation: 100,
+            fluency: 100,
+            grammar: 100,
+            content: 100,
+          },
         },
       ]
     : [];
+
+  // Get user's learning records for this scenario if logged in
+  const learningRecordsFromDB =
+    userId && scenario ? await getUserLearningRecords(userId, scenarioId) : [];
+
+  // Transform learning records
+  const learningRecords: LearningRecord[] = learningRecordsFromDB.map((r) => ({
+    id: r.id,
+    overallScore: r.overallScore,
+    completedTurns: r.completedTurns,
+    totalTurns: r.totalTurns,
+    date: new Date(r.date),
+  }));
 
   return (
     <SpeakingSessionClient
       scenarioId={scenarioId}
       scenario={scenario}
       initialTurns={initialTurns}
-      learningRecords={mockLearningRecords}
+      learningRecords={learningRecords}
       detailedFeedback={mockDetailedFeedback}
     />
   );

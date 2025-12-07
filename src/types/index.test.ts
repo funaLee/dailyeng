@@ -4,7 +4,7 @@ import {
   VocabItemSchema,
   FlashcardSchema,
   ProfileStatsSchema,
-} from "@/src/types";
+} from "@/types";
 
 describe("Zod Schemas", () => {
   describe("TopicSchema", () => {
