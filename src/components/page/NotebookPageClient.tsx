@@ -462,7 +462,7 @@ export default function NotebookPageClient({
             <div className="flex-1">
               {viewMode === "list" && (
                 <Card className="p-6 border-2 border-border-100 bg-white">
-                  <div className="flex items-center justify-between mb-6 pb-4 border-b border-primary-100">
+                  <div className="flex items-center justify-between mb-0">
                     <div className="flex items-center gap-3">
                       <Checkbox
                         id="select-all"
@@ -484,86 +484,60 @@ export default function NotebookPageClient({
                           {selectedItems.size} selected
                         </Badge>
                       )}
-                      
-                      {/* Filter Dropdown */}
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-9 w-9 text-gray-600 hover:text-primary-600 hover:bg-primary-50 relative">
-                            <Filter className="h-4 w-4" />
-                            {(masteryFilter.length > 0 || starredFilter !== null || levelFilter.length > 0) && (
-                              <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary-500 text-white text-[10px] font-bold flex items-center justify-center">
-                                {masteryFilter.length + (starredFilter !== null ? 1 : 0) + levelFilter.length}
-                              </span>
-                            )}
-                          </Button>
-                        </DropdownMenuTrigger>
+                    </div>
+                    
+                    {/* Filter Dropdown */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-9 w-9 text-gray-600 hover:text-primary-600 hover:bg-primary-50 relative">
+                          <Filter className="h-4 w-4" />
+                          {(masteryFilter.length > 0 || starredFilter !== null || levelFilter.length > 0) && (
+                            <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary-500 text-white text-[10px] font-bold flex items-center justify-center">
+                              {masteryFilter.length + (starredFilter !== null ? 1 : 0) + levelFilter.length}
+                            </span>
+                          )}
+                        </Button>
+                      </DropdownMenuTrigger>
                         <DropdownMenuContent align="start" className="w-64">
-                          <DropdownMenuLabel className="flex items-center gap-2">
-                            <Filter className="h-4 w-4" />
-                            Filters
-                          </DropdownMenuLabel>
-                          
                           {/* Progress Filter */}
-                          <DropdownMenuSeparator />
                           <DropdownMenuLabel className="text-xs text-gray-500 font-normal">By Progress</DropdownMenuLabel>
                           <DropdownMenuSeparator />
-                          {MASTERY_LEVELS.map((level) => {
-                            const count = notebookItems.filter(
-                              (item) => 
-                                item.collectionId === selectedCollection && 
-                                getMasteryCategory(item.masteryLevel) === level.value
-                            ).length
-                            
-                            return (
-                              <DropdownMenuCheckboxItem
-                                key={level.value}
-                                checked={masteryFilter.includes(level.value)}
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    setMasteryFilter([...masteryFilter, level.value])
-                                  } else {
-                                    setMasteryFilter(masteryFilter.filter(m => m !== level.value))
-                                  }
-                                }}
-                                className="gap-2"
-                              >
-                                <div className={`h-3 w-3 rounded-full ${level.color}`} />
-                                <span className="flex-1">{level.label}</span>
-                                <Badge variant="secondary" className="ml-auto">
-                                  {count}
-                                </Badge>
-                              </DropdownMenuCheckboxItem>
-                            )
-                          })}
+                          {MASTERY_LEVELS.map((level) => (
+                            <DropdownMenuCheckboxItem
+                              key={level.value}
+                              checked={masteryFilter.includes(level.value)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setMasteryFilter([...masteryFilter, level.value])
+                                } else {
+                                  setMasteryFilter(masteryFilter.filter(m => m !== level.value))
+                                }
+                              }}
+                              className="gap-2"
+                            >
+                              <div className={`h-3 w-3 rounded-full ${level.color}`} />
+                              <span>{level.label}</span>
+                            </DropdownMenuCheckboxItem>
+                          ))}
                           
                           {/* Level Filter */}
                           <DropdownMenuSeparator />
                           <DropdownMenuLabel className="text-xs text-gray-500 font-normal">By Level</DropdownMenuLabel>
-                          {["A1", "A2", "B1", "B2", "C1", "C2"].map((level) => {
-                            const count = notebookItems.filter(
-                              (item) => item.collectionId === selectedCollection && item.level === level
-                            ).length
-                            
-                            return (
-                              <DropdownMenuCheckboxItem
-                                key={level}
-                                checked={levelFilter.includes(level)}
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    setLevelFilter([...levelFilter, level])
-                                  } else {
-                                    setLevelFilter(levelFilter.filter(l => l !== level))
-                                  }
-                                }}
-                                className="gap-2"
-                              >
-                                <span className="flex-1">{level}</span>
-                                <Badge variant="secondary" className="ml-auto">
-                                  {count}
-                                </Badge>
-                              </DropdownMenuCheckboxItem>
-                            )
-                          })}
+                          {["A1", "A2", "B1", "B2", "C1", "C2"].map((level) => (
+                            <DropdownMenuCheckboxItem
+                              key={level}
+                              checked={levelFilter.includes(level)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setLevelFilter([...levelFilter, level])
+                                } else {
+                                  setLevelFilter(levelFilter.filter(l => l !== level))
+                                }
+                              }}
+                            >
+                              <span>{level}</span>
+                            </DropdownMenuCheckboxItem>
+                          ))}
                           
                           {/* Starred Filter */}
                           <DropdownMenuSeparator />
@@ -609,8 +583,7 @@ export default function NotebookPageClient({
                             </>
                           )}
                         </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+                    </DropdownMenu>
                   </div>
 
                   <Table>
