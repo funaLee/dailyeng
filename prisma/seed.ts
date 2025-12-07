@@ -12,7 +12,7 @@
  * npm run db:seed
  */
 
-import { PrismaClient } from '../lib/generated/prisma'
+import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -22,8 +22,30 @@ async function main() {
   // ============================================
   // 1. CREATE TOPICS
   // ============================================
+  // ============================================
+  // 0. CLEANUP
+  // ============================================
+  console.log('🧹 Cleaning up database...')
+  try {
+    await prisma.speakingTurn.deleteMany()
+    await prisma.speakingSession.deleteMany()
+    await prisma.speakingScenario.deleteMany()
+    await prisma.vocabItem.deleteMany()
+    await prisma.grammarNote.deleteMany()
+    await prisma.quizItem.deleteMany()
+    await prisma.topic.deleteMany()
+    // await prisma.flashcardCollection.deleteMany()
+    // await prisma.badge.deleteMany()
+    console.log('✅ Database cleaned\n')
+  } catch (e) {
+    console.warn('⚠️ Cleanup warning (tables might be empty or missing):', e)
+  }
+
+  // ============================================
+  // 1. CREATE TOPICS
+  // ============================================
   console.log('📚 Creating topics...')
-  
+
   const travelTopic = await prisma.topic.create({
     data: {
       title: 'Travel',
@@ -77,76 +99,56 @@ async function main() {
         topicId: travelTopic.id,
         word: 'passport',
         pronunciation: '/ˈpæspɔːrt/',
-        partOfSpeech: 'NOUN',
-        meanings: JSON.stringify(['An official document for international travel']),
-        vietnameseMeanings: JSON.stringify(['Hộ chiếu']),
-        examples: JSON.stringify([
-          {
-            en: 'I need to renew my passport before the trip.',
-            vi: 'Tôi cần gia hạn hộ chiếu trước chuyến đi.',
-          },
-        ]),
-        collocations: JSON.stringify(['renew a passport', 'check your passport']),
+        partOfSpeech: 'noun',
+        meaning: 'An official document for international travel',
+        vietnameseMeaning: 'Hộ chiếu',
+        exampleSentence: 'I need to renew my passport before the trip.',
+        exampleTranslation: 'Tôi cần gia hạn hộ chiếu trước chuyến đi.',
+        collocations: ['renew a passport', 'check your passport'],
       },
       {
         topicId: travelTopic.id,
         word: 'luggage',
         pronunciation: '/ˈlʌɡɪdʒ/',
-        partOfSpeech: 'NOUN',
-        meanings: JSON.stringify(['Bags and suitcases for carrying belongings']),
-        vietnameseMeanings: JSON.stringify(['Hành lý']),
-        examples: JSON.stringify([
-          {
-            en: 'Please put your luggage on the conveyor belt.',
-            vi: 'Vui lòng đặt hành lý của bạn lên băng chuyền.',
-          },
-        ]),
-        collocations: JSON.stringify(['pack luggage', 'check luggage']),
+        partOfSpeech: 'noun',
+        meaning: 'Bags and suitcases for carrying belongings',
+        vietnameseMeaning: 'Hành lý',
+        exampleSentence: 'Please put your luggage on the conveyor belt.',
+        exampleTranslation: 'Vui lòng đặt hành lý của bạn lên băng chuyền.',
+        collocations: ['pack luggage', 'check luggage'],
       },
       {
         topicId: travelTopic.id,
         word: 'accommodation',
         pronunciation: '/əˌkɒməˈdeɪʃən/',
-        partOfSpeech: 'NOUN',
-        meanings: JSON.stringify(['A place to stay during travel']),
-        vietnameseMeanings: JSON.stringify(['Chỗ ở']),
-        examples: JSON.stringify([
-          {
-            en: 'We booked accommodation near the beach.',
-            vi: 'Chúng tôi đã đặt chỗ ở gần bãi biển.',
-          },
-        ]),
-        collocations: JSON.stringify(['book accommodation', 'find accommodation']),
+        partOfSpeech: 'noun',
+        meaning: 'A place to stay during travel',
+        vietnameseMeaning: 'Chỗ ở',
+        exampleSentence: 'We booked accommodation near the beach.',
+        exampleTranslation: 'Chúng tôi đã đặt chỗ ở gần bãi biển.',
+        collocations: ['book accommodation', 'find accommodation'],
       },
       {
         topicId: travelTopic.id,
         word: 'itinerary',
         pronunciation: '/aɪˈtɪnəreri/',
-        partOfSpeech: 'NOUN',
-        meanings: JSON.stringify(['A planned route or journey']),
-        vietnameseMeanings: JSON.stringify(['Lịch trình']),
-        examples: JSON.stringify([
-          {
-            en: 'Our itinerary includes visits to three countries.',
-            vi: 'Lịch trình của chúng tôi bao gồm thăm ba quốc gia.',
-          },
-        ]),
-        collocations: JSON.stringify(['plan an itinerary', 'follow an itinerary']),
+        partOfSpeech: 'noun',
+        meaning: 'A planned route or journey',
+        vietnameseMeaning: 'Lịch trình',
+        exampleSentence: 'Our itinerary includes visits to three countries.',
+        exampleTranslation: 'Lịch trình của chúng tôi bao gồm thăm ba quốc gia.',
+        collocations: ['plan an itinerary', 'follow an itinerary'],
       },
       {
         topicId: travelTopic.id,
         word: 'souvenir',
         pronunciation: '/ˌsuːvəˈnɪr/',
-        partOfSpeech: 'NOUN',
-        meanings: JSON.stringify(['A memento or gift from a place visited']),
-        vietnameseMeanings: JSON.stringify(['Quà lưu niệm']),
-        examples: JSON.stringify([
-          {
-            en: 'I bought some souvenirs from the local market.',
-            vi: 'Tôi đã mua một số quà lưu niệm từ chợ địa phương.',
-          },
-        ]),
-        collocations: JSON.stringify(['buy souvenirs', 'collect souvenirs']),
+        partOfSpeech: 'noun',
+        meaning: 'A memento or gift from a place visited',
+        vietnameseMeaning: 'Quà lưu niệm',
+        exampleSentence: 'I bought some souvenirs from the local market.',
+        exampleTranslation: 'Tôi đã mua một số quà lưu niệm từ chợ địa phương.',
+        collocations: ['buy souvenirs', 'collect souvenirs'],
       },
     ],
   })
@@ -158,46 +160,34 @@ async function main() {
         topicId: foodTopic.id,
         word: 'appetizer',
         pronunciation: '/ˈæpɪtaɪzər/',
-        partOfSpeech: 'NOUN',
-        meanings: JSON.stringify(['A small dish served before the main course']),
-        vietnameseMeanings: JSON.stringify(['Món khai vị']),
-        examples: JSON.stringify([
-          {
-            en: 'We ordered shrimp appetizers to start.',
-            vi: 'Chúng tôi đã gọi món khai vị tôm để bắt đầu.',
-          },
-        ]),
-        collocations: JSON.stringify(['order appetizers', 'serve appetizers']),
+        partOfSpeech: 'noun',
+        meaning: 'A small dish served before the main course',
+        vietnameseMeaning: 'Món khai vị',
+        exampleSentence: 'We ordered shrimp appetizers to start.',
+        exampleTranslation: 'Chúng tôi đã gọi món khai vị tôm để bắt đầu.',
+        collocations: ['order appetizers', 'serve appetizers'],
       },
       {
         topicId: foodTopic.id,
         word: 'recipe',
         pronunciation: '/ˈresəpi/',
-        partOfSpeech: 'NOUN',
-        meanings: JSON.stringify(['Instructions for preparing a dish']),
-        vietnameseMeanings: JSON.stringify(['Công thức nấu ăn']),
-        examples: JSON.stringify([
-          {
-            en: 'This recipe is easy to follow.',
-            vi: 'Công thức này dễ theo dõi.',
-          },
-        ]),
-        collocations: JSON.stringify(['follow a recipe', 'share a recipe']),
+        partOfSpeech: 'noun',
+        meaning: 'Instructions for preparing a dish',
+        vietnameseMeaning: 'Công thức nấu ăn',
+        exampleSentence: 'This recipe is easy to follow.',
+        exampleTranslation: 'Công thức này dễ theo dõi.',
+        collocations: ['follow a recipe', 'share a recipe'],
       },
       {
         topicId: foodTopic.id,
         word: 'ingredient',
         pronunciation: '/ɪnˈɡriːdiənt/',
-        partOfSpeech: 'NOUN',
-        meanings: JSON.stringify(['A component of a mixture or dish']),
-        vietnameseMeanings: JSON.stringify(['Nguyên liệu']),
-        examples: JSON.stringify([
-          {
-            en: 'The main ingredient is fresh tomatoes.',
-            vi: 'Nguyên liệu chính là cà chua tươi.',
-          },
-        ]),
-        collocations: JSON.stringify(['mix ingredients', 'list ingredients']),
+        partOfSpeech: 'noun',
+        meaning: 'A component of a mixture or dish',
+        vietnameseMeaning: 'Nguyên liệu',
+        exampleSentence: 'The main ingredient is fresh tomatoes.',
+        exampleTranslation: 'Nguyên liệu chính là cà chua tươi.',
+        collocations: ['mix ingredients', 'list ingredients'],
       },
     ],
   })
@@ -240,29 +230,29 @@ async function main() {
       {
         topicId: travelTopic.id,
         question: "What is the correct pronunciation of 'passport'?",
-        type: 'MULTIPLE_CHOICE',
-        options: JSON.stringify(['/pæsˈpɔːrt/', '/ˈpæspɔːrt/', '/pæsˈpɔrt/', '/ˈpæspɔrt/']),
+        type: 'multiple_choice',
+        options: ['/pæsˈpɔːrt/', '/ˈpæspɔːrt/', '/pæsˈpɔrt/', '/ˈpæspɔrt/'],
         correctAnswer: '/ˈpæspɔːrt/',
         explanation: 'The stress is on the first syllable: PASS-port',
       },
       {
         topicId: travelTopic.id,
         question: "Which word means 'a planned route or journey'?",
-        type: 'MULTIPLE_CHOICE',
-        options: JSON.stringify(['luggage', 'itinerary', 'accommodation', 'souvenir']),
+        type: 'multiple_choice',
+        options: ['luggage', 'itinerary', 'accommodation', 'souvenir'],
         correctAnswer: 'itinerary',
         explanation: 'An itinerary is a detailed plan of a journey.',
       },
       {
         topicId: foodTopic.id,
         question: 'What is an appetizer?',
-        type: 'MULTIPLE_CHOICE',
-        options: JSON.stringify([
+        type: 'multiple_choice',
+        options: [
           'The main course',
           'A small dish served before the main course',
           'A sweet course at the end',
           'A type of restaurant',
-        ]),
+        ],
         correctAnswer: 'A small dish served before the main course',
         explanation: 'Appetizers are served at the beginning of a meal.',
       },
@@ -278,92 +268,184 @@ async function main() {
 
   await prisma.speakingScenario.createMany({
     data: [
+      // === DAILY LIFE ===
       {
-        title: 'Ordering at a Café',
-        description: 'Practice ordering coffee and food at a local café',
-        category: 'Daily Life',
-        subcategory: 'Dining',
-        level: 'A2',
-        goal: 'Learn to order confidently and handle common café interactions',
-        context: 'You are at a café counter. The barista will take your order.',
-        objectives: JSON.stringify([
-          'Greet the barista',
-          'Order drinks and food',
-          'Ask about options',
-          'Make payment',
-        ]),
-        keyExpressions: JSON.stringify([
-          {
-            en: "I'd like a cappuccino, please.",
-            vi: 'Tôi muốn một ly cappuccino.',
-          },
-          {
-            en: 'Do you have any dairy-free options?',
-            vi: 'Bạn có lựa chọn nào không có sữa không?',
-          },
-        ]),
-        totalSessions: 5,
-        estimatedMinutes: 15,
-      },
-      {
-        title: 'Shopping for Clothes',
-        description: 'Navigate a clothing store and ask for sizes and colors',
+        title: 'Grocery Shopping',
+        description: 'Navigate the aisles of a supermarket, ask for specific items, and handle checkout interactions efficiently.',
         category: 'Daily Life',
         subcategory: 'Shopping',
-        level: 'A2',
-        goal: 'Master retail vocabulary and polite requests',
-        context: 'You are in a clothing store looking for specific items.',
-        objectives: JSON.stringify([
-          'Ask for sizes',
-          'Inquire about colors',
-          'Try on clothes',
-          'Make a purchase',
-        ]),
-        keyExpressions: JSON.stringify([
-          {
-            en: 'Do you have this in a medium?',
-            vi: 'Bạn có cái này size M không?',
-          },
-          {
-            en: 'Can I try this on?',
-            vi: 'Tôi có thể thử cái này được không?',
-          },
-        ]),
-        totalSessions: 4,
-        estimatedMinutes: 12,
+        difficulty: 'A2',
+        goal: 'Complete a grocery run smoothly',
+        context: 'You are shopping for a dinner party and need to find specific ingredients.',
+        image: '/scenarios/grocery.png',
+        duration: 12,
       },
       {
+        title: 'Buying a Gift',
+        description: 'Select a meaningful present for a friend by discussing options and preferences with a store clerk.',
+        category: 'Daily Life',
+        subcategory: 'Shopping',
+        difficulty: 'B1',
+        goal: 'Find the perfect birthday gift',
+        context: 'You are in a lifestyle store looking for a birthday gift for your best friend.',
+        image: '/scenarios/gift-shop.png',
+        duration: 10,
+      },
+      {
+        title: 'Ordering Dinner',
+        description: 'Place a detailed dinner order at a restaurant, including special dietary requests and drink selection.',
+        category: 'Daily Life',
+        subcategory: 'Dining',
+        difficulty: 'A2',
+        goal: 'Order a meal with modifications',
+        context: 'You are at an Italian restaurant effectively ordering a three-course meal.',
+        image: '/scenarios/restaurant.png',
+        duration: 15,
+      },
+      {
+        title: 'Doctor Appointment',
+        description: 'Explain your symptoms clearly to a doctor and understand the medical advice and prescription instructions.',
+        category: 'Daily Life',
+        subcategory: 'Healthcare',
+        difficulty: 'B2',
+        goal: 'Communicate health concerns accurately',
+        context: 'You have a persistent headache and are visiting a doctor for a checkup.',
+        image: '/scenarios/doctor.png',
+        duration: 15,
+      },
+      {
+        title: 'Pharmacy Visit',
+        description: 'Ask a pharmacist for advice on over-the-counter medication and understand dosage instructions correctly.',
+        category: 'Daily Life',
+        subcategory: 'Healthcare',
+        difficulty: 'B1',
+        goal: 'Purchase the right medication',
+        context: 'You need medicine for a cold and are asking the pharmacist for recommendations.',
+        image: '/scenarios/pharmacy.png',
+        duration: 8,
+      },
+      {
+        title: 'Taking a Taxi',
+        description: 'Direct a taxi driver to your destination, discuss the best route, and handle payment interactions.',
+        category: 'Daily Life',
+        subcategory: 'Transportation',
+        difficulty: 'A2',
+        goal: 'Reach destination efficiently',
+        context: 'You are in a new city taking a taxi to your hotel from the airport.',
+        image: '/scenarios/taxi.png',
+        duration: 10,
+      },
+
+      // === PROFESSIONAL ENGLISH ===
+      {
+        title: 'Project Kickoff',
+        description: 'Lead a team introduction, outline project goals, and assign initial tasks in a business meeting.',
+        category: 'Professional English',
+        subcategory: 'Meetings',
+        difficulty: 'C1',
+        goal: 'Align team on project objectives',
+        context: 'You are the project manager leading the first meeting for a new software launch.',
+        image: '/scenarios/meeting.png',
+        duration: 20,
+      },
+      {
+        title: 'Salary Negotiation',
+        description: 'Discuss your achievements and negotiate a fair compensation package with your HR manager confidently.',
+        category: 'Professional English',
+        subcategory: 'Negotiations',
+        difficulty: 'C1',
+        goal: 'Secure a salary increase',
+        context: 'You are in an annual performance review negotiating a raise.',
+        image: '/scenarios/negotiation.png',
+        duration: 18,
+      },
+      {
+        title: 'Job Interview',
+        description: 'Answer common interview questions about your strengths, weaknesses, and professional experience persuasively.',
+        category: 'Professional English',
+        subcategory: 'Interviews',
+        difficulty: 'B2',
+        goal: 'Impress the hiring manager',
+        context: 'You are interviewing for a Senior Marketing role at a tech company.',
+        image: '/scenarios/interview.png',
+        duration: 25,
+      },
+      {
+        title: 'Client Presentation',
+        description: 'Present a new product proposal to a potential client, highlighting key benefits and addressing concerns.',
+        category: 'Professional English',
+        subcategory: 'Presentations',
+        difficulty: 'B2',
+        goal: 'Persuade client to buy',
+        context: 'You are pitching a new clear-energy solution to a corporate client.',
+        image: '/scenarios/presentation.png',
+        duration: 20,
+      },
+
+      // === TRAVEL ===
+      {
         title: 'Hotel Check-in',
-        description: 'Check into a hotel and ask about amenities',
+        description: 'Complete the check-in process, ask about hotel amenities, and request a room with a view.',
         category: 'Travel',
         subcategory: 'Hotels',
-        level: 'A2',
-        goal: 'Learn travel-related vocabulary and polite inquiries',
-        context: 'You are checking in at a hotel reception.',
-        objectives: JSON.stringify([
-          'Provide booking information',
-          'Ask about room amenities',
-          'Inquire about breakfast',
-          'Get room key',
-        ]),
-        keyExpressions: JSON.stringify([
-          {
-            en: 'I have a reservation under the name Smith.',
-            vi: 'Tôi có đặt phòng dưới tên Smith.',
-          },
-          {
-            en: 'What time is breakfast served?',
-            vi: 'Bữa sáng được phục vụ lúc mấy giờ?',
-          },
-        ]),
-        totalSessions: 5,
-        estimatedMinutes: 15,
+        difficulty: 'A2',
+        goal: 'Check in seamlessly',
+        context: 'You have arrived at your hotel and are checking in at the front desk.',
+        image: '/scenarios/hotel.png',
+        duration: 10,
+      },
+      {
+        title: 'Airport Check-in',
+        description: 'Handle luggage check-in, seat selection, and boarding gate inquiries at the airport counter.',
+        category: 'Travel',
+        subcategory: 'Airports',
+        difficulty: 'B1',
+        goal: 'Board flight without issues',
+        context: 'You are checking in for an international flight at the airline counter.',
+        image: '/scenarios/airport.png',
+        duration: 12,
+      },
+      {
+        title: 'Tourist Information',
+        description: 'Ask for directions to landmarks and recommendations for local attractions at a tourist center.',
+        category: 'Travel',
+        subcategory: 'Tourist Sites',
+        difficulty: 'A2',
+        goal: 'Plan a day of sightseeing',
+        context: 'You are at a visitor center asking for a map and recommendations.',
+        image: '/scenarios/tourist.png',
+        duration: 10,
+      },
+
+      // === SOCIAL SITUATIONS ===
+      {
+        title: 'Party Introduction',
+        description: 'Introduce yourself to new people at a social gathering and start engaging conversations.',
+        category: 'Social Situations',
+        subcategory: 'Parties',
+        difficulty: 'B1',
+        goal: 'Make new connections',
+        context: 'You are at a house party and want to meet new people.',
+        image: '/scenarios/party.png',
+        duration: 15,
+      },
+      {
+        title: 'Making Small Talk',
+        description: 'Discuss the weather, current events, and hobbies to break the ice with an acquaintance.',
+        category: 'Social Situations',
+        subcategory: 'Small Talk',
+        difficulty: 'B1',
+        goal: 'Maintain a casual conversation',
+        context: 'You are waiting for a bus next to a neighbor you barely know.',
+        image: '/scenarios/small-talk.png',
+        duration: 8,
       },
     ],
   })
 
   console.log('✅ Created 3 speaking scenarios\n')
 
+  /*
   // ============================================
   // 6. CREATE FLASHCARD COLLECTIONS
   // ============================================
@@ -400,7 +482,9 @@ async function main() {
   })
 
   console.log('✅ Created 5 flashcard collections\n')
+  */
 
+  /*
   // ============================================
   // 7. CREATE BADGES
   // ============================================
@@ -447,6 +531,7 @@ async function main() {
   })
 
   console.log('✅ Created 5 badges\n')
+  */
 
   // ============================================
   // SUMMARY

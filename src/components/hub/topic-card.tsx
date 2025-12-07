@@ -77,11 +77,10 @@ export function TopicCard({
     <Card className="group relative overflow-hidden rounded-3xl border-2 border-border bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-primary-300 flex flex-col min-w-[280px] h-[420px]">
       <button
         onClick={handleBookmarkClick}
-        className={`absolute top-3 right-3 z-10 p-2 rounded-full transition-all duration-200 cursor-pointer ${
-          isBookmarked
+        className={`absolute top-3 right-3 z-10 p-2 rounded-full transition-all duration-200 cursor-pointer ${isBookmarked
             ? "bg-primary-500 text-white shadow-md"
             : "bg-white/80 text-primary-400 hover:bg-primary-100 hover:text-primary-600"
-        }`}
+          }`}
       >
         <Bookmark className={`h-5 w-5 transition-all ${isBookmarked ? "fill-current" : ""}`} />
       </button>
@@ -120,7 +119,7 @@ export function TopicCard({
           )}
         </div>
 
-        <h4 className="mb-2 text-lg font-bold text-slate-900 group-hover:text-primary-600 transition-colors">
+        <h4 className="mb-2 text-lg font-bold text-slate-900 group-hover:text-primary-600 transition-colors line-clamp-1">
           {title}
         </h4>
 
@@ -128,13 +127,12 @@ export function TopicCard({
 
         <div className="flex items-center gap-3 mt-auto">
           <Button
-            className={`flex-1 h-10 rounded-full font-semibold text-sm cursor-pointer transition-all ${
-              isCompleted
+            className={`flex-1 h-10 rounded-full font-semibold text-sm cursor-pointer transition-all ${isCompleted
                 ? "bg-primary-100 hover:bg-primary-200 text-primary-700"
                 : isInProgress
                   ? "bg-primary-100 hover:bg-primary-200 text-primary-700"
                   : "bg-primary-300 hover:bg-primary-400 text-primary-800"
-            }`}
+              }`}
             variant={isCompleted ? "outline" : isInProgress ? "outline" : "default"}
           >
             {getButtonLabel()}

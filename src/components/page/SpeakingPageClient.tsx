@@ -1,5 +1,5 @@
 "use client"
-import { Bookmark } from "lucide-react"
+import { Bookmark, Loader2 } from "lucide-react"
 
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -17,6 +17,18 @@ import {
   TopicCard,
   type TopicGroup,
 } from "@/components/hub"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Textarea } from "@/components/ui/textarea"
+import { createCustomScenario } from "@/actions/speaking"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 // Types for props
 export interface Scenario {
@@ -30,6 +42,8 @@ export interface Scenario {
   totalSessions: number
   progress: number
   duration?: number
+  isCustom?: boolean
+  subcategory?: string
 }
 
 export interface CriteriaItem {
@@ -60,6 +74,7 @@ export interface SpeakingPageClientProps {
   demoCriteria: CriteriaItem[]
   historyGraphData: HistoryGraphItem[]
   historyTopicsData: HistoryTopicItem[]
+  userId: string
 }
 
 type TabType = "available" | "custom" | "history" | "bookmarks"
@@ -70,7 +85,9 @@ export default function SpeakingPageClient({
   demoCriteria,
   historyGraphData,
   historyTopicsData,
+  userId,
 }: SpeakingPageClientProps) {
+  const router = useRouter()
   const [scenarios] = useState<Scenario[]>(initialScenarios)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedLevels, setSelectedLevels] = useState<string[]>(["A1", "A2"])
@@ -83,10 +100,10 @@ export default function SpeakingPageClient({
   const [historyPage, setHistoryPage] = useState(1)
   const itemsPerPage = 4
 
-  const excellentScrollRef = useRef<HTMLDivElement>(null)
-  const goodScrollRef = useRef<HTMLDivElement>(null)
-  const averageScrollRef = useRef<HTMLDivElement>(null)
-  const poorScrollRef = useRef<HTMLDivElement>(null)
+  // Custom Topic Logic
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [topicPrompt, setTopicPrompt] = useState("")
+  const [isCreating, setIsCreating] = useState(false)
 
   useEffect(() => {
     const saved = localStorage.getItem("speaking-bookmarks")
@@ -96,15 +113,34 @@ export default function SpeakingPageClient({
   }, [])
 
   const filteredScenarios = scenarios.filter((scenario) => {
+    if (activeTab === "custom" && !scenario.isCustom) return false;
+    if (activeTab === "available" && scenario.isCustom) return false;
+
     const matchesSearch =
       scenario.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       scenario.description.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesLevel = selectedLevels.length === 0 || selectedLevels.includes(scenario.level)
-    return matchesSearch && matchesLevel
+
+    // Group and Subcategory filtering (only for 'available' tab)
+    const matchesGroup = activeTab === "available" ? scenario.category === selectedGroup : true
+    const matchesSubcategory = activeTab === "available" ? (!selectedSubcategory || selectedSubcategory === "All" || scenario.subcategory === selectedSubcategory) : true
+
+    return matchesSearch && matchesLevel && matchesGroup && matchesSubcategory
   })
 
   const toggleLevel = (level: string) => {
-    setSelectedLevels((prev) => (prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level]))
+    if (level === "All") {
+      // If all are currently selected, deselect all. Otherwise, select all.
+      // Assuming all possible levels are defined in LevelsSidebar or a constant
+      const allLevels = ["A1", "A2", "B1", "B2", "C1", "C2"]
+      if (selectedLevels.length === allLevels.length) {
+        setSelectedLevels([])
+      } else {
+        setSelectedLevels(allLevels)
+      }
+    } else {
+      setSelectedLevels((prev) => (prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level]))
+    }
   }
 
   const currentSubcategories = topicGroups.find((g) => g.name === selectedGroup)?.subcategories || []
@@ -145,6 +181,37 @@ export default function SpeakingPageClient({
     })
   }
 
+  const handleCreateScenario = async () => {
+    if (!topicPrompt.trim()) return;
+
+    setIsCreating(true);
+    try {
+      const scenario = await createCustomScenario(userId, topicPrompt);
+      toast.success("Scenario created!");
+      setIsDialogOpen(false);
+      setTopicPrompt("");
+      // Redirect to the new session
+      router.push(`/speaking/session/${scenario.id}`);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to create scenario");
+    } finally {
+      setIsCreating(false);
+    }
+  }
+
+  const handleSurpriseMe = () => {
+    // Filter available scenarios (not custom)
+    const availableScenarios = scenarios.filter(s => !s.isCustom)
+    if (availableScenarios.length === 0) {
+      toast.error("No topics available")
+      return
+    }
+    const randomIndex = Math.floor(Math.random() * availableScenarios.length)
+    const randomTopic = availableScenarios[randomIndex]
+    router.push(`/speaking/session/${randomTopic.id}`)
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <ProtectedRoute
@@ -157,7 +224,7 @@ export default function SpeakingPageClient({
             title="SPEAKING ROOM"
             description="Practice real conversations with AI tutors and get instant feedback on your pronunciation, fluency, grammar, and content."
             primaryAction={{ label: "Build Study Plan" }}
-            secondaryAction={{ label: "Random Topic" }}
+            secondaryAction={{ label: "Random Topic", onClick: handleSurpriseMe }}
             notification={{ text: "Practice streak: 7 days", actionLabel: "Continue" }}
             decorativeWords={["speaking", "fluency", "practice"]}
           />
@@ -168,11 +235,10 @@ export default function SpeakingPageClient({
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as TabType)}
-                  className={`pb-3 px-2 text-lg font-bold transition-colors border-b-2 whitespace-nowrap cursor-pointer ${
-                    activeTab === tab.id
-                      ? "border-primary text-primary"
-                      : "border-transparent text-muted-foreground hover:text-gray-900"
-                  }`}
+                  className={`pb-3 px-2 text-lg font-bold transition-colors border-b-2 whitespace-nowrap cursor-pointer ${activeTab === tab.id
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-gray-900"
+                    }`}
                 >
                   {tab.label}
                 </button>
@@ -224,7 +290,7 @@ export default function SpeakingPageClient({
                         thumbnail={topic.image}
                         progress={topic.progress}
                         href={`/speaking/session/${topic.id}`}
-                        onNotYet={() => {}}
+                        onNotYet={() => { }}
                         type="speaking"
                         isBookmarked={bookmarkedTopics.includes(topic.id)}
                         onBookmarkToggle={handleBookmarkToggle}
@@ -257,7 +323,7 @@ export default function SpeakingPageClient({
                           thumbnail={topic.image}
                           progress={topic.progress}
                           href={`/speaking/session/${topic.id}`}
-                          onNotYet={() => {}}
+                          onNotYet={() => { }}
                           type="speaking"
                           isBookmarked={true}
                           onBookmarkToggle={handleBookmarkToggle}
@@ -281,52 +347,87 @@ export default function SpeakingPageClient({
             )}
 
             {activeTab === "custom" && (
-              <Card className="p-8 rounded-3xl border-2 border-primary-100 bg-white">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h3 className="text-xl font-bold mb-1">Create Custom Topic</h3>
-                    <p className="text-muted-foreground text-sm">
-                      Design your own speaking scenario for personalized practice
-                    </p>
+              <div className="space-y-6">
+                <Card className="p-8 rounded-3xl border-2 border-primary-100 bg-white">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-xl font-bold mb-1">Create Custom Topic</h3>
+                      <p className="text-muted-foreground text-sm">
+                        Design your own speaking scenario for personalized practice
+                      </p>
+                    </div>
+                    <Button className="gap-2 cursor-pointer" onClick={() => setIsDialogOpen(true)}>
+                      <Plus className="h-4 w-4" />
+                      New Topic
+                    </Button>
                   </div>
-                  <Button className="gap-2 cursor-pointer">
-                    <Plus className="h-4 w-4" />
-                    New Topic
-                  </Button>
+
+                  <div className="grid md:grid-cols-3 gap-6">
+                    <Card onClick={() => setIsDialogOpen(true)} className="p-6 rounded-2xl border-2 border-dashed border-primary-200 bg-primary-50/50 hover:border-primary-400 transition-colors cursor-pointer group">
+                      <div className="text-center">
+                        <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-primary-100 flex items-center justify-center group-hover:bg-primary-200 transition-colors">
+                          <MessageSquarePlus className="h-6 w-6 text-primary-600" />
+                        </div>
+                        <h4 className="font-bold mb-2">Role Play by Topic</h4>
+                        <p className="text-sm text-muted-foreground">Generated optimized scenario from your topic</p>
+                      </div>
+                    </Card>
+
+                    <Card
+                      onClick={handleSurpriseMe}
+                      className="p-6 rounded-2xl border-2 border-dashed border-primary-200 bg-primary-50/50 hover:border-primary-400 transition-colors cursor-pointer group"
+                    >
+                      <div className="text-center">
+                        <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-primary-100 flex items-center justify-center group-hover:bg-primary-200 transition-colors">
+                          <Gift className="h-6 w-6 text-primary-600" />
+                        </div>
+                        <h4 className="font-bold mb-2">Surprise Me</h4>
+                        <p className="text-sm text-muted-foreground">Get a random topic based on your level</p>
+                      </div>
+                    </Card>
+
+                    <Card
+                      onClick={() => router.push('/speaking/free-talk')}
+                      className="p-6 rounded-2xl border-2 border-dashed border-primary-200 bg-primary-50/50 hover:border-primary-400 transition-colors cursor-pointer group"
+                    >
+                      <div className="text-center">
+                        <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-primary-100 flex items-center justify-center group-hover:bg-primary-200 transition-colors">
+                          <Play className="h-6 w-6 text-primary-600" />
+                        </div>
+                        <h4 className="font-bold mb-2">Free Talk</h4>
+                        <p className="text-sm text-muted-foreground">Open conversation with AI tutor</p>
+                      </div>
+                    </Card>
+                  </div>
+                </Card>
+
+                {/* List of custom scenarios */}
+                <h3 className="text-xl font-bold mt-8 mb-4">Your Custom Scenarios</h3>
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {filteredScenarios.map((topic) => (
+                    <TopicCard
+                      key={topic.id}
+                      id={topic.id}
+                      title={topic.title}
+                      description={topic.description}
+                      level={topic.level}
+                      wordCount={topic.duration || 7}
+                      thumbnail={topic.image}
+                      progress={topic.progress}
+                      href={`/speaking/session/${topic.id}`}
+                      onNotYet={() => { }}
+                      type="speaking"
+                      isBookmarked={bookmarkedTopics.includes(topic.id)}
+                      onBookmarkToggle={handleBookmarkToggle}
+                    />
+                  ))}
+                  {filteredScenarios.length === 0 && (
+                    <p className="text-muted-foreground col-span-3 text-center py-8">
+                      You haven't created any custom scenarios yet.
+                    </p>
+                  )}
                 </div>
-
-                <div className="grid md:grid-cols-3 gap-6">
-                  <Card className="p-6 rounded-2xl border-2 border-dashed border-primary-200 bg-primary-50/50 hover:border-primary-400 transition-colors cursor-pointer group">
-                    <div className="text-center">
-                      <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-primary-100 flex items-center justify-center group-hover:bg-primary-200 transition-colors">
-                        <MessageSquarePlus className="h-6 w-6 text-primary-600" />
-                      </div>
-                      <h4 className="font-bold mb-2">Role Play</h4>
-                      <p className="text-sm text-muted-foreground">Create a custom role-play scenario</p>
-                    </div>
-                  </Card>
-
-                  <Card className="p-6 rounded-2xl border-2 border-dashed border-primary-200 bg-primary-50/50 hover:border-primary-400 transition-colors cursor-pointer group">
-                    <div className="text-center">
-                      <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-primary-100 flex items-center justify-center group-hover:bg-primary-200 transition-colors">
-                        <Gift className="h-6 w-6 text-primary-600" />
-                      </div>
-                      <h4 className="font-bold mb-2">Topic Discussion</h4>
-                      <p className="text-sm text-muted-foreground">Discuss any topic of your choice</p>
-                    </div>
-                  </Card>
-
-                  <Card className="p-6 rounded-2xl border-2 border-dashed border-primary-200 bg-primary-50/50 hover:border-primary-400 transition-colors cursor-pointer group">
-                    <div className="text-center">
-                      <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-primary-100 flex items-center justify-center group-hover:bg-primary-200 transition-colors">
-                        <Play className="h-6 w-6 text-primary-600" />
-                      </div>
-                      <h4 className="font-bold mb-2">Free Practice</h4>
-                      <p className="text-sm text-muted-foreground">Open conversation with AI tutor</p>
-                    </div>
-                  </Card>
-                </div>
-              </Card>
+              </div>
             )}
 
             {activeTab === "history" && (
@@ -400,7 +501,7 @@ export default function SpeakingPageClient({
                         wordCount={item.wordCount}
                         thumbnail={item.image}
                         progress={item.progress}
-                        href={`/speaking/session/${item.id}`}
+                        href={`/speaking/session/${item.id}`} // This will redirect to the session details/replay if implemented
                         type="speaking"
                       />
                     ))}
@@ -437,6 +538,32 @@ export default function SpeakingPageClient({
           </div>
         </div>
       </ProtectedRoute>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Custom Topic</DialogTitle>
+            <DialogDescription>
+              Describe the situation or topic you want to practice. AI will generate a roleplay scenario for you.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Textarea
+              placeholder="E.g. I want to practice arguing about a refund at an electronics store..."
+              value={topicPrompt}
+              onChange={(e) => setTopicPrompt(e.target.value)}
+              rows={4}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isCreating}>Cancel</Button>
+            <Button onClick={handleCreateScenario} disabled={isCreating || !topicPrompt.trim()}>
+              {isCreating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isCreating ? "Generating..." : "Create Scenario"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

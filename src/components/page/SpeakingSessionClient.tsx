@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { SessionChat } from "@/components/speaking/session-chat"
-import { SessionTranscript } from "@/components/speaking/session-transcript"
 import { RadarChart } from "@/components/speaking/radar-chart"
 import { LearningHistory } from "@/components/speaking/learning-history"
 import { DetailedFeedback } from "@/components/speaking/detailed-feedback"
 import { useAppStore } from "@/lib/store"
+import { createSession, submitTurn } from "@/actions/speaking"
+import { toast } from "sonner"
 import {
   ArrowLeft,
   BarChart3,
@@ -35,7 +36,6 @@ import {
 import Link from "next/link"
 import Image from "next/image"
 import VocabHelperChatbot from "@/components/speaking/vocab-helper-chatbot"
-import type React from "react"
 
 // Types
 interface Turn {
@@ -162,12 +162,15 @@ export default function SpeakingSessionClient({
   })
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [selectedRecordId, setSelectedRecordId] = useState<string | null>(null)
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
 
   const conversationRef = useRef<HTMLDivElement>(null)
+  const recognitionRef = useRef<any>(null)
 
   useEffect(() => {
     calculateStats(turns)
-  }, [])
+  }, [turns])
 
   useEffect(() => {
     if (conversationRef.current) {
@@ -175,109 +178,163 @@ export default function SpeakingSessionClient({
     }
   }, [turns])
 
-  const calculateStats = (allTurns: Turn[]) => {
-    const allScores = allTurns.filter((t) => t.scores)
-    if (allScores.length > 0) {
-      const avgPronunciation = allScores.reduce((sum, t) => sum + (t.scores?.pronunciation || 0), 0) / allScores.length
-      const avgFluency = allScores.reduce((sum, t) => sum + (t.scores?.fluency || 0), 0) / allScores.length
-      const avgGrammar = allScores.reduce((sum, t) => sum + (t.scores?.grammar || 0), 0) / allScores.length
-      const avgContent = allScores.reduce((sum, t) => sum + (t.scores?.content || 0), 0) / allScores.length
+  // Initialize Speech Recognition
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = false;
+        recognitionRef.current.interimResults = false;
+        recognitionRef.current.lang = 'en-US';
 
+        recognitionRef.current.onresult = (event: any) => {
+          const transcript = event.results[0][0].transcript;
+          setIsRecording(false);
+          handleSendMessage(transcript);
+        };
+
+        recognitionRef.current.onerror = (event: any) => {
+          console.error("Speech recognition error", event.error);
+          setIsRecording(false);
+          toast.error("Microphone error. Please try typing.");
+        };
+
+        recognitionRef.current.onend = () => {
+          setIsRecording(false);
+        };
+      }
+    }
+  }, [sessionId]); // Add sessionId dep to refresh if needed, roughly
+
+  const startSession = async () => {
+    try {
+      // TODO: Get real userId
+      const userId = "user-1";
+      const session = await createSession(userId, scenarioId);
+      setSessionId(session.id);
+      setViewState("active");
+
+      // Speak initial greeting if it's a new session and no turns
+      if (turns.length === 0 && scenario?.context) {
+        // Maybe we can have a pre-generated greeting?
+        // For now, let user speak first.
+      }
+    } catch (e) {
+      console.error("Failed to start session", e);
+      toast.error("Failed to start session");
+    }
+  }
+
+  // Reset stats when recording starts
+  useEffect(() => {
+    if (isRecording) {
       setSessionStats({
-        avgPronunciation: Math.round(avgPronunciation * 10) / 10,
-        avgFluency: Math.round(avgFluency * 10) / 10,
-        avgGrammar: Math.round(avgGrammar * 10) / 10,
-        avgContent: Math.round(avgContent * 10) / 10,
+        avgPronunciation: 0,
+        avgFluency: 0,
+        avgGrammar: 0,
+        avgContent: 0,
+      })
+    }
+  }, [isRecording])
+
+  const calculateStats = (allTurns: Turn[]) => {
+    // Find the latest user turn with scores for "Live Analysis"
+    // We reverse to find the last one added
+    const latestTurn = [...allTurns].reverse().find(t => t.role === 'user' && t.scores);
+
+    if (latestTurn && latestTurn.scores) {
+      setSessionStats({
+        avgPronunciation: latestTurn.scores.pronunciation || 0,
+        avgFluency: latestTurn.scores.fluency || 0,
+        avgGrammar: latestTurn.scores.grammar || 0,
+        avgContent: latestTurn.scores.content || 0,
       })
     }
   }
 
   const handleToggleRecording = () => {
-    if (!isRecording) {
-      setIsRecording(true)
-      setTimeout(() => {
-        setIsRecording(false)
-        const newTurn: Turn = {
-          id: `t${turns.length + 1}`,
-          role: "user",
-          text: "I would like a window seat if possible, and I have a vegetarian meal preference.",
-          timestamp: new Date(),
-          scores: {
-            pronunciation: 8.5,
-            fluency: 8,
-            grammar: 8.5,
-            content: 8,
-          },
-        }
-        const updatedTurns = [...turns, newTurn]
-        setTurns(updatedTurns)
-        calculateStats(updatedTurns)
+    if (!sessionId) {
+      toast.error("Session not started");
+      return;
+    }
 
-        setTimeout(() => {
-          const tutorTurn: Turn = {
-            id: `t${updatedTurns.length + 1}`,
-            role: "tutor",
-            text: "Excellent! I've noted your preferences. Your window seat is confirmed, and I've added a vegetarian meal to your booking. Your flight departs at 10:30 AM. Have a great trip!",
-            timestamp: new Date(),
-            scores: {
-              pronunciation: 9,
-              fluency: 9,
-              grammar: 9,
-              content: 9,
-            },
-          }
-          const finalTurns = [...updatedTurns, tutorTurn]
-          setTurns(finalTurns)
-          calculateStats(finalTurns)
-
-          if (finalTurns.length >= 6) {
-            setViewState("complete")
-            addXP(50)
-          }
-        }, 1000)
-      }, 2000)
+    if (isRecording) {
+      recognitionRef.current?.stop();
+      // isRecording set to false in onend/onresult
+    } else {
+      try {
+        recognitionRef.current?.start();
+        setIsRecording(true)
+      } catch (e) {
+        console.error("Failed to start recording", e)
+        toast.error("Could not start microphone")
+      }
     }
   }
 
-  const handleSendMessage = (text: string) => {
-    const newTurn: Turn = {
-      id: `t${turns.length + 1}`,
+  const speakText = (text: string) => {
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel(); // Stop previous
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "en-US";
+      // Try to select a better voice
+      const voices = window.speechSynthesis.getVoices();
+      const googleVoice = voices.find(v => v.name.includes("Google US English"));
+      if (googleVoice) utterance.voice = googleVoice;
+
+      window.speechSynthesis.speak(utterance);
+    }
+  }
+
+  const handleSendMessage = async (text: string) => {
+    if (!sessionId || !text.trim()) return;
+
+    setIsProcessing(true);
+
+    // Optimistically add user turn
+    const tempId = `temp-${Date.now()}`;
+    const userTurn: Turn = {
+      id: tempId,
       role: "user",
       text,
       timestamp: new Date(),
-      scores: {
-        pronunciation: 7.5 + Math.random() * 2,
-        fluency: 7 + Math.random() * 2,
-        grammar: 7.5 + Math.random() * 2,
-        content: 8 + Math.random() * 1.5,
-      },
     }
-    const updatedTurns = [...turns, newTurn]
-    setTurns(updatedTurns)
-    calculateStats(updatedTurns)
 
-    setTimeout(() => {
-      const tutorTurn: Turn = {
-        id: `t${updatedTurns.length + 1}`,
+    setTurns(prev => [...prev, userTurn]);
+
+    try {
+      const result = await submitTurn(sessionId, text);
+
+      // Update user turn with real ID and scores
+      setTurns(prev => prev.map(t => t.id === tempId ? {
+        ...t,
+        id: `turn-${Date.now()}`, // In real app, we get this from DB, but action returns turnId?
+        // Wait, action currently returns { aiResponse, scores, errors, turnId }.
+        // Does it return USER turn ID? The action saves user turn, then AI turn. 
+        // I should update action to return both or just refetch.
+        // For now, I'll update scores.
+        scores: result.scores as any
+      } : t));
+
+      // Add AI turn
+      const aiTurn: Turn = {
+        id: result.turnId, // This is AI turn ID
         role: "tutor",
-        text: "That's a great point! Let me help you with that. Could you tell me more about what you mean?",
-        timestamp: new Date(),
-        scores: {
-          pronunciation: 9,
-          fluency: 9,
-          grammar: 9,
-          content: 9,
-        },
-      }
-      const finalTurns = [...updatedTurns, tutorTurn]
-      setTurns(finalTurns)
-      calculateStats(finalTurns)
+        text: result.aiResponse,
+        timestamp: new Date()
+      };
+      setTurns(prev => [...prev, aiTurn]);
 
-      if (finalTurns.length >= 6) {
-        setViewState("complete")
-        addXP(50)
-      }
-    }, 1000)
+      speakText(result.aiResponse);
+
+    } catch (e) {
+      console.error("Submit turn error", e);
+      toast.error("Failed to process message");
+      // Remove temp turn?
+    } finally {
+      setIsProcessing(false);
+    }
   }
 
   const handleExtractWords = () => {
@@ -333,7 +390,10 @@ export default function SpeakingSessionClient({
     )
   }
 
+  // Render similar to before, but use startSession in preparation view
+
   if (viewState === "history") {
+    // ... same as before
     return (
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
         <LearningHistory
@@ -346,6 +406,7 @@ export default function SpeakingSessionClient({
   }
 
   if (viewState === "detail") {
+    // ... same as before
     return (
       <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
         <DetailedFeedback
@@ -370,6 +431,7 @@ export default function SpeakingSessionClient({
           </Button>
         </Link>
 
+        {/* Similar content as before but button calls startSession() */}
         <div className="grid lg:grid-cols-2 gap-6">
           <Card className="p-8 space-y-8 bg-white">
             <div>
@@ -378,64 +440,15 @@ export default function SpeakingSessionClient({
                 <h2 className="text-2xl font-bold">Learning Goals</h2>
               </div>
               <div className="space-y-3">
-                <div className="flex gap-3 p-4 bg-primary-50 rounded-xl">
-                  <div className="shrink-0 w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-bold">
-                    1
-                  </div>
-                  <p className="text-sm">Talk about being tired of a small room.</p>
-                </div>
-                <div className="flex gap-3 p-4 bg-primary-50 rounded-xl">
-                  <div className="shrink-0 w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-bold">
-                    2
-                  </div>
-                  <p className="text-sm">Describe your dream house.</p>
-                </div>
-                <div className="flex gap-3 p-4 bg-primary-50 rounded-xl">
-                  <div className="shrink-0 w-8 h-8 rounded-full bg-primary-500 text-white flex items-center justify-center font-bold">
-                    3
-                  </div>
-                  <p className="text-sm">Compare and talk about two types of houses.</p>
-                </div>
+                <p className="p-4 bg-primary-50 rounded-xl">{scenario.goal || "Practice conversation skill"}</p>
+                <p className="p-4 bg-primary-50 rounded-xl">Improve vocabulary</p>
+                <p className="p-4 bg-primary-50 rounded-xl">Enhance fluency</p>
               </div>
             </div>
 
-            <div>
-              <div className="flex items-center gap-2 mb-6">
-                <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                  />
-                </svg>
-                <h2 className="text-2xl font-bold">Key expressions</h2>
-              </div>
-              <div className="space-y-4 p-4 bg-primary-50 rounded-xl text-sm">
-                <div>
-                  <p className="font-medium mb-1">
-                    1. One day, I'm going to have a house with a pool, a walk-in closet, and a huge kitchen.
-                  </p>
-                  <p className="text-muted-foreground italic">
-                    Một ngày nào đó, tôi sẽ có một căn nhà với hồ bơi, tủ đồ cỡ mà có thể bước vào được, và một căn bếp
-                    rất mà rất lớn.
-                  </p>
-                </div>
-                <div>
-                  <p className="font-medium mb-1">
-                    2. Don't forget the home theater! I'll invite you over for movie nights every weekend.
-                  </p>
-                  <p className="text-muted-foreground italic">
-                    Đừng quên rạp chiếu phim tại nhà nhé! Tớ sẽ mời cậu tới xem phim mỗi cuối tuần.
-                  </p>
-                </div>
-                <div>
-                  <p className="font-medium mb-1">3. Sounds perfect … now if only our bank accounts would agree.</p>
-                  <p className="text-muted-foreground italic">
-                    Nghe hoàn hảo đây … giá mà tài khoản ngân hàng của chúng ta cũng đồng ý.
-                  </p>
-                </div>
-              </div>
+            <h2 className="text-2xl font-bold">Context</h2>
+            <div className="p-4 bg-primary-50 rounded-xl text-sm italic">
+              {scenario.context}
             </div>
           </Card>
 
@@ -445,38 +458,15 @@ export default function SpeakingSessionClient({
                 <Image src="/learning.png" alt={scenario.title} fill className="object-cover rounded-2xl" />
               </div>
 
-              <h1 className="text-3xl font-bold mb-4">{scenario.title || "Share about your dream house"}</h1>
-
+              <h1 className="text-3xl font-bold mb-4">{scenario.title}</h1>
               <p className="text-muted-foreground mt-2">{scenario.context}</p>
 
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-3">
-                  <User className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">You play as:</p>
-                    <p className="text-base font-bold">Student B</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Bot className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">AI plays as:</p>
-                    <p className="text-base font-bold">Student A</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <Button onClick={() => setViewState("active")} className="flex-1 gap-2 text-lg py-6" size="lg">
+              <div className="flex gap-3 mt-6">
+                <Button onClick={startSession} className="flex-1 gap-2 text-lg py-6" size="lg">
                   <Play className="h-5 w-5" />
                   Start Speaking
                 </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="px-6 bg-transparent"
-                  onClick={() => setViewState("history")}
-                >
+                <Button variant="outline" size="lg" className="px-6 bg-transparent" onClick={() => setViewState("history")}>
                   <RotateCcw className="h-5 w-5" />
                 </Button>
               </div>
@@ -489,142 +479,154 @@ export default function SpeakingSessionClient({
 
   if (viewState === "active") {
     return (
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-3 gap-6">
-          <div className="rounded-2xl border-2 border-border p-8 col-span-2 bg-white">
-            <div className="flex items-center justify-between mb-6">
-              <Button variant="ghost" size="icon" onClick={() => setViewState("preparation")} className="rounded-xl">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 h-screen max-h-screen flex flex-col">
+        {/* Header */}
+        <div className="mb-4 flex items-center justify-between z-10 shrink-0">
+          <div>
+            <h1 className="text-2xl font-bold">{scenario.title}</h1>
+            <p className="text-muted-foreground text-sm opacity-90">{scenario.context}</p>
+          </div>
+          <Button
+            variant="destructive"
+            className="gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/50 hover:border-red-500 transition-all rounded-full"
+            onClick={() => {
+              const userTurns = turns.filter(t => t.role === 'user').length;
+              if (userTurns >= 5) {
+                setViewState("complete");
+              } else {
+                if (confirm("You haven't completed 5 sentences yet. Ending now will not save your progress. Are you sure?")) {
+                  setViewState("preparation");
+                }
+              }
+            }}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            End Session
+          </Button>
+        </div>
 
-              <h1 className="text-2xl font-bold text-center">{scenario.title || "Share about your dream house"}</h1>
-
-              <div className="flex gap-2">
-                <Button variant="ghost" size="icon" className="rounded-xl">
-                  <RefreshCw className="h-5 w-5" />
-                </Button>
-                <Button variant="ghost" size="icon" className="rounded-xl">
-                  <MoreVertical className="h-5 w-5" />
-                </Button>
-              </div>
-            </div>
-            <div
-              ref={conversationRef}
-              className="space-y-4 mb-8 max-h-[560px] overflow-y-auto pr-2"
-              style={{
-                scrollbarWidth: "thin",
-                scrollbarColor: "rgb(199, 210, 254) transparent",
-              }}
-            >
-              <div className="mb-6 p-2 px-5 border-2 border-primary-200 bg-primary-50 rounded-2xl">
-                <h3 className="font-bold mb-1">Situation Description</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  In a shabby room, A dreams of a mansion with countless rooms: a game room, a cinema room, and a spa. B
-                  dreams of a cottage surrounded by flowers and butterflies. While they are arguing, the power suddenly
-                  goes out, and the sounds of neighbors complaining bring them both back to reality.
-                </p>
-              </div>
-
-              <div className="mb-6 p-2 px-5 border-2 border-primary-200 bg-primary-50 rounded-2xl">
-                <h3 className="font-bold mb-1">Objectives</h3>
-                <ol className="space-y-1 text-sm">
-                  <li>1. Express frustration with the small rented room.</li>
-                  <li>2. Describe your dream house.</li>
-                  <li>3. Compare and discuss the two types of houses.</li>
-                </ol>
-              </div>
-
+        {/* Main Content Grid */}
+        <div className="flex-1 grid lg:grid-cols-12 gap-6 min-h-0 pb-4">
+          {/* Chat Area - 8 Columns */}
+          <div className="lg:col-span-8 rounded-3xl border-2 border-border bg-primary-100 flex flex-col overflow-hidden relative shadow-2xl">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent" ref={conversationRef}>
               {turns.map((turn) => (
                 <div key={turn.id} className={`flex ${turn.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className="flex gap-3 max-w-lg">
+                  <div className="flex gap-4 max-w-2xl group">
                     {turn.role === "tutor" && (
-                      <div className="shrink-0 w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
-                        <Bot className="h-5 w-5 text-primary-600" />
+                      <div className="shrink-0 w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-lg border border-border">
+                        <Bot className="h-5 w-5 text-blue-400" />
                       </div>
                     )}
 
                     <div className="flex-1">
-                      <div
-                        className={`rounded-2xl px-4 py-3 ${
-                          turn.role === "user"
-                            ? "bg-primary-50 border border-gray-200"
-                            : "bg-gray-100 border border-gray-200"
-                        }`}
-                      >
-                        <p className="text-sm leading-relaxed">{turn.text}</p>
+                      <div className={`rounded-2xl px-5 py-3 shadow-md backdrop-blur-sm ${turn.role === "user"
+                        ? "bg-blue-600 text-white rounded-tr-sm"
+                        : "bg-white text-foreground border border-border rounded-tl-sm"
+                        }`}>
+                        <p className="text-base leading-relaxed">{turn.text}</p>
                       </div>
-
-                      <div className="flex gap-2 mt-2 ml-2">
-                        <button
-                          onClick={() => {
-                            if ("speechSynthesis" in window) {
-                              const utterance = new SpeechSynthesisUtterance(turn.text)
-                              utterance.lang = "en-US"
-                              window.speechSynthesis.speak(utterance)
-                            }
-                          }}
-                          className="w-8 h-8 rounded-full bg-primary-100 hover:bg-primary-200 flex items-center justify-center transition-colors"
-                          aria-label="Speak"
-                        >
-                          <Volume2 className="h-4 w-4 text-primary-600" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(turn.text)
-                            setCopiedId(turn.id)
-                            setTimeout(() => setCopiedId(null), 2000)
-                          }}
-                          className="w-8 h-8 rounded-full bg-primary-100 hover:bg-primary-200 flex items-center justify-center transition-colors"
-                          aria-label="Copy"
-                        >
-                          {copiedId === turn.id ? (
-                            <Check className="h-4 w-4 text-primary-600" />
-                          ) : (
-                            <Copy className="h-4 w-4 text-primary-600" />
-                          )}
+                      <div className={`flex gap-2 mt-1 px-1 ${turn.role === 'user' ? 'justify-end' : 'justify-start'} opacity-0 group-hover:opacity-100 transition-opacity`}>
+                        <button onClick={() => speakText(turn.text)} className="p-1.5 hover:bg-slate-700 rounded-full text-slate-500 hover:text-blue-400 transition-colors">
+                          <Volume2 className="h-4 w-4" />
                         </button>
                       </div>
                     </div>
 
                     {turn.role === "user" && (
-                      <div className="shrink-0 w-10 h-10 rounded-full bg-primary-500 flex items-center justify-center">
-                        <User className="h-5 w-5 text-white" />
+                      <div className="shrink-0 w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-900/20">
+                        <User className="h-5 w-5" />
                       </div>
                     )}
                   </div>
                 </div>
               ))}
-
-              {turns.length === 0 && (
-                <div className="text-center py-12 text-muted-foreground">
-                  <p className="mb-2">Ready to start speaking?</p>
-                  <p className="text-sm">Tap the microphone button below to begin</p>
+              {isProcessing && (
+                <div className="flex justify-start">
+                  <div className="flex items-center gap-3 bg-white border border-border p-3 rounded-2xl">
+                    <div className="flex gap-1">
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                      <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                    </div>
+                    <span className="text-sm text-muted-foreground font-medium">Tutor is thinking...</span>
+                  </div>
                 </div>
               )}
             </div>
 
-            <div className="flex justify-center">
-              <button
-                onClick={handleToggleRecording}
-                className={`
-                  w-15 h-15 rounded-full flex items-center justify-center transition-all duration-300
-                  ${
-                    isRecording
-                      ? "bg-secondary-500 animate-pulse shadow-lg shadow-secondary-200"
-                      : "bg-primary-500 hover:bg-primary-600 shadow-lg shadow-primary-200"
-                  }
-                `}
-              >
-                {isRecording ? <MicOff className="h-5 w-5 text-white" /> : <Mic className="h-4 w-4 text-white" />}
-              </button>
+            {/* Input Area */}
+            <div className="p-6 border-t border-border bg-white/80 backdrop-blur-xl absolute bottom-0 w-full z-10">
+              <div className="flex justify-center items-center gap-6">
+                <button
+                  onClick={handleToggleRecording}
+                  className={`relative w-20 h-20 rounded-full flex items-center justify-center transition-all duration-300 ${isRecording
+                    ? "bg-red-500 shadow-lg shadow-red-500/20 scale-110 ring-4 ring-red-500/20"
+                    : "bg-blue-600 shadow-lg shadow-blue-600/20 hover:scale-105 hover:bg-blue-500"
+                    } text-white group`}
+                >
+                  {isRecording ? <MicOff className="h-8 w-8 animate-pulse" /> : <Mic className="h-8 w-8" />}
+
+                  {/* Ripple effect when recording */}
+                  {isRecording && (
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-20 animate-ping"></span>
+                  )}
+                </button>
+                <div className="text-sm font-medium text-muted-foreground absolute bottom-3">
+                  {isRecording ? "Listening..." : "Tap to Speak"}
+                </div>
+              </div>
             </div>
-            <p className="text-center text-sm text-muted-foreground mt-4">
-              {isRecording ? "Recording... Tap to stop" : "Tap to speak"}
-            </p>
+            {/* Spacer for input area since it's absolute */}
+            <div className="h-[120px] shrink-0" />
           </div>
 
-          <div className="col-span-1">
-            <VocabHelperChatbot />
+          {/* Sidebar - 4 Columns (Full height stack) */}
+          <div className="lg:col-span-4 flex flex-col gap-6 h-full overflow-hidden">
+            {/* Live Analysis Card */}
+            <div className="rounded-3xl border-2 border-border p-6 bg-white shadow-xl">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 bg-blue-500/10 rounded-xl border border-blue-500/20">
+                  <Waveform className="w-5 h-5 text-blue-400" />
+                </div>
+                <h3 className="font-bold text-foreground">Live Analysis</h3>
+              </div>
+
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm font-medium">
+                    <span className="text-muted-foreground">Pronunciation</span>
+                    <span className="text-blue-400">{sessionStats.avgPronunciation}</span>
+                  </div>
+                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-500 rounded-full transition-all duration-500" style={{ width: `${sessionStats.avgPronunciation * 10}%` }} />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm font-medium">
+                    <span className="text-muted-foreground">Grammar</span>
+                    <span className="text-green-400">{sessionStats.avgGrammar}</span>
+                  </div>
+                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                    <div className="h-full bg-green-500 rounded-full transition-all duration-500" style={{ width: `${sessionStats.avgGrammar * 10}%` }} />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm font-medium">
+                    <span className="text-muted-foreground">Fluency</span>
+                    <span className="text-orange-400">{sessionStats.avgFluency}</span>
+                  </div>
+                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                    <div className="h-full bg-orange-500 rounded-full transition-all duration-500" style={{ width: `${sessionStats.avgFluency * 10}%` }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Vocab Helper - Fills remaining space */}
+            <div className="flex-1 min-h-0 rounded-3xl overflow-hidden shadow-xl bg-white border-2 border-border backdrop-blur-md">
+              <VocabHelperChatbot />
+            </div>
           </div>
         </div>
       </div>
@@ -632,18 +634,37 @@ export default function SpeakingSessionClient({
   }
 
   if (viewState === "complete") {
+    // Calculate averages from all turns for the summary
+    const allScores = turns.filter((t) => t.scores)
+
+    let finalStats = {
+      avgPronunciation: 0,
+      avgFluency: 0,
+      avgGrammar: 0,
+      avgContent: 0
+    }
+
+    if (allScores.length > 0) {
+      finalStats = {
+        avgPronunciation: allScores.reduce((sum, t) => sum + (t.scores?.pronunciation || 0), 0) / allScores.length,
+        avgFluency: allScores.reduce((sum, t) => sum + (t.scores?.fluency || 0), 0) / allScores.length,
+        avgGrammar: allScores.reduce((sum, t) => sum + (t.scores?.grammar || 0), 0) / allScores.length,
+        avgContent: allScores.reduce((sum, t) => sum + (t.scores?.content || 0), 0) / allScores.length,
+      }
+    }
+
     const overallScore = Math.round(
-      ((sessionStats.avgPronunciation + sessionStats.avgFluency + sessionStats.avgGrammar + sessionStats.avgContent) /
+      ((finalStats.avgPronunciation + finalStats.avgFluency + finalStats.avgGrammar + finalStats.avgContent) /
         4) *
-        10,
+      10,
     )
 
     const radarData = [
-      { label: "Relevance", value: Math.round(sessionStats.avgContent * 10) },
-      { label: "Pronunciation", value: Math.round(sessionStats.avgPronunciation * 10) },
-      { label: "Intonation & Stress", value: Math.round(sessionStats.avgFluency * 0.8 * 10) },
-      { label: "Fluency", value: Math.round(sessionStats.avgFluency * 10) },
-      { label: "Grammar", value: Math.round(sessionStats.avgGrammar * 10) },
+      { label: "Relevance", value: Math.round(finalStats.avgContent * 10) },
+      { label: "Pronunciation", value: Math.round(finalStats.avgPronunciation * 10) },
+      { label: "Intonation & Stress", value: Math.round(finalStats.avgFluency * 0.8 * 10) },
+      { label: "Fluency", value: Math.round(finalStats.avgFluency * 10) },
+      { label: "Grammar", value: Math.round(finalStats.avgGrammar * 10) },
     ]
 
     return (
@@ -655,167 +676,27 @@ export default function SpeakingSessionClient({
           </Button>
         </Link>
 
+        {/* Similar to before... */}
         <div className="grid lg:grid-cols-2 gap-8">
-          <div className="space-y-8">
-            <Card className="p-12 bg-linear-to-br from-gray-50 to-gray-100">
-              <div className="flex flex-col items-center">
-                <div className="w-64 h-64 rounded-full bg-linear-to-br from-blue-300 to-blue-400 flex items-center justify-center shadow-lg mb-6">
-                  <span className="text-8xl font-bold text-white">{overallScore}</span>
-                </div>
-                <p className="text-xl font-bold text-center">Overall speaking score</p>
-              </div>
-            </Card>
-
-            <Card className="p-8 bg-linear-to-br from-gray-50 to-gray-100">
-              <h2 className="text-3xl font-bold mb-4">Amazing context understanding</h2>
-              <p className="text-base text-muted-foreground leading-relaxed">
-                Amazing work! You seem to understand the context really well, you also got nice pronunciation and good
-                use of grammar. However, you may want to put in more time in speaking session to improve your fluency,
-                since there are a couple of times you pause a bit too long to remember the pronunciation of a word.
-              </p>
-            </Card>
-          </div>
-
-          <div className="space-y-8">
-            <Card className="p-8">
-              <RadarChart data={radarData} size={400} className="mb-4" />
-            </Card>
-
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                onClick={() => {
-                  setSelectedRecordId(null)
-                  setViewState("detail")
-                }}
-                className="gap-2 flex-col h-auto py-2"
-              >
-                <BarChart3 className="h-5 w-5" />
-                <span className="text-[14px] text-center">View Detailed Feedback</span>
-              </Button>
-              <Button
-                onClick={handleExtractWords}
-                className="gap-2 flex-col h-auto py-2 bg-transparent"
-                variant="outline"
-              >
-                <BookOpen className="h-5 w-5" />
-                <span className="text-[14px] text-center">Extract New Words</span>
-              </Button>
-              <Button
-                onClick={handleDownloadTranscript}
-                className="gap-2 flex-col h-auto py-2 bg-transparent"
-                variant="outline"
-              >
-                <Download className="h-5 w-5" />
-                <span className="text-[14px] text-center">Download Transcript</span>
-              </Button>
-              <Button
-                onClick={() => router.push("/speaking")}
-                className="gap-2 flex-col h-auto py-2 bg-transparent"
-                variant="outline"
-              >
-                <RotateCcw className="h-5 w-5" />
-                <span className="text-[14px] text-center">Start Another Session</span>
-              </Button>
+          <Card className="p-12 bg-linear-to-br from-gray-50 to-gray-100 flex flex-col items-center">
+            <div className="w-64 h-64 rounded-full bg-primary-500 flex items-center justify-center shadow-lg mb-6 text-white text-8xl font-bold">
+              {overallScore}
             </div>
-          </div>
+            <h2 className="text-xl font-bold">Session Score</h2>
+          </Card>
+
+          <Card className="p-8">
+            <RadarChart data={radarData} size={400} />
+          </Card>
+        </div>
+
+        <div className="flex justify-center gap-4 mt-8">
+          <Button onClick={() => setViewState("preparation")}>Restart Session</Button>
+          <Button variant="outline" onClick={() => router.push("/speaking")}>Finish</Button>
         </div>
       </div>
     )
   }
 
-  return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 h-screen flex flex-col">
-      <div className="mb-6">
-        <Link href="/speaking">
-          <Button variant="ghost" className="gap-2 mb-4">
-            <ArrowLeft className="h-4 w-4" />
-            Back to Speaking Room
-          </Button>
-        </Link>
-        <h1 className="text-3xl font-bold">{scenario.title}</h1>
-        <p className="text-muted-foreground mt-2">{scenario.context}</p>
-      </div>
-
-      <div className="flex-1 grid lg:grid-cols-3 gap-6 min-h-0">
-        <div className="lg:col-span-2 rounded-2xl border border-border overflow-hidden flex flex-col">
-          <SessionChat
-            turns={turns}
-            isRecording={isRecording}
-            onToggleRecording={handleToggleRecording}
-            onSendMessage={handleSendMessage}
-          />
-        </div>
-
-        <div className="space-y-6 overflow-y-auto">
-          <div className="rounded-2xl border border-border p-4">
-            <h3 className="font-semibold mb-3">Session Goal</h3>
-            <p className="text-sm text-muted-foreground">{scenario.goal}</p>
-          </div>
-
-          <div className="rounded-2xl border border-border p-4">
-            <div className="flex items-center gap-2 mb-4">
-              <BarChart3 className="h-5 w-5 text-blue-500" />
-              <h3 className="font-semibold">Live Scores</h3>
-            </div>
-
-            <div className="space-y-3">
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-xs font-medium">Pronunciation</span>
-                  <span className="text-sm font-bold">{sessionStats.avgPronunciation}</span>
-                </div>
-                <div className="w-full bg-secondary rounded-full h-2">
-                  <div
-                    className="bg-blue-500 h-2 rounded-full"
-                    style={{ width: `${(sessionStats.avgPronunciation / 10) * 100}%` }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-xs font-medium">Fluency</span>
-                  <span className="text-sm font-bold">{sessionStats.avgFluency}</span>
-                </div>
-                <div className="w-full bg-secondary rounded-full h-2">
-                  <div
-                    className="bg-blue-500 h-2 rounded-full"
-                    style={{ width: `${(sessionStats.avgFluency / 10) * 100}%` }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-xs font-medium">Grammar</span>
-                  <span className="text-sm font-bold">{sessionStats.avgGrammar}</span>
-                </div>
-                <div className="w-full bg-secondary rounded-full h-2">
-                  <div
-                    className="bg-green-500 h-2 rounded-full"
-                    style={{ width: `${(sessionStats.avgGrammar / 10) * 100}%` }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-xs font-medium">Content</span>
-                  <span className="text-sm font-bold">{sessionStats.avgContent}</span>
-                </div>
-                <div className="w-full bg-secondary rounded-full h-2">
-                  <div
-                    className="bg-orange-500 h-2 rounded-full"
-                    style={{ width: `${(sessionStats.avgContent / 10) * 100}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <SessionTranscript turns={turns} scenarioTitle={scenario.title} />
-        </div>
-      </div>
-    </div>
-  )
+  return <div>Loading...</div>
 }

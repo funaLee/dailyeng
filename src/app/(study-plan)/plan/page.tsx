@@ -1,6 +1,4 @@
-// Server Component - No "use client" directive
-// Data fetching happens here on the server
-
+import { getTodayTasks, getStudyPlan, getStudyStats } from "@/actions/study";
 import PlanPageClient from "@/components/page/PlanPageClient";
 import type {
   TodayLesson,
@@ -9,88 +7,74 @@ import type {
   IELTSExam,
 } from "@/components/page/PlanPageClient";
 
-// Mock data - In the future, this can be replaced with actual data fetching
-
-const todayLessons: TodayLesson[] = [
-  {
-    id: "l1",
-    type: "vocab",
-    title: "Vocabulary Topic: Animals",
-    topic: "Từ mới: 13 • Khóa học: IELTS Preparation",
-    duration: "Thời gian học: 20 phút",
-    completed: false,
-    link: "/vocab/animals",
-  },
-  {
-    id: "l2",
-    type: "grammar",
-    title: "Grammar Topic: Present Simple",
-    topic: "Ngữ pháp mới: 4 • Khóa học: IELTS Preparation",
-    duration: "Thời gian học: 10 phút",
-    completed: false,
-    link: "/grammar/present-simple",
-  },
-  {
-    id: "l3",
-    type: "grammar",
-    title: "Grammar Topic: Could/Should",
-    topic: "Ngữ pháp mới: 4 • Khóa học: IELTS Preparation",
-    duration: "Thời gian học: 10 phút",
-    completed: false,
-    link: "/grammar/modals",
-  },
-];
-
-const reminders: Reminder[] = [
+// Default/Fallback data
+const defaultReminders: Reminder[] = [
   {
     id: "r1",
     type: "speaking",
     title: "Speaking Room",
-    description: "Bạn chưa luyện nói lần nào",
-    action: "Luyện ngay",
+    description: "You haven't practiced speaking today",
+    action: "Practice Now",
     href: "/speaking",
   },
   {
     id: "r2",
     type: "notebook",
     title: "Notebook",
-    description: "Bạn còn 34 từ cần học hôm nay",
-    action: "Ôn tập ngay",
+    description: "You have words to review",
+    action: "Review Now",
     href: "/notebook",
-  },
-  {
-    id: "r3",
-    type: "missed",
-    title: "Missed Tasks",
-    description: "Bạn còn nhiệm vụ hôm qua chưa hoàn thành",
-    action: "Quay lại",
-    href: "/plan",
   },
 ];
 
-const studyGoals: StudyGoals = {
-  currentLevel: "3.0",
-  targetLevel: "6.0",
-  hoursPerWeek: 10,
-  durationMonths: 4,
-};
-
-const ieltsExam: IELTSExam = {
-  examDate: new Date("2026-03-28").toISOString(), // Serialized as ISO string
+const defaultIeltsExam: IELTSExam = {
+  examDate: new Date("2026-03-28").toISOString(),
   daysRemaining: 120,
 };
 
 export default async function PlanPage() {
-  // In the future, you can fetch data from DB, API, or File System here
-  // const todayLessons = await fetchTodayLessons()
-  // const reminders = await fetchReminders()
+  const userId = "user-1"; // TODO: Real auth
+
+  const [tasks, plan, stats] = await Promise.all([
+    getTodayTasks(userId),
+    getStudyPlan(userId),
+    getStudyStats(userId)
+  ]);
+
+  // Transform Tasks to TodayLesson format
+  const todayLessons: TodayLesson[] = tasks.map((t: any) => ({
+    id: t.id,
+    type: t.type as any, // "vocab" | "grammar" | "speaking"
+    title: t.title || "Study Task",
+    topic: "Daily Task", // Could come from relation if needed
+    duration: t.startTime && t.endTime ? `${t.startTime} - ${t.endTime}` : "20 min",
+    completed: t.completed,
+    link: t.link || "/dashboard",
+    startTime: t.startTime || undefined,
+    endTime: t.endTime || undefined,
+  }));
+
+  const studyGoals: StudyGoals = {
+    currentLevel: plan?.level || "3.0",
+    targetLevel: plan?.goal === "exam" ? "6.5" : "Fluency",
+    hoursPerWeek: Math.round((plan?.minutesPerDay || 60) * 7 / 60),
+    durationMonths: 6,
+  };
+
+  const ieltsExam: IELTSExam = {
+    examDate: plan?.examDate ? plan.examDate.toISOString() : new Date("2026-03-28").toISOString(),
+    daysRemaining: plan?.examDate
+      ? Math.ceil((new Date(plan.examDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+      : 120,
+  };
 
   return (
     <PlanPageClient
       todayLessons={todayLessons}
-      reminders={reminders}
+      reminders={defaultReminders}
       studyGoals={studyGoals}
       ieltsExam={ieltsExam}
+      stats={stats}
     />
   );
 }

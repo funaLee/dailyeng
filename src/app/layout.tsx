@@ -25,15 +25,9 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  if (typeof window !== "undefined") {
-    import("@/src/mocks/browser").then(({ worker }) => {
-      worker.start();
-    });
-  }
-
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${nunito.className} bg-background text-foreground`}>
+      <body className={`${nunito.className} bg-background text-foreground`} suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

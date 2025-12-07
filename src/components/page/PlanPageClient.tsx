@@ -17,10 +17,14 @@ import {
   Sparkles,
   AlertCircle,
   Bell,
+  Plus,
 } from "lucide-react"
 import { ProtectedRoute, PageIcons } from "@/components/auth/protected-route"
 import { GamificationRoadmap } from "@/components/plan/gamification-roadmap"
 import Image from "next/image"
+import { toggleTaskCompletion, updateTaskTime, updateExamDate } from "@/actions/study"
+import { format } from "date-fns"
+import { useRouter } from "next/navigation"
 
 // Types
 export interface TodayLesson {
@@ -31,6 +35,8 @@ export interface TodayLesson {
   duration: string
   completed: boolean
   link?: string
+  startTime?: string
+  endTime?: string
 }
 
 export interface Reminder {
@@ -54,11 +60,27 @@ export interface IELTSExam {
   daysRemaining: number
 }
 
+export interface StudyStats {
+  dailyHours: string
+  weeklyHours: string
+  totalHours: string
+}
+
 export interface PlanPageClientProps {
   todayLessons: TodayLesson[]
   reminders: Reminder[]
   studyGoals: StudyGoals
   ieltsExam: IELTSExam
+  stats: StudyStats
+}
+
+// Helper to determine time slot row
+const getTimePeriod = (time?: string) => {
+  if (!time) return "morning";
+  const hour = parseInt(time.split(':')[0]);
+  if (hour < 12) return "morning";
+  if (hour < 18) return "afternoon";
+  return "evening";
 }
 
 export default function PlanPageClient({
@@ -66,21 +88,65 @@ export default function PlanPageClient({
   reminders,
   studyGoals,
   ieltsExam: initialIeltsExam,
+  stats,
 }: PlanPageClientProps) {
-  const [selectedPlanId, setSelectedPlanId] = useState<string>("plan1")
+  const router = useRouter()
+  const [selectedPlanId, setSelectedPlanId] = useState<string>(todayLessons[0]?.id || "")
   const [isEditing, setIsEditing] = useState(false)
   const [completedLessons, setCompletedLessons] = useState<string[]>([])
-  const [ieltsExam, setIeltsExam] = useState({
-    examDate: new Date(initialIeltsExam.examDate),
-    daysRemaining: initialIeltsExam.daysRemaining,
-  })
+  const [ieltsExam, setIeltsExam] = useState(initialIeltsExam)
   const [isEditingExamDate, setIsEditingExamDate] = useState(false)
+  const [tempExamDate, setTempExamDate] = useState(initialIeltsExam.examDate)
 
-  const toggleLesson = (id: string) => {
-    setCompletedLessons((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]))
+  // Calendar Edit State
+  const [editingTask, setEditingTask] = useState<TodayLesson | null>(null)
+
+  const toggleLesson = async (id: string) => {
+    // Optimistic update
+    const isCurrentlyCompleted = completedLessons.includes(id)
+    const newCompleted = isCurrentlyCompleted ? completedLessons.filter(i => i !== id) : [...completedLessons, id]
+    setCompletedLessons(newCompleted)
+
+    // Server action
+    try {
+      await toggleTaskCompletion(id, !isCurrentlyCompleted)
+    } catch (e) {
+      console.error("Failed to toggle task", e)
+      setCompletedLessons(completedLessons)
+    }
+  }
+
+  const handleUpdateExamDate = async () => {
+    try {
+      const date = new Date(tempExamDate)
+      await updateExamDate("user-1", date) // TODO: use real user id
+      setIeltsExam({
+        ...ieltsExam,
+        examDate: tempExamDate,
+        daysRemaining: Math.ceil((date.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+      })
+      setIsEditingExamDate(false)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const handleTaskClick = (task: TodayLesson) => {
+    if (isEditing) {
+      setEditingTask(task)
+    } else {
+      setSelectedPlanId(task.id)
+    }
   }
 
   const selectedPlan = todayLessons.find((p) => p.id === selectedPlanId) || todayLessons[0]
+
+  // Group tasks for calendar
+  const groupedTasks = {
+    morning: todayLessons.filter(t => getTimePeriod(t.startTime) === "morning"),
+    afternoon: todayLessons.filter(t => getTimePeriod(t.startTime) === "afternoon"),
+    evening: todayLessons.filter(t => getTimePeriod(t.startTime) === "evening"),
+  }
 
   return (
     <ProtectedRoute
@@ -94,17 +160,28 @@ export default function PlanPageClient({
           <Card className="p-6 border-primary-200 shadow-md bg-white">
             <div className="mb-6 flex items-center justify-between">
               <h2 className="text-xl font-bold text-slate-800">This week&apos;s plan</h2>
-              <Button
-                variant={isEditing ? "default" : "outline"}
-                size="sm"
-                onClick={() => setIsEditing(!isEditing)}
-                className={
-                  isEditing ? "bg-primary-500 text-white" : "border-primary-200 text-primary-700 hover:bg-primary-50"
-                }
-              >
-                {isEditing ? <Check className="w-4 h-4 mr-1" /> : <Edit2 className="w-4 h-4 mr-1" />}
-                {isEditing ? "Done" : "Edit"}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => router.push('/build-plan')}
+                  className="border-primary-200 text-primary-700 hover:bg-primary-50"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  New Plan
+                </Button>
+                <Button
+                  variant={isEditing ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setIsEditing(!isEditing)}
+                  className={
+                    isEditing ? "bg-primary-500 text-white" : "border-primary-200 text-primary-700 hover:bg-primary-50"
+                  }
+                >
+                  {isEditing ? <Check className="w-4 h-4 mr-1" /> : <Edit2 className="w-4 h-4 mr-1" />}
+                  {isEditing ? "Done" : "Edit"}
+                </Button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -114,115 +191,149 @@ export default function PlanPageClient({
                 <div className="grid grid-cols-3 gap-4">
                   <div className="rounded-xl border border-primary-200 bg-primary-50/50 p-4 text-center">
                     <p className="text-xs text-primary-600 font-medium mb-1">Số giờ học trong ngày</p>
-                    <p className="text-xl font-bold text-primary-900">1.5h</p>
+                    <p className="text-xl font-bold text-primary-900">{stats.dailyHours}h</p>
                   </div>
                   <div className="rounded-xl border border-primary-200 bg-primary-50/50 p-4 text-center">
                     <p className="text-xs text-primary-600 font-medium mb-1">Số giờ học trong tuần</p>
-                    <p className="text-xl font-bold text-primary-900">13h</p>
+                    <p className="text-xl font-bold text-primary-900">{stats.weeklyHours}h</p>
                   </div>
                   <div className="rounded-xl border border-primary-200 bg-primary-50/50 p-4 text-center">
                     <p className="text-xs text-primary-600 font-medium mb-1">Total Hours</p>
-                    <p className="text-xl font-bold text-primary-900">70h</p>
+                    <p className="text-xl font-bold text-primary-900">{stats.totalHours}h</p>
                   </div>
                 </div>
 
-                {/* Calendar Grid */}
-                <div className="rounded-xl border border-primary-200 overflow-hidden shadow-sm bg-white">
+                {/* Calendar Grid - 3 Row Layout */}
+                <div className="rounded-xl border border-primary-200 overflow-hidden shadow-sm bg-white relative">
+                  {/* Header Days */}
                   <div className="grid grid-cols-8 border-b border-primary-200 text-center text-xs font-semibold text-slate-500 bg-primary-50/30">
-                    <div className="p-3 border-r border-primary-100">time</div>
+                    <div className="p-3 border-r border-primary-100">Period</div>
                     {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
                       <div key={day} className="p-3 border-r border-primary-100 last:border-r-0 text-primary-900">
                         {day}
                       </div>
                     ))}
                   </div>
-                  {/* Simplified Time Blocks for visual matching */}
-                  <div className="grid grid-cols-8 text-xs min-h-[60px] border-b border-primary-50">
-                    <div className="p-2 border-r border-primary-50 text-center text-slate-400 font-mono font-bold text-sm">
-                      6:00
+
+                  {/* Morning Row */}
+                  <div className="grid grid-cols-8 min-h-[80px] border-b border-primary-50">
+                    <div className="p-2 border-r border-primary-50 text-center flex flex-col justify-center items-center bg-orange-50/30">
+                      <span className="font-bold text-orange-600 text-xs uppercase mb-1">Morning</span>
+                      <span className="text-[10px] text-slate-400">5am - 12pm</span>
                     </div>
-                    <div className="border-r border-primary-50"></div>
-                    <div className="border-r border-primary-50 p-1">
-                      <div
-                        className={`w-full h-full rounded-lg ${isEditing ? "animate-pulse ring-1 ring-primary-300" : ""} bg-primary-200 text-primary-900 font-medium flex items-center justify-center text-[10px] shadow-sm`}
-                      >
-                        Speaking
-                      </div>
+                    <div className="col-span-7 grid grid-cols-7">
+                      {Array.from({ length: 7 }).map((_, i) => (
+                        <div key={i} className="border-r border-primary-50 p-1 relative group hover:bg-slate-50 transition-colors">
+                          {i === 0 && groupedTasks.morning.map(task => (
+                            <div key={task.id}
+                              className={`mb-1 p-1 rounded-md bg-orange-100 border border-orange-200 text-[10px] text-orange-900 truncate hover:shadow-sm cursor-pointer ${isEditing ? 'ring-2 ring-primary-300 ring-offset-1' : ''}`}
+                              onClick={() => handleTaskClick(task)}
+                            >
+                              <span className="font-bold block text-[9px]">{task.startTime}-{task.endTime}</span>
+                              {task.title}
+                            </div>
+                          ))}
+                          {isEditing && (
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-10 pointer-events-none">
+                              <Edit2 className="w-3 h-3 text-slate-300" />
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
-                    <div className="border-r border-primary-50 p-1">
-                      <div
-                        className={`w-full h-full rounded-lg ${isEditing ? "animate-pulse ring-1 ring-primary-300" : ""} bg-primary-200 text-primary-900 font-medium flex items-center justify-center text-[10px] shadow-sm`}
-                      >
-                        Speaking
-                      </div>
-                    </div>
-                    <div className="border-r border-primary-50"></div>
-                    <div className="border-r border-primary-50 p-1">
-                      <div
-                        className={`w-full h-full rounded-lg ${isEditing ? "animate-pulse ring-1 ring-primary-300" : ""} bg-primary-200 text-primary-900 font-medium flex items-center justify-center text-[10px] shadow-sm`}
-                      >
-                        Speaking
-                      </div>
-                    </div>
-                    <div className="border-r border-primary-50"></div>
-                    <div className="border-r border-primary-50"></div>
                   </div>
-                  <div className="grid grid-cols-8 text-xs min-h-[60px] border-b border-primary-50">
-                    <div className="p-2 border-r border-primary-50 text-center text-slate-400 font-mono font-bold text-sm">
-                      12:00
+
+                  {/* Afternoon Row */}
+                  <div className="grid grid-cols-8 min-h-[80px] border-b border-primary-50">
+                    <div className="p-2 border-r border-primary-50 text-center flex flex-col justify-center items-center bg-blue-50/30">
+                      <span className="font-bold text-blue-600 text-xs uppercase mb-1">Afternoon</span>
+                      <span className="text-[10px] text-slate-400">12pm - 6pm</span>
                     </div>
-                    <div className="border-r border-primary-50 p-1">
-                      <div className="w-full h-full rounded-lg bg-primary-200 text-primary-900 font-medium flex items-center justify-center text-[10px] shadow-sm">
-                        Speaking
-                      </div>
+                    <div className="col-span-7 grid grid-cols-7">
+                      {Array.from({ length: 7 }).map((_, i) => (
+                        <div key={i} className="border-r border-primary-50 p-1 relative group hover:bg-slate-50 transition-colors">
+                          {i === 0 && groupedTasks.afternoon.map(task => (
+                            <div key={task.id}
+                              className={`mb-1 p-1 rounded-md bg-blue-100 border border-blue-200 text-[10px] text-blue-900 truncate hover:shadow-sm cursor-pointer ${isEditing ? 'ring-2 ring-primary-300 ring-offset-1' : ''}`}
+                              onClick={() => handleTaskClick(task)}
+                            >
+                              <span className="font-bold block text-[9px]">{task.startTime}-{task.endTime}</span>
+                              {task.title}
+                            </div>
+                          ))}
+                          {isEditing && (
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-10 pointer-events-none">
+                              <Edit2 className="w-3 h-3 text-slate-300" />
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
-                    <div className="border-r border-primary-50"></div>
-                    <div className="border-r border-primary-50"></div>
-                    <div className="border-r border-primary-50"></div>
-                    <div className="border-r border-primary-50"></div>
-                    <div className="border-r border-primary-50"></div>
-                    <div className="border-r border-primary-50"></div>
                   </div>
-                  <div className="grid grid-cols-8 text-xs min-h-[60px] border-b border-primary-50">
-                    <div className="p-2 border-r border-primary-50 text-center text-slate-400 font-mono font-bold text-sm">
-                      1:00
+
+                  {/* Evening Row */}
+                  <div className="grid grid-cols-8 min-h-[80px]">
+                    <div className="p-2 border-r border-primary-50 text-center flex flex-col justify-center items-center bg-indigo-50/30">
+                      <span className="font-bold text-indigo-600 text-xs uppercase mb-1">Evening</span>
+                      <span className="text-[10px] text-slate-400">6pm - 11pm</span>
                     </div>
-                    <div className="border-r border-primary-50 p-1">
-                      <div className="w-full h-full rounded-lg bg-primary-100 text-primary-900 font-medium flex items-center justify-center text-[10px] shadow-sm">
-                        Vocabulary
-                      </div>
+                    <div className="col-span-7 grid grid-cols-7">
+                      {Array.from({ length: 7 }).map((_, i) => (
+                        <div key={i} className="border-r border-primary-50 p-1 relative group hover:bg-slate-50 transition-colors">
+                          {i === 0 && groupedTasks.evening.map(task => (
+                            <div key={task.id}
+                              className={`mb-1 p-1 rounded-md bg-indigo-100 border border-indigo-200 text-[10px] text-indigo-900 truncate hover:shadow-sm cursor-pointer ${isEditing ? 'ring-2 ring-primary-300 ring-offset-1' : ''}`}
+                              onClick={() => handleTaskClick(task)}
+                            >
+                              <span className="font-bold block text-[9px]">{task.startTime}-{task.endTime}</span>
+                              {task.title}
+                            </div>
+                          ))}
+                          {isEditing && (
+                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-10 pointer-events-none">
+                              <Edit2 className="w-3 h-3 text-slate-300" />
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
-                    <div className="border-r border-primary-50"></div>
-                    <div className="border-r border-primary-50 p-1">
-                      <div className="w-full h-full rounded-lg bg-primary-200 text-primary-900 font-medium flex items-center justify-center text-[10px] shadow-sm">
-                        Speaking
-                      </div>
-                    </div>
-                    <div className="border-r border-primary-50"></div>
-                    <div className="border-r border-primary-50"></div>
-                    <div className="border-r border-primary-50 p-1">
-                      <div className="w-full h-full rounded-lg bg-primary-200 text-primary-900 font-medium flex items-center justify-center text-[10px] shadow-sm">
-                        Speaking
-                      </div>
-                    </div>
-                    <div className="border-r border-primary-50"></div>
                   </div>
-                  <div className="grid grid-cols-8 text-xs min-h-[60px]">
-                    <div className="p-2 border-r border-primary-50 text-center text-slate-400 font-mono font-bold text-sm">
-                      5:00
+
+                  {/* Task Edit Overlay */}
+                  {editingTask && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-xl">
+                      <Card className="p-6 w-80 bg-white shadow-xl border-primary-200">
+                        <h3 className="font-bold mb-4 text-slate-800">Edit Time: {editingTask.title}</h3>
+                        <div className="space-y-4">
+                          <div>
+                            <label className="text-xs font-bold text-slate-500 block mb-1">Start Time</label>
+                            <input type="time" className="w-full border p-2 rounded-lg text-sm"
+                              defaultValue={editingTask.startTime}
+                              id="edit-start-time"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold text-slate-500 block mb-1">End Time</label>
+                            <input type="time" className="w-full border p-2 rounded-lg text-sm"
+                              defaultValue={editingTask.endTime}
+                              id="edit-end-time"
+                            />
+                          </div>
+                          <div className="flex gap-2 justify-end pt-2">
+                            <Button variant="ghost" size="sm" onClick={() => setEditingTask(null)}>Cancel</Button>
+                            <Button size="sm" onClick={async () => {
+                              const start = (document.getElementById('edit-start-time') as HTMLInputElement).value
+                              const end = (document.getElementById('edit-end-time') as HTMLInputElement).value
+                              if (start && end) {
+                                await updateTaskTime(editingTask.id, start, end)
+                                setEditingTask(null)
+                              }
+                            }}>Save</Button>
+                          </div>
+                        </div>
+                      </Card>
                     </div>
-                    <div className="border-r border-primary-50 p-1">
-                      <div className="w-full h-full rounded-lg bg-secondary-100 text-orange-900 font-medium flex items-center justify-center text-[10px] shadow-sm">
-                        Grammar
-                      </div>
-                    </div>
-                    <div className="border-r border-primary-50"></div>
-                    <div className="border-r border-primary-50"></div>
-                    <div className="border-r border-primary-50"></div>
-                    <div className="border-r border-primary-50"></div>
-                    <div className="border-r border-primary-50"></div>
-                    <div className="border-r border-primary-50"></div>
-                  </div>
+                  )}
                 </div>
               </div>
 
@@ -236,64 +347,60 @@ export default function PlanPageClient({
                 </div>
 
                 <div className="space-y-4 flex-1">
-                  {todayLessons.map((lesson) => {
-                    const isCompleted = completedLessons.includes(lesson.id)
-                    return (
-                      <div
-                        key={lesson.id}
-                        onClick={() => toggleLesson(lesson.id)}
-                        className={`relative flex items-start gap-4 p-4 border rounded-xl transition-all cursor-pointer group ${
-                          isCompleted
+                  {todayLessons.length > 0 ? (
+                    todayLessons.map((lesson) => {
+                      const isCompleted = completedLessons.includes(lesson.id)
+                      return (
+                        <div
+                          key={lesson.id}
+                          onClick={() => {
+                            setSelectedPlanId(lesson.id)
+                          }}
+                          className={`relative flex items-start gap-4 p-4 border rounded-xl transition-all cursor-pointer group ${isCompleted
                             ? "bg-success-100 border-2 border-success-200"
-                            : "bg-white border-primary-200 border-2 hover:border-primary-300 hover:shadow-md"
-                        }`}
-                      >
-                        <div className="mt-1">
-                          <div
-                            className={`h-5 w-5 rounded border flex items-center justify-center transition-colors ${
-                              isCompleted
+                            : selectedPlanId === lesson.id
+                              ? "bg-primary-50 border-2 border-primary-500"
+                              : "bg-white border-primary-200 border-2 hover:border-primary-300 hover:shadow-md"
+                            }`}
+                        >
+                          <div className="mt-1" onClick={(e) => { e.stopPropagation(); toggleLesson(lesson.id); }}>
+                            <div
+                              className={`h-5 w-5 rounded border flex items-center justify-center transition-colors ${isCompleted
                                 ? "bg-success-300 border-success-300"
                                 : "border-gray-300 group-hover:border-primary-400"
-                            }`}
-                          >
-                            {isCompleted && <Check className="h-3 w-3 text-white" />}
+                                }`}
+                            >
+                              {isCompleted && <Check className="h-3 w-3 text-white" />}
+                            </div>
+                          </div>
+                          <div className="flex-1 space-y-1">
+                            <h4 className={`font-bold text-sm ${isCompleted ? "text-success-300" : "text-primary-800"}`}>
+                              {lesson.title}
+                            </h4>
+                            <p className="text-xs text-slate-500 whitespace-pre-line">{lesson.topic}</p>
+                            <p className="text-xs text-slate-400 flex items-center gap-1">
+                              <PlayCircle className="w-3 h-3" /> {lesson.duration}
+                            </p>
+                          </div>
+                          <div className="absolute bottom-4 right-4">
+                            <Button
+                              asChild
+                              variant="secondary"
+                              size="sm"
+                              className="h-7 text-xs bg-secondary-50 text-secondary-700 hover:bg-secondary-100"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Link href={lesson.link || "#"}>Learning now</Link>
+                            </Button>
                           </div>
                         </div>
-                        <div className="flex-1 space-y-1">
-                          <h4 className={`font-bold text-sm ${isCompleted ? "text-success-300" : "text-primary-800"}`}>
-                            {lesson.title}
-                          </h4>
-                          <p className="text-xs text-slate-500 whitespace-pre-line">{lesson.topic}</p>
-                          <p className="text-xs text-slate-400 flex items-center gap-1">
-                            <PlayCircle className="w-3 h-3" /> {lesson.duration}
-                          </p>
-                        </div>
-                        <div className="absolute bottom-4 right-4">
-                          <Button
-                            asChild
-                            variant="secondary"
-                            size="sm"
-                            className="h-7 text-xs bg-secondary-50 text-secondary-700 hover:bg-secondary-100"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <Link href={lesson.link || "#"}>Learning now</Link>
-                          </Button>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-
-                <div className="flex justify-center gap-2 mt-4 text-xs font-medium text-slate-500">
-                  <span className="w-6 h-6 rounded-full bg-primary-500 text-white flex items-center justify-center shadow-sm">
-                    1
-                  </span>
-                  <span className="w-6 h-6 rounded-full hover:bg-primary-100 hover:text-primary-700 flex items-center justify-center cursor-pointer transition-colors">
-                    2
-                  </span>
-                  <span className="w-6 h-6 rounded-full hover:bg-primary-100 hover:text-primary-700 flex items-center justify-center cursor-pointer transition-colors">
-                    &gt;
-                  </span>
+                      )
+                    })
+                  ) : (
+                    <div className="p-4 text-center text-slate-500 text-sm italic">
+                      No tasks for today.
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -302,7 +409,12 @@ export default function PlanPageClient({
           {/* 3. Missions & Reminders Section (GRID LAYOUT UPDATED) */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Your Goals Section */}
-            <Card className="p-6 border-primary-200 shadow-md lg:col-span-1 bg-white">
+            <Card className="p-6 border-primary-200 shadow-md lg:col-span-1 bg-white relative">
+              <div className="absolute top-4 right-4">
+                <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-primary-600">
+                  <Edit2 className="w-3 h-3" />
+                </Button>
+              </div>
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
                   <Target className="w-5 h-5 text-primary-600" />
@@ -351,17 +463,34 @@ export default function PlanPageClient({
               <div className="space-y-4">
                 {/* Exam Date and Days Remaining */}
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 text-center">
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 text-center relative">
                     <p className="text-xs text-slate-500 mb-1">Ngày dự thi</p>
-                    <div className="flex items-center justify-center gap-2">
-                      <span className="font-bold text-slate-800">{ieltsExam.examDate.toLocaleDateString("vi-VN")}</span>
-                      <button
-                        onClick={() => setIsEditingExamDate(true)}
-                        className="w-6 h-6 rounded-full bg-primary-100 hover:bg-primary-200 flex items-center justify-center transition-colors"
-                      >
-                        <Pencil className="w-3 h-3 text-primary-600" />
-                      </button>
-                    </div>
+                    {isEditingExamDate ? (
+                      <div className="flex flex-col gap-2">
+                        <input
+                          type="date"
+                          value={tempExamDate ? format(new Date(tempExamDate), "yyyy-MM-dd") : ""}
+                          onChange={(e) => setTempExamDate(new Date(e.target.value).toISOString())}
+                          className="w-full text-xs p-1 border rounded"
+                        />
+                        <div className="flex gap-1 justify-center">
+                          <Button size="sm" className="h-6 text-[10px] px-2" onClick={handleUpdateExamDate}>Save</Button>
+                          <Button size="sm" variant="ghost" className="h-6 text-[10px] px-2" onClick={() => setIsEditingExamDate(false)}>Cancel</Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="font-bold text-slate-800">
+                          {ieltsExam.examDate ? new Date(ieltsExam.examDate).toLocaleDateString("vi-VN") : "N/A"}
+                        </span>
+                        <button
+                          onClick={() => setIsEditingExamDate(true)}
+                          className="w-6 h-6 rounded-full bg-primary-100 hover:bg-primary-200 flex items-center justify-center transition-colors"
+                        >
+                          <Pencil className="w-3 h-3 text-primary-600" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 text-center">
                     <p className="text-xs text-slate-500 mb-1">Số ngày còn lại</p>
@@ -380,7 +509,9 @@ export default function PlanPageClient({
                     <Sparkles className="w-5 h-5 text-success-600 flex-shrink-0 mt-0.5" />
                     <p className="text-sm text-success-700">
                       Bạn sẽ đạt được aim nếu học với lịch học hiện tại vào ngày{" "}
-                      <span className="font-bold">28/12</span>!
+                      <span className="font-bold">
+                        {ieltsExam.examDate ? new Date(ieltsExam.examDate).toLocaleDateString("vi-VN") : "..."}
+                      </span>!
                     </p>
                   </div>
                 </div>
@@ -480,11 +611,12 @@ export default function PlanPageClient({
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-slate-800">My Study Plan</h2>
                 <Button
-                  variant="secondary"
                   size="sm"
-                  className="bg-secondary-100 hover:bg-secondary-200 text-secondary-700 text-xs"
+                  variant="outline"
+                  onClick={() => router.push('/build-plan')}
+                  className="text-xs"
                 >
-                  New plan
+                  <Plus className="w-3 h-3 mr-1" /> New
                 </Button>
               </div>
 
@@ -493,17 +625,15 @@ export default function PlanPageClient({
                   <div
                     key={plan.id}
                     onClick={() => setSelectedPlanId(plan.id)}
-                    className={`rounded-xl border p-4 cursor-pointer transition-all ${
-                      selectedPlanId === plan.id
-                        ? "ring-2 ring-primary-500 border-transparent bg-primary-50 shadow-sm"
-                        : "border-gray-200 hover:border-primary-300 hover:shadow-sm bg-white"
-                    }`}
+                    className={`rounded-xl border p-4 cursor-pointer transition-all ${selectedPlanId === plan.id
+                      ? "ring-2 ring-primary-500 border-transparent bg-primary-50 shadow-sm"
+                      : "border-gray-200 hover:border-primary-300 hover:shadow-sm bg-white"
+                      }`}
                   >
                     <div className="flex items-center justify-between mb-3">
                       <h3
-                        className={`font-bold text-sm ${
-                          selectedPlanId === plan.id ? "text-primary-900" : "text-slate-700"
-                        }`}
+                        className={`font-bold text-sm ${selectedPlanId === plan.id ? "text-primary-900" : "text-slate-700"
+                          }`}
                       >
                         {plan.title}
                       </h3>
@@ -535,25 +665,34 @@ export default function PlanPageClient({
                 </Button>
               </div>
 
-              <h3 className="text-lg font-bold mb-4 text-primary-900">{selectedPlan.title}</h3>
-              <p className="text-sm text-slate-500 mb-6 border-b border-gray-100 pb-4">{selectedPlan.topic}</p>
+              {selectedPlan ? (
+                <>
+                  <h3 className="text-lg font-bold mb-4 text-primary-900">{selectedPlan.title}</h3>
+                  <p className="text-sm text-slate-500 mb-6 border-b border-gray-100 pb-4">{selectedPlan.topic}</p>
 
-              {/* Detailed Stats */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-                <div className="border border-primary-100 bg-primary-50/50 rounded-xl p-3 text-center">
-                  <p className="text-xs text-primary-600 font-medium mb-1">Duration</p>
-                  <p className="font-bold text-slate-800">{selectedPlan.duration}</p>
-                </div>
-              </div>
+                  {/* Detailed Stats */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+                    <div className="border border-primary-100 bg-primary-50/50 rounded-xl p-3 text-center">
+                      <p className="text-xs text-primary-600 font-medium mb-1">Duration</p>
+                      <p className="font-bold text-slate-800">{selectedPlan.duration}</p>
+                    </div>
+                  </div>
 
-              {/* Gamification Placeholders */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-sm text-slate-800">Learning Journey</h4>
-                  <span className="text-xs text-primary-600">10 Modules</span>
+                  {/* Gamification Placeholders */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-bold text-sm text-slate-800">Learning Journey</h4>
+                      <span className="text-xs text-primary-600">10 Modules</span>
+                    </div>
+                    <GamificationRoadmap />
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-64 text-center">
+                  <p className="text-slate-500 mb-2">No plan selected or no tasks for today.</p>
+                  <p className="text-sm text-slate-400">Take a break or create a new plan!</p>
                 </div>
-                <GamificationRoadmap />
-              </div>
+              )}
             </Card>
           </div>
         </div>

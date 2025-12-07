@@ -1,5 +1,7 @@
 "use client"
 
+import { Button } from "@/components/ui/button"
+
 interface SubcategoryPillsProps {
   subcategories: string[]
   selectedSubcategory: string
@@ -9,18 +11,25 @@ interface SubcategoryPillsProps {
 export function SubcategoryPills({ subcategories, selectedSubcategory, onSubcategoryChange }: SubcategoryPillsProps) {
   return (
     <div className="flex flex-wrap gap-2 mb-6">
+      {/* All option */}
+      <Button
+        variant={selectedSubcategory === "All" ? "default" : "outline"}
+        size="default"
+        onClick={() => onSubcategoryChange("All")}
+        className="rounded-full"
+      >
+        All
+      </Button>
       {subcategories.map((subcat) => (
-        <button
+        <Button
           key={subcat}
+          variant={selectedSubcategory === subcat ? "default" : "outline"}
+          size="default"
           onClick={() => onSubcategoryChange(subcat)}
-          className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-all border cursor-pointer ${
-            selectedSubcategory === subcat
-              ? "bg-primary-400 text-white border-primary-400 shadow-sm"
-              : "bg-white text-slate-600 border-slate-200 hover:border-primary-300 hover:text-primary-700 hover:bg-primary-50"
-          }`}
+          className="rounded-full"
         >
           {subcat}
-        </button>
+        </Button>
       ))}
     </div>
   )

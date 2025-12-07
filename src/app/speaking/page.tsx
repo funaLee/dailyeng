@@ -1,6 +1,3 @@
-// Server Component - No "use client" directive
-// Data fetching happens here on the server
-
 import SpeakingPageClient from "@/components/page/SpeakingPageClient";
 import type {
   Scenario,
@@ -9,8 +6,9 @@ import type {
   HistoryTopicItem,
 } from "@/components/page/SpeakingPageClient";
 import type { TopicGroup } from "@/components/hub";
+import { getTopics, getCustomTopics, getSessionHistory } from "@/actions/speaking";
 
-// Mock data - In the future, this can be replaced with actual data fetching
+// Mock data for static parts
 const TOPIC_GROUPS: TopicGroup[] = [
   {
     name: "Daily Life",
@@ -38,81 +36,6 @@ const TOPIC_GROUPS: TopicGroup[] = [
   },
 ];
 
-const mockScenarios: Scenario[] = [
-  {
-    id: "cafe-order",
-    title: "Ordering at a Café",
-    description: "Practice ordering coffee and food at a local café",
-    category: "Daily Life",
-    level: "A2",
-    image: "/learning.png",
-    sessionsCompleted: 2,
-    totalSessions: 5,
-    progress: 40,
-    duration: 7,
-  },
-  {
-    id: "shopping",
-    title: "Shopping for Clothes",
-    description: "Navigate a clothing store and ask for sizes and colors",
-    category: "Daily Life",
-    level: "B1",
-    image: "/learning.png",
-    sessionsCompleted: 0,
-    totalSessions: 4,
-    progress: 0,
-    duration: 5,
-  },
-  {
-    id: "meeting",
-    title: "Team Meeting",
-    description: "Participate in a professional team discussion",
-    category: "Professional English",
-    level: "B2",
-    image: "/learning.png",
-    sessionsCompleted: 3,
-    totalSessions: 6,
-    progress: 50,
-    duration: 10,
-  },
-  {
-    id: "presentation",
-    title: "Product Presentation",
-    description: "Present a new product to potential clients",
-    category: "Professional English",
-    level: "C1",
-    image: "/learning.png",
-    sessionsCompleted: 1,
-    totalSessions: 4,
-    progress: 25,
-    duration: 15,
-  },
-  {
-    id: "hotel",
-    title: "Hotel Check-in",
-    description: "Check into a hotel and ask about amenities",
-    category: "Travel",
-    level: "A2",
-    image: "/learning.png",
-    sessionsCompleted: 0,
-    totalSessions: 8,
-    progress: 0,
-    duration: 6,
-  },
-  {
-    id: "small-talk",
-    title: "Making Small Talk",
-    description: "Have casual conversations with new acquaintances",
-    category: "Social Situations",
-    level: "B1",
-    image: "/learning.png",
-    sessionsCompleted: 2,
-    totalSessions: 5,
-    progress: 40,
-    duration: 8,
-  },
-];
-
 const DEMO_CRITERIA: CriteriaItem[] = [
   { title: "Vocabulary", score: 95 },
   { title: "Grammar", score: 92 },
@@ -121,122 +44,74 @@ const DEMO_CRITERIA: CriteriaItem[] = [
   { title: "Coherence", score: 83 },
 ];
 
-const HISTORY_GRAPH_DATA: HistoryGraphItem[] = Array.from(
-  { length: 50 },
-  (_, i) => ({
-    session: i + 1,
-    score: Math.floor(Math.random() * 40) + 60 + (i % 5) * 2,
-  })
-);
-
-const HISTORY_TOPICS_DATA: HistoryTopicItem[] = [
-  {
-    id: "1",
-    title: "Space Exploration",
-    description:
-      "Learn vocabulary used in space travel, astronomy, and scientific discovery.",
-    score: 95,
-    date: "2024-03-10",
-    level: "B2",
-    image: "/learning.png",
-    progress: 100,
-    wordCount: 8,
-  },
-  {
-    id: "2",
-    title: "Magic & Fantasy",
-    description:
-      "Discuss magical worlds, spells, and fantasy creatures in descriptive English.",
-    score: 92,
-    date: "2024-03-09",
-    level: "C1",
-    image: "/learning.png",
-    progress: 100,
-    wordCount: 10,
-  },
-  {
-    id: "3",
-    title: "Future Technology",
-    description:
-      "Debate the implications of AI, robotics, and future tech trends.",
-    score: 94,
-    date: "2024-03-08",
-    level: "C1",
-    image: "/learning.png",
-    progress: 100,
-    wordCount: 12,
-  },
-  {
-    id: "4",
-    title: "Sustainable Living",
-    description: "Talk about eco-friendly habits and saving the planet.",
-    score: 91,
-    date: "2024-03-05",
-    level: "B2",
-    image: "/learning.png",
-    progress: 100,
-    wordCount: 9,
-  },
-  {
-    id: "5",
-    title: "Job Interview",
-    description:
-      "Practice answering common interview questions professionally.",
-    score: 85,
-    date: "2024-03-04",
-    level: "B2",
-    image: "/learning.png",
-    progress: 100,
-    wordCount: 15,
-  },
-  {
-    id: "6",
-    title: "Coffee Culture",
-    description: "Describe different types of coffee and café experiences.",
-    score: 88,
-    date: "2024-03-03",
-    level: "A2",
-    image: "/learning.png",
-    progress: 100,
-    wordCount: 7,
-  },
-  {
-    id: "7",
-    title: "Travel Planning",
-    description: "Plan a trip, book hotels, and discuss itineraries.",
-    score: 82,
-    date: "2024-03-01",
-    level: "B1",
-    image: "/learning.png",
-    progress: 100,
-    wordCount: 10,
-  },
-  {
-    id: "8",
-    title: "Movie Reviews",
-    description: "Share your opinions on recent movies and actors.",
-    score: 89,
-    date: "2024-02-28",
-    level: "B1",
-    image: "/learning.png",
-    progress: 100,
-    wordCount: 8,
-  },
-];
-
 export default async function SpeakingPage() {
-  // In the future, you can fetch data from DB, API, or File System here
-  // const topicGroups = await fetchTopicGroups()
-  // const scenarios = await fetchScenarios()
-  // etc.
+  // TODO: Get real user ID from auth
+  const userId = "user-1";
+
+  const [dbTopics, dbCustomTopics, dbSessions] = await Promise.all([
+    getTopics(),
+    getCustomTopics(userId),
+    getSessionHistory(userId),
+  ]);
+
+  // Transform DB topics to UI format
+  const scenarios: Scenario[] = [
+    ...dbTopics.map((t: any) => ({
+      id: t.id,
+      title: t.title,
+      description: t.description,
+      category: t.category || "General",
+      subcategory: t.subcategory || "",
+      level: t.difficulty || "A1",
+      image: t.image || "/learning.png",
+      sessionsCompleted: 0, // Calculate from sessions if needed
+      totalSessions: 10,
+      progress: 0,
+      duration: t.duration || 10,
+      isCustom: false
+    })),
+    ...dbCustomTopics.map((t: any) => ({
+      id: t.id,
+      title: t.title,
+      description: t.description,
+      category: "Custom",
+      level: t.difficulty || "B1",
+      image: t.image || "/learning.png",
+      sessionsCompleted: 0,
+      totalSessions: 10,
+      progress: 0,
+      duration: t.duration || 10,
+      isCustom: true
+    }))
+  ];
+
+  // Transform History
+  // Only completed sessions or all? Let's show all
+  const historyTopicsData: HistoryTopicItem[] = dbSessions.map((s: any) => ({
+    id: s.id,
+    title: s.scenario.title,
+    description: s.scenario.description,
+    score: 85, // TODO: Aggregate scores from turns or store session score
+    date: s.createdAt.toISOString().split('T')[0],
+    level: s.scenario.difficulty || "B1",
+    image: s.scenario.image || "/learning.png",
+    progress: 100,
+    wordCount: s.scenario.duration || 10
+  }));
+
+  const HISTORY_GRAPH_DATA: HistoryGraphItem[] = dbSessions.map((s: any, i: number) => ({
+    session: i + 1,
+    score: 85 // Placeholder
+  }));
 
   return (
     <SpeakingPageClient
       topicGroups={TOPIC_GROUPS}
-      scenarios={mockScenarios}
+      scenarios={scenarios}
       demoCriteria={DEMO_CRITERIA}
       historyGraphData={HISTORY_GRAPH_DATA}
-      historyTopicsData={HISTORY_TOPICS_DATA}
+      historyTopicsData={historyTopicsData}
+      userId={userId}
     />
   );
 }

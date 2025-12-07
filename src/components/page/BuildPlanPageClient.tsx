@@ -12,6 +12,7 @@ import {
   BookOpen,
   Users,
   Briefcase,
+  Calendar,
   GraduationCap,
   Globe,
   MessageCircle,
@@ -87,12 +88,50 @@ function getOptionIcon(iconId?: string): React.ReactNode {
   }
 }
 
+import { generateStudySchedule } from "@/actions/study"
+import { useRouter } from "next/navigation"
+
+// ... imports remain the same
+
 export default function BuildPlanPageClient({ questions, allCourses }: BuildPlanPageClientProps) {
-  const [stage, setStage] = useState<"intro" | "questions" | "results">("intro")
+  const router = useRouter()
+  const [stage, setStage] = useState<"intro" | "questions" | "results" | "schedule">("intro")
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [answers, setAnswers] = useState<Record<number, string[]>>({})
   const [recommendedCourses, setRecommendedCourses] = useState<Course[]>([])
   const [otherCourses, setOtherCourses] = useState<Course[]>([])
+
+  // New State for Selection & Scheduling
+  const [selectedCourses, setSelectedCourses] = useState<string[]>([])
+  const [selectedDays, setSelectedDays] = useState<number[]>([1, 3, 5]) // Default Mon, Wed, Fri
+  const [isLoading, setIsLoading] = useState(false)
+
+  const toggleCourse = (courseId: string) => {
+    setSelectedCourses(prev =>
+      prev.includes(courseId) ? prev.filter(id => id !== courseId) : [...prev, courseId]
+    )
+  }
+
+  const handleBuildPlan = async () => {
+    setIsLoading(true);
+    try {
+      // Hardcoded user-1 for now
+      await generateStudySchedule("user-1", selectedCourses, selectedDays);
+      router.push("/plan");
+    } catch (error) {
+      console.error("Failed to build plan:", error);
+      alert("Something went wrong building your plan. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  // Effect to pre-select recommended courses when they are set
+  React.useEffect(() => {
+    if (recommendedCourses.length > 0) {
+      setSelectedCourses(recommendedCourses.map(c => c.id));
+    }
+  }, [recommendedCourses]);
 
   // Intro Screen
   if (stage === "intro") {
@@ -301,25 +340,22 @@ export default function BuildPlanPageClient({ questions, allCourses }: BuildPlan
                 <button
                   key={option.value}
                   onClick={() => handleSelectOption(currentQ.id, option.value, currentQ.multiSelect)}
-                  className={`w-full p-5 rounded-2xl border-2 text-left transition-all cursor-pointer ${
-                    isSelected
-                      ? "border-primary-500 bg-primary-50 shadow-md"
-                      : "border-slate-200 hover:border-primary-300 bg-white"
-                  }`}
+                  className={`w-full p-5 rounded-2xl border-2 text-left transition-all cursor-pointer ${isSelected
+                    ? "border-primary-500 bg-primary-50 shadow-md"
+                    : "border-slate-200 hover:border-primary-300 bg-white"
+                    }`}
                 >
                   <div className="flex items-center gap-4">
                     <div
-                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                        isSelected ? "border-primary-700 bg-primary-700" : "border-slate-300"
-                      }`}
+                      className={`w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${isSelected ? "border-primary-700 bg-primary-700" : "border-slate-300"
+                        }`}
                     >
                       {isSelected && <Check className="w-4 h-4 text-white" />}
                     </div>
                     <div>
                       <div
-                        className={`font-medium ${
-                          isSelected ? "text-primary-700" : "text-slate-900"
-                        }`}
+                        className={`font-medium ${isSelected ? "text-primary-700" : "text-slate-900"
+                          }`}
                       >
                         {option.label}
                       </div>
@@ -358,6 +394,83 @@ export default function BuildPlanPageClient({ questions, allCourses }: BuildPlan
     )
   }
 
+  // Schedule Stage
+  if (stage === "schedule") {
+    const days = [
+      { value: 1, label: "Mon" },
+      { value: 2, label: "Tue" },
+      { value: 3, label: "Wed" },
+      { value: 4, label: "Thu" },
+      { value: 5, label: "Fri" },
+      { value: 6, label: "Sat" },
+      { value: 0, label: "Sun" },
+    ]
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 py-12">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <div className="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Calendar className="w-8 h-8 text-primary-600" />
+            </div>
+            <h1 className="text-3xl font-bold text-slate-900 mb-4">Set Your Schedule</h1>
+            <p className="text-slate-600">Which days do you want to study?</p>
+          </div>
+
+          <Card className="p-8 border-primary-100 shadow-xl bg-white/80 backdrop-blur-sm mb-8">
+            <div className="flex justify-center gap-3 flex-wrap">
+              {days.map((day) => {
+                const isSelected = selectedDays.includes(day.value)
+                return (
+                  <button
+                    key={day.value}
+                    onClick={() => {
+                      setSelectedDays(prev =>
+                        prev.includes(day.value)
+                          ? prev.filter(d => d !== day.value)
+                          : [...prev, day.value]
+                      )
+                    }}
+                    className={`w-14 h-14 rounded-full flex items-center justify-center font-bold transition-all ${isSelected
+                      ? "bg-primary-500 text-white shadow-lg scale-110"
+                      : "bg-slate-100 text-slate-400 hover:bg-slate-200"
+                      }`}
+                  >
+                    {day.label}
+                  </button>
+                )
+              })}
+            </div>
+
+            <div className="mt-8 text-center text-sm text-slate-500">
+              {selectedDays.length === 0 ? "Select at least one day" : `You will study ${selectedDays.length} days a week`}
+            </div>
+          </Card>
+
+          <div className="flex gap-4">
+            <Button
+              variant="outline"
+              size="lg"
+              className="flex-1"
+              onClick={() => setStage("results")}
+            >
+              Back
+            </Button>
+            <Button
+              size="lg"
+              className="flex-1 bg-primary-500 hover:bg-primary-600 text-white"
+              onClick={handleBuildPlan}
+              disabled={isLoading || selectedDays.length === 0}
+            >
+              {isLoading ? "Building Plan..." : "Build My Plan"}
+              {!isLoading && <Sparkles className="ml-2 w-5 h-5" />}
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   // Results Stage
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 py-12">
@@ -383,37 +496,44 @@ export default function BuildPlanPageClient({ questions, allCourses }: BuildPlan
             Recommended for You
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {recommendedCourses.map((course) => (
-              <Card
-                key={course.id}
-                className="overflow-hidden border-2 border-primary-200 hover:border-primary-300 transition-all hover:shadow-lg"
-              >
-                <div className="relative h-40">
-                  <Image src={course.image || "/placeholder.svg"} alt={course.title} fill className="object-cover" />
-                  <div className="absolute top-3 right-3 bg-primary-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                    {course.matchScore}% Match
+            {recommendedCourses.map((course) => {
+              const isSelected = selectedCourses.includes(course.id)
+              return (
+                <Card
+                  key={course.id}
+                  className={`overflow-hidden border-2 transition-all hover:shadow-lg cursor-pointer ${isSelected ? "border-primary-500 ring-2 ring-primary-200" : "border-primary-200"
+                    }`}
+                  onClick={() => toggleCourse(course.id)}
+                >
+                  <div className="relative h-40">
+                    <Image src={course.image || "/placeholder.svg"} alt={course.title} fill className="object-cover" />
+                    <div className="absolute top-3 right-3 bg-primary-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                      {course.matchScore}% Match
+                    </div>
+                    {isSelected && (
+                      <div className="absolute inset-0 bg-primary-900/40 flex items-center justify-center">
+                        <div className="bg-white rounded-full p-2">
+                          <Check className="w-6 h-6 text-primary-600" />
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-                <div className="p-4">
-                  <h3 className="font-bold text-slate-900 mb-2">{course.title}</h3>
-                  <p className="text-sm text-slate-500 mb-3 line-clamp-2">{course.description}</p>
-                  <div className="flex items-center gap-2 text-xs text-slate-500 mb-4">
-                    <Clock className="w-3 h-3" />
-                    {course.duration}
-                    <span className="mx-1">•</span>
-                    {course.level}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1 text-xs bg-transparent">
-                      View Course
+                  <div className="p-4">
+                    <h3 className="font-bold text-slate-900 mb-2">{course.title}</h3>
+                    <p className="text-sm text-slate-500 mb-3 line-clamp-2">{course.description}</p>
+                    <div className="flex items-center gap-2 text-xs text-slate-500 mb-4">
+                      <Clock className="w-3 h-3" />
+                      {course.duration}
+                      <span className="mx-1">•</span>
+                      {course.level}
+                    </div>
+                    <Button variant={isSelected ? "default" : "outline"} size="sm" className="w-full text-xs">
+                      {isSelected ? "Selected" : "Select Course"}
                     </Button>
-                    <Button size="sm" className="flex-1 text-xs bg-primary-500 hover:bg-primary-600 text-white">
-                      Add to Plan
-                    </Button>
                   </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              )
+            })}
           </div>
         </div>
 
@@ -421,43 +541,52 @@ export default function BuildPlanPageClient({ questions, allCourses }: BuildPlan
         <div className="mb-12">
           <h2 className="text-xl font-bold text-slate-900 mb-6">Other Courses You Might Like</h2>
           <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {otherCourses.map((course) => (
-              <Card
-                key={course.id}
-                className="p-4 hover:shadow-md transition-all border border-slate-200"
-              >
-                <div className="flex gap-3">
-                  <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                    <Image src={course.image || "/placeholder.svg"} alt={course.title} fill className="object-cover" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm text-slate-900 mb-1 truncate">
-                      {course.title}
-                    </h3>
-                    <p className="text-xs text-slate-500 mb-2">{course.duration}</p>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="sm" className="h-6 text-xs px-2 text-primary-600 bg-primary-100">
-                        View
-                      </Button>
-                      <Button variant="ghost" size="sm" className="h-6 text-xs px-2 text-primary-600">
-                        Add
-                      </Button>
+            {otherCourses.map((course) => {
+              const isSelected = selectedCourses.includes(course.id)
+              return (
+                <Card
+                  key={course.id}
+                  className={`p-4 hover:shadow-md transition-all border cursor-pointer ${isSelected ? "border-primary-500 bg-primary-50" : "border-slate-200"
+                    }`}
+                  onClick={() => toggleCourse(course.id)}
+                >
+                  <div className="flex gap-3">
+                    <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                      <Image src={course.image || "/placeholder.svg"} alt={course.title} fill className="object-cover" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-sm text-slate-900 mb-1 truncate">
+                        {course.title}
+                      </h3>
+                      <p className="text-xs text-slate-500 mb-2">{course.duration}</p>
+                      <div className="flex justify-end">
+                        {isSelected ? (
+                          <Check className="w-5 h-5 text-primary-600" />
+                        ) : (
+                          <Button variant="ghost" size="sm" className="h-6 text-xs px-2 text-primary-600 bg-primary-100">
+                            Add
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              )
+            })}
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Link href="/plan">
-            <Button size="lg" className="bg-primary-500 hover:bg-primary-600 text-white px-8">
-              Go to My Study Plan
-              <ArrowRight className="ml-2 w-5 h-5" />
-            </Button>
-          </Link>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pb-20">
+          <Button
+            size="lg"
+            className="bg-primary-500 hover:bg-primary-600 text-white px-8"
+            onClick={() => setStage("schedule")}
+            disabled={selectedCourses.length === 0}
+          >
+            Continue to Schedule
+            <ArrowRight className="ml-2 w-5 h-5" />
+          </Button>
           <Button
             variant="outline"
             size="lg"
@@ -467,7 +596,7 @@ export default function BuildPlanPageClient({ questions, allCourses }: BuildPlan
               setAnswers({})
             }}
           >
-            Retake Questionnaire
+            Start Over
           </Button>
         </div>
       </div>

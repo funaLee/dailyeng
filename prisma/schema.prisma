@@ -335,10 +335,17 @@ model SpeakingScenario {
   context     String
   // [ADDED] Category for organizing scenarios (e.g., "Daily Life", "Professional English", "Travel")
   category    String?
+  // [ADDED] Subcategory for specific topics (e.g., "Shopping", "Dining")
+  subcategory String?
   // [ADDED] Estimated duration in minutes
   duration    Int?
   // [ADDED] Image/thumbnail for the scenario
   image       String?
+  
+  // [ADDED] Learning objectives and key expressions (JSON)
+  objectives      Json?
+  keyExpressions  Json?
+
   // [ADDED] Custom scenario created by user
   createdById String?
   createdBy   User?   @relation("UserCustomScenarios", fields: [createdById], references: [id])
@@ -432,6 +439,7 @@ model StudyPlan {
   // [ADDED] User interests for personalization
   interests     String[]
   preferences   Json? // Stores questionnaire answers
+  examDate      DateTime? // [ADDED] Target exam date
   createdAt     DateTime  @default(now())
 
   tasks StudyTask[]
@@ -444,6 +452,13 @@ model StudyTask {
   date      DateTime
   type      TaskType
   completed Boolean   @default(false)
+  
+  // [ADDED] Task details for schedule view
+  title     String?
+  // Stores time as "HH:MM", e.g. "06:00"
+  startTime String? 
+  endTime   String?
+  link      String?  // URL to the lesson or resource
 }
 
 model PlacementTestResult {
