@@ -1,4 +1,4 @@
-import type { Topic, VocabItem, GrammarNote, QuizItem } from "@/src/types";
+import type { Topic, VocabItem, GrammarNote, QuizItem } from "@/types";
 import {
   Coffee,
   ShoppingBag,

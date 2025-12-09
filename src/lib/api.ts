@@ -7,7 +7,7 @@ import type {
   SpeakingScenario,
   StudyPlan,
   ProfileStats,
-} from "@/src/types";
+} from "@/types";
 import {
   mockTopics,
   mockVocab,
@@ -143,14 +143,18 @@ export const srsApi = {
 export const speakingApi = {
   async getScenarios(): Promise<SpeakingScenario[]> {
     await new Promise((resolve) => setTimeout(resolve, 300));
-    return Object.values(mockSpeakingScenarios).flat();
+    // Cast mock data (which has extra UI fields like icon) to SpeakingScenario
+    return Object.values(
+      mockSpeakingScenarios
+    ).flat() as unknown as SpeakingScenario[];
   },
 
   async getScenarioById(id: string): Promise<SpeakingScenario | null> {
     await new Promise((resolve) => setTimeout(resolve, 200));
     for (const scenarios of Object.values(mockSpeakingScenarios)) {
       const scenario = scenarios.find((s) => s.id === id);
-      if (scenario) return scenario;
+      // Cast mock data (which has extra UI fields like icon) to SpeakingScenario
+      if (scenario) return scenario as unknown as SpeakingScenario;
     }
     return null;
   },

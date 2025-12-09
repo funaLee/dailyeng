@@ -4,40 +4,55 @@ import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import type { Topic } from "@/src/types"
-import { Edit, Bookmark, Network, ChevronLeft, ChevronRight } from "lucide-react"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { ProtectedRoute, PageIcons } from "@/components/auth/protected-route"
-import { HubHero, HubTabs, CoursesSidebar, LevelsSidebar, CourseDetail, TopicCard, type Course } from "@/components/hub"
-import { VocabMindmap } from "@/components/hub/vocab-mindmap"
+import type { Topic, VocabItem } from "@/types";
+import {
+  Edit,
+  Bookmark,
+  Network,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { ProtectedRoute, PageIcons } from "@/components/auth/protected-route";
+import {
+  HubHero,
+  HubTabs,
+  CoursesSidebar,
+  LevelsSidebar,
+  CourseDetail,
+  TopicCard,
+  type Course,
+} from "@/components/hub";
+import { VocabMindmap } from "@/components/hub/vocab-mindmap";
 
 interface DictionaryWord {
-  id: string
-  word: string
-  pronunciation: string
-  meaning: string
-  partOfSpeech: string
-  level: string
-  category: string
-  masteryLevel: number
+  id: string;
+  word: string;
+  pronunciation: string;
+  meaning: string;
+  partOfSpeech: string;
+  level: string;
+  category: string;
+  masteryLevel: number;
 }
 
 interface MindmapTopicGroup {
-  id: string
-  name: string
-  color: "primary" | "secondary" | "accent"
+  id: string;
+  name: string;
+  color: "primary" | "secondary" | "accent";
   topics: {
-    id: string
-    title: string
-    words: Array<{
-      id: string
-      word: string
-      meaning: string
-      pronunciation: string
-      example: string
-    }>
-  }[]
+    id: string;
+    title: string;
+    words: VocabItem[];
+  }[];
 }
 
 interface CurrentTopic {
