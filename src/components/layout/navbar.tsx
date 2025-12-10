@@ -6,13 +6,13 @@ import { usePathname } from "next/navigation"
 import { Menu, X, ChevronDown, User, LayoutDashboard } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { useAppStore } from "@/lib/store"
+import { useSession } from "next-auth/react";
 
 type NavItem = {
-  href: string
-  label: string
-  dropdown?: Array<{ href: string; label: string }>
-}
+  href: string;
+  label: string;
+  dropdown?: Array<{ href: string; label: string }>;
+};
 
 const navItems: NavItem[] = [
   { href: "/", label: "Home" },
@@ -21,20 +21,23 @@ const navItems: NavItem[] = [
   { href: "/grammar", label: "Grammar Hub" },
   { href: "/plan", label: "Study Plan" },
   { href: "/notebook", label: "Notebook" },
-]
+];
 
 export function Navbar() {
-  const pathname = usePathname()
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const { user, logout, stats, setSearchOpen, isAuthenticated } = useAppStore()
+  const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const { data: session, status } = useSession();
+
+  // Use Auth.js session for authentication status
+  const isAuthenticated = status === "authenticated" && !!session?.user;
 
   const isImmersivePage =
     pathname?.startsWith("/speaking/session/") ||
     (pathname?.startsWith("/vocab/") && pathname !== "/vocab") ||
-    (pathname?.startsWith("/grammar/") && pathname !== "/grammar")
+    (pathname?.startsWith("/grammar/") && pathname !== "/grammar");
 
   if (isImmersivePage) {
-    return null
+    return null;
   }
 
   return (

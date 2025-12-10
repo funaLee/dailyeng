@@ -12,14 +12,9 @@ const stats: SignInStat[] = [
   { value: "4.9", label: "User Rating" },
 ];
 
-const demoCredentials = {
-  email: "demo@example.com",
-  password: "password",
-};
-
 export default async function SignInPage() {
   // In the future, you can fetch data from DB, API, or File System here
   // const stats = await fetchStats()
 
-  return <SignInPageClient stats={stats} demoCredentials={demoCredentials} />;
+  return <SignInPageClient stats={stats} />;
 }

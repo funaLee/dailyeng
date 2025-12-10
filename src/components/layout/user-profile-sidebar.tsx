@@ -3,6 +3,7 @@
 import type React from "react"
 import { Card } from "@/components/ui/card"
 import Link from "next/link"
+import { signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   UserIcon,
@@ -50,6 +51,23 @@ function NavButton({
         </span>
       )}
     </Link>
+  );
+}
+
+function SignOutButton() {
+  const handleSignOut = async () => {
+    // Use callbackUrl to redirect to homepage after sign out
+    await signOut({ callbackUrl: "/" });
+  };
+
+  return (
+    <button
+      onClick={handleSignOut}
+      className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all text-red-600 hover:bg-red-50 w-full text-left"
+    >
+      <LogOut size={16} />
+      <span className="flex-1">Sign Out</span>
+    </button>
   );
 }
 
@@ -119,12 +137,7 @@ export function UserProfileSidebar({
 
           <div className="my-3 border-t border-slate-200" />
 
-          <NavButton
-            icon={<LogOut size={16} />}
-            label="Sign Out"
-            href="/logout"
-            variant="danger"
-          />
+          <SignOutButton />
         </div>
       </div>
     </Card>

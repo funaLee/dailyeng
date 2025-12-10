@@ -1,65 +1,116 @@
-// Mock auth service
-export const authService = {
-  async signIn(email: string, password: string) {
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 500))
+import NextAuth from "next-auth";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import Google from "next-auth/providers/google";
+import Credentials from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
+import { prisma } from "@/lib/prisma";
 
-    if (!email || !password) {
-      throw new Error("Email and password are required")
-    }
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  adapter: PrismaAdapter(prisma),
+  providers: [
+    // Google OAuth Provider
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
 
-    return {
-      id: "1",
-      name: "Learner",
-      email,
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
-    }
+    // Credentials Provider (Email/Password)
+    Credentials({
+      name: "credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Email và mật khẩu là bắt buộc");
+        }
+
+        const email = credentials.email as string;
+        const password = credentials.password as string;
+
+        // Tìm user trong database
+        const user = await prisma.user.findUnique({
+          where: { email },
+        });
+
+        if (!user || !user.password) {
+          throw new Error("Email hoặc mật khẩu không chính xác");
+        }
+
+        // Verify password
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+
+        if (!isPasswordValid) {
+          throw new Error("Email hoặc mật khẩu không chính xác");
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          image: user.image,
+        };
+      },
+    }),
+  ],
+
+  // Session configuration
+  session: {
+    strategy: "jwt", // Required when using Credentials provider
   },
 
-  async signUp(name: string, email: string, password: string) {
-    await new Promise((resolve) => setTimeout(resolve, 500))
-
-    if (!name || !email || !password) {
-      throw new Error("All fields are required")
-    }
-
-    if (password.length < 6) {
-      throw new Error("Password must be at least 6 characters")
-    }
-
-    return {
-      id: Date.now().toString(),
-      name,
-      email,
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
-    }
+  // Custom pages
+  pages: {
+    signIn: "/auth/signin",
+    // signUp is not a standard NextAuth page, handle via custom logic
+    error: "/auth/error",
   },
 
-  async logout() {
-    await new Promise((resolve) => setTimeout(resolve, 300))
-  },
-
-  async getCurrentUser() {
-    // Check localStorage for persisted user
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("user")
-      if (stored) {
-        return JSON.parse(stored)
+  // Callbacks
+  callbacks: {
+    async jwt({ token, user, account }) {
+      // Lưu user id vào token khi đăng nhập lần đầu
+      if (user) {
+        token.id = user.id;
       }
-    }
-    return null
+      // Lưu provider info nếu cần
+      if (account) {
+        token.provider = account.provider;
+      }
+      return token;
+    },
+
+    async session({ session, token }) {
+      // Thêm user id vào session
+      if (session.user && token.id) {
+        session.user.id = token.id as string;
+      }
+      return session;
+    },
+
+    async signIn({ user, account }) {
+      // Cho phép tất cả OAuth sign-ins
+      if (account?.provider !== "credentials") {
+        return true;
+      }
+
+      // Với credentials, kiểm tra user tồn tại
+      if (!user?.id) {
+        return false;
+      }
+
+      return true;
+    },
   },
-}
 
-// Persist user to localStorage
-export const persistUser = (user: any) => {
-  if (typeof window !== "undefined") {
-    localStorage.setItem("user", JSON.stringify(user))
-  }
-}
+  // Events (optional - for logging/analytics)
+  events: {
+    async signIn({ user, account }) {
+      console.log(`User ${user.email} signed in via ${account?.provider}`);
+    },
+  },
 
-export const clearUser = () => {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem("user")
-  }
-}
+  // Enable debug in development
+  debug: process.env.NODE_ENV === "development",
+});
