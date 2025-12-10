@@ -1,6 +1,6 @@
 "use client";
 
-import type { VocabItem } from "@/src/types";
+import type { VocabItem } from "@/types";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Volume2, BookmarkPlus } from "lucide-react";

@@ -1,5 +1,5 @@
 "use client";
-import type { QuizItem } from "@/src/types";
+import type { QuizItem } from "@/types";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";

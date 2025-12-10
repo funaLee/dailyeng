@@ -17,7 +17,7 @@ import {
   ChevronDown,
   Sparkles,
 } from "lucide-react";
-import type { VocabItem } from "@/src/types";
+import type { VocabItem } from "@/types";
 
 // --- Types ---
 interface TopicGroup {

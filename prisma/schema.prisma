@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum Level {
@@ -91,11 +92,12 @@ enum CollectionType {
 }
 
 model User {
-  id       String  @id @default(cuid())
-  name     String?
-  email    String  @unique
-  password String?
-  image    String?
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  password      String?
+  image         String?
 
   // Profile fields
   phoneNumber String?
@@ -107,6 +109,10 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Auth.js relations
+  accounts Account[]
+  sessions Session[]
 
   profileStats     ProfileStats?
   studyPlan        StudyPlan?
@@ -341,10 +347,10 @@ model SpeakingScenario {
   duration    Int?
   // [ADDED] Image/thumbnail for the scenario
   image       String?
-  
+
   // [ADDED] Learning objectives and key expressions (JSON)
-  objectives      Json?
-  keyExpressions  Json?
+  objectives     Json?
+  keyExpressions Json?
 
   // [ADDED] Custom scenario created by user
   createdById String?
@@ -452,13 +458,13 @@ model StudyTask {
   date      DateTime
   type      TaskType
   completed Boolean   @default(false)
-  
+
   // [ADDED] Task details for schedule view
   title     String?
   // Stores time as "HH:MM", e.g. "06:00"
-  startTime String? 
+  startTime String?
   endTime   String?
-  link      String?  // URL to the lesson or resource
+  link      String? // URL to the lesson or resource
 }
 
 model PlacementTestResult {
@@ -625,4 +631,44 @@ model LeaderboardEntry {
   createdAt DateTime @default(now())
 
   @@unique([userId, period, type])
+}
+
+// =============================================
+// Auth.js Models
+// =============================================
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
 }

@@ -69,12 +69,13 @@ export const SRSItemSchema = z.object({
 
 export const SpeakingScenarioSchema = z.object({
   id: z.string(),
-  topicId: z.string(),
+  topicId: z.string().optional(), // Optional to match Prisma schema
   title: z.string(),
   description: z.string(),
   goal: z.string(),
   context: z.string(),
-})
+  difficulty: z.enum(["A1", "A2", "B1", "B2", "C1", "C2"]).optional(),
+});
 
 export const SpeakingTurnSchema = z.object({
   id: z.string(),

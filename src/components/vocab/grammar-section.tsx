@@ -1,6 +1,6 @@
 "use client";
 
-import type { GrammarNote } from "@/src/types";
+import type { GrammarNote } from "@/types";
 import { Card } from "@/components/ui/card";
 
 interface GrammarSectionProps {
