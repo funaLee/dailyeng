@@ -35,10 +35,34 @@ import {
   Award,
   BarChart3,
   Brain,
+  Filter,
+  ChevronDown,
+  Maximize2,
 } from "lucide-react"
+import { useRouter } from "next/navigation"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { ProtectedRoute, PageIcons } from "@/components/auth/protected-route"
+import { HubHero } from "@/components/hub"
+
+// SM-2 Quality levels for vocabulary mastery
+export type MasteryLevel = "new" | "learning" | "familiar" | "confident" | "mastered"
+
+export const MASTERY_LEVELS = [
+  { value: "new", label: "New", color: "bg-red-500", textColor: "text-red-700", bgLight: "bg-red-50", borderColor: "border-red-200", hoverBg: "hover:bg-red-100" },
+  { value: "learning", label: "Learning", color: "bg-orange-500", textColor: "text-orange-700", bgLight: "bg-orange-50", borderColor: "border-orange-200", hoverBg: "hover:bg-orange-100" },
+  { value: "familiar", label: "Familiar", color: "bg-yellow-500", textColor: "text-yellow-700", bgLight: "bg-yellow-50", borderColor: "border-yellow-200", hoverBg: "hover:bg-yellow-100" },
+  { value: "confident", label: "Confident", color: "bg-lime-500", textColor: "text-lime-700", bgLight: "bg-lime-50", borderColor: "border-lime-200", hoverBg: "hover:bg-lime-100" },
+  { value: "mastered", label: "Mastered", color: "bg-green-500", textColor: "text-green-700", bgLight: "bg-green-50", borderColor: "border-green-200", hoverBg: "hover:bg-green-100" },
+] as const
 
 // Types
 export interface NotebookItem {
@@ -83,11 +107,27 @@ function getCollectionIcon(collectionId: string): React.ReactNode {
   }
 }
 
+// Helper function to get mastery category from percentage
+function getMasteryCategory(masteryLevel: number): MasteryLevel {
+  if (masteryLevel < 20) return "new"
+  if (masteryLevel < 40) return "learning"
+  if (masteryLevel < 60) return "familiar"
+  if (masteryLevel < 80) return "confident"
+  return "mastered"
+}
+
+// Helper function to get mastery level config
+function getMasteryConfig(masteryLevel: number) {
+  const category = getMasteryCategory(masteryLevel)
+  return MASTERY_LEVELS.find(m => m.value === category) || MASTERY_LEVELS[0]
+}
+
 export default function NotebookPageClient({
   collections: collectionsData,
   notebookItems: initialItems,
   dueCount,
 }: NotebookPageClientProps) {
+  const router = useRouter()
   const [selectedCollection, setSelectedCollection] = useState<string>("vocabulary")
   const [viewMode, setViewMode] = useState<"list" | "flashcards" | "statistics">("list")
   const [searchQuery] = useState("")
@@ -104,6 +144,9 @@ export default function NotebookPageClient({
   const [notLearnedCards, setNotLearnedCards] = useState<Set<string>>(new Set())
   const [sessionCompleteOpen, setSessionCompleteOpen] = useState(false)
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
+  const [masteryFilter, setMasteryFilter] = useState<string[]>([]) // Filter by mastery level
+  const [starredFilter, setStarredFilter] = useState<boolean | null>(null) // Filter by starred: true, false, or null (all)
+  const [levelFilter, setLevelFilter] = useState<string[]>([]) // Filter by level (A1, A2, B1, B2, C1, C2)
 
   const [notebookItems] = useState<NotebookItem[]>(initialItems)
 
@@ -113,12 +156,37 @@ export default function NotebookPageClient({
     icon: getCollectionIcon(c.id),
   }))
 
-  const filteredItems = notebookItems.filter(
-    (item) =>
-      item.collectionId === selectedCollection &&
-      (item.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.meaning.some((m) => m.toLowerCase().includes(searchQuery.toLowerCase()))),
-  )
+  const filteredItems = notebookItems.filter((item) => {
+    // Collection filter
+    if (item.collectionId !== selectedCollection) return false
+    
+    // Search filter
+    const matchesSearch = 
+      item.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.meaning.some((m) => m.toLowerCase().includes(searchQuery.toLowerCase()))
+    
+    if (!matchesSearch) return false
+    
+    // Mastery level filter
+    if (masteryFilter.length > 0) {
+      const itemCategory = getMasteryCategory(item.masteryLevel)
+      if (!masteryFilter.includes(itemCategory)) return false
+    }
+    
+    // Starred filter
+    if (starredFilter !== null) {
+      const isStarred = starredItems.has(item.id)
+      if (starredFilter && !isStarred) return false
+      if (!starredFilter && isStarred) return false
+    }
+    
+    // Level filter
+    if (levelFilter.length > 0) {
+      if (!levelFilter.includes(item.level)) return false
+    }
+    
+    return true
+  })
 
   const flashcardItems =
     selectedItems.size > 0 ? filteredItems.filter((item) => selectedItems.has(item.id)) : filteredItems
@@ -211,9 +279,36 @@ export default function NotebookPageClient({
       pageIcon={PageIcons.notebook}
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        {/* Hero Section */}
+        <HubHero
+          title="MY NOTEBOOK"
+          description="Save and organize your vocabulary with smart flashcards. Practice with spaced repetition to master words efficiently and track your learning progress."
+          imageSrc="/learning.png"
+          primaryAction={{
+            label: "Start Practice",
+            onClick: () => {
+              setViewMode("flashcards")
+              setCurrentCardIndex(0)
+              setIsFlipped(false)
+            },
+          }}
+          secondaryAction={{
+            label: "View Statistics",
+            onClick: () => setViewMode("statistics"),
+          }}
+          notification={
+            dueCount > 0
+              ? {
+                  text: `You have ${dueCount} words ready for review today.`,
+                  actionLabel: "Review Now",
+                  onClick: () => setIsReviewModalOpen(true),
+                }
+              : undefined
+          }
+        />
 
         <div className="flex gap-6 min-h-[calc(100vh-350px)]">
-          <div className="w-72 flex-shrink-0">
+          <aside className="w-72 flex-shrink-0">
             <Card className="p-5 sticky top-20 border-2 border-border bg-white">
               <div className="flex items-center justify-between mb-5">
                 <h2 className="text-lg font-bold text-gray-900">Collections</h2>
@@ -295,10 +390,10 @@ export default function NotebookPageClient({
                 </div>
               </div>
             </Card>
-          </div>
+          </aside>
 
           {/* Main Content */}
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col min-w-0">
             <div className="flex items-center justify-between mb-6">
               <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="w-full max-w-md">
                 <TabsList className="grid w-full grid-cols-3 h-12 p-1 bg-white rounded-xl">
@@ -367,7 +462,7 @@ export default function NotebookPageClient({
             <div className="flex-1">
               {viewMode === "list" && (
                 <Card className="p-6 border-2 border-border-100 bg-white">
-                  <div className="flex items-center justify-between mb-6 pb-4 border-b border-primary-100">
+                  <div className="flex items-center justify-between mb-0">
                     <div className="flex items-center gap-3">
                       <Checkbox
                         id="select-all"
@@ -390,23 +485,122 @@ export default function NotebookPageClient({
                         </Badge>
                       )}
                     </div>
-                    <p className="text-sm text-gray-500">{filteredItems.length} words in collection</p>
+                    
+                    {/* Filter Dropdown */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-9 w-9 text-gray-600 hover:text-primary-600 hover:bg-primary-50 relative">
+                          <Filter className="h-4 w-4" />
+                          {(masteryFilter.length > 0 || starredFilter !== null || levelFilter.length > 0) && (
+                            <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary-500 text-white text-[10px] font-bold flex items-center justify-center">
+                              {masteryFilter.length + (starredFilter !== null ? 1 : 0) + levelFilter.length}
+                            </span>
+                          )}
+                        </Button>
+                      </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-64">
+                          {/* Progress Filter */}
+                          <DropdownMenuLabel className="text-xs text-gray-500 font-normal">By Progress</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          {MASTERY_LEVELS.map((level) => (
+                            <DropdownMenuCheckboxItem
+                              key={level.value}
+                              checked={masteryFilter.includes(level.value)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setMasteryFilter([...masteryFilter, level.value])
+                                } else {
+                                  setMasteryFilter(masteryFilter.filter(m => m !== level.value))
+                                }
+                              }}
+                              className="gap-2"
+                            >
+                              <div className={`h-3 w-3 rounded-full ${level.color}`} />
+                              <span>{level.label}</span>
+                            </DropdownMenuCheckboxItem>
+                          ))}
+                          
+                          {/* Level Filter */}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuLabel className="text-xs text-gray-500 font-normal">By Level</DropdownMenuLabel>
+                          {["A1", "A2", "B1", "B2", "C1", "C2"].map((level) => (
+                            <DropdownMenuCheckboxItem
+                              key={level}
+                              checked={levelFilter.includes(level)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setLevelFilter([...levelFilter, level])
+                                } else {
+                                  setLevelFilter(levelFilter.filter(l => l !== level))
+                                }
+                              }}
+                            >
+                              <span>{level}</span>
+                            </DropdownMenuCheckboxItem>
+                          ))}
+                          
+                          {/* Starred Filter */}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuLabel className="text-xs text-gray-500 font-normal">By Starred</DropdownMenuLabel>
+                          <DropdownMenuCheckboxItem
+                            checked={starredFilter === true}
+                            onCheckedChange={(checked) => {
+                              setStarredFilter(checked ? true : null)
+                            }}
+                            className="gap-2"
+                          >
+                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                            <span className="flex-1">Starred only</span>
+                          </DropdownMenuCheckboxItem>
+                          <DropdownMenuCheckboxItem
+                            checked={starredFilter === false}
+                            onCheckedChange={(checked) => {
+                              setStarredFilter(checked ? false : null)
+                            }}
+                            className="gap-2"
+                          >
+                            <Star className="h-3 w-3 text-gray-400" />
+                            <span className="flex-1">Not starred</span>
+                          </DropdownMenuCheckboxItem>
+                          
+                          {/* Clear All */}
+                          {(masteryFilter.length > 0 || starredFilter !== null || levelFilter.length > 0) && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setMasteryFilter([])
+                                  setStarredFilter(null)
+                                  setLevelFilter([])
+                                }}
+                                className="w-full gap-2 text-gray-500 hover:text-gray-700"
+                              >
+                                <X className="h-4 w-4" />
+                                Clear All Filters
+                              </Button>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
 
                   <Table>
                     <TableHeader>
                       <TableRow className="border-b-2 border-gray-100">
-                        <TableHead className="w-[50px]"></TableHead>
-                        <TableHead className="w-[200px] font-semibold text-gray-700">Word</TableHead>
-                        <TableHead className="w-[320px] font-semibold text-gray-700">Meaning</TableHead>
-                        <TableHead className="w-[80px] font-semibold text-gray-700">Level</TableHead>
-                        <TableHead className="w-[160px] font-semibold text-gray-700">Progress</TableHead>
+                        <TableHead className="w-12"></TableHead>
+                        <TableHead className="font-semibold text-gray-700">Word</TableHead>
+                        <TableHead className="font-semibold text-gray-700">Meaning</TableHead>
+                        <TableHead className="w-16 font-semibold text-gray-700 text-right">Level</TableHead>
+                        <TableHead className="w-20 font-semibold text-gray-700 text-right">Progress</TableHead>
+                        <TableHead className="w-12 text-right"></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredItems.map((item) => (
                         <TableRow key={item.id} className="hover:bg-gray-50 transition-colors">
-                          <TableCell className="py-4">
+                          <TableCell className="py-2">
                             <Checkbox
                               checked={selectedItems.has(item.id)}
                               onCheckedChange={(checked) => {
@@ -421,59 +615,52 @@ export default function NotebookPageClient({
                               className="h-5 w-5 border-2 border-border"
                             />
                           </TableCell>
-                          <TableCell className="py-4">
+                          <TableCell className="py-2">
                             <div>
                               <p className="font-semibold text-gray-900">{item.word}</p>
                               <p className="text-xs text-gray-500 mt-0.5">{item.pronunciation}</p>
                             </div>
                           </TableCell>
-                          <TableCell className="py-4">
+                          <TableCell className="py-2">
                             <div className="space-y-1">
-                              <p className="text-sm text-gray-700 line-clamp-1">{item.meaning[0]}</p>
-                              {item.meaning.length > 1 && (
-                                <p className="text-sm line-clamp-1 text-gray-500">{item.meaning[1]}</p>
-                              )}
+                              {item.vietnamese.map((v, idx) => (
+                                <p key={idx} className="text-sm text-gray-700 line-clamp-1">
+                                  {idx + 1}. {v}
+                                </p>
+                              ))}
                             </div>
                           </TableCell>
-                          <TableCell className="py-4">
-                            <Badge
-                              variant="outline"
-                              className={`font-medium ${
-                                item.level.startsWith("A")
-                                  ? "border-success-300 text-success-700 bg-success-50"
-                                  : item.level.startsWith("B")
-                                    ? "border-primary-300 text-primary-700 bg-primary-50"
-                                    : "border-secondary-300 text-secondary-700 bg-secondary-50"
-                              }`}
-                            >
+                          <TableCell className="py-2 text-right">
+                            <Badge className="font-medium bg-gray-100 text-gray-600 hover:bg-gray-100 border-0">
                               {item.level}
                             </Badge>
                           </TableCell>
-                          <TableCell className="py-4">
-                            <div className="space-y-2">
-                              <div className="flex items-center gap-2">
-                                <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                                  <div
-                                    className={`h-full rounded-full transition-all ${
-                                      item.masteryLevel < 30
-                                        ? "bg-warning-500"
-                                        : item.masteryLevel < 70
-                                          ? "bg-primary-500"
-                                          : "bg-success-500"
-                                    }`}
-                                    style={{ width: `${item.masteryLevel}%` }}
-                                  />
-                                </div>
-                                <span className="text-xs font-medium text-gray-600 w-8">{item.masteryLevel}%</span>
-                              </div>
-                              <p className="text-xs text-gray-500">
-                                {item.masteryLevel < 30
-                                  ? "Learning"
-                                  : item.masteryLevel < 70
-                                    ? "Reviewing"
-                                    : "Mastered"}
-                              </p>
+                          <TableCell className="py-2 text-right">
+                            <div className={`inline-block px-3 py-1 rounded text-xs font-medium ${getMasteryConfig(item.masteryLevel).bgLight} ${getMasteryConfig(item.masteryLevel).textColor}`}>
+                              {item.masteryLevel}%
                             </div>
+                          </TableCell>
+                          <TableCell className="py-2 text-right">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 rounded-full hover:bg-yellow-50"
+                              onClick={() => {
+                                setStarredItems((prev) => {
+                                  const newSet = new Set(prev)
+                                  if (newSet.has(item.id)) {
+                                    newSet.delete(item.id)
+                                  } else {
+                                    newSet.add(item.id)
+                                  }
+                                  return newSet
+                                })
+                              }}
+                            >
+                              <Star
+                                className={`h-4 w-4 ${starredItems.has(item.id) ? "fill-yellow-400 text-yellow-400" : "text-gray-400"}`}
+                              />
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -483,42 +670,28 @@ export default function NotebookPageClient({
               )}
 
               {viewMode === "flashcards" && currentItem && (
-                <div className="max-w-4xl mx-auto">
-                  <div className="flex justify-center gap-6 mb-8">
-                    <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-gradient-to-r from-warning-50 to-warning-100 border-2 border-warning-200 shadow-sm">
-                      <div className="h-8 w-8 rounded-full bg-warning-500 flex items-center justify-center">
-                        <X className="h-6 w-6 text-warning-300" />
-                      </div>
-                      <div>
-                        <span className="text-2xl font-bold text-warning-300">{notLearnedCards.size}</span>
-                        <p className="text-xs text-warning-300">Learning</p>
-                      </div>
+                <div className="max-w-5xl mx-auto">
+                  <div className="flex items-center gap-6 mb-8">
+                    {/* Learning stat - Left side */}
+                    <div className="flex items-center justify-center px-6 py-3 rounded-r-full bg-warning-50 border-2 border-warning-200">
+                      <span className="text-2xl font-bold text-warning-700">{notLearnedCards.size}</span>
                     </div>
-                    <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-gradient-to-r from-success-50 to-success-100 border-2 border-success-200 shadow-sm">
-                      <div className="h-8 w-8 rounded-full bg-success-500 flex items-center justify-center">
-                        <Check className="h-6 w-6 text-success-300" />
-                      </div>
-                      <div>
-                        <span className="text-2xl font-bold text-success-300">{learnedCards.size}</span>
-                        <p className="text-xs text-success-300">Mastered</p>
-                      </div>
-                    </div>
-                  </div>
 
-                  <div
-                    className="perspective-1000 cursor-pointer mb-8"
-                    onClick={() => setIsFlipped(!isFlipped)}
-                    style={{ perspective: "1000px" }}
-                  >
+                    {/* Flashcard in center */}
                     <div
-                      className="relative w-full h-[500px] transition-transform duration-500 preserve-3d"
-                      style={{
-                        transformStyle: "preserve-3d",
-                        transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
-                      }}
+                      className="flex-1 perspective-1000 cursor-pointer"
+                      onClick={() => setIsFlipped(!isFlipped)}
+                      style={{ perspective: "1000px" }}
                     >
+                      <div
+                        className="relative w-full h-[450px] transition-transform duration-500 preserve-3d"
+                        style={{
+                          transformStyle: "preserve-3d",
+                          transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
+                        }}
+                      >
                       <Card
-                        className="absolute inset-0 backface-hidden p-8 border-2 border-gray-100 shadow-lg bg-white"
+                        className="absolute inset-0 backface-hidden p-6 border-2 border-gray-100 shadow-lg bg-white"
                         style={{ backfaceVisibility: "hidden" }}
                       >
                         {cardAnimation === "swipe-left" && (
@@ -532,90 +705,67 @@ export default function NotebookPageClient({
                           </div>
                         )}
 
-                        <div className="flex items-start justify-between mb-8">
-                          <div className="flex items-center gap-2">
-                            <Badge className="text-sm px-4 py-1.5 rounded-lg">{currentItem.partOfSpeech}</Badge>
-                            <Badge
-                              className={`text-sm px-4 py-1.5 rounded-lg ${
-                                currentItem.level.startsWith("A")
-                                  ? "bg-success-100 text-success-700 hover:bg-success-100"
-                                  : currentItem.level.startsWith("B")
-                                    ? "bg-primary-100 text-primary-700 hover:bg-primary-100"
-                                    : "bg-secondary-100 text-secondary-700 hover:bg-secondary-100"
-                              }`}
-                            >
-                              {currentItem.level}
-                            </Badge>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <div className="flex flex-col items-end gap-1">
-                              <div className="flex items-center gap-2 w-48">
-                                <span className="text-xs text-gray-500 whitespace-nowrap">New</span>
-                                <div className="relative flex-1 h-2.5 rounded-full overflow-hidden bg-gray-100">
-                                  <div
-                                    className="absolute inset-0 bg-gradient-to-r from-warning-500 via-primary-500 to-success-500 transition-all duration-300"
-                                    style={{
-                                      clipPath: `inset(0 ${100 - currentItem.masteryLevel}% 0 0)`,
-                                    }}
-                                  />
-                                </div>
-                                <span className="text-xs text-gray-500 whitespace-nowrap">Mastered</span>
-                              </div>
-                            </div>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-10 w-10 rounded-full p-0 hover:bg-yellow-50"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                setStarredItems((prev) => {
-                                  const newSet = new Set(prev)
-                                  if (newSet.has(currentItem.id)) {
-                                    newSet.delete(currentItem.id)
-                                  } else {
-                                    newSet.add(currentItem.id)
-                                  }
-                                  return newSet
-                                })
-                              }}
-                            >
-                              <Star
-                                className={`h-5 w-5 ${starredItems.has(currentItem.id) ? "fill-yellow-400 text-yellow-400" : "text-gray-400"}`}
-                              />
-                            </Button>
-                          </div>
+                        <div className="absolute top-6 left-6 flex items-center gap-2">
+                          <Badge className="text-sm px-3 py-1 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-100 border-0">{currentItem.partOfSpeech}</Badge>
+                          <Badge className="text-sm px-3 py-1 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-100 border-0">
+                            {currentItem.level}
+                          </Badge>
                         </div>
 
-                        <div className="flex flex-col items-center justify-center h-[calc(100%-120px)]">
-                          <h2 className="text-6xl font-bold text-gray-900">{currentItem.word}</h2>
-                          <p className="text-xl text-gray-500 mt-4">Click to reveal meaning</p>
+                        <div className="absolute top-6 right-6 flex items-center gap-3">
+                          <div className="flex flex-col items-end gap-1">
+                            <div className="flex items-center gap-2 w-48">
+                              <span className="text-xs text-gray-500 whitespace-nowrap">New</span>
+                              <div className="relative flex-1 h-2.5 rounded-full overflow-hidden bg-gray-100">
+                                <div
+                                  className="absolute inset-0 transition-all duration-300"
+                                  style={{
+                                    background: "linear-gradient(to right, #ef4444, #f97316, #eab308, #84cc16, #22c55e)",
+                                    clipPath: `inset(0 ${100 - currentItem.masteryLevel}% 0 0)`,
+                                  }}
+                                />
+                              </div>
+                              <span className="text-xs text-gray-500 whitespace-nowrap">Mastered</span>
+                            </div>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-10 w-10 rounded-full p-0 hover:bg-yellow-50"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setStarredItems((prev) => {
+                                const newSet = new Set(prev)
+                                if (newSet.has(currentItem.id)) {
+                                  newSet.delete(currentItem.id)
+                                } else {
+                                  newSet.add(currentItem.id)
+                                }
+                                return newSet
+                              })
+                            }}
+                          >
+                            <Star
+                              className={`h-5 w-5 ${starredItems.has(currentItem.id) ? "fill-yellow-400 text-yellow-400" : "text-gray-400"}`}
+                            />
+                          </Button>
+                        </div>
+
+                        <div className="flex items-center justify-center h-full">
+                          <h2 className="text-5xl font-bold text-gray-900">{currentItem.word}</h2>
                         </div>
                       </Card>
 
                       <Card
-                        className="absolute inset-0 backface-hidden p-8 overflow-hidden flex flex-col border-2 border-gray-100 shadow-lg bg-white"
+                        className="absolute inset-0 backface-hidden p-6 overflow-hidden flex flex-col border-2 border-gray-100 shadow-lg bg-white"
                         style={{
                           backfaceVisibility: "hidden",
                           transform: "rotateY(180deg)",
                         }}
                       >
                         <div className="flex flex-col h-full">
-                          <div className="flex items-start justify-between mb-4">
-                            <div className="flex items-center gap-3">
-                              <h2 className="text-3xl font-bold text-gray-900">{currentItem.word}</h2>
-                              <Badge className="text-sm">{currentItem.partOfSpeech}</Badge>
-                              <Badge
-                                className={`text-sm ${
-                                  currentItem.level.startsWith("A")
-                                    ? "bg-success-100 text-success-700 hover:bg-success-100"
-                                    : currentItem.level.startsWith("B")
-                                      ? "bg-primary-100 text-primary-700 hover:bg-primary-100"
-                                      : "bg-secondary-100 text-secondary-700 hover:bg-secondary-100"
-                                }`}
-                              >
-                                {currentItem.level}
-                              </Badge>
-                            </div>
+                          <div className="flex items-start justify-between mb-3">
+                            <h2 className="text-2xl font-bold text-gray-900">{currentItem.word}</h2>
                             <Button
                               size="sm"
                               variant="ghost"
@@ -639,62 +789,62 @@ export default function NotebookPageClient({
                             </Button>
                           </div>
 
-                          <p className="text-lg text-gray-500 mb-5">{currentItem.pronunciation}</p>
+                          <p className="text-base text-gray-500 mb-3">{currentItem.pronunciation}</p>
 
-                          <div className="flex-1 overflow-y-auto space-y-5 pr-2">
-                            <div className="grid grid-cols-2 gap-6">
-                              <div className="bg-primary-50 rounded-xl p-4">
-                                <h3 className="text-sm font-bold uppercase text-primary-700 mb-3 flex items-center gap-2">
-                                  <BookOpen className="h-4 w-4" />
+                          <div className="flex-1 space-y-3">
+                            <div className="grid grid-cols-2 gap-3">
+                              <div className="bg-primary-50 rounded-lg p-3">
+                                <h3 className="text-xs font-bold uppercase text-primary-700 mb-2 flex items-center gap-1.5">
+                                  <BookOpen className="h-3.5 w-3.5" />
                                   Meaning
                                 </h3>
-                                <div className="space-y-2">
+                                <div className="space-y-1.5">
                                   {currentItem.meaning.map((m, idx) => (
-                                    <div key={idx} className="flex gap-2">
-                                      <div className="h-6 w-6 rounded-full bg-primary-200 flex-shrink-0 flex items-center justify-center text-xs font-bold text-primary-700">
+                                    <div key={idx} className="flex gap-1.5">
+                                      <div className="h-5 w-5 rounded-full bg-primary-200 flex-shrink-0 flex items-center justify-center text-xs font-bold text-primary-700">
                                         {idx + 1}
                                       </div>
-                                      <p className="text-sm leading-relaxed text-gray-700">{m}</p>
+                                      <p className="text-xs leading-relaxed text-gray-700">{m}</p>
                                     </div>
                                   ))}
                                 </div>
                               </div>
 
-                              <div className="bg-success-50 rounded-xl p-4">
-                                <h3 className="text-sm font-bold uppercase text-success-700 mb-3 flex items-center gap-2">
-                                  <FileText className="h-4 w-4" />
+                              <div className="bg-success-50 rounded-lg p-3">
+                                <h3 className="text-xs font-bold uppercase text-success-700 mb-2 flex items-center gap-1.5">
+                                  <FileText className="h-3.5 w-3.5" />
                                   Vietnamese
                                 </h3>
-                                <div className="space-y-2">
+                                <div className="space-y-1.5">
                                   {currentItem.vietnamese.map((v, idx) => (
-                                    <div key={idx} className="flex gap-2">
-                                      <div className="h-6 w-6 rounded-full bg-primary-200 text-primary-700 flex-shrink-0 flex items-center justify-center text-xs font-bold text-success-700">
+                                    <div key={idx} className="flex gap-1.5">
+                                      <div className="h-5 w-5 rounded-full bg-success-200 flex-shrink-0 flex items-center justify-center text-xs font-bold text-success-700">
                                         {idx + 1}
                                       </div>
-                                      <p className="text-sm leading-relaxed text-gray-700">{v}</p>
+                                      <p className="text-xs leading-relaxed text-gray-700">{v}</p>
                                     </div>
                                   ))}
                                 </div>
                               </div>
                             </div>
 
-                            <div className="bg-primary-50 rounded-xl p-4">
-                              <h3 className="text-sm font-bold uppercase text-primary-700 mb-3 flex items-center gap-2">
-                                <Zap className="h-4 w-4" />
+                            <div className="bg-primary-50 rounded-lg p-3">
+                              <h3 className="text-xs font-bold uppercase text-primary-700 mb-2 flex items-center gap-1.5">
+                                <Zap className="h-3.5 w-3.5" />
                                 Examples
                               </h3>
-                              <div className="space-y-2.5">
+                              <div className="space-y-2">
                                 {currentItem.examples.map((ex, idx) => (
-                                  <div key={idx} className="bg-white rounded-lg p-3 space-y-1 border border-gray-100">
-                                    <p className="text-sm italic text-gray-800">"{ex.en}"</p>
-                                    <p className="text-sm text-gray-500">"{ex.vi}"</p>
+                                  <div key={idx} className="bg-white rounded-lg p-2.5 space-y-0.5 border border-gray-100">
+                                    <p className="text-xs italic text-gray-800">"{ex.en}"</p>
+                                    <p className="text-xs text-gray-500">"{ex.vi}"</p>
                                   </div>
                                 ))}
                               </div>
                             </div>
                           </div>
 
-                          <div className="pt-4 mt-3 border-t border-gray-100">
+                          <div className="pt-3 mt-2 border-t border-gray-100">
                             <Button
                               onClick={(e) => {
                                 e.stopPropagation()
@@ -702,7 +852,7 @@ export default function NotebookPageClient({
                                 setCurrentSentence(0)
                               }}
                               variant="outline"
-                              className="gap-2 bg-transparent w-full h-11 rounded-xl border-2"
+                              className="gap-2 bg-transparent w-full h-10 rounded-xl border-2"
                             >
                               <Mic className="h-4 w-4" />
                               Shadowing Practice
@@ -710,33 +860,66 @@ export default function NotebookPageClient({
                           </div>
                         </div>
                       </Card>
+                      </div>
+                    </div>
+
+                    {/* Mastered stat - Right side */}
+                    <div className="flex items-center justify-center px-6 py-3 rounded-l-full bg-success-50 border-2 border-success-200">
+                      <span className="text-2xl font-bold text-success-700">{learnedCards.size}</span>
                     </div>
                   </div>
 
-                  <div className="flex justify-between items-center bg-transparent rounded-2xl p-4">
-                    <Button
-                      variant="outline"
-                      className="gap-2 h-11 rounded-xl border-2 bg-transparent"
-                      onClick={() => {
-                        if (currentCardIndex > 0) {
-                          setCurrentCardIndex(currentCardIndex - 1)
-                          setIsFlipped(false)
-                        }
-                      }}
-                      disabled={currentCardIndex === 0}
-                    >
-                      <Undo2 className="h-4 w-4" />
-                      Back
-                    </Button>
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg font-bold text-gray-900">{currentCardIndex + 1}</span>
-                      <span className="text-gray-400">/</span>
-                      <span className="text-lg text-gray-500">{flashcardItems.length}</span>
+                  {/* Navigation - aligned with flashcard */}
+                  <div className="flex items-center gap-6">
+                    {/* Left spacer - same width as Learning stat */}
+                    <div className="flex items-center justify-center px-6 py-3 opacity-0 pointer-events-none">
+                      <span className="text-2xl font-bold">0</span>
                     </div>
-                    <Button variant="outline" className="gap-2 h-11 rounded-xl border-2 bg-transparent">
-                      <Shuffle className="h-4 w-4" />
-                      Shuffle
-                    </Button>
+
+                    {/* Navigation buttons - aligned with flashcard */}
+                    <div className="flex-1 flex justify-between items-center">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-10 w-10 text-gray-600 hover:text-primary-600 hover:bg-primary-50"
+                        onClick={() => {
+                          if (currentCardIndex > 0) {
+                            setCurrentCardIndex(currentCardIndex - 1)
+                            setIsFlipped(false)
+                          }
+                        }}
+                        disabled={currentCardIndex === 0}
+                      >
+                        <Undo2 className="h-5 w-5" />
+                      </Button>
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-bold text-gray-900">{currentCardIndex + 1}</span>
+                        <span className="text-gray-400">/</span>
+                        <span className="text-lg text-gray-500">{flashcardItems.length}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="ghost"
+                          size="icon"
+                          className="h-10 w-10 text-gray-600 hover:text-primary-600 hover:bg-primary-50"
+                        >
+                          <Shuffle className="h-5 w-5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-10 w-10 text-gray-600 hover:text-primary-600 hover:bg-primary-50"
+                          onClick={() => router.push("/notebook/flashcards")}
+                        >
+                          <Maximize2 className="h-5 w-5" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Right spacer - same width as Mastered stat */}
+                    <div className="flex items-center justify-center px-6 py-3 opacity-0 pointer-events-none">
+                      <span className="text-2xl font-bold">0</span>
+                    </div>
                   </div>
                 </div>
               )}
