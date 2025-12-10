@@ -47,12 +47,12 @@ export function HubHero({
         
         <div className="mb-4 flex flex-wrap gap-3">
           {primaryAction && (
-            <Button variant="default" className="gap-2 cursor-pointer">
+            <Button variant="default" className="gap-2 cursor-pointer" onClick={primaryAction.onClick}>
               {primaryAction.label}
             </Button>
           )}
           {secondaryAction && (
-            <Button variant="outline" className="gap-2 bg-transparent cursor-pointer">
+            <Button variant="outline" className="gap-2 bg-transparent cursor-pointer" onClick={secondaryAction.onClick}>
               {secondaryAction.label}
             </Button>
           )}
@@ -61,7 +61,7 @@ export function HubHero({
         {notification && (
           <div className="flex items-center gap-2">
             <span className="text-sm">{notification.text}</span>
-            <Button variant="outline" size="sm" className="cursor-pointer bg-transparent">
+            <Button variant="outline" size="sm" className="cursor-pointer bg-transparent" onClick={notification.onClick}>
               {notification.actionLabel}
             </Button>
           </div>
