@@ -21,10 +21,29 @@ import {
 } from "lucide-react"
 import { ProtectedRoute, PageIcons } from "@/components/auth/protected-route"
 import { GamificationRoadmap } from "@/components/plan/gamification-roadmap"
-import Image from "next/image"
-import { toggleTaskCompletion, updateTaskTime, updateExamDate } from "@/actions/study"
-import { format } from "date-fns"
-import { useRouter } from "next/navigation"
+import Image from "next/image";
+import { format } from "date-fns";
+import { useRouter } from "next/navigation";
+
+// Mock functions - will be replaced with actual server actions later
+const toggleTaskCompletion = async (taskId: string, completed: boolean) => {
+  console.log("Mock: toggleTaskCompletion", taskId, completed);
+  return { success: true };
+};
+
+const updateTaskTime = async (
+  taskId: string,
+  startTime: string,
+  endTime: string
+) => {
+  console.log("Mock: updateTaskTime", taskId, startTime, endTime);
+  return { success: true };
+};
+
+const updateExamDate = async (userId: string, date: Date) => {
+  console.log("Mock: updateExamDate", userId, date);
+  return { success: true };
+};
 
 // Types
 export interface TodayLesson {

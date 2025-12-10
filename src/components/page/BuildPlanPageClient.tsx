@@ -88,8 +88,14 @@ function getOptionIcon(iconId?: string): React.ReactNode {
   }
 }
 
-import { generateStudySchedule } from "@/actions/study"
+
 import { useRouter } from "next/navigation"
+
+// Mock function - will be replaced with actual server action later
+const generateStudySchedule = async (userId: string, courseIds: string[], days: number[]) => {
+  console.log("Mock: generateStudySchedule", userId, courseIds, days)
+  return { success: true }
+}
 
 // ... imports remain the same
 

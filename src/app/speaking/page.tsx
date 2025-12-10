@@ -6,9 +6,8 @@ import type {
   HistoryTopicItem,
 } from "@/components/page/SpeakingPageClient";
 import type { TopicGroup } from "@/components/hub";
-import { getTopics, getCustomTopics, getSessionHistory } from "@/actions/speaking";
 
-// Mock data for static parts
+// Mock data - will be replaced with actual data fetching from DB/API later
 const TOPIC_GROUPS: TopicGroup[] = [
   {
     name: "Daily Life",
@@ -44,72 +43,185 @@ const DEMO_CRITERIA: CriteriaItem[] = [
   { title: "Coherence", score: 83 },
 ];
 
+// Mock scenarios data
+const mockScenarios: Scenario[] = [
+  {
+    id: "scenario-1",
+    title: "Coffee Shop Ordering",
+    description: "Practice ordering drinks and snacks at a coffee shop",
+    category: "Daily Life",
+    subcategory: "Dining",
+    level: "A2",
+    image: "/learning.png",
+    sessionsCompleted: 3,
+    totalSessions: 10,
+    progress: 30,
+    duration: 10,
+    isCustom: false,
+  },
+  {
+    id: "scenario-2",
+    title: "Job Interview",
+    description: "Practice answering common interview questions",
+    category: "Professional English",
+    subcategory: "Interviews",
+    level: "B2",
+    image: "/learning.png",
+    sessionsCompleted: 5,
+    totalSessions: 10,
+    progress: 50,
+    duration: 15,
+    isCustom: false,
+  },
+  {
+    id: "scenario-3",
+    title: "Hotel Check-in",
+    description: "Practice checking into a hotel",
+    category: "Travel",
+    subcategory: "Hotels",
+    level: "A2",
+    image: "/learning.png",
+    sessionsCompleted: 2,
+    totalSessions: 10,
+    progress: 20,
+    duration: 10,
+    isCustom: false,
+  },
+  {
+    id: "scenario-4",
+    title: "Restaurant Reservation",
+    description: "Practice making a restaurant reservation by phone",
+    category: "Daily Life",
+    subcategory: "Dining",
+    level: "B1",
+    image: "/learning.png",
+    sessionsCompleted: 4,
+    totalSessions: 10,
+    progress: 40,
+    duration: 10,
+    isCustom: false,
+  },
+  {
+    id: "scenario-5",
+    title: "Doctor's Appointment",
+    description: "Practice describing symptoms to a doctor",
+    category: "Daily Life",
+    subcategory: "Healthcare",
+    level: "B1",
+    image: "/learning.png",
+    sessionsCompleted: 1,
+    totalSessions: 10,
+    progress: 10,
+    duration: 12,
+    isCustom: false,
+  },
+  {
+    id: "scenario-6",
+    title: "Business Meeting",
+    description: "Practice leading and participating in business meetings",
+    category: "Professional English",
+    subcategory: "Meetings",
+    level: "B2",
+    image: "/learning.png",
+    sessionsCompleted: 0,
+    totalSessions: 10,
+    progress: 0,
+    duration: 20,
+    isCustom: false,
+  },
+  {
+    id: "scenario-7",
+    title: "Airport Navigation",
+    description: "Practice asking for directions and help at the airport",
+    category: "Travel",
+    subcategory: "Airports",
+    level: "A2",
+    image: "/learning.png",
+    sessionsCompleted: 6,
+    totalSessions: 10,
+    progress: 60,
+    duration: 10,
+    isCustom: false,
+  },
+  {
+    id: "scenario-8",
+    title: "Casual Conversation",
+    description: "Practice making small talk with new people",
+    category: "Social Situations",
+    subcategory: "Small Talk",
+    level: "A2",
+    image: "/learning.png",
+    sessionsCompleted: 8,
+    totalSessions: 10,
+    progress: 80,
+    duration: 10,
+    isCustom: false,
+  },
+];
+
+// Mock history data
+const mockHistoryTopics: HistoryTopicItem[] = [
+  {
+    id: "session-1",
+    title: "Coffee Shop Ordering",
+    description: "Practice ordering drinks and snacks at a coffee shop",
+    score: 85,
+    date: "2024-12-08",
+    level: "A2",
+    image: "/learning.png",
+    progress: 100,
+    wordCount: 10,
+  },
+  {
+    id: "session-2",
+    title: "Job Interview",
+    description: "Practice answering common interview questions",
+    score: 78,
+    date: "2024-12-07",
+    level: "B2",
+    image: "/learning.png",
+    progress: 100,
+    wordCount: 15,
+  },
+  {
+    id: "session-3",
+    title: "Casual Conversation",
+    description: "Practice making small talk with new people",
+    score: 92,
+    date: "2024-12-05",
+    level: "A2",
+    image: "/learning.png",
+    progress: 100,
+    wordCount: 10,
+  },
+];
+
+const mockHistoryGraph: HistoryGraphItem[] = [
+  { session: 1, score: 72 },
+  { session: 2, score: 78 },
+  { session: 3, score: 75 },
+  { session: 4, score: 82 },
+  { session: 5, score: 85 },
+  { session: 6, score: 88 },
+  { session: 7, score: 85 },
+  { session: 8, score: 92 },
+];
+
 export default async function SpeakingPage() {
   // TODO: Get real user ID from auth
   const userId = "user-1";
 
-  const [dbTopics, dbCustomTopics, dbSessions] = await Promise.all([
-    getTopics(),
-    getCustomTopics(userId),
-    getSessionHistory(userId),
-  ]);
-
-  // Transform DB topics to UI format
-  const scenarios: Scenario[] = [
-    ...dbTopics.map((t: any) => ({
-      id: t.id,
-      title: t.title,
-      description: t.description,
-      category: t.category || "General",
-      subcategory: t.subcategory || "",
-      level: t.difficulty || "A1",
-      image: t.image || "/learning.png",
-      sessionsCompleted: 0, // Calculate from sessions if needed
-      totalSessions: 10,
-      progress: 0,
-      duration: t.duration || 10,
-      isCustom: false
-    })),
-    ...dbCustomTopics.map((t: any) => ({
-      id: t.id,
-      title: t.title,
-      description: t.description,
-      category: "Custom",
-      level: t.difficulty || "B1",
-      image: t.image || "/learning.png",
-      sessionsCompleted: 0,
-      totalSessions: 10,
-      progress: 0,
-      duration: t.duration || 10,
-      isCustom: true
-    }))
-  ];
-
-  // Transform History
-  // Only completed sessions or all? Let's show all
-  const historyTopicsData: HistoryTopicItem[] = dbSessions.map((s: any) => ({
-    id: s.id,
-    title: s.scenario.title,
-    description: s.scenario.description,
-    score: 85, // TODO: Aggregate scores from turns or store session score
-    date: s.createdAt.toISOString().split('T')[0],
-    level: s.scenario.difficulty || "B1",
-    image: s.scenario.image || "/learning.png",
-    progress: 100,
-    wordCount: s.scenario.duration || 10
-  }));
-
-  const HISTORY_GRAPH_DATA: HistoryGraphItem[] = dbSessions.map((s: any, i: number) => ({
-    session: i + 1,
-    score: 85 // Placeholder
-  }));
+  // Mock data - will be replaced with actual data fetching from DB/API later
+  const scenarios = mockScenarios;
+  const historyTopicsData = mockHistoryTopics;
+  const historyGraphData = mockHistoryGraph;
 
   return (
     <SpeakingPageClient
       topicGroups={TOPIC_GROUPS}
       scenarios={scenarios}
       demoCriteria={DEMO_CRITERIA}
-      historyGraphData={HISTORY_GRAPH_DATA}
+      historyGraphData={historyGraphData}
       historyTopicsData={historyTopicsData}
       userId={userId}
     />

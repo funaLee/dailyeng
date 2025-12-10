@@ -1,4 +1,3 @@
-import { getTodayTasks, getStudyPlan, getStudyStats } from "@/actions/study";
 import PlanPageClient from "@/components/page/PlanPageClient";
 import type {
   TodayLesson,
@@ -7,8 +6,55 @@ import type {
   IELTSExam,
 } from "@/components/page/PlanPageClient";
 
-// Default/Fallback data
-const defaultReminders: Reminder[] = [
+// Mock data - will be replaced with actual data fetching from DB/API later
+const mockTodayLessons: TodayLesson[] = [
+  {
+    id: "task-1",
+    type: "vocab",
+    title: "Business Vocabulary",
+    topic: "Professional English",
+    duration: "09:00 - 09:30",
+    completed: true,
+    link: "/vocab/business",
+    startTime: "09:00",
+    endTime: "09:30",
+  },
+  {
+    id: "task-2",
+    type: "grammar",
+    title: "Past Perfect Tense",
+    topic: "Grammar Fundamentals",
+    duration: "10:00 - 10:30",
+    completed: true,
+    link: "/grammar/past-perfect",
+    startTime: "10:00",
+    endTime: "10:30",
+  },
+  {
+    id: "task-3",
+    type: "speaking",
+    title: "Job Interview Practice",
+    topic: "Speaking Skills",
+    duration: "14:00 - 14:30",
+    completed: false,
+    link: "/speaking/session/scenario-2",
+    startTime: "14:00",
+    endTime: "14:30",
+  },
+  {
+    id: "task-4",
+    type: "vocab",
+    title: "Travel Vocabulary",
+    topic: "Daily Life",
+    duration: "16:00 - 16:20",
+    completed: false,
+    link: "/vocab/travel",
+    startTime: "16:00",
+    endTime: "16:20",
+  },
+];
+
+const mockReminders: Reminder[] = [
   {
     id: "r1",
     type: "speaking",
@@ -21,57 +67,44 @@ const defaultReminders: Reminder[] = [
     id: "r2",
     type: "notebook",
     title: "Notebook",
-    description: "You have words to review",
+    description: "You have 15 words to review",
     action: "Review Now",
     href: "/notebook",
   },
 ];
 
-const defaultIeltsExam: IELTSExam = {
-  examDate: new Date("2026-03-28").toISOString(),
-  daysRemaining: 120,
+const mockStudyGoals: StudyGoals = {
+  currentLevel: "5.0",
+  targetLevel: "6.5",
+  hoursPerWeek: 10,
+  durationMonths: 6,
+};
+
+const mockIeltsExam: IELTSExam = {
+  examDate: new Date("2025-06-15").toISOString(),
+  daysRemaining: 187,
+};
+
+const mockStats = {
+  dailyHours: "2.5",
+  weeklyHours: "15",
+  totalHours: "120",
 };
 
 export default async function PlanPage() {
   const userId = "user-1"; // TODO: Real auth
 
-  const [tasks, plan, stats] = await Promise.all([
-    getTodayTasks(userId),
-    getStudyPlan(userId),
-    getStudyStats(userId)
-  ]);
-
-  // Transform Tasks to TodayLesson format
-  const todayLessons: TodayLesson[] = tasks.map((t: any) => ({
-    id: t.id,
-    type: t.type as any, // "vocab" | "grammar" | "speaking"
-    title: t.title || "Study Task",
-    topic: "Daily Task", // Could come from relation if needed
-    duration: t.startTime && t.endTime ? `${t.startTime} - ${t.endTime}` : "20 min",
-    completed: t.completed,
-    link: t.link || "/dashboard",
-    startTime: t.startTime || undefined,
-    endTime: t.endTime || undefined,
-  }));
-
-  const studyGoals: StudyGoals = {
-    currentLevel: plan?.level || "3.0",
-    targetLevel: plan?.goal === "exam" ? "6.5" : "Fluency",
-    hoursPerWeek: Math.round((plan?.minutesPerDay || 60) * 7 / 60),
-    durationMonths: 6,
-  };
-
-  const ieltsExam: IELTSExam = {
-    examDate: plan?.examDate ? plan.examDate.toISOString() : new Date("2026-03-28").toISOString(),
-    daysRemaining: plan?.examDate
-      ? Math.ceil((new Date(plan.examDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
-      : 120,
-  };
+  // Mock data - will be replaced with actual data fetching from DB/API later
+  const todayLessons = mockTodayLessons;
+  const reminders = mockReminders;
+  const studyGoals = mockStudyGoals;
+  const ieltsExam = mockIeltsExam;
+  const stats = mockStats;
 
   return (
     <PlanPageClient
       todayLessons={todayLessons}
-      reminders={defaultReminders}
+      reminders={reminders}
       studyGoals={studyGoals}
       ieltsExam={ieltsExam}
       stats={stats}

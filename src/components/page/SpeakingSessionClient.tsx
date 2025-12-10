@@ -8,9 +8,8 @@ import { SessionChat } from "@/components/speaking/session-chat"
 import { RadarChart } from "@/components/speaking/radar-chart"
 import { LearningHistory } from "@/components/speaking/learning-history"
 import { DetailedFeedback } from "@/components/speaking/detailed-feedback"
-import { useAppStore } from "@/lib/store"
-import { createSession, submitTurn, getSessionSummary, getDetailedFeedback } from "@/actions/speaking"
-import { toast } from "sonner"
+import { useAppStore } from "@/lib/store";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   BarChart3,
@@ -34,87 +33,149 @@ import {
   Languages,
   Sparkles,
   FileText,
-} from "lucide-react"
-import Link from "next/link"
-import Image from "next/image"
-import VocabHelperChatbot from "@/components/speaking/vocab-helper-chatbot"
+} from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
+import VocabHelperChatbot from "@/components/speaking/vocab-helper-chatbot";
 
 // Types
 interface Turn {
-  id: string
-  role: "user" | "tutor"
-  text: string
-  timestamp: Date
+  id: string;
+  role: "user" | "tutor";
+  text: string;
+  timestamp: Date;
   scores?: {
-    pronunciation?: number
-    fluency?: number
-    grammar?: number
-    content?: number
-  }
+    pronunciation?: number;
+    fluency?: number;
+    grammar?: number;
+    content?: number;
+  };
 }
 
-type ViewState = "preparation" | "active" | "complete" | "history" | "detail"
+type ViewState = "preparation" | "active" | "complete" | "history" | "detail";
 
 export interface LearningRecord {
-  id: string
-  overallScore: number
-  completedTurns: number
-  totalTurns: number
-  date: Date
+  id: string;
+  overallScore: number;
+  completedTurns: number;
+  totalTurns: number;
+  date: Date;
 }
 
 export interface DetailedFeedbackScore {
-  label: string
-  value: number
+  label: string;
+  value: number;
   // Note: icon is rendered in client based on label
 }
 
 export interface ErrorCategory {
-  name: string
-  count: number
+  name: string;
+  count: number;
 }
 
 export interface ConversationItem {
-  role: "tutor" | "user"
-  text: string
+  role: "tutor" | "user";
+  text: string;
   userErrors?: Array<{
-    word: string
-    correction: string
-    type: string
-  }>
-  correctedSentence?: string
-  audioUrl?: string
+    word: string;
+    correction: string;
+    type: string;
+  }>;
+  correctedSentence?: string;
+  audioUrl?: string;
 }
 
 export interface DetailedFeedbackData {
-  scores: DetailedFeedbackScore[]
-  errorCategories: ErrorCategory[]
-  conversation: ConversationItem[]
-  overallRating: string
-  tip: string
+  scores: DetailedFeedbackScore[];
+  errorCategories: ErrorCategory[];
+  conversation: ConversationItem[];
+  overallRating: string;
+  tip: string;
 }
 
 export interface ScenarioData {
-  id: string
-  title: string
-  description?: string
-  context?: string
-  goal?: string
-  objectives?: string[]
+  id: string;
+  title: string;
+  description?: string;
+  context?: string;
+  goal?: string;
+  objectives?: string[];
 }
 
 export interface InitialTurn {
-  id: string
-  role: "user" | "tutor"
-  text: string
-  timestamp: string // ISO string for serialization
+  id: string;
+  role: "user" | "tutor";
+  text: string;
+  timestamp: string; // ISO string for serialization
   scores?: {
-    pronunciation?: number
-    fluency?: number
-    grammar?: number
-    content?: number
-  }
+    pronunciation?: number;
+    fluency?: number;
+    grammar?: number;
+    content?: number;
+  };
 }
+
+// Mock functions - will be replaced with actual server actions later
+const createSession = async (userId: string, scenarioId: string) => {
+  console.log("Mock: createSession", userId, scenarioId);
+  return { id: `session-${Date.now()}` };
+};
+
+const submitTurn = async (sessionId: string, text: string) => {
+  console.log("Mock: submitTurn", sessionId, text);
+  // Simulate AI response with random scores
+  return {
+    aiResponse: "That's a good point! Can you tell me more about that?",
+    turnId: `turn-${Date.now()}`,
+    scores: {
+      pronunciation: Math.floor(Math.random() * 3) + 7,
+      fluency: Math.floor(Math.random() * 3) + 7,
+      grammar: Math.floor(Math.random() * 3) + 7,
+      content: Math.floor(Math.random() * 3) + 7,
+    },
+    errors: [],
+  };
+};
+
+const getSessionSummary = async (sessionId: string) => {
+  console.log("Mock: getSessionSummary", sessionId);
+  return {
+    title: "Great Progress!",
+    feedback: "You demonstrated good speaking skills with clear pronunciation.",
+    newWords: [
+      {
+        word: "articulate",
+        meaning: "express clearly",
+        example: "She could articulate her ideas well.",
+      },
+      {
+        word: "fluent",
+        meaning: "able to speak smoothly",
+        example: "He is fluent in English.",
+      },
+    ],
+  };
+};
+
+const getDetailedFeedback = async (sessionId: string) => {
+  console.log("Mock: getDetailedFeedback", sessionId);
+  return {
+    scores: {
+      relevance: 85,
+      pronunciation: 82,
+      intonation: 78,
+      fluency: 80,
+      grammar: 83,
+    },
+    errorCategories: [
+      { name: "Pronunciation", count: 2 },
+      { name: "Grammar", count: 1 },
+    ],
+    conversation: [],
+    overallRating: "Good",
+    tip: "Keep practicing to improve your fluency!",
+  };
+};
 
 export interface SpeakingSessionClientProps {
   scenarioId: string

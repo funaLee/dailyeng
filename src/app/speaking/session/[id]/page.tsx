@@ -3,10 +3,82 @@ import SpeakingSessionClient from "@/components/page/SpeakingSessionClient";
 import type {
   ScenarioData,
   InitialTurn,
-  LearningRecord,
   DetailedFeedbackData,
 } from "@/components/page/SpeakingSessionClient";
-import { prisma } from "@/lib/prisma";
+
+// Mock scenarios data - will be replaced with actual data fetching from DB/API later
+const mockScenarios: ScenarioData[] = [
+  {
+    id: "scenario-1",
+    title: "Coffee Shop Ordering",
+    description: "Practice ordering drinks and snacks at a coffee shop",
+    context:
+      "You are at a busy coffee shop during morning rush hour. The barista is ready to take your order.",
+    goal: "Successfully order your preferred coffee drink with any customizations",
+    objectives: [
+      "Greet the barista appropriately",
+      "Order a drink with specific customizations (size, milk type, extras)",
+      "Ask about available pastries or snacks",
+      "Complete the payment process",
+    ],
+  },
+  {
+    id: "scenario-2",
+    title: "Job Interview",
+    description: "Practice answering common interview questions",
+    context:
+      "You are in a job interview for a position you really want. The interviewer is professional but friendly.",
+    goal: "Make a great impression and answer interview questions confidently",
+    objectives: [
+      "Introduce yourself professionally",
+      "Describe your relevant experience",
+      "Explain why you want this position",
+      "Ask thoughtful questions about the role",
+    ],
+  },
+  {
+    id: "scenario-3",
+    title: "Hotel Check-in",
+    description: "Practice checking into a hotel",
+    context:
+      "You have just arrived at a hotel after a long journey. The receptionist is waiting to help you.",
+    goal: "Complete the check-in process and get information about the hotel",
+    objectives: [
+      "Provide your reservation details",
+      "Request any room preferences",
+      "Ask about hotel amenities and services",
+      "Get directions to your room",
+    ],
+  },
+  {
+    id: "scenario-4",
+    title: "Restaurant Reservation",
+    description: "Practice making a restaurant reservation by phone",
+    context:
+      "You want to make a dinner reservation at a popular restaurant for a special occasion.",
+    goal: "Successfully book a table for your party",
+    objectives: [
+      "Ask about availability for your preferred date and time",
+      "Specify the number of guests",
+      "Mention any special requirements or occasions",
+      "Confirm the reservation details",
+    ],
+  },
+  {
+    id: "scenario-5",
+    title: "Doctor's Appointment",
+    description: "Practice describing symptoms to a doctor",
+    context:
+      "You are visiting a doctor because you haven't been feeling well lately.",
+    goal: "Clearly describe your symptoms and understand the doctor's advice",
+    objectives: [
+      "Describe your symptoms accurately",
+      "Answer the doctor's questions about your health history",
+      "Understand the diagnosis and treatment options",
+      "Ask questions about medication or follow-up care",
+    ],
+  },
+];
 
 // Mock data for fallback or initial props
 const mockDetailedFeedback: DetailedFeedbackData = {
@@ -30,87 +102,12 @@ interface PageProps {
 export default async function SpeakingSessionPage({ params }: PageProps) {
   const { id } = await params;
 
-  let scenario: ScenarioData | null = null;
-  let initialTurns: InitialTurn[] = [];
+  // Mock data - will be replaced with actual data fetching from DB/API later
+  // Find scenario by ID from mock data
+  const scenario = mockScenarios.find((s) => s.id === id) || null;
+  const initialTurns: InitialTurn[] = [];
 
-  // 1. Try to find as Scenario
-  const dbScenario = await prisma.speakingScenario.findUnique({
-    where: { id },
-  });
-
-  if (dbScenario) {
-    // Parse objectives from JSON if stored as string
-    let objectives: string[] = [];
-    if (dbScenario.objectives) {
-      try {
-        objectives = typeof dbScenario.objectives === 'string'
-          ? JSON.parse(dbScenario.objectives)
-          : dbScenario.objectives as string[];
-      } catch (e) {
-        objectives = [];
-      }
-    }
-
-    scenario = {
-      id: dbScenario.id,
-      title: dbScenario.title,
-      description: dbScenario.description,
-      context: dbScenario.context,
-      goal: dbScenario.goal,
-      objectives: objectives,
-    };
-    // No initial turns for a fresh scenario (unless we fetch previous sessions, but let's keep it simple)
-  } else {
-    // 2. Try to find as Session
-    const dbSession = await prisma.speakingSession.findUnique({
-      where: { id },
-      include: {
-        scenario: true,
-        turns: {
-          orderBy: { timestamp: 'asc' }
-        }
-      }
-    });
-
-    if (dbSession) {
-      // Parse objectives from JSON if stored as string
-      let sessionObjectives: string[] = [];
-      if (dbSession.scenario.objectives) {
-        try {
-          sessionObjectives = typeof dbSession.scenario.objectives === 'string'
-            ? JSON.parse(dbSession.scenario.objectives)
-            : dbSession.scenario.objectives as string[];
-        } catch (e) {
-          sessionObjectives = [];
-        }
-      }
-
-      scenario = {
-        id: dbSession.scenario.id,
-        title: dbSession.scenario.title,
-        description: dbSession.scenario.description,
-        context: dbSession.scenario.context,
-        goal: dbSession.scenario.goal,
-        objectives: sessionObjectives,
-      };
-
-      initialTurns = dbSession.turns.map((t: any) => ({
-        id: t.id,
-        role: t.role === "user" ? "user" : "tutor",
-        text: t.text,
-        timestamp: t.timestamp.toISOString(),
-        scores: {
-          pronunciation: t.pronunciationScore || 0,
-          fluency: t.fluencyScore || 0,
-          grammar: t.grammarScore || 0,
-          content: t.contentScore || 0,
-        }
-      }));
-    }
-  }
-
-  // If still null, return 404 or empty state
-  // We'll let the client handle null scenario
+  // If still null, we'll let the client handle null scenario
 
   return (
     <SpeakingSessionClient

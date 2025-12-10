@@ -25,10 +25,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Textarea } from "@/components/ui/textarea"
-import { createCustomScenario } from "@/actions/speaking"
-import { useRouter } from "next/navigation"
-import { toast } from "sonner"
+import { Textarea } from "@/components/ui/textarea";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+
+// Mock function - will be replaced with actual server action later
+const createCustomScenario = async (userId: string, prompt: string) => {
+  console.log("Mock: createCustomScenario", userId, prompt);
+  // Return a mock scenario
+  return {
+    id: `custom-${Date.now()}`,
+    title: prompt.slice(0, 50),
+    description: prompt,
+    context: prompt,
+    goal: "Practice speaking",
+  };
+};
 
 // Types for props
 export interface Scenario {
