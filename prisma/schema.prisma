@@ -65,32 +65,6 @@ enum NotificationType {
   system
 }
 
-enum ShopItemCategory {
-  power_up  @map("Power-up")
-  boost     @map("Boost")
-  cosmetic  @map("Cosmetic")
-  access    @map("Access")
-  learning  @map("Learning")
-  analytics @map("Analytics")
-}
-
-enum CollectionRarity {
-  common
-  rare
-  epic
-  legendary
-  mythical
-  ssr
-}
-
-enum CollectionType {
-  daily
-  gadget
-  character
-  poster
-  ssr_collab
-}
-
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -124,16 +98,12 @@ model User {
   notifications        Notification[]
   notebookItems        NotebookItem[]
   placementTestResults PlacementTestResult[]
-  inventory            UserInventory[]
-  collection           UserCollection[]
   feedbacks            Feedback[]
   userLessonProgresses UserLessonProgress[]
   // [ADDED] Speaking bookmarks
   speakingBookmarks    SpeakingBookmark[]
   // [ADDED] Custom speaking scenarios created by user
   customScenarios      SpeakingScenario[]    @relation("UserCustomScenarios")
-  // [FIXED] Missing relations
-  courseRegs           CourseRegistration[]
   dailyMissions        UserDailyMission[]
   activities           UserActivity[]
   leaderboardEntries   LeaderboardEntry[]
@@ -187,9 +157,6 @@ model Topic {
   subcategory   String?
   // [ADDED] Order for sorting topics
   order         Int     @default(0)
-  // [ADDED] Link to parent course
-  courseId      String?
-  course        Course? @relation(fields: [courseId], references: [id])
 
   vocabItems        VocabItem[]
   grammarNotes      GrammarNote[]
@@ -199,42 +166,6 @@ model Topic {
   speakingScenarios SpeakingScenario[]
   userProgress      UserTopicProgress[]
   lessons           Lesson[]
-}
-
-// [ADDED] Course model for organizing topics into structured courses
-model Course {
-  id                  String   @id @default(cuid())
-  name                String
-  description         String
-  // [ADDED] Estimated completion date/duration
-  estimatedCompletion String?
-  // [ADDED] Course thumbnail/image
-  thumbnail           String?
-  // [ADDED] Course category (e.g., "IELTS", "Business", "TOEIC")
-  category            String?
-  // [ADDED] Order for sorting courses
-  order               Int      @default(0)
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-
-  topics        Topic[]
-  registrations CourseRegistration[]
-}
-
-// [ADDED] User course registration for tracking enrolled courses
-model CourseRegistration {
-  id           String    @id @default(cuid())
-  userId       String
-  // [FIXED] Added relation to User
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  courseId     String
-  course       Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  progress     Int       @default(0)
-  status       String    @default("active") // active, completed, paused
-  registeredAt DateTime  @default(now())
-  completedAt  DateTime?
-
-  @@unique([userId, courseId])
 }
 
 model UserTopicProgress {
@@ -526,51 +457,6 @@ model UserLessonProgress {
   updatedAt   DateTime     @updatedAt
 
   @@unique([userId, lessonId])
-}
-
-model ShopItem {
-  id          String           @id @default(cuid())
-  name        String
-  description String
-  category    ShopItemCategory
-  price       Int
-  icon        String
-  image       String?
-  details     String?
-  status      String // available, active, etc.
-
-  inventory UserInventory[]
-}
-
-model UserInventory {
-  id           String    @id @default(cuid())
-  userId       String
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  itemId       String
-  item         ShopItem  @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  status       String // active, used
-  purchaseDate DateTime  @default(now())
-  expiryDate   DateTime?
-}
-
-model CollectionItem {
-  id       String           @id @default(cuid())
-  name     String
-  type     CollectionType
-  rarity   CollectionRarity
-  image    String
-  metadata Json? // For specific attributes like movieName, ability, etc.
-
-  users UserCollection[]
-}
-
-model UserCollection {
-  id         String         @id @default(cuid())
-  userId     String
-  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  itemId     String
-  item       CollectionItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  obtainedAt DateTime       @default(now())
 }
 
 // [ADDED] Daily missions/tasks system for gamification

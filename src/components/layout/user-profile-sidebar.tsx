@@ -3,24 +3,33 @@
 import type React from "react"
 import { Card } from "@/components/ui/card"
 import Link from "next/link"
-// Loại bỏ usePathname để tránh xung đột logic với prop active
-import { LayoutDashboard, BookOpen, Target, UserIcon, Bell, Settings, HeartHandshake, LogOut, ShoppingBasket } from "lucide-react"
+import {
+  LayoutDashboard,
+  UserIcon,
+  Bell,
+  Settings,
+  HeartHandshake,
+  LogOut,
+} from "lucide-react";
 
 interface NavButtonProps {
-  icon: React.ReactNode
-  label: string
-  href?: string
-  active?: boolean
-  badge?: string
-  variant?: "default" | "danger"
+  icon: React.ReactNode;
+  label: string;
+  href?: string;
+  active?: boolean;
+  badge?: string;
+  variant?: "default" | "danger";
 }
 
-function NavButton({ icon, label, href = "#", active, badge, variant = "default" }: NavButtonProps) {
-  // Logic CŨ (Gây lỗi): const isActive = active || pathname === href
-  
-  // Logic MỚI: Chỉ phụ thuộc vào prop 'active' được truyền vào.
-  // Nếu active không được truyền (undefined), mặc định là false.
-  const isActive = active ?? false
+function NavButton({
+  icon,
+  label,
+  href = "#",
+  active,
+  badge,
+  variant = "default",
+}: NavButtonProps) {
+  const isActive = active ?? false;
 
   return (
     <Link
@@ -29,8 +38,8 @@ function NavButton({ icon, label, href = "#", active, badge, variant = "default"
         isActive
           ? "bg-primary-100 text-primary-900 font-semibold"
           : variant === "danger"
-            ? "text-red-600 hover:bg-red-50"
-            : "text-slate-600 hover:bg-slate-50"
+          ? "text-red-600 hover:bg-red-50"
+          : "text-slate-600 hover:bg-slate-50"
       }`}
     >
       {icon}
@@ -41,23 +50,22 @@ function NavButton({ icon, label, href = "#", active, badge, variant = "default"
         </span>
       )}
     </Link>
-  )
+  );
 }
 
 interface UserProfileSidebarProps {
   activePage?:
     | "dashboard"
-    | "shop"
-    | "collections"
     | "plan"
     | "profile"
     | "notifications"
     | "settings"
-    | "help"
-    | "courses"
+    | "help";
 }
 
-export function UserProfileSidebar({ activePage = "dashboard" }: UserProfileSidebarProps) {
+export function UserProfileSidebar({
+  activePage = "dashboard",
+}: UserProfileSidebarProps) {
   return (
     <Card className="border-border border-2 shadow-sm bg-white overflow-hidden">
       <div className="px-6 py-6">
@@ -76,36 +84,6 @@ export function UserProfileSidebar({ activePage = "dashboard" }: UserProfileSide
 
         <div className="space-y-1">
           <h3 className="font-bold text-xs uppercase text-primary-900 mb-2 px-2">
-            Learning
-          </h3>
-          <NavButton
-            icon={<LayoutDashboard size={16} />}
-            label="Dashboard"
-            href="/user/dashboard"
-            active={activePage === "dashboard"}
-          />
-          <NavButton
-            icon={<BookOpen size={16} />}
-            label="Collections"
-            href="/user/collections"
-            active={activePage === "collections"}
-          />
-          <NavButton
-            icon={<ShoppingBasket size={16} />}
-            label="Items Shop"
-            href="/user/shop"
-            active={activePage === "shop"}
-          />
-          <NavButton
-            icon={<Target size={16} />}
-            label="Registered Courses"
-            href="/user/courses"
-            active={activePage === "courses"}
-          />
-
-          <div className="my-3 border-t border-primary-200" />
-
-          <h3 className="font-bold text-xs uppercase text-primary-900 mb-2 px-2">
             Account
           </h3>
           <NavButton
@@ -113,6 +91,12 @@ export function UserProfileSidebar({ activePage = "dashboard" }: UserProfileSide
             label="Profile"
             href="/user/profile"
             active={activePage === "profile"}
+          />
+          <NavButton
+            icon={<LayoutDashboard size={16} />}
+            label="Dashboard"
+            href="/user/dashboard"
+            active={activePage === "dashboard"}
           />
           <NavButton
             icon={<Bell size={16} />}
