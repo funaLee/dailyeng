@@ -4,6 +4,7 @@ import { Nunito } from "next/font/google";
 import { KittyTutor } from "@/components/layout/kitty-tutor";
 import { SearchCommand } from "@/components/layout/search-command";
 import { ConditionalLayout } from "@/components/layout/conditional-layout";
+import { SessionProvider } from "@/components/providers/session-provider";
 import "@/app/globals.css";
 import { Suspense } from "react";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -27,22 +28,28 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${nunito.className} bg-background text-foreground`} suppressHydrationWarning>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Suspense fallback={<div>Loading...</div>}>
-            <ConditionalLayout>
-              <main className="min-h-screen">{children}</main>
-            </ConditionalLayout>
-            <KittyTutor />
-            <SearchCommand />
-          </Suspense>
-        </ThemeProvider>
+      <body
+        className={`${nunito.className} bg-background text-foreground`}
+        suppressHydrationWarning
+      >
+        <SessionProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <Suspense fallback={<div>Loading...</div>}>
+              <ConditionalLayout>
+                <main className="min-h-screen">{children}</main>
+              </ConditionalLayout>
+              <KittyTutor />
+              <SearchCommand />
+            </Suspense>
+          </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   );
 }
+

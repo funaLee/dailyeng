@@ -2,17 +2,27 @@
 
 import type React from "react"
 
-import { useAppStore } from "@/lib/store"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import Link from "next/link"
-import { Lock, LogIn, UserPlus, BookOpen, Mic2, Brain, NotebookPen, LayoutDashboard, GraduationCap } from "lucide-react"
+import { useSession } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import Link from "next/link";
+import {
+  Lock,
+  LogIn,
+  UserPlus,
+  BookOpen,
+  Mic2,
+  Brain,
+  NotebookPen,
+  LayoutDashboard,
+  GraduationCap,
+} from "lucide-react";
 
 interface ProtectedRouteProps {
-  children: React.ReactNode
-  pageName?: string
-  pageDescription?: string
-  pageIcon?: React.ReactNode
+  children: React.ReactNode;
+  pageName?: string;
+  pageDescription?: string;
+  pageIcon?: React.ReactNode;
 }
 
 export function ProtectedRoute({
@@ -21,7 +31,8 @@ export function ProtectedRoute({
   pageDescription = "Sign in to access all features and track your learning progress.",
   pageIcon,
 }: ProtectedRouteProps) {
-  const { isAuthenticated } = useAppStore()
+  const { data: session, status } = useSession();
+  const isAuthenticated = status === "authenticated" && !!session?.user;
 
   if (!isAuthenticated) {
     return (
@@ -33,14 +44,18 @@ export function ProtectedRoute({
           </div>
 
           {/* Title */}
-          <h1 className="text-2xl font-bold text-foreground mb-2">Access {pageName}</h1>
+          <h1 className="text-2xl font-bold text-foreground mb-2">
+            Access {pageName}
+          </h1>
 
           {/* Description */}
           <p className="text-muted-foreground mb-8">{pageDescription}</p>
 
           {/* Features list */}
           <div className="bg-primary-50 rounded-xl p-4 mb-8">
-            <p className="text-sm font-medium text-foreground mb-3">With an account, you can:</p>
+            <p className="text-sm font-medium text-foreground mb-3">
+              With an account, you can:
+            </p>
             <ul className="text-sm text-muted-foreground space-y-2 text-left">
               <li className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-primary-500" />
@@ -63,8 +78,14 @@ export function ProtectedRoute({
 
           {/* Buttons */}
           <div className="flex flex-col sm:flex-row gap-3">
-            <Button asChild className="flex-1 h-12 bg-primary-500 hover:bg-primary-600 text-white font-semibold">
-              <Link href="/auth/signin" className="flex items-center justify-center gap-2">
+            <Button
+              asChild
+              className="flex-1 h-12 bg-primary-500 hover:bg-primary-600 text-white font-semibold"
+            >
+              <Link
+                href="/auth/signin"
+                className="flex items-center justify-center gap-2"
+              >
                 <LogIn className="w-4 h-4" />
                 Sign In
               </Link>
@@ -74,7 +95,10 @@ export function ProtectedRoute({
               variant="outline"
               className="flex-1 h-12 border-primary-200 hover:bg-primary-50 font-semibold bg-transparent"
             >
-              <Link href="/auth/signup" className="flex items-center justify-center gap-2">
+              <Link
+                href="/auth/signup"
+                className="flex items-center justify-center gap-2"
+              >
                 <UserPlus className="w-4 h-4" />
                 Sign Up
               </Link>
@@ -84,16 +108,19 @@ export function ProtectedRoute({
           {/* Footer link */}
           <p className="mt-6 text-sm text-muted-foreground">
             Just browsing?{" "}
-            <Link href="/" className="text-primary-500 hover:underline font-medium">
+            <Link
+              href="/"
+              className="text-primary-500 hover:underline font-medium"
+            >
               Return to Home
             </Link>
           </p>
         </Card>
       </div>
-    )
+    );
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }
 
 // Export common page icons for convenience

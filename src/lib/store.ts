@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import type { ProfileStats } from "@/types";
-import { persistUser, clearUser } from "@/lib/auth";
 import type { SRSCard } from "@/lib/srs";
 
 interface User {
@@ -11,7 +10,8 @@ interface User {
 }
 
 interface AppStore {
-  // Auth
+  // Auth - Note: Auth.js manages session via cookies automatically
+  // These are kept for UI state sync only
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -47,12 +47,12 @@ export const useAppStore = create<AppStore>((set) => ({
   error: null,
 
   login: (user) => {
-    persistUser(user);
+    // Auth.js manages session via cookies - this just updates UI state
     set({ user, isAuthenticated: true, error: null });
   },
 
   logout: () => {
-    clearUser();
+    // Auth.js handles signout via /api/auth/signout - this just clears UI state
     set({ user: null, isAuthenticated: false, stats: null });
   },
 

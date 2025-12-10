@@ -2,10 +2,9 @@
 
 import type React from "react"
 
-import { useState } from "react"
-import { useAppStore } from "@/lib/store"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   Check,
   ChevronRight,
@@ -32,55 +31,55 @@ import {
   Star,
   Gift,
   Crown,
-} from "lucide-react"
-import Link from "next/link"
-import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts"
-import Image from "next/image"
-import { Badge } from "@/components/ui/badge"
-import { UserProfileSidebar } from "@/components/layout/user-profile-sidebar"
-import { ProtectedRoute, PageIcons } from "@/components/auth/protected-route"
+} from "lucide-react";
+import Link from "next/link";
+import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import Image from "next/image";
+import { Badge } from "@/components/ui/badge";
+import { UserProfileSidebar } from "@/components/layout/user-profile-sidebar";
+import { ProtectedRoute, PageIcons } from "@/components/auth/protected-route";
 
 interface Mission {
-  id: string
-  title: string
-  points: number
-  completed: boolean
+  id: string;
+  title: string;
+  points: number;
+  completed: boolean;
 }
 
 interface LeaderboardUser {
-  rank: number
-  name: string
-  xp: string
-  avatar: string
-  streak: number
-  isCurrentUser?: boolean
+  rank: number;
+  name: string;
+  xp: string;
+  avatar: string;
+  streak: number;
+  isCurrentUser?: boolean;
 }
 
 interface BadgeItem {
-  id: number
-  name: string
-  description: string
-  image: string
-  earned: boolean
+  id: number;
+  name: string;
+  description: string;
+  image: string;
+  earned: boolean;
 }
 
 interface ShopItem {
-  id: number
-  name: string
-  price: number
-  icon: string
-  image: string
-  description: string
-  category: string
-  status: string
+  id: number;
+  name: string;
+  price: number;
+  icon: string;
+  image: string;
+  description: string;
+  category: string;
+  status: string;
 }
 
 interface DashboardPageClientProps {
-  missions: Mission[]
-  leaderboardData: LeaderboardUser[]
-  badges: BadgeItem[]
-  shopItems: ShopItem[]
-  activityData: Record<string, number>
+  missions: Mission[];
+  leaderboardData: LeaderboardUser[];
+  badges: BadgeItem[];
+  shopItems: ShopItem[];
+  activityData: Record<string, number>;
 }
 
 export default function DashboardPageClient({
@@ -90,56 +89,68 @@ export default function DashboardPageClient({
   shopItems,
   activityData,
 }: DashboardPageClientProps) {
-  const { user, isAuthenticated } = useAppStore()
-  const [activeMissionTab, setActiveMissionTab] = useState<"today" | "weekly" | "monthly">("today")
-  const [completedMissions, setCompletedMissions] = useState<string[]>([])
-  const [leaderboardTab, setLeaderboardTab] = useState<"friends" | "global">("friends")
-  const [isGiftClaimed, setIsGiftClaimed] = useState(false)
-  const [currentBadgeIndex, setCurrentBadgeIndex] = useState(0)
-  const [selectedShopItem, setSelectedShopItem] = useState<ShopItem | null>(null)
-  const [isShopDialogOpen, setIsShopDialogOpen] = useState(false)
-  const [animatingMission, setAnimatingMission] = useState<string | null>(null)
-  const [showConfetti, setShowConfetti] = useState(false)
+  // Auth is handled by ProtectedRoute wrapper - no need for Zustand auth state
+  const [activeMissionTab, setActiveMissionTab] = useState<
+    "today" | "weekly" | "monthly"
+  >("today");
+  const [completedMissions, setCompletedMissions] = useState<string[]>([]);
+  const [leaderboardTab, setLeaderboardTab] = useState<"friends" | "global">(
+    "friends"
+  );
+  const [isGiftClaimed, setIsGiftClaimed] = useState(false);
+  const [currentBadgeIndex, setCurrentBadgeIndex] = useState(0);
+  const [selectedShopItem, setSelectedShopItem] = useState<ShopItem | null>(
+    null
+  );
+  const [isShopDialogOpen, setIsShopDialogOpen] = useState(false);
+  const [animatingMission, setAnimatingMission] = useState<string | null>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   const toggleMission = (id: string) => {
-    setAnimatingMission(id)
+    setAnimatingMission(id);
     setTimeout(() => {
-      setCompletedMissions((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]))
-      setAnimatingMission(null)
-    }, 300)
-  }
+      setCompletedMissions((prev) =>
+        prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+      );
+      setAnimatingMission(null);
+    }, 300);
+  };
 
   // Calculate Progress
-  const totalMissions = missions.length
-  const completedCount = missions.filter((m) => m.completed || completedMissions.includes(m.id)).length
-  const completionPercentage = Math.round((completedCount / totalMissions) * 100)
+  const totalMissions = missions.length;
+  const completedCount = missions.filter(
+    (m) => m.completed || completedMissions.includes(m.id)
+  ).length;
+  const completionPercentage = Math.round(
+    (completedCount / totalMissions) * 100
+  );
 
   // Chart Data
   const pieData = [
     { name: "Completed", value: completionPercentage },
     { name: "Remaining", value: 100 - completionPercentage },
-  ]
+  ];
 
   const handleClaimGift = () => {
-    if (completionPercentage < 100) return
-    setShowConfetti(true)
-    setTimeout(() => setShowConfetti(false), 3000)
-    setIsGiftClaimed(true)
-  }
+    if (completionPercentage < 100) return;
+    setShowConfetti(true);
+    setTimeout(() => setShowConfetti(false), 3000);
+    setIsGiftClaimed(true);
+  };
 
   const nextBadge = () => {
-    setCurrentBadgeIndex((prev) => (prev + 1) % badges.length)
-  }
+    setCurrentBadgeIndex((prev) => (prev + 1) % badges.length);
+  };
 
   const prevBadge = () => {
-    setCurrentBadgeIndex((prev) => (prev - 1 + badges.length) % badges.length)
-  }
+    setCurrentBadgeIndex((prev) => (prev - 1 + badges.length) % badges.length);
+  };
 
   const getVisibleBadges = () => {
-    const prev = (currentBadgeIndex - 1 + badges.length) % badges.length
-    const next = (currentBadgeIndex + 1) % badges.length
-    return [badges[prev], badges[currentBadgeIndex], badges[next]]
-  }
+    const prev = (currentBadgeIndex - 1 + badges.length) % badges.length;
+    const next = (currentBadgeIndex + 1) % badges.length;
+    return [badges[prev], badges[currentBadgeIndex], badges[next]];
+  };
 
   return (
     <ProtectedRoute
@@ -162,9 +173,13 @@ export default function DashboardPageClient({
             >
               <div
                 className={`w-3 h-3 ${
-                  ["bg-primary-400", "bg-secondary-400", "bg-accent-400", "bg-yellow-400", "bg-pink-400"][
-                    Math.floor(Math.random() * 5)
-                  ]
+                  [
+                    "bg-primary-400",
+                    "bg-secondary-400",
+                    "bg-accent-400",
+                    "bg-yellow-400",
+                    "bg-pink-400",
+                  ][Math.floor(Math.random() * 5)]
                 } rounded-sm transform rotate-45`}
               />
             </div>
@@ -256,19 +271,32 @@ export default function DashboardPageClient({
               <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-primary-600 text-sm font-medium">Good morning</span>
-                    <Sparkles size={14} className="text-primary-600 animate-pulse" />
+                    <span className="text-primary-600 text-sm font-medium">
+                      Good morning
+                    </span>
+                    <Sparkles
+                      size={14}
+                      className="text-primary-600 animate-pulse"
+                    />
                   </div>
-                  <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-primary-800">Welcome back, Truc!</h1>
+                  <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-primary-800">
+                    Welcome back, Truc!
+                  </h1>
                   <p className="text-primary-600 text-sm max-w-md">
-                    You're on a 3-day streak! Keep up the great work and complete today's missions.
+                    You're on a 3-day streak! Keep up the great work and
+                    complete today's missions.
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="text-center bg-white/20 backdrop-blur-sm rounded-xl px-5 py-3 border border-white/20">
-                    <p className="text-xs font-medium text-primary-600 uppercase tracking-wide">Current Level</p>
+                    <p className="text-xs font-medium text-primary-600 uppercase tracking-wide">
+                      Current Level
+                    </p>
                     <div className="text-3xl font-black mt-1 text-secondary-500">
-                      A2 <span className="text-lg font-normal text-primary-700">/ B1</span>
+                      A2{" "}
+                      <span className="text-lg font-normal text-primary-700">
+                        / B1
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -325,8 +353,12 @@ export default function DashboardPageClient({
                         <Target className="text-primary-600" size={20} />
                       </div>
                       <div>
-                        <h2 className="font-bold text-slate-800">Daily Missions</h2>
-                        <p className="text-xs text-slate-500">Complete all to claim rewards</p>
+                        <h2 className="font-bold text-slate-800">
+                          Daily Missions
+                        </h2>
+                        <p className="text-xs text-slate-500">
+                          Complete all to claim rewards
+                        </p>
                       </div>
                     </div>
                     <div className="bg-gradient-to-r from-primary-500 to-primary-600 text-white text-xs font-bold px-4 py-2 rounded-full flex items-center gap-2 shadow-md">
@@ -338,7 +370,9 @@ export default function DashboardPageClient({
                       {["Today", "Weekly", "Monthly"].map((tab) => (
                         <button
                           key={tab}
-                          onClick={() => setActiveMissionTab(tab.toLowerCase() as any)}
+                          onClick={() =>
+                            setActiveMissionTab(tab.toLowerCase() as any)
+                          }
                           className={`flex-1 py-3.5 text-sm font-semibold border-b-2 transition-all ${
                             activeMissionTab === tab.toLowerCase()
                               ? "border-primary-600 text-primary-600 bg-primary-50/50"
@@ -356,9 +390,12 @@ export default function DashboardPageClient({
                           key={mission.id}
                           onClick={() => toggleMission(mission.id)}
                           className={`group flex items-center gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer transform ${
-                            animatingMission === mission.id ? "scale-95 opacity-70" : "scale-100"
+                            animatingMission === mission.id
+                              ? "scale-95 opacity-70"
+                              : "scale-100"
                           } ${
-                            completedMissions.includes(mission.id) || mission.completed
+                            completedMissions.includes(mission.id) ||
+                            mission.completed
                               ? "bg-gradient-to-r from-primary-50 to-accent-50/30 border-primary-200"
                               : "bg-white border-slate-100 hover:border-primary-300 hover:shadow-md hover:-translate-y-0.5"
                           }`}
@@ -366,7 +403,8 @@ export default function DashboardPageClient({
                         >
                           <div
                             className={`w-7 h-7 rounded-full flex items-center justify-center border-2 transition-all ${
-                              completedMissions.includes(mission.id) || mission.completed
+                              completedMissions.includes(mission.id) ||
+                              mission.completed
                                 ? "bg-gradient-to-br from-primary-500 to-primary-600 border-primary-500 text-white shadow-md"
                                 : "border-slate-300 text-transparent group-hover:border-primary-400 group-hover:bg-primary-50"
                             }`}
@@ -376,7 +414,8 @@ export default function DashboardPageClient({
                           <div className="flex-1">
                             <p
                               className={`text-sm font-semibold ${
-                                completedMissions.includes(mission.id) || mission.completed
+                                completedMissions.includes(mission.id) ||
+                                mission.completed
                                   ? "text-slate-400 line-through"
                                   : "text-slate-700"
                               }`}
@@ -386,7 +425,8 @@ export default function DashboardPageClient({
                           </div>
                           <div
                             className={`text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 ${
-                              completedMissions.includes(mission.id) || mission.completed
+                              completedMissions.includes(mission.id) ||
+                              mission.completed
                                 ? "bg-accent-100 text-accent-600"
                                 : "bg-gradient-to-r from-orange-100 to-yellow-100 text-orange-600"
                             }`}
@@ -407,8 +447,12 @@ export default function DashboardPageClient({
                         <Award className="text-yellow-600" size={20} />
                       </div>
                       <div>
-                        <h3 className="font-bold text-lg text-slate-800">Rewards & Badges</h3>
-                        <p className="text-xs text-slate-500">Collect achievements as you learn</p>
+                        <h3 className="font-bold text-lg text-slate-800">
+                          Rewards & Badges
+                        </h3>
+                        <p className="text-xs text-slate-500">
+                          Collect achievements as you learn
+                        </p>
                       </div>
                     </div>
                     <div className="flex flex-col md:flex-row items-center gap-8">
@@ -428,9 +472,16 @@ export default function DashboardPageClient({
                           </div>
                         </div>
                         <p className="text-sm font-medium text-slate-600 mt-4">
-                          <span className="font-bold text-primary-600">120</span> reward points
+                          <span className="font-bold text-primary-600">
+                            120
+                          </span>{" "}
+                          reward points
                         </p>
-                        <Button variant="outline" size="sm" className="mt-3 text-xs bg-transparent">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-3 text-xs bg-transparent"
+                        >
                           Redeem Points
                         </Button>
                       </div>
@@ -457,7 +508,9 @@ export default function DashboardPageClient({
                               >
                                 <div
                                   className={`relative w-full h-full rounded-xl overflow-hidden shadow-xl border-2 ${
-                                    index === 1 ? "border-primary-300" : "border-slate-200"
+                                    index === 1
+                                      ? "border-primary-300"
+                                      : "border-slate-200"
                                   }`}
                                 >
                                   <Image
@@ -474,7 +527,9 @@ export default function DashboardPageClient({
                                   )}
                                   {!badge.earned && (
                                     <div className="absolute inset-0 bg-slate-900/50 flex items-center justify-center">
-                                      <div className="text-white/80 text-xs font-medium">Locked</div>
+                                      <div className="text-white/80 text-xs font-medium">
+                                        Locked
+                                      </div>
                                     </div>
                                   )}
                                 </div>
@@ -486,18 +541,27 @@ export default function DashboardPageClient({
                             onClick={nextBadge}
                             className="absolute right-0 z-10 p-2.5 rounded-full bg-white shadow-md hover:bg-slate-50 hover:shadow-xl transition-all border border-slate-100"
                           >
-                            <ChevronRight className="text-slate-600" size={18} />
+                            <ChevronRight
+                              className="text-slate-600"
+                              size={18}
+                            />
                           </button>
                         </div>
                         <div className="text-center mt-4">
-                          <p className="text-sm font-bold text-slate-800">{badges[currentBadgeIndex].name}</p>
-                          <p className="text-xs text-slate-500 mt-1">{badges[currentBadgeIndex].description}</p>
+                          <p className="text-sm font-bold text-slate-800">
+                            {badges[currentBadgeIndex].name}
+                          </p>
+                          <p className="text-xs text-slate-500 mt-1">
+                            {badges[currentBadgeIndex].description}
+                          </p>
                           <div className="flex justify-center gap-1 mt-3">
                             {badges.map((_, i) => (
                               <div
                                 key={i}
                                 className={`w-2 h-2 rounded-full transition-all ${
-                                  i === currentBadgeIndex ? "bg-primary-500 w-4" : "bg-slate-200"
+                                  i === currentBadgeIndex
+                                    ? "bg-primary-500 w-4"
+                                    : "bg-slate-200"
                                 }`}
                               />
                             ))}
@@ -514,11 +578,18 @@ export default function DashboardPageClient({
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-gradient-to-br from-secondary-100 to-accent-100 rounded-xl">
-                          <ShoppingCart className="text-secondary-600" size={20} />
+                          <ShoppingCart
+                            className="text-secondary-600"
+                            size={20}
+                          />
                         </div>
                         <div>
-                          <h3 className="font-bold text-lg text-slate-800">Reward Shop</h3>
-                          <p className="text-xs text-slate-500">Spend your points on power-ups</p>
+                          <h3 className="font-bold text-lg text-slate-800">
+                            Reward Shop
+                          </h3>
+                          <p className="text-xs text-slate-500">
+                            Spend your points on power-ups
+                          </p>
                         </div>
                       </div>
                       <div className="bg-gradient-to-r from-primary-500 to-secondary-500 text-white px-4 py-2 rounded-xl text-sm font-bold shadow-md flex items-center gap-2">
@@ -543,23 +614,37 @@ export default function DashboardPageClient({
                               className="object-cover group-hover:scale-110 transition-transform duration-500"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                            <div className="absolute bottom-2 left-2 text-2xl drop-shadow-md">{item.icon}</div>
+                            <div className="absolute bottom-2 left-2 text-2xl drop-shadow-md">
+                              {item.icon}
+                            </div>
                           </div>
                           <div className="text-left relative z-10">
                             <h4 className="font-bold text-sm text-slate-800 mb-1 group-hover:text-primary-600 transition-colors">
                               {item.name}
                             </h4>
-                            <p className="text-xs text-slate-500 mb-2 line-clamp-2">{item.description}</p>
+                            <p className="text-xs text-slate-500 mb-2 line-clamp-2">
+                              {item.description}
+                            </p>
                             <div className="flex items-center justify-between">
                               <span className="text-primary-600 font-bold text-sm flex items-center gap-1">
                                 <Star size={12} className="text-yellow-500" />
                                 {item.price} pts
                               </span>
                               <Badge
-                                variant={item.status === "active" ? "default" : "outline"}
-                                className={item.status === "active" ? "bg-accent-500 text-white" : ""}
+                                variant={
+                                  item.status === "active"
+                                    ? "default"
+                                    : "outline"
+                                }
+                                className={
+                                  item.status === "active"
+                                    ? "bg-accent-500 text-white"
+                                    : ""
+                                }
                               >
-                                {item.status === "active" ? "Active" : item.status}
+                                {item.status === "active"
+                                  ? "Active"
+                                  : item.status}
                               </Badge>
                             </div>
                           </div>
@@ -573,7 +658,10 @@ export default function DashboardPageClient({
                         className="w-full text-primary-600 border-primary-200 hover:bg-primary-50 hover:border-primary-400 font-semibold bg-white group"
                       >
                         View All Items
-                        <ChevronRight size={16} className="ml-2 group-hover:translate-x-1 transition-transform" />
+                        <ChevronRight
+                          size={16}
+                          className="ml-2 group-hover:translate-x-1 transition-transform"
+                        />
                       </Button>
                     </Link>
                   </div>
@@ -588,7 +676,9 @@ export default function DashboardPageClient({
                       <div className="p-1.5 bg-primary-100 rounded-lg">
                         <Target size={16} className="text-primary-600" />
                       </div>
-                      <h3 className="font-bold text-slate-800">Today's Progress</h3>
+                      <h3 className="font-bold text-slate-800">
+                        Today's Progress
+                      </h3>
                     </div>
                     <div className="relative w-44 h-44 mb-4">
                       <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary-100 to-secondary-100 animate-pulse opacity-30" />
@@ -603,13 +693,28 @@ export default function DashboardPageClient({
                             paddingAngle={3}
                             dataKey="value"
                           >
-                            <Cell key="completed" fill="url(#progressGradient)" />
+                            <Cell
+                              key="completed"
+                              fill="url(#progressGradient)"
+                            />
                             <Cell key="remaining" fill="#E2E8F0" />
                           </Pie>
                           <defs>
-                            <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                              <stop offset="0%" stopColor="var(--primary-400)" />
-                              <stop offset="100%" stopColor="var(--primary-600)" />
+                            <linearGradient
+                              id="progressGradient"
+                              x1="0%"
+                              y1="0%"
+                              x2="100%"
+                              y2="100%"
+                            >
+                              <stop
+                                offset="0%"
+                                stopColor="var(--primary-400)"
+                              />
+                              <stop
+                                offset="100%"
+                                stopColor="var(--primary-600)"
+                              />
                             </linearGradient>
                           </defs>
                         </PieChart>
@@ -618,7 +723,9 @@ export default function DashboardPageClient({
                         <span className="text-4xl font-black bg-gradient-to-br from-primary-600 to-secondary-600 bg-clip-text text-transparent">
                           {completionPercentage}%
                         </span>
-                        <span className="text-xs text-slate-500 font-medium">Complete</span>
+                        <span className="text-xs text-slate-500 font-medium">
+                          Complete
+                        </span>
                       </div>
                     </div>
                     <p className="text-sm text-slate-600 mb-4 max-w-xs">
@@ -631,8 +738,8 @@ export default function DashboardPageClient({
                         completionPercentage >= 100 && !isGiftClaimed
                           ? "bg-gradient-to-r from-yellow-400 via-orange-500 to-pink-500 hover:from-yellow-500 hover:via-orange-600 hover:to-pink-600 text-white shadow-md hover:shadow-xl hover:scale-[1.02]"
                           : isGiftClaimed
-                            ? "bg-gradient-to-r from-accent-400 to-accent-600 text-white"
-                            : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                          ? "bg-gradient-to-r from-accent-400 to-accent-600 text-white"
+                          : "bg-slate-100 text-slate-400 cursor-not-allowed"
                       }`}
                       disabled={completionPercentage < 100 || isGiftClaimed}
                       onClick={handleClaimGift}
@@ -659,8 +766,12 @@ export default function DashboardPageClient({
                         <Trophy className="text-yellow-600" size={20} />
                       </div>
                       <div>
-                        <h2 className="font-bold text-slate-800">Leaderboard</h2>
-                        <p className="text-xs text-slate-500">Compete with others</p>
+                        <h2 className="font-bold text-slate-800">
+                          Leaderboard
+                        </h2>
+                        <p className="text-xs text-slate-500">
+                          Compete with others
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -695,10 +806,10 @@ export default function DashboardPageClient({
                               user.rank === 1
                                 ? "bg-gradient-to-br from-yellow-300 to-yellow-500 text-yellow-900"
                                 : user.rank === 2
-                                  ? "bg-gradient-to-br from-gray-200 to-gray-400 text-gray-700"
-                                  : user.rank === 3
-                                    ? "bg-gradient-to-br from-orange-300 to-orange-500 text-orange-900"
-                                    : "bg-slate-100 text-slate-500"
+                                ? "bg-gradient-to-br from-gray-200 to-gray-400 text-gray-700"
+                                : user.rank === 3
+                                ? "bg-gradient-to-br from-orange-300 to-orange-500 text-orange-900"
+                                : "bg-slate-100 text-slate-500"
                             }`}
                           >
                             {user.rank <= 3 ? <Crown size={14} /> : user.rank}
@@ -711,11 +822,17 @@ export default function DashboardPageClient({
                           <div className="flex-1 min-w-0">
                             <p
                               className={`text-sm font-semibold truncate ${
-                                user.isCurrentUser ? "text-primary-700" : "text-slate-700"
+                                user.isCurrentUser
+                                  ? "text-primary-700"
+                                  : "text-slate-700"
                               }`}
                             >
                               {user.name}
-                              {user.isCurrentUser && <span className="ml-1 text-xs text-primary-500">(You)</span>}
+                              {user.isCurrentUser && (
+                                <span className="ml-1 text-xs text-primary-500">
+                                  (You)
+                                </span>
+                              )}
                             </p>
                             <div className="flex items-center gap-1 text-xs text-orange-500">
                               <Flame size={10} />
@@ -723,8 +840,12 @@ export default function DashboardPageClient({
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm font-bold text-slate-800">{user.xp}</p>
-                            <p className="text-[10px] text-slate-500 uppercase">XP</p>
+                            <p className="text-sm font-bold text-slate-800">
+                              {user.xp}
+                            </p>
+                            <p className="text-[10px] text-slate-500 uppercase">
+                              XP
+                            </p>
                           </div>
                         </div>
                       ))}
@@ -737,7 +858,10 @@ export default function DashboardPageClient({
         </div>
       </div>
 
-      <Dialog open={!!selectedShopItem} onOpenChange={() => setSelectedShopItem(null)}>
+      <Dialog
+        open={!!selectedShopItem}
+        onOpenChange={() => setSelectedShopItem(null)}
+      >
         <DialogContent className="sm:max-w-md">
           {selectedShopItem && (
             <>
@@ -746,7 +870,9 @@ export default function DashboardPageClient({
                   <span className="text-2xl">{selectedShopItem.icon}</span>
                   {selectedShopItem.name}
                 </DialogTitle>
-                <DialogDescription className="text-slate-600">{selectedShopItem.description}</DialogDescription>
+                <DialogDescription className="text-slate-600">
+                  {selectedShopItem.description}
+                </DialogDescription>
               </DialogHeader>
               <div className="relative w-full aspect-video rounded-lg overflow-hidden border-2 border-slate-200">
                 <Image
@@ -758,37 +884,54 @@ export default function DashboardPageClient({
               </div>
               <div className="space-y-3">
                 <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                  <span className="text-sm font-medium text-slate-600">Category</span>
-                  <span className="text-sm font-bold text-slate-800">{selectedShopItem.category}</span>
+                  <span className="text-sm font-medium text-slate-600">
+                    Category
+                  </span>
+                  <span className="text-sm font-bold text-slate-800">
+                    {selectedShopItem.category}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-slate-100">
-                  <span className="text-sm font-medium text-slate-600">Price</span>
-                  <span className="text-lg font-bold text-primary-600">{selectedShopItem.price} points</span>
+                  <span className="text-sm font-medium text-slate-600">
+                    Price
+                  </span>
+                  <span className="text-lg font-bold text-primary-600">
+                    {selectedShopItem.price} points
+                  </span>
                 </div>
                 <div className="flex justify-between items-center py-2">
-                  <span className="text-sm font-medium text-slate-600">Status</span>
+                  <span className="text-sm font-medium text-slate-600">
+                    Status
+                  </span>
                   <span
                     className={`text-sm font-bold px-3 py-1 rounded-full ${
                       selectedShopItem.status === "active"
                         ? "bg-green-100 text-green-700"
                         : selectedShopItem.status === "used"
-                          ? "bg-slate-100 text-slate-600"
-                          : "bg-blue-100 text-blue-700"
+                        ? "bg-slate-100 text-slate-600"
+                        : "bg-blue-100 text-blue-700"
                     }`}
                   >
-                    {selectedShopItem.status.charAt(0).toUpperCase() + selectedShopItem.status.slice(1)}
+                    {selectedShopItem.status.charAt(0).toUpperCase() +
+                      selectedShopItem.status.slice(1)}
                   </span>
                 </div>
               </div>
               <DialogFooter className="flex gap-2">
-                <Button variant="outline" onClick={() => setSelectedShopItem(null)} className="flex-1">
+                <Button
+                  variant="outline"
+                  onClick={() => setSelectedShopItem(null)}
+                  className="flex-1"
+                >
                   Close
                 </Button>
                 <Button
                   className="flex-1 bg-primary-600 hover:bg-primary-700 text-white"
                   disabled={selectedShopItem.status !== "unused"}
                 >
-                  {selectedShopItem.status === "unused" ? "Purchase" : "Already Owned"}
+                  {selectedShopItem.status === "unused"
+                    ? "Purchase"
+                    : "Already Owned"}
                 </Button>
               </DialogFooter>
             </>
@@ -803,19 +946,25 @@ export default function DashboardPageClient({
               <ShoppingCart className="text-primary-600" />
               Reward Shop
             </DialogTitle>
-            <DialogDescription>Browse and purchase items with your accumulated points</DialogDescription>
+            <DialogDescription>
+              Browse and purchase items with your accumulated points
+            </DialogDescription>
           </DialogHeader>
           <div className="flex items-center justify-between p-4 bg-primary-50 rounded-lg border border-primary-200 mb-4">
-            <span className="text-sm font-medium text-slate-700">Your Balance</span>
-            <span className="text-2xl font-bold text-primary-600">💎 4300 points</span>
+            <span className="text-sm font-medium text-slate-700">
+              Your Balance
+            </span>
+            <span className="text-2xl font-bold text-primary-600">
+              💎 4300 points
+            </span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {shopItems.map((item) => (
               <button
                 key={item.id}
                 onClick={() => {
-                  setIsShopDialogOpen(false)
-                  setSelectedShopItem(item)
+                  setIsShopDialogOpen(false);
+                  setSelectedShopItem(item);
                 }}
                 className="flex flex-col gap-3 p-4 rounded-xl border-2 border-slate-200 hover:border-primary-400 hover:shadow-md transition-all bg-white group"
               >
@@ -843,7 +992,9 @@ export default function DashboardPageClient({
                   </p>
                   <p className="text-xs text-slate-500 mt-1">{item.category}</p>
                   <div className="flex items-center justify-between mt-2">
-                    <span className="text-lg font-bold text-primary-600">{item.price}</span>
+                    <span className="text-lg font-bold text-primary-600">
+                      {item.price}
+                    </span>
                     <span className="text-xs text-slate-400">points</span>
                   </div>
                 </div>
@@ -869,7 +1020,7 @@ export default function DashboardPageClient({
         }
       `}</style>
     </ProtectedRoute>
-  )
+  );
 }
 
 /* --- Helper Components --- */
