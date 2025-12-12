@@ -351,7 +351,7 @@ export default function SpeakingSessionClient({
         initialTurns.push({
           id: "context-info",
           role: "tutor",
-          text: `📍 *Scenario:* ${result.contextMessage}`,
+          text: `📍SCENARIO: ${result.contextMessage}`,
           timestamp: new Date(),
         });
       }
@@ -916,7 +916,7 @@ export default function SpeakingSessionClient({
                       />
                     </div>
                     <span className="text-sm text-muted-foreground font-medium">
-                      Tutor is thinking...
+                      Thinking...
                     </span>
                   </div>
                 </div>

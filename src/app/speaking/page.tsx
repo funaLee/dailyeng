@@ -56,7 +56,6 @@ const mockScenarios: Scenario[] = [
     sessionsCompleted: 3,
     totalSessions: 10,
     progress: 30,
-    duration: 10,
     isCustom: false,
   },
   {
@@ -70,7 +69,6 @@ const mockScenarios: Scenario[] = [
     sessionsCompleted: 5,
     totalSessions: 10,
     progress: 50,
-    duration: 15,
     isCustom: false,
   },
   {
@@ -84,7 +82,6 @@ const mockScenarios: Scenario[] = [
     sessionsCompleted: 2,
     totalSessions: 10,
     progress: 20,
-    duration: 10,
     isCustom: false,
   },
   {
@@ -98,7 +95,6 @@ const mockScenarios: Scenario[] = [
     sessionsCompleted: 4,
     totalSessions: 10,
     progress: 40,
-    duration: 10,
     isCustom: false,
   },
   {
@@ -112,7 +108,6 @@ const mockScenarios: Scenario[] = [
     sessionsCompleted: 1,
     totalSessions: 10,
     progress: 10,
-    duration: 12,
     isCustom: false,
   },
   {
@@ -126,7 +121,6 @@ const mockScenarios: Scenario[] = [
     sessionsCompleted: 0,
     totalSessions: 10,
     progress: 0,
-    duration: 20,
     isCustom: false,
   },
   {
@@ -140,7 +134,6 @@ const mockScenarios: Scenario[] = [
     sessionsCompleted: 6,
     totalSessions: 10,
     progress: 60,
-    duration: 10,
     isCustom: false,
   },
   {
@@ -154,7 +147,6 @@ const mockScenarios: Scenario[] = [
     sessionsCompleted: 8,
     totalSessions: 10,
     progress: 80,
-    duration: 10,
     isCustom: false,
   },
 ];

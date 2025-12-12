@@ -27,11 +27,32 @@ export interface FeedbackData {
   }[];
 }
 
+// Helper function to provide language guidance based on CEFR level
+function getLevelGuidance(level: string): string {
+  switch (level.toUpperCase()) {
+    case "A1":
+      return "very simple words, short sentences, present tense only, basic vocabulary";
+    case "A2":
+      return "simple vocabulary, short sentences, common phrases, past and future tenses";
+    case "B1":
+      return "everyday vocabulary, moderate sentence length, common idioms, varied tenses";
+    case "B2":
+      return "diverse vocabulary, complex sentences, idioms and expressions, all tenses";
+    case "C1":
+      return "sophisticated vocabulary, nuanced expressions, complex grammar structures";
+    case "C2":
+      return "native-level vocabulary, idiomatic expressions, any grammatical structure";
+    default:
+      return "moderate vocabulary and sentence complexity";
+  }
+}
+
 export interface ScenarioConfig {
   context: string;
   userRole?: string;
   botRole?: string;
   goal?: string;
+  level?: string; // A1, A2, B1, B2, C1, C2
 }
 
 export async function generateSpeakingResponse(
@@ -47,6 +68,13 @@ export async function generateSpeakingResponse(
     ? `You are playing the role of: ${scenario.botRole}`
     : "You are an English tutor";
   const goalDesc = scenario.goal ? `Conversation goal: ${scenario.goal}` : "";
+  const levelDesc = scenario.level
+    ? `LEARNER LEVEL: ${
+        scenario.level
+      } - Adjust your vocabulary and sentence complexity accordingly. For ${
+        scenario.level
+      } learners, use ${getLevelGuidance(scenario.level)}.`
+    : "";
 
   // dynamically create model to include context in system instruction
   const model = genAI.getGenerativeModel({
@@ -58,6 +86,7 @@ export async function generateSpeakingResponse(
         ${botRoleDesc}
         ${userRoleDesc}
         ${goalDesc}
+        ${levelDesc}
         
         Your task:
         1. Stay in character as ${
@@ -71,6 +100,8 @@ export async function generateSpeakingResponse(
         IMPORTANT: Your response should be in character as ${
           scenario.botRole || "the tutor"
         }. Be natural and engaging.
+        
+        CRITICAL: Do NOT use any markdown formatting in your response (no **bold**, *italic*, headers, lists, etc.). Your response must be plain text only.
         
         Output JSON format ONLY:
         {
@@ -137,7 +168,6 @@ export async function generateScenario(topic: string): Promise<{
     level: string;
     context: string;
     image: string;
-    duration: number;
 }> {
     const model = genAI.getGenerativeModel({
         model: "gemini-2.5-flash",
@@ -158,8 +188,7 @@ export async function generateScenario(topic: string): Promise<{
         "goal": "What the user needs to achieve",
         "level": "A1/A2/B1/B2/C1/C2",
         "context": "Detailed context instructions for the AI tutor (you) to play this role",
-        "image": "/learning.png",
-        "duration": 10
+        "image": "/learning.png"
       }
     `;
 
@@ -175,8 +204,7 @@ export async function generateScenario(topic: string): Promise<{
             goal: "Practice conversation",
             level: "B1",
             context: `Roleplay about ${topic}`,
-            image: "/learning.png",
-            duration: 10
+            image: "/learning.png"
         };
     }
 }

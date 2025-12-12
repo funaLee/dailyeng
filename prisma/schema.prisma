@@ -65,6 +65,11 @@ enum NotificationType {
   system
 }
 
+enum HubType {
+  speaking
+  grammar
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -102,6 +107,10 @@ model User {
   userLessonProgresses UserLessonProgress[]
   // [ADDED] Speaking bookmarks
   speakingBookmarks    SpeakingBookmark[]
+  // [ADDED] Vocabulary bookmarks
+  vocabBookmarks       VocabBookmark[]
+  // [ADDED] Grammar bookmarks
+  grammarBookmarks     GrammarBookmark[]
   // [ADDED] Custom speaking scenarios created by user
   customScenarios      SpeakingScenario[]    @relation("UserCustomScenarios")
   dailyMissions        UserDailyMission[]
@@ -142,8 +151,23 @@ model Notification {
   createdAt DateTime         @default(now())
 }
 
+// [ADDED] TopicGroup model for organizing topics by hub type (Speaking/Grammar)
+model TopicGroup {
+  id            String   @id @default(cuid())
+  name          String // e.g. "Daily Life", "Tenses"
+  order         Int      @default(0) // Display order
+  hubType       HubType // speaking or grammar
+  subcategories String[] // List of subcategories
+
+  // Relations
+  speakingScenarios SpeakingScenario[]
+  topics            Topic[]
+
+  @@unique([name, hubType]) // Ensure unique name within each hub
+}
+
 model Topic {
-  id            String  @id @default(cuid())
+  id            String      @id @default(cuid())
   title         String
   subtitle      String?
   description   String
@@ -156,7 +180,10 @@ model Topic {
   // [ADDED] Subcategory for more granular organization
   subcategory   String?
   // [ADDED] Order for sorting topics
-  order         Int     @default(0)
+  order         Int         @default(0)
+  // [ADDED] TopicGroup relation for Grammar hub
+  topicGroupId  String?
+  topicGroup    TopicGroup? @relation(fields: [topicGroupId], references: [id])
 
   vocabItems        VocabItem[]
   grammarNotes      GrammarNote[]
@@ -166,6 +193,9 @@ model Topic {
   speakingScenarios SpeakingScenario[]
   userProgress      UserTopicProgress[]
   lessons           Lesson[]
+  // [ADDED] Bookmark relations
+  vocabBookmarks    VocabBookmark[]
+  grammarBookmarks  GrammarBookmark[]
 }
 
 model UserTopicProgress {
@@ -274,8 +304,6 @@ model SpeakingScenario {
   category    String?
   // [ADDED] Subcategory for specific topics (e.g., "Shopping", "Dining")
   subcategory String?
-  // [ADDED] Estimated duration in minutes
-  duration    Int?
   // [ADDED] Image/thumbnail for the scenario
   image       String?
 
@@ -289,9 +317,12 @@ model SpeakingScenario {
   openingLine String? // AI's first message to start the conversation
 
   // [ADDED] Custom scenario created by user
-  createdById String?
-  createdBy   User?   @relation("UserCustomScenarios", fields: [createdById], references: [id])
-  isCustom    Boolean @default(false)
+  createdById  String?
+  createdBy    User?       @relation("UserCustomScenarios", fields: [createdById], references: [id])
+  isCustom     Boolean     @default(false)
+  // [ADDED] TopicGroup relation for Speaking hub
+  topicGroupId String?
+  topicGroup   TopicGroup? @relation(fields: [topicGroupId], references: [id])
 
   sessions  SpeakingSession[]
   bookmarks SpeakingBookmark[]
@@ -309,6 +340,30 @@ model SpeakingBookmark {
   @@unique([userId, scenarioId])
 }
 
+// [ADDED] Model for bookmarking vocabulary topics
+model VocabBookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topicId   String
+  topic     Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, topicId])
+}
+
+// [ADDED] Model for bookmarking grammar topics
+model GrammarBookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topicId   String
+  topic     Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, topicId])
+}
+
 model SpeakingSession {
   id         String           @id @default(cuid())
   userId     String
@@ -316,6 +371,11 @@ model SpeakingSession {
   scenarioId String
   scenario   SpeakingScenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
   createdAt  DateTime         @default(now())
+
+  // [ADDED] Session tracking for history
+  endedAt      DateTime? // Null if session is still in progress
+  duration     Int? // Total duration in seconds
+  overallScore Int? // Average score across all turns (0-100)
 
   turns SpeakingTurn[]
 }

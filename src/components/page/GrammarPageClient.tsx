@@ -1,11 +1,17 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { ProtectedRoute, PageIcons } from "@/components/auth/protected-route"
-import { Bookmark, Search, X } from "lucide-react"
+import { useState, useEffect, useTransition } from "react";
+import { useSession } from "next-auth/react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { ProtectedRoute, PageIcons } from "@/components/auth/protected-route";
+import { Bookmark, Search, X, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  toggleGrammarBookmark,
+  getGrammarBookmarkIds,
+  getGrammarBookmarks,
+} from "@/actions/bookmark";
 import {
   HubHero,
   TopicGroupsSidebar,
@@ -13,60 +19,126 @@ import {
   TopicCard,
   SubcategoryPills,
   type TopicGroup,
-} from "@/components/hub"
+} from "@/components/hub";
 
 interface GrammarTopic {
-  id: string
-  title: string
-  description: string
-  level: string
-  category: string
-  subcategory: string
-  lessonCount: number
-  estimatedTime: number
-  progress: number
+  id: string;
+  title: string;
+  description: string;
+  level: string;
+  category: string;
+  subcategory: string;
+  lessonCount: number;
+  estimatedTime: number;
+  progress: number;
+}
+
+// Helper to map database Topic to UI GrammarTopic
+function mapDbTopicToGrammarTopic(dbTopic: {
+  id: string;
+  title: string;
+  description: string;
+  level: string;
+  category: string | null;
+  subcategory: string | null;
+  wordCount: number;
+  estimatedTime: number;
+}): GrammarTopic {
+  return {
+    id: dbTopic.id,
+    title: dbTopic.title,
+    description: dbTopic.description,
+    level: dbTopic.level,
+    category: dbTopic.category || "Tenses",
+    subcategory: dbTopic.subcategory || "All",
+    lessonCount: dbTopic.wordCount,
+    estimatedTime: dbTopic.estimatedTime,
+    progress: 0,
+  };
 }
 
 interface CurrentGrammarTopic {
-  id: string
-  title: string
-  subtitle: string
+  id: string;
+  title: string;
+  subtitle: string;
 }
 
 interface GrammarPageClientProps {
-  grammarGroups: TopicGroup[]
-  grammarTopics: GrammarTopic[]
-  currentGrammarTopic: CurrentGrammarTopic
+  grammarGroups: TopicGroup[];
+  grammarTopics: GrammarTopic[];
+  currentGrammarTopic: CurrentGrammarTopic;
+  initialBookmarkIds?: string[];
 }
 
-type TabType = "topics" | "bookmarks"
+type TabType = "topics" | "bookmarks";
 
 export default function GrammarPageClient({
   grammarGroups,
   grammarTopics,
   currentGrammarTopic,
+  initialBookmarkIds = [],
 }: GrammarPageClientProps) {
-  const [searchQuery, setSearchQuery] = useState("")
+  const { data: session } = useSession();
+  const [isPending, startTransition] = useTransition();
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<string>("Tenses");
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>("All");
   const [activeTab, setActiveTab] = useState<TabType>("topics");
-  const [bookmarkedTopics, setBookmarkedTopics] = useState<string[]>([]);
+  const [bookmarkedTopics, setBookmarkedTopics] =
+    useState<string[]>(initialBookmarkIds);
+  const [bookmarkPage, setBookmarkPage] = useState(1);
+  const [bookmarkTotalPages, setBookmarkTotalPages] = useState(1);
+  const [bookmarkedTopicsList, setBookmarkedTopicsList] = useState<
+    GrammarTopic[]
+  >([]);
+  const [bookmarkLoading, setBookmarkLoading] = useState(false);
+  const bookmarksPerPage = 8;
 
+  // Fetch bookmark IDs on mount
   useEffect(() => {
-    const saved = localStorage.getItem("grammar-bookmarks");
-    if (saved) {
-      setBookmarkedTopics(JSON.parse(saved));
+    if (session?.user?.id) {
+      getGrammarBookmarkIds(session.user.id).then(setBookmarkedTopics);
     }
-  }, []);
+  }, [session?.user?.id]);
+
+  // Fetch bookmarked topics for Bookmarks tab
+  useEffect(() => {
+    if (session?.user?.id && activeTab === "bookmarks") {
+      setBookmarkLoading(true);
+      getGrammarBookmarks(session.user.id, bookmarkPage, bookmarksPerPage)
+        .then((result) => {
+          setBookmarkedTopicsList(
+            result.bookmarks.map(mapDbTopicToGrammarTopic)
+          );
+          setBookmarkTotalPages(result.totalPages);
+        })
+        .finally(() => setBookmarkLoading(false));
+    }
+  }, [session?.user?.id, activeTab, bookmarkPage]);
 
   const handleBookmarkToggle = (topicId: string) => {
-    setBookmarkedTopics((prev) => {
-      const newBookmarks = prev.includes(topicId)
+    if (!session?.user?.id) return;
+
+    // Optimistic update
+    setBookmarkedTopics((prev) =>
+      prev.includes(topicId)
         ? prev.filter((id) => id !== topicId)
-        : [...prev, topicId];
-      localStorage.setItem("grammar-bookmarks", JSON.stringify(newBookmarks));
-      return newBookmarks;
+        : [...prev, topicId]
+    );
+
+    startTransition(async () => {
+      await toggleGrammarBookmark(session.user.id, topicId);
+      // Refresh bookmarked topics list if on bookmarks tab
+      if (activeTab === "bookmarks") {
+        const result = await getGrammarBookmarks(
+          session.user.id,
+          bookmarkPage,
+          bookmarksPerPage
+        );
+        setBookmarkedTopicsList(result.bookmarks.map(mapDbTopicToGrammarTopic));
+        setBookmarkTotalPages(result.totalPages);
+      }
     });
   };
 
@@ -103,10 +175,6 @@ export default function GrammarPageClient({
 
     return matchesLevel && matchesGroup && matchesSubcategory;
   });
-
-  const bookmarkedTopicsList = grammarTopics.filter((topic) =>
-    bookmarkedTopics.includes(topic.id)
-  );
 
   const tabs = [
     { id: "topics", label: "All Topics" },
@@ -316,7 +384,86 @@ export default function GrammarPageClient({
                     />
                   ))}
                 </div>
+
+                {/* Pagination */}
+                {bookmarkTotalPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-6">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-9 w-9 p-0 cursor-pointer bg-transparent"
+                      onClick={() => setBookmarkPage((p) => Math.max(1, p - 1))}
+                      disabled={bookmarkPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+
+                    {Array.from(
+                      { length: bookmarkTotalPages },
+                      (_, i) => i + 1
+                    ).map((page) => {
+                      const showPage =
+                        page === 1 ||
+                        page === bookmarkTotalPages ||
+                        Math.abs(page - bookmarkPage) <= 1;
+
+                      const showEllipsis =
+                        (page === 2 && bookmarkPage > 3) ||
+                        (page === bookmarkTotalPages - 1 &&
+                          bookmarkPage < bookmarkTotalPages - 2);
+
+                      if (showEllipsis) {
+                        return (
+                          <span
+                            key={page}
+                            className="px-2 text-muted-foreground"
+                          >
+                            ...
+                          </span>
+                        );
+                      }
+
+                      if (!showPage) return null;
+
+                      return (
+                        <Button
+                          key={page}
+                          variant={
+                            bookmarkPage === page ? "default" : "outline"
+                          }
+                          size="sm"
+                          className="h-9 w-9 p-0 cursor-pointer"
+                          onClick={() => setBookmarkPage(page)}
+                        >
+                          {page}
+                        </Button>
+                      );
+                    })}
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-9 w-9 p-0 cursor-pointer bg-transparent"
+                      onClick={() =>
+                        setBookmarkPage((p) =>
+                          Math.min(bookmarkTotalPages, p + 1)
+                        )
+                      }
+                      disabled={bookmarkPage === bookmarkTotalPages}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
               </>
+            ) : bookmarkLoading ? (
+              <Card className="p-12 rounded-3xl border-[1.4px] border-primary-200 text-center">
+                <div className="animate-pulse space-y-4">
+                  <div className="h-16 w-16 bg-primary-100 rounded-full mx-auto" />
+                  <div className="h-6 w-48 bg-gray-200 rounded mx-auto" />
+                  <div className="h-4 w-64 bg-gray-100 rounded mx-auto" />
+                </div>
+              </Card>
             ) : (
               <Card className="p-12 rounded-3xl border-[1.4px] border-primary-200 text-center">
                 <Bookmark className="h-16 w-16 text-primary-200 mx-auto mb-4" />
