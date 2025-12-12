@@ -1,10 +1,33 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { useState, useEffect, useTransition } from "react";
+import { useSession } from "next-auth/react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import type { Topic, VocabItem } from "@/types";
+
+// Helper to map database Topic to UI Topic type
+function mapDbTopicToTopic(dbTopic: {
+  id: string;
+  title: string;
+  description: string;
+  level: string;
+  wordCount: number;
+  estimatedTime: number;
+  thumbnail: string | null;
+}): Topic {
+  return {
+    id: dbTopic.id,
+    title: dbTopic.title,
+    description: dbTopic.description,
+    level: dbTopic.level as "A1" | "A2" | "B1" | "B2",
+    wordCount: dbTopic.wordCount,
+    estimatedTime: dbTopic.estimatedTime,
+    thumbnail: dbTopic.thumbnail || undefined,
+    progress: 0,
+  };
+}
 import {
   Edit,
   Bookmark,
@@ -34,6 +57,11 @@ import {
   type Course,
 } from "@/components/hub";
 import { VocabMindmap } from "@/components/hub/vocab-mindmap";
+import {
+  toggleVocabBookmark,
+  getVocabBookmarkIds,
+  getVocabBookmarks,
+} from "@/actions/bookmark";
 
 interface DictionaryWord {
   id: string;
@@ -70,6 +98,7 @@ interface VocabPageClientProps {
   currentTopic: CurrentTopic;
   dictionaryWords: DictionaryWord[];
   mindmapData: MindmapTopicGroup[];
+  initialBookmarkIds?: string[];
 }
 
 type TabType = "courses" | "bookmarks" | "mindmap" | "statistic";
@@ -80,19 +109,28 @@ export default function VocabPageClient({
   currentTopic,
   dictionaryWords,
   mindmapData,
+  initialBookmarkIds = [],
 }: VocabPageClientProps) {
+  const { data: session } = useSession();
+  const [isPending, startTransition] = useTransition();
   const [topics, setTopics] = useState<Topic[]>(initialTopics);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<TabType>("courses");
   const [selectedCourse, setSelectedCourse] = useState<string>("ielts-7");
-  const [bookmarkedTopics, setBookmarkedTopics] = useState<string[]>([]);
+  const [bookmarkedTopics, setBookmarkedTopics] =
+    useState<string[]>(initialBookmarkIds);
   const [dictionarySearch, setDictionarySearch] = useState("");
   const [selectedAlphabet, setSelectedAlphabet] = useState<string | null>(null);
   const [selectedDictLevels, setSelectedDictLevels] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [bookmarkPage, setBookmarkPage] = useState(1);
+  const [bookmarkTotalPages, setBookmarkTotalPages] = useState(1);
+  const [bookmarkedTopicsList, setBookmarkedTopicsList] = useState<Topic[]>([]);
+  const [bookmarkLoading, setBookmarkLoading] = useState(false);
   const itemsPerPage = 10;
+  const bookmarksPerPage = 8;
 
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
   const dictLevels = ["A1", "A2", "B1", "B2", "C1", "C2"];
@@ -115,20 +153,48 @@ export default function VocabPageClient({
     currentPage * itemsPerPage
   );
 
+  // Fetch bookmark IDs on mount
   useEffect(() => {
-    const saved = localStorage.getItem("vocab-bookmarks");
-    if (saved) {
-      setBookmarkedTopics(JSON.parse(saved));
+    if (session?.user?.id) {
+      getVocabBookmarkIds(session.user.id).then(setBookmarkedTopics);
     }
-  }, []);
+  }, [session?.user?.id]);
+
+  // Fetch bookmarked topics for Bookmarks tab
+  useEffect(() => {
+    if (session?.user?.id && activeTab === "bookmarks") {
+      setBookmarkLoading(true);
+      getVocabBookmarks(session.user.id, bookmarkPage, bookmarksPerPage)
+        .then((result) => {
+          setBookmarkedTopicsList(result.bookmarks.map(mapDbTopicToTopic));
+          setBookmarkTotalPages(result.totalPages);
+        })
+        .finally(() => setBookmarkLoading(false));
+    }
+  }, [session?.user?.id, activeTab, bookmarkPage]);
 
   const handleBookmarkToggle = (topicId: string) => {
-    setBookmarkedTopics((prev) => {
-      const newBookmarks = prev.includes(topicId)
+    if (!session?.user?.id) return;
+
+    // Optimistic update
+    setBookmarkedTopics((prev) =>
+      prev.includes(topicId)
         ? prev.filter((id) => id !== topicId)
-        : [...prev, topicId];
-      localStorage.setItem("vocab-bookmarks", JSON.stringify(newBookmarks));
-      return newBookmarks;
+        : [...prev, topicId]
+    );
+
+    startTransition(async () => {
+      await toggleVocabBookmark(session.user.id, topicId);
+      // Refresh bookmarked topics list if on bookmarks tab
+      if (activeTab === "bookmarks") {
+        const result = await getVocabBookmarks(
+          session.user.id,
+          bookmarkPage,
+          bookmarksPerPage
+        );
+        setBookmarkedTopicsList(result.bookmarks.map(mapDbTopicToTopic));
+        setBookmarkTotalPages(result.totalPages);
+      }
     });
   };
 
@@ -140,10 +206,6 @@ export default function VocabPageClient({
       selectedLevels.length === 0 || selectedLevels.includes(topic.level);
     return matchesSearch && matchesLevel;
   });
-
-  const bookmarkedTopicsList = topics.filter((topic) =>
-    bookmarkedTopics.includes(topic.id)
-  );
 
   const toggleLevel = (level: string) => {
     setSelectedLevels((prev) =>
@@ -307,7 +369,88 @@ export default function VocabPageClient({
                       />
                     ))}
                   </div>
+
+                  {/* Pagination */}
+                  {bookmarkTotalPages > 1 && (
+                    <div className="flex items-center justify-center gap-2 mt-6">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-9 w-9 p-0 cursor-pointer bg-transparent"
+                        onClick={() =>
+                          setBookmarkPage((p) => Math.max(1, p - 1))
+                        }
+                        disabled={bookmarkPage === 1}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+
+                      {Array.from(
+                        { length: bookmarkTotalPages },
+                        (_, i) => i + 1
+                      ).map((page) => {
+                        const showPage =
+                          page === 1 ||
+                          page === bookmarkTotalPages ||
+                          Math.abs(page - bookmarkPage) <= 1;
+
+                        const showEllipsis =
+                          (page === 2 && bookmarkPage > 3) ||
+                          (page === bookmarkTotalPages - 1 &&
+                            bookmarkPage < bookmarkTotalPages - 2);
+
+                        if (showEllipsis) {
+                          return (
+                            <span
+                              key={page}
+                              className="px-2 text-muted-foreground"
+                            >
+                              ...
+                            </span>
+                          );
+                        }
+
+                        if (!showPage) return null;
+
+                        return (
+                          <Button
+                            key={page}
+                            variant={
+                              bookmarkPage === page ? "default" : "outline"
+                            }
+                            size="sm"
+                            className="h-9 w-9 p-0 cursor-pointer"
+                            onClick={() => setBookmarkPage(page)}
+                          >
+                            {page}
+                          </Button>
+                        );
+                      })}
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-9 w-9 p-0 cursor-pointer bg-transparent"
+                        onClick={() =>
+                          setBookmarkPage((p) =>
+                            Math.min(bookmarkTotalPages, p + 1)
+                          )
+                        }
+                        disabled={bookmarkPage === bookmarkTotalPages}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </>
+              ) : bookmarkLoading ? (
+                <Card className="p-12 rounded-3xl border-[1.4px] border-primary-200 text-center">
+                  <div className="animate-pulse space-y-4">
+                    <div className="h-16 w-16 bg-primary-100 rounded-full mx-auto" />
+                    <div className="h-6 w-48 bg-gray-200 rounded mx-auto" />
+                    <div className="h-4 w-64 bg-gray-100 rounded mx-auto" />
+                  </div>
+                </Card>
               ) : (
                 <Card className="p-12 rounded-3xl border-[1.4px] border-primary-200 text-center">
                   <Bookmark className="h-16 w-16 text-primary-200 mx-auto mb-4" />
