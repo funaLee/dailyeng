@@ -56,28 +56,61 @@ export async function getSpeakingTopicGroups() {
     }));
 }
 
-// Fetch all Speaking Scenarios with user progress
-export async function getSpeakingScenariosWithProgress(userId?: string) {
-    const scenarios = await prisma.speakingScenario.findMany({
-        where: { 
-            isCustom: false,
-            topicGroupId: { not: null } // Only seeded scenarios
-        },
-        include: {
-            sessions: userId ? {
-                where: { userId },
-                select: { id: true, overallScore: true }
-            } : false,
-        },
-        orderBy: [
-            { category: "asc" },
-            { subcategory: "asc" },
-            { difficulty: "asc" }
-        ],
-    });
+// Fetch all Speaking Scenarios with user progress (with pagination)
+export async function getSpeakingScenariosWithProgress(
+    userId?: string,
+    options?: {
+        page?: number;
+        limit?: number;
+        category?: string;
+        subcategory?: string;
+        levels?: string[];
+    }
+) {
+    const page = options?.page || 1;
+    const limit = options?.limit || 12;
+    const skip = (page - 1) * limit;
+
+    // Build where clause with optional filters
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const where: any = {
+        isCustom: false,
+        topicGroupId: { not: null },
+    };
+
+    if (options?.category) {
+        where.category = options.category.toLowerCase();
+    }
+    if (options?.subcategory && options.subcategory !== "All") {
+        where.subcategory = options.subcategory.toLowerCase();
+    }
+    if (options?.levels && options.levels.length > 0) {
+        where.difficulty = { in: options.levels };
+    }
+
+    const [scenarios, total] = await Promise.all([
+        prisma.speakingScenario.findMany({
+            where,
+            include: {
+                sessions: userId ? {
+                    where: { userId },
+                    select: { id: true, overallScore: true }
+                } : false,
+            },
+            orderBy: [
+                { category: "asc" },
+                { subcategory: "asc" },
+                { difficulty: "asc" }
+            ],
+            skip,
+            take: limit,
+        }),
+        prisma.speakingScenario.count({ where }),
+    ]);
 
     // Transform to UI Scenario format
-    return scenarios.map((s) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const items = scenarios.map((s: any) => ({
         id: s.id,
         title: s.title,
         description: s.description,
@@ -90,9 +123,48 @@ export async function getSpeakingScenariosWithProgress(userId?: string) {
         progress: Array.isArray(s.sessions) ? Math.min(s.sessions.length * 10, 100) : 0,
         isCustom: s.isCustom,
     }));
+
+    return {
+        scenarios: items,
+        total,
+        totalPages: Math.ceil(total / limit),
+        currentPage: page,
+    };
 }
 
-// Fetch a single scenario by ID
+// Search speaking scenarios by title/description
+export async function searchSpeakingScenarios(query: string, userId?: string) {
+    if (!query.trim()) return [];
+    
+    const scenarios = await prisma.speakingScenario.findMany({
+        where: {
+            OR: [
+                { title: { contains: query, mode: 'insensitive' } },
+                { description: { contains: query, mode: 'insensitive' } },
+            ],
+            topicGroupId: { not: null },
+        },
+        take: 50, // Limit search results
+        orderBy: { title: 'asc' },
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return scenarios.map((s: any) => ({
+        id: s.id,
+        title: s.title,
+        description: s.description,
+        category: s.category ? toTitleCase(s.category) : "General",
+        subcategory: s.subcategory ? toTitleCase(s.subcategory) : undefined,
+        level: s.difficulty || "B1",
+        image: s.image || "/learning.png",
+        sessionsCompleted: 0,
+        totalSessions: 10,
+        progress: 0,
+        isCustom: s.isCustom,
+    }));
+}
+
+// Fetch user's speaking session history
 export async function getScenarioById(id: string) {
     const scenario = await prisma.speakingScenario.findUnique({
         where: { id },

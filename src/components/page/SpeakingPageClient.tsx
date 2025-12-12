@@ -29,7 +29,12 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { createCustomScenario } from "@/actions/speaking";
+import {
+  createCustomScenario,
+  getSpeakingScenariosWithProgress,
+  searchSpeakingScenarios,
+  getCustomTopics,
+} from "@/actions/speaking";
 import {
   toggleSpeakingBookmark,
   getSpeakingBookmarkIds,
@@ -101,7 +106,6 @@ export interface HistoryTopicItem {
 
 export interface SpeakingPageClientProps {
   topicGroups: TopicGroup[];
-  scenarios: Scenario[];
   demoCriteria: CriteriaItem[];
   historyGraphData: HistoryGraphItem[];
   historyTopicsData: HistoryTopicItem[];
@@ -111,9 +115,10 @@ export interface SpeakingPageClientProps {
 
 type TabType = "available" | "custom" | "history" | "bookmarks";
 
+const SCENARIOS_PER_PAGE = 12;
+
 export default function SpeakingPageClient({
   topicGroups,
-  scenarios: initialScenarios,
   demoCriteria,
   historyGraphData,
   historyTopicsData,
@@ -123,7 +128,13 @@ export default function SpeakingPageClient({
   const router = useRouter();
   const { data: session } = useSession();
   const [isPending, startTransition] = useTransition();
-  const [scenarios] = useState<Scenario[]>(initialScenarios);
+
+  // Available Topics pagination & loading
+  const [scenarios, setScenarios] = useState<Scenario[]>([]);
+  const [scenarioPage, setScenarioPage] = useState(1);
+  const [scenarioTotalPages, setScenarioTotalPages] = useState(1);
+  const [scenariosLoading, setScenariosLoading] = useState(true);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<string>("Daily Life");
@@ -148,6 +159,46 @@ export default function SpeakingPageClient({
   const [topicPrompt, setTopicPrompt] = useState("");
   const [isCreating, setIsCreating] = useState(false);
 
+  // Search results state
+  const [searchResults, setSearchResults] = useState<Scenario[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+
+  // Custom scenarios state
+  const [customScenarios, setCustomScenarios] = useState<Scenario[]>([]);
+
+  // Fetch scenarios for Available Topics tab with pagination
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    if (activeTab !== "available" || searchQuery.trim().length > 0) return;
+
+    setScenariosLoading(true);
+    getSpeakingScenariosWithProgress(session.user.id, {
+      page: scenarioPage,
+      limit: SCENARIOS_PER_PAGE,
+      category: selectedGroup,
+      subcategory: selectedSubcategory,
+      levels: selectedLevels.length > 0 ? selectedLevels : undefined,
+    })
+      .then((result) => {
+        setScenarios(result.scenarios as Scenario[]);
+        setScenarioTotalPages(result.totalPages);
+      })
+      .finally(() => setScenariosLoading(false));
+  }, [
+    session?.user?.id,
+    activeTab,
+    scenarioPage,
+    selectedGroup,
+    selectedSubcategory,
+    selectedLevels,
+    searchQuery,
+  ]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setScenarioPage(1);
+  }, [selectedGroup, selectedSubcategory, selectedLevels]);
+
   // Fetch bookmark IDs on mount
   useEffect(() => {
     if (session?.user?.id) {
@@ -170,38 +221,48 @@ export default function SpeakingPageClient({
     }
   }, [session?.user?.id, activeTab, bookmarkPage]);
 
-  // Check if we're in search mode
-  const isSearchMode = searchQuery.trim().length > 0;
-
-  // Filter scenarios based on search or normal mode
-  const filteredScenarios = scenarios.filter((scenario) => {
-    // In search mode, search ALL topics (both regular and custom)
-    if (isSearchMode) {
-      const matchesSearch =
-        scenario.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        scenario.description.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesSearch;
+  // Fetch search results when search query changes (debounced)
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
     }
 
-    // Normal mode: respect tab and filters
-    if (activeTab === "custom" && !scenario.isCustom) return false;
-    if (activeTab === "available" && scenario.isCustom) return false;
+    const timer = setTimeout(() => {
+      setSearchLoading(true);
+      searchSpeakingScenarios(searchQuery, session?.user?.id)
+        .then((results) => setSearchResults(results as Scenario[]))
+        .finally(() => setSearchLoading(false));
+    }, 300); // 300ms debounce
 
-    const matchesLevel =
-      selectedLevels.length === 0 || selectedLevels.includes(scenario.level);
+    return () => clearTimeout(timer);
+  }, [searchQuery, session?.user?.id]);
 
-    // Group and Subcategory filtering (only for 'available' tab)
-    const matchesGroup =
-      activeTab === "available" ? scenario.category === selectedGroup : true;
-    const matchesSubcategory =
-      activeTab === "available"
-        ? !selectedSubcategory ||
-          selectedSubcategory === "All" ||
-          scenario.subcategory === selectedSubcategory
-        : true;
+  // Fetch custom topics
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    if (activeTab !== "custom") return;
 
-    return matchesLevel && matchesGroup && matchesSubcategory;
-  });
+    getCustomTopics(session.user.id).then((customTopics) => {
+      setCustomScenarios(
+        customTopics.map((s) => ({
+          id: s.id,
+          title: s.title,
+          description: s.description,
+          category: s.category || "Custom",
+          level: s.difficulty || "B1",
+          image: s.image || "/learning.png",
+          sessionsCompleted: 0,
+          totalSessions: 10,
+          progress: 0,
+          isCustom: true,
+        }))
+      );
+    });
+  }, [session?.user?.id, activeTab]);
+
+  // Check if we're in search mode
+  const isSearchMode = searchQuery.trim().length > 0;
 
   const toggleLevel = (level: string) => {
     setSelectedLevels((prev) =>
@@ -236,8 +297,8 @@ export default function SpeakingPageClient({
 
   const tabs = [
     { id: "available", label: "Available Topics" },
-    { id: "bookmarks", label: "Bookmarks" },
     { id: "custom", label: "Custom Topics" },
+    { id: "bookmarks", label: "Bookmarks" },
     { id: "history", label: "History" },
   ];
 
@@ -368,13 +429,27 @@ export default function SpeakingPageClient({
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-bold">
-                    Search Results for "{searchQuery}" (
-                    {filteredScenarios.length} found)
+                    Search Results for "{searchQuery}" ({searchResults.length}{" "}
+                    found)
                   </h2>
                 </div>
-                {filteredScenarios.length > 0 ? (
+                {searchLoading ? (
                   <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    {filteredScenarios.map((topic) => (
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className="animate-pulse rounded-2xl border border-gray-200 bg-white p-4"
+                      >
+                        <div className="h-32 bg-gray-200 rounded-xl mb-4" />
+                        <div className="h-5 bg-gray-200 rounded w-3/4 mb-2" />
+                        <div className="h-4 bg-gray-100 rounded w-full mb-4" />
+                        <div className="h-6 w-12 bg-gray-200 rounded-full" />
+                      </div>
+                    ))}
+                  </div>
+                ) : searchResults.length > 0 ? (
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {searchResults.map((topic) => (
                       <TopicCard
                         key={topic.id}
                         id={topic.id}
@@ -442,25 +517,121 @@ export default function SpeakingPageClient({
                     onSubcategoryChange={setSelectedSubcategory}
                   />
 
-                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                    {filteredScenarios.map((topic) => (
-                      <TopicCard
-                        key={topic.id}
-                        id={topic.id}
-                        title={topic.title}
-                        description={topic.description}
-                        level={topic.level}
-                        wordCount={7}
-                        thumbnail={topic.image}
-                        progress={topic.progress}
-                        href={`/speaking/session/${topic.id}`}
-                        onNotYet={() => {}}
-                        type="speaking"
-                        isBookmarked={bookmarkedTopics.includes(topic.id)}
-                        onBookmarkToggle={handleBookmarkToggle}
-                      />
-                    ))}
-                  </div>
+                  {/* Skeleton Loading */}
+                  {scenariosLoading ? (
+                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                      {Array.from({ length: 12 }).map((_, i) => (
+                        <div
+                          key={i}
+                          className="animate-pulse rounded-2xl border border-gray-200 bg-white p-4"
+                        >
+                          <div className="h-32 bg-gray-200 rounded-xl mb-4" />
+                          <div className="h-5 bg-gray-200 rounded w-3/4 mb-2" />
+                          <div className="h-4 bg-gray-100 rounded w-full mb-1" />
+                          <div className="h-4 bg-gray-100 rounded w-2/3 mb-4" />
+                          <div className="flex justify-between items-center">
+                            <div className="h-6 w-12 bg-gray-200 rounded-full" />
+                            <div className="h-8 w-24 bg-gray-200 rounded-lg" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                        {scenarios.map((topic) => (
+                          <TopicCard
+                            key={topic.id}
+                            id={topic.id}
+                            title={topic.title}
+                            description={topic.description}
+                            level={topic.level}
+                            wordCount={7}
+                            thumbnail={topic.image}
+                            progress={topic.progress}
+                            href={`/speaking/session/${topic.id}`}
+                            onNotYet={() => {}}
+                            type="speaking"
+                            isBookmarked={bookmarkedTopics.includes(topic.id)}
+                            onBookmarkToggle={handleBookmarkToggle}
+                          />
+                        ))}
+                      </div>
+
+                      {/* Pagination */}
+                      {scenarioTotalPages > 1 && (
+                        <div className="flex items-center justify-center gap-2 mt-6">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-9 w-9 p-0 cursor-pointer bg-transparent"
+                            onClick={() =>
+                              setScenarioPage((p) => Math.max(1, p - 1))
+                            }
+                            disabled={scenarioPage === 1}
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </Button>
+
+                          {Array.from(
+                            { length: scenarioTotalPages },
+                            (_, i) => i + 1
+                          ).map((page) => {
+                            const showPage =
+                              page === 1 ||
+                              page === scenarioTotalPages ||
+                              Math.abs(page - scenarioPage) <= 1;
+
+                            const showEllipsis =
+                              (page === 2 && scenarioPage > 3) ||
+                              (page === scenarioTotalPages - 1 &&
+                                scenarioPage < scenarioTotalPages - 2);
+
+                            if (showEllipsis) {
+                              return (
+                                <span
+                                  key={page}
+                                  className="px-2 text-muted-foreground"
+                                >
+                                  ...
+                                </span>
+                              );
+                            }
+
+                            if (!showPage) return null;
+
+                            return (
+                              <Button
+                                key={page}
+                                variant={
+                                  scenarioPage === page ? "default" : "outline"
+                                }
+                                size="sm"
+                                className="h-9 w-9 p-0 cursor-pointer"
+                                onClick={() => setScenarioPage(page)}
+                              >
+                                {page}
+                              </Button>
+                            );
+                          })}
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-9 w-9 p-0 cursor-pointer bg-transparent"
+                            onClick={() =>
+                              setScenarioPage((p) =>
+                                Math.min(scenarioTotalPages, p + 1)
+                              )
+                            }
+                            disabled={scenarioPage === scenarioTotalPages}
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
             )}
@@ -673,7 +844,7 @@ export default function SpeakingPageClient({
                   Your Custom Scenarios
                 </h3>
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                  {filteredScenarios.map((topic) => (
+                  {customScenarios.map((topic) => (
                     <TopicCard
                       key={topic.id}
                       id={topic.id}
@@ -690,7 +861,7 @@ export default function SpeakingPageClient({
                       onBookmarkToggle={handleBookmarkToggle}
                     />
                   ))}
-                  {filteredScenarios.length === 0 && (
+                  {customScenarios.length === 0 && (
                     <p className="text-muted-foreground col-span-3 text-center py-8">
                       You haven't created any custom scenarios yet.
                     </p>

@@ -2,7 +2,6 @@ import SpeakingPageClient from "@/components/page/SpeakingPageClient";
 import type { CriteriaItem } from "@/components/page/SpeakingPageClient";
 import {
   getSpeakingTopicGroups,
-  getSpeakingScenariosWithProgress,
   getUserSpeakingHistory,
 } from "@/actions/speaking";
 import { auth } from "@/lib/auth";
@@ -28,7 +27,6 @@ export default async function SpeakingPage() {
     return (
       <SpeakingPageClient
         topicGroups={[]}
-        scenarios={[]}
         demoCriteria={DEMO_CRITERIA}
         historyGraphData={[]}
         historyTopicsData={[]}
@@ -37,17 +35,15 @@ export default async function SpeakingPage() {
     );
   }
 
-  // Fetch real data from database
-  const [topicGroups, scenarios, historyData] = await Promise.all([
+  // Fetch data from database (scenarios will be fetched client-side with pagination)
+  const [topicGroups, historyData] = await Promise.all([
     getSpeakingTopicGroups(),
-    getSpeakingScenariosWithProgress(userId),
     getUserSpeakingHistory(userId),
   ]);
 
   return (
     <SpeakingPageClient
       topicGroups={topicGroups}
-      scenarios={scenarios}
       demoCriteria={DEMO_CRITERIA}
       historyGraphData={historyData.historyGraph}
       historyTopicsData={historyData.historyTopics}
