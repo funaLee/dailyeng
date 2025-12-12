@@ -33,6 +33,126 @@ export async function getTopics() {
     });
 }
 
+// Helper to capitalize first letter of each word
+function toTitleCase(str: string): string {
+    return str
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+}
+
+// Fetch TopicGroups for Speaking Hub
+export async function getSpeakingTopicGroups() {
+    const groups = await prisma.topicGroup.findMany({
+        where: { hubType: "speaking" },
+        orderBy: { order: "asc" },
+    });
+
+    // Transform to UI format (capitalize names)
+    return groups.map((g) => ({
+        id: g.id,
+        name: toTitleCase(g.name),
+        subcategories: g.subcategories.map((s) => toTitleCase(s)),
+    }));
+}
+
+// Fetch all Speaking Scenarios with user progress
+export async function getSpeakingScenariosWithProgress(userId?: string) {
+    const scenarios = await prisma.speakingScenario.findMany({
+        where: { 
+            isCustom: false,
+            topicGroupId: { not: null } // Only seeded scenarios
+        },
+        include: {
+            sessions: userId ? {
+                where: { userId },
+                select: { id: true, overallScore: true }
+            } : false,
+        },
+        orderBy: [
+            { category: "asc" },
+            { subcategory: "asc" },
+            { difficulty: "asc" }
+        ],
+    });
+
+    // Transform to UI Scenario format
+    return scenarios.map((s) => ({
+        id: s.id,
+        title: s.title,
+        description: s.description,
+        category: s.category ? toTitleCase(s.category) : "General",
+        subcategory: s.subcategory ? toTitleCase(s.subcategory) : undefined,
+        level: s.difficulty || "B1",
+        image: s.image || "/learning.png",
+        sessionsCompleted: Array.isArray(s.sessions) ? s.sessions.length : 0,
+        totalSessions: 10, // Default target
+        progress: Array.isArray(s.sessions) ? Math.min(s.sessions.length * 10, 100) : 0,
+        isCustom: s.isCustom,
+    }));
+}
+
+// Fetch a single scenario by ID
+export async function getScenarioById(id: string) {
+    const scenario = await prisma.speakingScenario.findUnique({
+        where: { id },
+    });
+
+    if (!scenario) return null;
+
+    return {
+        id: scenario.id,
+        title: scenario.title,
+        description: scenario.description,
+        context: scenario.context,
+        goal: scenario.goal,
+        objectives: (scenario.objectives as string[]) || undefined,
+        userRole: scenario.userRole || undefined,
+        botRole: scenario.botRole || undefined,
+        openingLine: scenario.openingLine || undefined,
+    };
+}
+
+
+// Fetch user's speaking session history
+export async function getUserSpeakingHistory(userId: string) {
+    await ensureUser(userId);
+    
+    const sessions = await prisma.speakingSession.findMany({
+        where: { 
+            userId,
+            endedAt: { not: null } // Only completed sessions
+        },
+        include: {
+            scenario: true,
+        },
+        orderBy: { endedAt: "desc" },
+        take: 20, // Limit to recent 20 sessions
+    });
+
+    // Transform for History tab
+    const historyTopics = sessions.map((s) => ({
+        id: s.id,
+        title: s.scenario.title,
+        description: s.scenario.description,
+        score: s.overallScore || 0,
+        date: s.endedAt?.toISOString().split("T")[0] || s.createdAt.toISOString().split("T")[0],
+        level: s.scenario.difficulty || "B1",
+        image: s.scenario.image || "/learning.png",
+        progress: 100, // Completed
+        wordCount: 0, // Would need to count from turns
+    }));
+
+    // Build history graph from recent sessions
+    const historyGraph = sessions.slice(0, 10).reverse().map((s, i) => ({
+        session: i + 1,
+        score: s.overallScore || 0,
+    }));
+
+    return { historyTopics, historyGraph };
+}
+
+
 // Fetch custom topics for a user
 export async function getCustomTopics(userId: string) {
     await ensureUser(userId);

@@ -186,7 +186,7 @@ export default function SignInPageClient({ stats }: SignInPageClientProps) {
                 {isPending ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Đang đăng nhập...
+                    Signing in...
                   </>
                 ) : (
                   <>
