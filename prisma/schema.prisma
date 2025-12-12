@@ -283,6 +283,11 @@ model SpeakingScenario {
   objectives     Json?
   keyExpressions Json?
 
+  // [ADDED] Role definitions for roleplay
+  userRole    String? // e.g., "Customer", "Job Applicant", "Patient"
+  botRole     String? // e.g., "Barista", "Interviewer", "Doctor"
+  openingLine String? // AI's first message to start the conversation
+
   // [ADDED] Custom scenario created by user
   createdById String?
   createdBy   User?   @relation("UserCustomScenarios", fields: [createdById], references: [id])

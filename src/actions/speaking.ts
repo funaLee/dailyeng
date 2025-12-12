@@ -69,15 +69,137 @@ export async function createCustomScenario(userId: string, topicPrompt: string) 
     return scenario;
 }
 
-// Create Session
+// Mock scenarios data for database seeding (matches UI mock data)
+const mockScenariosData: Record<string, {
+    title: string;
+    description: string;
+    goal: string;
+    context: string;
+    userRole: string;
+    botRole: string;
+    openingLine: string;
+}> = {
+    "scenario-1": {
+        title: "Coffee Shop Ordering",
+        description: "Practice ordering drinks and snacks at a coffee shop",
+        goal: "Successfully order your preferred coffee drink with any customizations",
+        context: "You are at a busy coffee shop during morning rush hour. The barista is ready to take your order.",
+        userRole: "Customer",
+        botRole: "Barista",
+        openingLine: "Good morning! Welcome to Daily Brew. What can I get started for you today?",
+    },
+    "scenario-2": {
+        title: "Job Interview",
+        description: "Practice answering common interview questions",
+        goal: "Make a great impression and answer interview questions confidently",
+        context: "You are in a job interview for a position you really want. The interviewer is professional but friendly.",
+        userRole: "Job Applicant",
+        botRole: "HR Interviewer",
+        openingLine: "Hello! Thank you for coming in today. Please, have a seat. I'm excited to learn more about you. Let's start - could you tell me a bit about yourself?",
+    },
+    "scenario-3": {
+        title: "Hotel Check-in",
+        description: "Practice checking into a hotel",
+        goal: "Complete the check-in process and get information about the hotel",
+        context: "You have just arrived at a hotel after a long journey. The receptionist is waiting to help you.",
+        userRole: "Hotel Guest",
+        botRole: "Hotel Receptionist",
+        openingLine: "Good evening! Welcome to The Grand Hotel. How may I assist you today?",
+    },
+    "scenario-4": {
+        title: "Restaurant Reservation",
+        description: "Practice making a restaurant reservation by phone",
+        goal: "Successfully book a table for your party",
+        context: "You want to make a dinner reservation at a popular restaurant for a special occasion.",
+        userRole: "Customer",
+        botRole: "Restaurant Host",
+        openingLine: "Good afternoon, thank you for calling Bella Italia. This is Maria speaking. How may I help you today?",
+    },
+    "scenario-5": {
+        title: "Doctor's Appointment",
+        description: "Practice describing symptoms to a doctor",
+        goal: "Clearly describe your symptoms and understand the doctor's advice",
+        context: "You are visiting a doctor because you haven't been feeling well lately.",
+        userRole: "Patient",
+        botRole: "Doctor",
+        openingLine: "Hello! Please come in and have a seat. I'm Dr. Smith. I see from your chart that you've been feeling unwell. Can you tell me what's been bothering you?",
+    },
+};
+
+// Helper to ensure scenario exists (Temporary for dev until proper seeding)
+async function ensureScenario(scenarioId: string) {
+    const scenario = await prisma.speakingScenario.findUnique({
+        where: { id: scenarioId }
+    });
+
+    if (!scenario) {
+        // Get scenario data from mock or use default
+        const mockData = mockScenariosData[scenarioId];
+        
+        await prisma.speakingScenario.create({
+            data: {
+                id: scenarioId,
+                title: mockData?.title || `Demo Scenario ${scenarioId}`,
+                description: mockData?.description || "A demo speaking scenario for practice",
+                goal: mockData?.goal || "Practice speaking in English and improve your fluency",
+                difficulty: "B1",
+                context: mockData?.context || "You are having a casual conversation with an AI tutor.",
+                category: "General",
+                duration: 10,
+                isCustom: false,
+                // Role definitions
+                userRole: mockData?.userRole || "Learner",
+                botRole: mockData?.botRole || "English Tutor",
+                openingLine: mockData?.openingLine || "Hello! I'm your English tutor. How can I help you practice today?",
+            }
+        });
+    }
+}
+
+// Create Session (basic, without greeting)
 export async function createSession(userId: string, scenarioId: string) {
     await ensureUser(userId);
+    await ensureScenario(scenarioId);
     return await prisma.speakingSession.create({
         data: {
             userId,
             scenarioId,
         }
     });
+}
+
+// Create Session with Opening Greeting (Option A)
+export async function startSessionWithGreeting(userId: string, scenarioId: string) {
+    await ensureUser(userId);
+    await ensureScenario(scenarioId);
+
+    // 1. Create session with scenario data
+    const session = await prisma.speakingSession.create({
+        data: {
+            userId,
+            scenarioId,
+        },
+        include: { scenario: true }
+    });
+
+    // 2. Save opening greeting as first turn (if exists)
+    let greetingTurn = null;
+    if (session.scenario.openingLine) {
+        greetingTurn = await prisma.speakingTurn.create({
+            data: {
+                sessionId: session.id,
+                role: "tutor",
+                text: session.scenario.openingLine,
+            }
+        });
+    }
+
+    return {
+        session,
+        contextMessage: session.scenario.context,
+        greetingMessage: session.scenario.openingLine,
+        greetingTurnId: greetingTurn?.id,
+    };
 }
 
 // Submit Turn
@@ -103,8 +225,14 @@ export async function submitTurn(
         text: t.text
     }));
 
-    // 3. Call Gemini
-    const aiResult = await generateSpeakingResponse(session.scenario.context, history, userText);
+    // 3. Call Gemini with scenario config including role definitions
+    const scenarioConfig = {
+        context: session.scenario.context,
+        userRole: session.scenario.userRole || undefined,
+        botRole: session.scenario.botRole || undefined,
+        goal: session.scenario.goal || undefined,
+    };
+    const aiResult = await generateSpeakingResponse(scenarioConfig, history, userText);
 
     // 4. Save User Turn
     await prisma.speakingTurn.create({
@@ -143,7 +271,7 @@ export async function submitTurn(
         aiResponse: aiResult.response,
         scores: aiResult.scores,
         errors: aiResult.errors,
-        turnId: aiTurn.id
+        turnId: aiTurn.id,
     };
 }
 

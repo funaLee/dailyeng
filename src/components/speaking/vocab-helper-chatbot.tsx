@@ -106,42 +106,51 @@ export default function VocabHelperChatbot() {
             <Bot className="h-5 w-5 text-green-400" />
           </div>
           <div>
-            <h3 className="font-semibold text-sm text-foreground">Vocabulary Helper</h3>
+            <h3 className="font-semibold text-sm text-foreground">
+              Vocabulary Helper
+            </h3>
             <p className="text-xs text-muted-foreground">Ask me anything!</p>
           </div>
         </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-none">
         {messages.map((message) => (
           <div
             key={message.id}
-            className={`flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`}
+            className={`flex gap-3 ${
+              message.role === "user" ? "justify-end" : "justify-start"
+            }`}
           >
             {message.role === "assistant" && (
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-white flex items-center justify-center border border-border">
-                <Bot className="h-4 w-4 text-green-400" />
+              <div className="flex-shrink-0 w-7 h-7 rounded-full bg-white flex items-center justify-center border border-border">
+                <Bot className="h-3.5 w-3.5 text-green-400" />
               </div>
             )}
 
             <div className="flex-1 max-w-[240px]">
               <div
-                className={`rounded-2xl px-4 py-2.5 text-sm shadow-sm ${message.role === "user"
-                  ? "bg-green-600 text-white"
-                  : "bg-white text-foreground border border-border"
-                  }`}
+                className={`rounded-2xl px-3 py-2 text-[15px] shadow-sm ${
+                  message.role === "user"
+                    ? "bg-[#4f46e5] text-white"
+                    : "bg-white text-foreground border border-border"
+                }`}
               >
-                <p className="leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                <p className="leading-relaxed whitespace-pre-wrap">
+                  {message.content}
+                </p>
               </div>
 
               {message.role === "assistant" && (
                 <button
                   onClick={() => {
                     if ("speechSynthesis" in window) {
-                      const utterance = new SpeechSynthesisUtterance(message.content)
-                      utterance.lang = "en-US"
-                      window.speechSynthesis.speak(utterance)
+                      const utterance = new SpeechSynthesisUtterance(
+                        message.content
+                      );
+                      utterance.lang = "en-US";
+                      window.speechSynthesis.speak(utterance);
                     }
                   }}
                   className="mt-1 ml-1 w-6 h-6 rounded-full hover:bg-gray-100 text-muted-foreground hover:text-green-600 flex items-center justify-center transition-colors"
@@ -156,14 +165,23 @@ export default function VocabHelperChatbot() {
 
         {isTyping && (
           <div className="flex gap-3 items-center">
-            <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center border border-border">
-              <Bot className="h-4 w-4 text-green-400" />
+            <div className="w-7 h-7 rounded-full bg-white flex items-center justify-center border border-border">
+              <Bot className="h-3.5 w-3.5 text-green-400" />
             </div>
             <div className="bg-white border border-border rounded-2xl px-4 py-3">
               <div className="flex gap-1">
-                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                <div
+                  className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
+                  style={{ animationDelay: "0ms" }}
+                />
+                <div
+                  className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
+                  style={{ animationDelay: "150ms" }}
+                />
+                <div
+                  className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
+                  style={{ animationDelay: "300ms" }}
+                />
               </div>
             </div>
           </div>
@@ -196,5 +214,5 @@ export default function VocabHelperChatbot() {
         </p>
       </div>
     </Card>
-  )
+  );
 }

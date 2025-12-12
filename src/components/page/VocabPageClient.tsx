@@ -11,6 +11,8 @@ import {
   Network,
   ChevronLeft,
   ChevronRight,
+  Search,
+  X,
 } from "lucide-react";
 import {
   Table,
@@ -56,21 +58,21 @@ interface MindmapTopicGroup {
 }
 
 interface CurrentTopic {
-  id: string
-  title: string
-  subtitle: string
-  progress: number
+  id: string;
+  title: string;
+  subtitle: string;
+  progress: number;
 }
 
 interface VocabPageClientProps {
-  courses: Course[]
-  topics: Topic[]
-  currentTopic: CurrentTopic
-  dictionaryWords: DictionaryWord[]
-  mindmapData: MindmapTopicGroup[]
+  courses: Course[];
+  topics: Topic[];
+  currentTopic: CurrentTopic;
+  dictionaryWords: DictionaryWord[];
+  mindmapData: MindmapTopicGroup[];
 }
 
-type TabType = "courses" | "bookmarks" | "mindmap" | "statistic"
+type TabType = "courses" | "bookmarks" | "mindmap" | "statistic";
 
 export default function VocabPageClient({
   courses,
@@ -79,75 +81,91 @@ export default function VocabPageClient({
   dictionaryWords,
   mindmapData,
 }: VocabPageClientProps) {
-  const [topics, setTopics] = useState<Topic[]>(initialTopics)
-  const [loading, setLoading] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedLevels, setSelectedLevels] = useState<string[]>(["A1", "A2"])
-  const [activeTab, setActiveTab] = useState<TabType>("courses")
-  const [selectedCourse, setSelectedCourse] = useState<string>("ielts-7")
-  const [bookmarkedTopics, setBookmarkedTopics] = useState<string[]>([])
-  const [dictionarySearch, setDictionarySearch] = useState("")
-  const [selectedAlphabet, setSelectedAlphabet] = useState<string | null>(null)
-  const [selectedDictLevels, setSelectedDictLevels] = useState<string[]>([])
-  const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 10
+  const [topics, setTopics] = useState<Topic[]>(initialTopics);
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState<TabType>("courses");
+  const [selectedCourse, setSelectedCourse] = useState<string>("ielts-7");
+  const [bookmarkedTopics, setBookmarkedTopics] = useState<string[]>([]);
+  const [dictionarySearch, setDictionarySearch] = useState("");
+  const [selectedAlphabet, setSelectedAlphabet] = useState<string | null>(null);
+  const [selectedDictLevels, setSelectedDictLevels] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
-  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")
-  const dictLevels = ["A1", "A2", "B1", "B2", "C1", "C2"]
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+  const dictLevels = ["A1", "A2", "B1", "B2", "C1", "C2"];
 
   const filteredDictionaryWords = dictionaryWords.filter((word) => {
     const matchesSearch =
       word.word.toLowerCase().includes(dictionarySearch.toLowerCase()) ||
-      word.meaning.toLowerCase().includes(dictionarySearch.toLowerCase())
-    const matchesAlphabet = !selectedAlphabet || word.word.toUpperCase().startsWith(selectedAlphabet)
-    const matchesLevel = selectedDictLevels.length === 0 || selectedDictLevels.includes(word.level)
-    return matchesSearch && matchesAlphabet && matchesLevel
-  })
+      word.meaning.toLowerCase().includes(dictionarySearch.toLowerCase());
+    const matchesAlphabet =
+      !selectedAlphabet || word.word.toUpperCase().startsWith(selectedAlphabet);
+    const matchesLevel =
+      selectedDictLevels.length === 0 ||
+      selectedDictLevels.includes(word.level);
+    return matchesSearch && matchesAlphabet && matchesLevel;
+  });
 
-  const totalPages = Math.ceil(filteredDictionaryWords.length / itemsPerPage)
-  const paginatedWords = filteredDictionaryWords.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+  const totalPages = Math.ceil(filteredDictionaryWords.length / itemsPerPage);
+  const paginatedWords = filteredDictionaryWords.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   useEffect(() => {
-    const saved = localStorage.getItem("vocab-bookmarks")
+    const saved = localStorage.getItem("vocab-bookmarks");
     if (saved) {
-      setBookmarkedTopics(JSON.parse(saved))
+      setBookmarkedTopics(JSON.parse(saved));
     }
-  }, [])
+  }, []);
 
   const handleBookmarkToggle = (topicId: string) => {
     setBookmarkedTopics((prev) => {
-      const newBookmarks = prev.includes(topicId) ? prev.filter((id) => id !== topicId) : [...prev, topicId]
-      localStorage.setItem("vocab-bookmarks", JSON.stringify(newBookmarks))
-      return newBookmarks
-    })
-  }
+      const newBookmarks = prev.includes(topicId)
+        ? prev.filter((id) => id !== topicId)
+        : [...prev, topicId];
+      localStorage.setItem("vocab-bookmarks", JSON.stringify(newBookmarks));
+      return newBookmarks;
+    });
+  };
 
   const filteredTopics = topics.filter((topic) => {
     const matchesSearch =
       topic.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      topic.description.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesLevel = selectedLevels.length === 0 || selectedLevels.includes(topic.level)
-    return matchesSearch && matchesLevel
-  })
+      topic.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesLevel =
+      selectedLevels.length === 0 || selectedLevels.includes(topic.level);
+    return matchesSearch && matchesLevel;
+  });
 
-  const bookmarkedTopicsList = topics.filter((topic) => bookmarkedTopics.includes(topic.id))
+  const bookmarkedTopicsList = topics.filter((topic) =>
+    bookmarkedTopics.includes(topic.id)
+  );
 
   const toggleLevel = (level: string) => {
-    setSelectedLevels((prev) => (prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level]))
-  }
+    setSelectedLevels((prev) =>
+      prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level]
+    );
+  };
 
-  const currentCourse = courses.find((c) => c.id === selectedCourse) || courses[0]
+  const currentCourse =
+    courses.find((c) => c.id === selectedCourse) || courses[0];
 
   const tabs = [
     { id: "courses", label: "Courses" },
     { id: "bookmarks", label: "Bookmarks" },
     { id: "mindmap", label: "Mindmap" },
     { id: "statistic", label: "Dictionary" },
-  ]
+  ];
 
   const toggleDictLevel = (level: string) => {
-    setSelectedDictLevels((prev) => (prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level]))
-  }
+    setSelectedDictLevels((prev) =>
+      prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level]
+    );
+  };
 
   return (
     <ProtectedRoute
@@ -159,7 +177,10 @@ export default function VocabPageClient({
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-32 rounded-2xl bg-secondary animate-pulse" />
+              <div
+                key={i}
+                className="h-32 rounded-2xl bg-secondary animate-pulse"
+              />
             ))}
           </div>
         </div>
@@ -177,31 +198,63 @@ export default function VocabPageClient({
             decorativeWords={["appointment", "outcome", "curiosity"]}
           />
 
-          <HubTabs tabs={tabs} activeTab={activeTab} onTabChange={(tabId) => setActiveTab(tabId as TabType)} />
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 border-b border-gray-200 pb-0">
+            <div className="flex gap-8 overflow-x-auto pb-px">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as TabType)}
+                  className={`pb-3 px-2 text-lg font-bold transition-colors border-b-2 whitespace-nowrap cursor-pointer ${
+                    activeTab === tab.id
+                      ? "border-primary text-primary"
+                      : "border-transparent text-muted-foreground hover:text-gray-900"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex-1" />
+            <div className="relative mb-4 sm:mb-0">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary-400" />
+              <Input
+                placeholder="Search vocabulary topics..."
+                className={`pl-10 pr-10 h-10 text-sm rounded-full border-2 transition-all ${
+                  searchQuery
+                    ? "w-80 border-primary-400 shadow-lg bg-white"
+                    : "w-64 border-primary-200 hover:border-primary-300"
+                }`}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-primary-100 transition-colors cursor-pointer"
+                >
+                  <X className="h-4 w-4 text-primary-500" />
+                </button>
+              )}
+            </div>
+          </div>
 
           {activeTab === "courses" && (
-            <div className="grid lg:grid-cols-5 gap-8">
+            <div className="grid lg:grid-cols-5 gap-8 mt-6">
               <div className="lg:col-span-1 space-y-6">
                 <CoursesSidebar
                   courses={courses}
                   selectedCourse={selectedCourse}
                   onCourseChange={setSelectedCourse}
-                  onAddCourse={() => { }}
+                  onAddCourse={() => {}}
                 />
 
-                <LevelsSidebar selectedLevels={selectedLevels} onLevelToggle={toggleLevel} />
+                <LevelsSidebar
+                  selectedLevels={selectedLevels}
+                  onLevelToggle={toggleLevel}
+                />
               </div>
 
               <div className="lg:col-span-4 space-y-6">
-                <div className="flex justify-end">
-                  <Input
-                    placeholder="Search vocabulary topics..."
-                    className="max-w-xs"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </div>
-
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                   {filteredTopics.map((topic) => (
                     <TopicCard
@@ -214,7 +267,7 @@ export default function VocabPageClient({
                       thumbnail={topic.thumbnail}
                       progress={topic.progress}
                       href={`/vocab/${topic.id}`}
-                      onNotYet={() => { }}
+                      onNotYet={() => {}}
                       type="vocabulary"
                       isBookmarked={bookmarkedTopics.includes(topic.id)}
                       onBookmarkToggle={handleBookmarkToggle}
@@ -226,7 +279,7 @@ export default function VocabPageClient({
           )}
 
           {activeTab === "bookmarks" && (
-            <div className="space-y-6">
+            <div className="space-y-6 mt-6">
               {bookmarkedTopicsList.length > 0 ? (
                 <>
                   <div className="flex items-center gap-3 mb-6">
@@ -247,7 +300,7 @@ export default function VocabPageClient({
                         thumbnail={topic.thumbnail}
                         progress={topic.progress}
                         href={`/vocab/${topic.id}`}
-                        onNotYet={() => { }}
+                        onNotYet={() => {}}
                         type="vocabulary"
                         isBookmarked={true}
                         onBookmarkToggle={handleBookmarkToggle}
@@ -258,11 +311,18 @@ export default function VocabPageClient({
               ) : (
                 <Card className="p-12 rounded-3xl border-[1.4px] border-primary-200 text-center">
                   <Bookmark className="h-16 w-16 text-primary-200 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-foreground mb-2">No Bookmarks Yet</h3>
+                  <h3 className="text-xl font-bold text-foreground mb-2">
+                    No Bookmarks Yet
+                  </h3>
                   <p className="text-muted-foreground mb-6">
-                    Click the bookmark icon on any topic card to save it here for quick access.
+                    Click the bookmark icon on any topic card to save it here
+                    for quick access.
                   </p>
-                  <Button variant="default" onClick={() => setActiveTab("courses")} className="cursor-pointer">
+                  <Button
+                    variant="default"
+                    onClick={() => setActiveTab("courses")}
+                    className="cursor-pointer"
+                  >
                     Browse Topics
                   </Button>
                 </Card>
@@ -271,18 +331,22 @@ export default function VocabPageClient({
           )}
 
           {activeTab === "mindmap" && (
-            <div className="space-y-6">
+            <div className="space-y-6 mt-6">
               <div className="flex items-center gap-3 mb-6">
                 <Network className="h-6 w-6 text-primary-500" />
-                <h2 className="text-xl font-bold text-foreground">Vocabulary Mindmap</h2>
-                <span className="text-sm text-muted-foreground">Explore words organized by topic groups</span>
+                <h2 className="text-xl font-bold text-foreground">
+                  Vocabulary Mindmap
+                </h2>
+                <span className="text-sm text-muted-foreground">
+                  Explore words organized by topic groups
+                </span>
               </div>
               <VocabMindmap topicGroups={mindmapData} />
             </div>
           )}
 
           {activeTab === "statistic" && (
-            <Card className="p-8 rounded-3xl border-2 border-primary-100 bg-white">
+            <Card className="p-8 rounded-3xl border-2 border-primary-100 bg-white mt-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-2xl font-bold">Dictionary</h3>
                 <div className="flex items-center gap-3">
@@ -308,7 +372,9 @@ export default function VocabPageClient({
                   {alphabet.map((letter) => (
                     <Button
                       key={letter}
-                      variant={selectedAlphabet === letter ? "default" : "outline"}
+                      variant={
+                        selectedAlphabet === letter ? "default" : "outline"
+                      }
                       size="sm"
                       className="h-8 w-8 text-xs font-semibold cursor-pointer"
                       onClick={() => setSelectedAlphabet(letter)}
@@ -321,11 +387,17 @@ export default function VocabPageClient({
 
               <div className="mb-6">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-muted-foreground">Level:</span>
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Level:
+                  </span>
                   {dictLevels.map((level) => (
                     <Button
                       key={level}
-                      variant={selectedDictLevels.includes(level) ? "default" : "outline"}
+                      variant={
+                        selectedDictLevels.includes(level)
+                          ? "default"
+                          : "outline"
+                      }
                       size="sm"
                       className="h-8 px-3 text-xs font-semibold cursor-pointer"
                       onClick={() => toggleDictLevel(level)}
@@ -347,9 +419,11 @@ export default function VocabPageClient({
               </div>
 
               <div className="mb-4 text-sm text-muted-foreground">
-                Showing {paginatedWords.length} of {filteredDictionaryWords.length} words
+                Showing {paginatedWords.length} of{" "}
+                {filteredDictionaryWords.length} words
                 {selectedAlphabet && ` starting with "${selectedAlphabet}"`}
-                {selectedDictLevels.length > 0 && ` at level ${selectedDictLevels.join(", ")}`}
+                {selectedDictLevels.length > 0 &&
+                  ` at level ${selectedDictLevels.join(", ")}`}
               </div>
 
               <div className="rounded-xl border overflow-hidden">
@@ -367,20 +441,35 @@ export default function VocabPageClient({
                   <TableBody>
                     {paginatedWords.length > 0 ? (
                       paginatedWords.map((word) => (
-                        <TableRow key={word.id} className="hover:bg-primary-50/50 transition-colors">
-                          <TableCell className="font-semibold text-primary-600">{word.word}</TableCell>
-                          <TableCell className="text-slate-500 font-mono text-sm">{word.pronunciation}</TableCell>
-                          <TableCell className="max-w-xs truncate">{word.meaning}</TableCell>
+                        <TableRow
+                          key={word.id}
+                          className="hover:bg-primary-50/50 transition-colors"
+                        >
+                          <TableCell className="font-semibold text-primary-600">
+                            {word.word}
+                          </TableCell>
+                          <TableCell className="text-slate-500 font-mono text-sm">
+                            {word.pronunciation}
+                          </TableCell>
+                          <TableCell className="max-w-xs truncate">
+                            {word.meaning}
+                          </TableCell>
                           <TableCell>
                             <Badge variant="outline" className="text-xs">
                               {word.partOfSpeech}
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Badge className="bg-primary-100 text-primary-700 text-xs">{word.level}</Badge>
+                            <Badge className="bg-primary-100 text-primary-700 text-xs">
+                              {word.level}
+                            </Badge>
                           </TableCell>
                           <TableCell>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 cursor-pointer"
+                            >
                               <Edit className="h-4 w-4" />
                             </Button>
                           </TableCell>
@@ -388,7 +477,10 @@ export default function VocabPageClient({
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                        <TableCell
+                          colSpan={6}
+                          className="text-center py-8 text-muted-foreground"
+                        >
                           No words found matching your filters.
                         </TableCell>
                       </TableRow>
@@ -409,40 +501,52 @@ export default function VocabPageClient({
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
 
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                    const showPage = page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (page) => {
+                      const showPage =
+                        page === 1 ||
+                        page === totalPages ||
+                        Math.abs(page - currentPage) <= 1;
 
-                    const showEllipsis =
-                      (page === 2 && currentPage > 3) || (page === totalPages - 1 && currentPage < totalPages - 2)
+                      const showEllipsis =
+                        (page === 2 && currentPage > 3) ||
+                        (page === totalPages - 1 &&
+                          currentPage < totalPages - 2);
 
-                    if (showEllipsis) {
+                      if (showEllipsis) {
+                        return (
+                          <span
+                            key={page}
+                            className="px-2 text-muted-foreground"
+                          >
+                            ...
+                          </span>
+                        );
+                      }
+
+                      if (!showPage) return null;
+
                       return (
-                        <span key={page} className="px-2 text-muted-foreground">
-                          ...
-                        </span>
-                      )
+                        <Button
+                          key={page}
+                          variant={currentPage === page ? "default" : "outline"}
+                          size="sm"
+                          className="h-9 w-9 p-0 cursor-pointer"
+                          onClick={() => setCurrentPage(page)}
+                        >
+                          {page}
+                        </Button>
+                      );
                     }
-
-                    if (!showPage) return null
-
-                    return (
-                      <Button
-                        key={page}
-                        variant={currentPage === page ? "default" : "outline"}
-                        size="sm"
-                        className="h-9 w-9 p-0 cursor-pointer"
-                        onClick={() => setCurrentPage(page)}
-                      >
-                        {page}
-                      </Button>
-                    )
-                  })}
+                  )}
 
                   <Button
                     variant="outline"
                     size="sm"
                     className="h-9 w-9 p-0 cursor-pointer bg-transparent"
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    onClick={() =>
+                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                    }
                     disabled={currentPage === totalPages}
                   >
                     <ChevronRight className="h-4 w-4" />
@@ -454,5 +558,5 @@ export default function VocabPageClient({
         </div>
       )}
     </ProtectedRoute>
-  )
+  );
 }
