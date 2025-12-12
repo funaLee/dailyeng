@@ -21,6 +21,10 @@ const mockScenarios: ScenarioData[] = [
       "Ask about available pastries or snacks",
       "Complete the payment process",
     ],
+    userRole: "Customer",
+    botRole: "Barista",
+    openingLine:
+      "Good morning! Welcome to Daily Brew. What can I get started for you today?",
   },
   {
     id: "scenario-2",
@@ -35,6 +39,10 @@ const mockScenarios: ScenarioData[] = [
       "Explain why you want this position",
       "Ask thoughtful questions about the role",
     ],
+    userRole: "Job Applicant",
+    botRole: "HR Interviewer",
+    openingLine:
+      "Hello! Thank you for coming in today. Please, have a seat. I'm excited to learn more about you. Let's start - could you tell me a bit about yourself?",
   },
   {
     id: "scenario-3",
@@ -49,6 +57,10 @@ const mockScenarios: ScenarioData[] = [
       "Ask about hotel amenities and services",
       "Get directions to your room",
     ],
+    userRole: "Hotel Guest",
+    botRole: "Hotel Receptionist",
+    openingLine:
+      "Good evening! Welcome to The Grand Hotel. How may I assist you today?",
   },
   {
     id: "scenario-4",
@@ -63,6 +75,10 @@ const mockScenarios: ScenarioData[] = [
       "Mention any special requirements or occasions",
       "Confirm the reservation details",
     ],
+    userRole: "Customer calling to make a reservation",
+    botRole: "Restaurant Host",
+    openingLine:
+      "Good afternoon, thank you for calling Bella Italia. This is Maria speaking. How may I help you today?",
   },
   {
     id: "scenario-5",
@@ -77,6 +93,10 @@ const mockScenarios: ScenarioData[] = [
       "Understand the diagnosis and treatment options",
       "Ask questions about medication or follow-up care",
     ],
+    userRole: "Patient",
+    botRole: "Doctor",
+    openingLine:
+      "Hello! Please come in and have a seat. I'm Dr. Smith. I see from your chart that you've been feeling unwell. Can you tell me what's been bothering you?",
   },
 ];
 

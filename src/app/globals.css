@@ -248,6 +248,20 @@
   .text-pretty {
     text-wrap: pretty;
   }
+/* Hide scrollbar but keep scroll functionality */
+.scrollbar-none
+{
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.scrollbar-none::-webkit-scrollbar
+{
+  display: none;
+  /* Chrome, Safari and Opera */
+}
 }
 
 /* Add confetti animation for dashboard gift claim */
