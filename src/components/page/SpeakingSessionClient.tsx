@@ -16,6 +16,7 @@ import {
   BookOpen,
   ChevronLeft,
   Download,
+  FastForward,
   Menu,
   Play,
   RotateCcw,
@@ -185,6 +186,7 @@ export default function SpeakingSessionClient({
     useState<DetailedFeedbackData | null>(null);
   const [aiSummary, setAiSummary] = useState<any | null>(null);
   const [showQuitDialog, setShowQuitDialog] = useState(false);
+  const [showFinishDialog, setShowFinishDialog] = useState(false);
 
   const conversationRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
@@ -796,23 +798,21 @@ export default function SpeakingSessionClient({
   if (viewState === "active") {
     return (
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 h-screen max-h-screen flex flex-col">
-        {/* Quit Confirmation Dialog */}
+        {/* Options Dialog (Hamburger menu) */}
         {showQuitDialog && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-2xl p-6 max-w-sm mx-4 shadow-2xl">
-              <h3 className="text-lg font-bold text-center mb-6">
-                Are you sure you want to end this conversation?
-              </h3>
+            <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+              <h3 className="text-lg font-bold text-center mb-6">Option</h3>
               <div className="flex flex-col gap-3">
                 <Button
-                  variant="outline"
-                  className="w-full"
+                  className="w-full bg-[#4f46e5] hover:bg-[#4338ca]"
                   onClick={() => setShowQuitDialog(false)}
                 >
                   Continue
                 </Button>
                 <Button
-                  className="w-full bg-[#4f46e5] hover:bg-[#4338ca]"
+                  variant="outline"
+                  className="w-full border-2 border-primary-200 hover:bg-primary-50"
                   onClick={() => {
                     setShowQuitDialog(false);
                     setViewState("complete");
@@ -822,8 +822,8 @@ export default function SpeakingSessionClient({
                 </Button>
                 <Link href="/speaking" className="w-full">
                   <Button
-                    variant="ghost"
-                    className="w-full text-muted-foreground"
+                    variant="outline"
+                    className="w-full border-2 border-primary-200 hover:bg-primary-50"
                   >
                     Back to Home
                   </Button>
@@ -833,21 +833,59 @@ export default function SpeakingSessionClient({
           </div>
         )}
 
+        {/* Finish Confirmation Dialog (Fast Forward button) */}
+        {showFinishDialog && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-2xl">
+              <h3 className="text-lg font-bold text-center mb-6">
+                Are you sure you want to finish this conversation?
+              </h3>
+              <div className="flex flex-col gap-3">
+                <Button
+                  className="w-full bg-[#4f46e5] hover:bg-[#4338ca]"
+                  onClick={() => setShowFinishDialog(false)}
+                >
+                  No
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full border-2 border-primary-200 hover:bg-primary-50"
+                  onClick={() => {
+                    setShowFinishDialog(false);
+                    setViewState("complete");
+                  }}
+                >
+                  Yes
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Header */}
-        <div className="mb-4 flex items-center justify-center z-10 shrink-0 relative">
-          {/* Menu Button */}
+        <div className="mb-4 flex items-center justify-center z-10 shrink-0 relative max-w-4xl mx-auto w-full">
+          {/* Menu Button - with rotation animation */}
           <button
             onClick={() => setShowQuitDialog(true)}
-            className="absolute left-0 w-10 h-10 rounded-full bg-[#e0e7ff] flex items-center justify-center hover:bg-[#c7d2fe] transition-colors"
+            className={`absolute left-0 w-10 h-10 rounded-full bg-[#e0e7ff] flex items-center justify-center hover:bg-[#c7d2fe] transition-all duration-300 ${
+              showQuitDialog ? "rotate-90" : "rotate-0"
+            }`}
           >
             <Menu className="h-5 w-5 text-[#4b3fd4]" />
           </button>
           <h1 className="text-2xl font-bold text-center">{scenario.title}</h1>
+          {/* Fast Forward Button */}
+          <button
+            onClick={() => setShowFinishDialog(true)}
+            className="absolute right-0 w-10 h-10 rounded-full bg-[#e0e7ff] flex items-center justify-center hover:bg-[#c7d2fe] transition-all duration-300"
+          >
+            <FastForward className="h-5 w-5 text-[#4b3fd4]" />
+          </button>
         </div>
 
-        {/* Main Content Grid */}
-        <div className="flex-1 grid lg:grid-cols-12 gap-6 min-h-0 pb-4">
-          <div className="lg:col-span-8 rounded-3xl border-2 border-border bg-primary-100 flex flex-col overflow-hidden relative shadow-2xl">
+        {/* Main Content - Centered Chat */}
+        <div className="flex-1 flex justify-center min-h-0 pb-4">
+          <div className="w-full max-w-4xl rounded-3xl border-2 border-border bg-primary-100 flex flex-col overflow-hidden relative shadow-lg">
             <div
               className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-none"
               ref={conversationRef}
@@ -948,72 +986,32 @@ export default function SpeakingSessionClient({
             {/* Spacer for input area since it's absolute */}
             <div className="h-[100px] shrink-0" />
           </div>
+        </div>
 
-          {/* Sidebar - 4 Columns (Full height stack) */}
-          <div className="lg:col-span-4 flex flex-col gap-6 h-full overflow-hidden">
-            {/* Live Analysis Card */}
-            <div className="rounded-3xl border-2 border-border p-6 bg-white shadow-xl">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 bg-blue-500/10 rounded-xl border border-blue-500/20">
-                  <Waveform className="w-5 h-5 text-blue-400" />
-                </div>
-                <h3 className="font-bold text-foreground">Live Analysis</h3>
+        {/* Sidebar - Commented out: Live Analysis and Vocab Helper
+        <div className="lg:col-span-4 flex flex-col gap-6 h-full overflow-hidden">
+          {/* Live Analysis Card */}
+        {/*
+          <div className="rounded-3xl border-2 border-border p-6 bg-white shadow-xl">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-blue-500/10 rounded-xl border border-blue-500/20">
+                <Waveform className="w-5 h-5 text-blue-400" />
               </div>
-
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm font-medium">
-                    <span className="text-muted-foreground">Pronunciation</span>
-                    <span className="text-blue-400">
-                      {sessionStats.avgPronunciation}
-                    </span>
-                  </div>
-                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-blue-500 rounded-full transition-all duration-500"
-                      style={{
-                        width: `${sessionStats.avgPronunciation * 10}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm font-medium">
-                    <span className="text-muted-foreground">Grammar</span>
-                    <span className="text-green-400">
-                      {sessionStats.avgGrammar}
-                    </span>
-                  </div>
-                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-green-500 rounded-full transition-all duration-500"
-                      style={{ width: `${sessionStats.avgGrammar * 10}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm font-medium">
-                    <span className="text-muted-foreground">Fluency</span>
-                    <span className="text-orange-400">
-                      {sessionStats.avgFluency}
-                    </span>
-                  </div>
-                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-orange-500 rounded-full transition-all duration-500"
-                      style={{ width: `${sessionStats.avgFluency * 10}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
+              <h3 className="font-bold text-foreground">Live Analysis</h3>
             </div>
-
-            {/* Vocab Helper - Fills remaining space */}
-            <div className="flex-1 min-h-0 rounded-3xl overflow-hidden shadow-xl bg-white border-2 border-border backdrop-blur-md">
-              <VocabHelperChatbot />
+            <div className="space-y-6">
+              ... Live Analysis content ...
             </div>
           </div>
-        </div>
+          */}
+
+        {/* Vocab Helper - Commented out */}
+        {/*
+          <div className="flex-1 min-h-0 rounded-3xl overflow-hidden shadow-xl bg-white border-2 border-border backdrop-blur-md">
+            <VocabHelperChatbot />
+          </div>
+          */}
+        {/* End Sidebar comment */}
       </div>
     );
   }
