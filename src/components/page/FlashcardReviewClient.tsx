@@ -1,28 +1,17 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
+import { Progress } from "@/components/ui/progress"
 import {
-  BookOpen,
-  FileText,
-  Zap,
-  Volume2,
-  ChevronLeft,
-  ChevronRight,
-  Star,
-  Mic,
-  Square,
-  X,
-  Check,
-  RotateCcw,
-  Play,
-  Shuffle,
-  Undo2,
-  ArrowLeft,
+  BookOpen, FileText, Zap, Volume2, ChevronLeft, ChevronRight, Star,
+  Mic, Square, X, Check, RotateCcw, Play, Shuffle, ArrowLeft, Settings,
+  Eye, EyeOff, Lightbulb, Trophy, Target, Clock,
 } from "lucide-react"
 import { ProtectedRoute, PageIcons } from "@/components/auth/protected-route"
 import type { NotebookItem } from "./NotebookPageClient"
@@ -31,487 +20,583 @@ interface FlashcardReviewClientProps {
   notebookItems: NotebookItem[]
 }
 
-export default function FlashcardReviewClient({ notebookItems }: FlashcardReviewClientProps) {
+type StudyMode = "flashcards" | "learn" | "test"
+type CardSide = "front" | "back"
+
+function speakText(text: string) {
+  if ("speechSynthesis" in window) {
+    window.speechSynthesis.cancel()
+    const utterance = new SpeechSynthesisUtterance(text)
+    utterance.lang = "en-US"
+    utterance.rate = 0.85
+    window.speechSynthesis.speak(utterance)
+  }
+}
+
+export default function FlashcardReviewClient({ notebookItems: initialItems }: FlashcardReviewClientProps) {
   const router = useRouter()
-  const [currentCardIndex, setCurrentCardIndex] = useState(0)
+
+  // Core state
+  const [items, setItems] = useState(initialItems)
+  const [currentIndex, setCurrentIndex] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
-  const [cardAnimation, setCardAnimation] = useState<"" | "swipe-left" | "swipe-right">("")
-  const [learnedCards, setLearnedCards] = useState<Set<string>>(new Set())
-  const [notLearnedCards, setNotLearnedCards] = useState<Set<string>>(new Set())
-  const [sessionCompleteOpen, setSessionCompleteOpen] = useState(false)
-  const [starredItems, setStarredItems] = useState<Set<string>>(new Set())
+  const [studyMode] = useState<StudyMode>("flashcards")
+
+  // Progress tracking
+  const [knownCards, setKnownCards] = useState<Set<string>>(new Set())
+  const [learningCards, setLearningCards] = useState<Set<string>>(new Set())
+  const [starredCards, setStarredCards] = useState<Set<string>>(new Set())
+
+  // UI state
+  const [showDefinitionFirst, setShowDefinitionFirst] = useState(false)
+  const [autoPlay, setAutoPlay] = useState(false)
+  const [sessionComplete, setSessionComplete] = useState(false)
+  const [showHint, setShowHint] = useState(false)
+  const [animationClass, setAnimationClass] = useState("")
+
+  // Dialogs
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const [shadowingOpen, setShadowingOpen] = useState(false)
   const [currentSentence, setCurrentSentence] = useState(0)
   const [isRecording, setIsRecording] = useState(false)
 
-  const currentItem = notebookItems[currentCardIndex]
+  const currentCard = items[currentIndex]
+  const totalCards = items.length
+  const progress = totalCards > 0 ? ((knownCards.size + learningCards.size) / totalCards) * 100 : 0
+  const remainingCards = totalCards - knownCards.size - learningCards.size
 
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (sessionCompleteOpen) return
-
-      if (e.code === "Space" || e.code === "ArrowUp" || e.code === "ArrowDown") {
-        e.preventDefault()
-        setIsFlipped(!isFlipped)
-      }
-
-      if (e.code === "ArrowLeft") {
-        e.preventDefault()
-        if (currentItem) {
-          setNotLearnedCards((prev) => new Set(prev).add(currentItem.id))
-          setLearnedCards((prev) => {
-            const newSet = new Set(prev)
-            newSet.delete(currentItem.id)
-            return newSet
-          })
-        }
-        setCardAnimation("swipe-left")
-        setTimeout(() => {
-          if (currentCardIndex < notebookItems.length - 1) {
-            handleNextCard()
-          } else {
-            setSessionCompleteOpen(true)
-          }
-          setCardAnimation("")
-        }, 500)
-      }
-
-      if (e.code === "ArrowRight") {
-        e.preventDefault()
-        if (currentItem) {
-          setLearnedCards((prev) => new Set(prev).add(currentItem.id))
-          setNotLearnedCards((prev) => {
-            const newSet = new Set(prev)
-            newSet.delete(currentItem.id)
-            return newSet
-          })
-        }
-        setCardAnimation("swipe-right")
-        setTimeout(() => {
-          if (currentCardIndex < notebookItems.length - 1) {
-            handleNextCard()
-          } else {
-            setSessionCompleteOpen(true)
-          }
-          setCardAnimation("")
-        }, 500)
-      }
+  // Get front/back content based on settings
+  const getFrontContent = useCallback(() => {
+    if (!currentCard) return { main: "", sub: "" }
+    if (showDefinitionFirst) {
+      return { main: currentCard.vietnamese.join("; "), sub: currentCard.meaning[0] || "" }
     }
+    return { main: currentCard.word, sub: currentCard.pronunciation }
+  }, [currentCard, showDefinitionFirst])
 
-    window.addEventListener("keydown", handleKeyPress)
-    return () => window.removeEventListener("keydown", handleKeyPress)
-  }, [isFlipped, currentCardIndex, notebookItems.length, sessionCompleteOpen])
+  const getBackContent = useCallback(() => {
+    if (!currentCard) return { main: "", sub: "", examples: [] }
+    if (showDefinitionFirst) {
+      return { main: currentCard.word, sub: currentCard.pronunciation, examples: currentCard.examples }
+    }
+    return { main: currentCard.vietnamese.join("; "), sub: currentCard.meaning[0] || "", examples: currentCard.examples }
+  }, [currentCard, showDefinitionFirst])
 
-  useEffect(() => {
+  // Navigation
+  const goToCard = useCallback((index: number) => {
+    if (index >= 0 && index < totalCards) {
+      setCurrentIndex(index)
+      setIsFlipped(false)
+      setShowHint(false)
+    }
+  }, [totalCards])
+
+  const nextCard = useCallback(() => {
+    if (currentIndex < totalCards - 1) {
+      setAnimationClass("slide-out-left")
+      setTimeout(() => {
+        goToCard(currentIndex + 1)
+        setAnimationClass("slide-in-right")
+        setTimeout(() => setAnimationClass(""), 300)
+      }, 200)
+    } else if (knownCards.size + learningCards.size === totalCards) {
+      setSessionComplete(true)
+    }
+  }, [currentIndex, totalCards, goToCard, knownCards.size, learningCards.size])
+
+  const prevCard = useCallback(() => {
+    if (currentIndex > 0) {
+      setAnimationClass("slide-out-right")
+      setTimeout(() => {
+        goToCard(currentIndex - 1)
+        setAnimationClass("slide-in-left")
+        setTimeout(() => setAnimationClass(""), 300)
+      }, 200)
+    }
+  }, [currentIndex, goToCard])
+
+  // Card actions
+  const markAsKnown = useCallback(() => {
+    if (!currentCard) return
+    setKnownCards(prev => new Set(prev).add(currentCard.id))
+    setLearningCards(prev => { const s = new Set(prev); s.delete(currentCard.id); return s })
+
+    setAnimationClass("swipe-right")
+    setTimeout(() => {
+      if (currentIndex < totalCards - 1) {
+        setCurrentIndex(prev => prev + 1)
+        setIsFlipped(false)
+        setShowHint(false)
+      } else {
+        setSessionComplete(true)
+      }
+      setAnimationClass("")
+    }, 300)
+  }, [currentCard, currentIndex, totalCards])
+
+  const markAsLearning = useCallback(() => {
+    if (!currentCard) return
+    setLearningCards(prev => new Set(prev).add(currentCard.id))
+    setKnownCards(prev => { const s = new Set(prev); s.delete(currentCard.id); return s })
+
+    setAnimationClass("swipe-left")
+    setTimeout(() => {
+      if (currentIndex < totalCards - 1) {
+        setCurrentIndex(prev => prev + 1)
+        setIsFlipped(false)
+        setShowHint(false)
+      } else {
+        setSessionComplete(true)
+      }
+      setAnimationClass("")
+    }, 300)
+  }, [currentCard, currentIndex, totalCards])
+
+  const toggleStar = useCallback(() => {
+    if (!currentCard) return
+    setStarredCards(prev => {
+      const s = new Set(prev)
+      s.has(currentCard.id) ? s.delete(currentCard.id) : s.add(currentCard.id)
+      return s
+    })
+  }, [currentCard])
+
+  const shuffleCards = useCallback(() => {
+    const shuffled = [...items].sort(() => Math.random() - 0.5)
+    setItems(shuffled)
+    setCurrentIndex(0)
     setIsFlipped(false)
-  }, [currentCardIndex])
+    setKnownCards(new Set())
+    setLearningCards(new Set())
+  }, [items])
 
-  const handleNextCard = () => {
-    if (currentCardIndex < notebookItems.length - 1) {
-      setCurrentCardIndex(currentCardIndex + 1)
+  const resetSession = useCallback(() => {
+    setCurrentIndex(0)
+    setIsFlipped(false)
+    setKnownCards(new Set())
+    setLearningCards(new Set())
+    setSessionComplete(false)
+    setShowHint(false)
+  }, [])
+
+  const studyLearningOnly = useCallback(() => {
+    const learningItems = items.filter(item => learningCards.has(item.id))
+    if (learningItems.length > 0) {
+      setItems(learningItems)
+      resetSession()
     }
+  }, [items, learningCards, resetSession])
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (sessionComplete || settingsOpen || shadowingOpen) return
+
+      switch (e.code) {
+        case "Space":
+          e.preventDefault()
+          setIsFlipped(prev => !prev)
+          break
+        case "ArrowLeft":
+          e.preventDefault()
+          if (e.shiftKey) markAsLearning()
+          else prevCard()
+          break
+        case "ArrowRight":
+          e.preventDefault()
+          if (e.shiftKey) markAsKnown()
+          else nextCard()
+          break
+        case "ArrowUp":
+        case "ArrowDown":
+          e.preventDefault()
+          setIsFlipped(prev => !prev)
+          break
+        case "KeyS":
+          e.preventDefault()
+          toggleStar()
+          break
+        case "KeyH":
+          e.preventDefault()
+          setShowHint(prev => !prev)
+          break
+        case "Enter":
+          e.preventDefault()
+          if (currentCard) speakText(currentCard.word)
+          break
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [sessionComplete, settingsOpen, shadowingOpen, prevCard, nextCard, markAsKnown, markAsLearning, toggleStar, currentCard])
+
+  // Auto-play pronunciation
+  useEffect(() => {
+    if (autoPlay && currentCard && !isFlipped) {
+      const timer = setTimeout(() => speakText(currentCard.word), 500)
+      return () => clearTimeout(timer)
+    }
+  }, [autoPlay, currentCard, currentIndex, isFlipped])
+
+  // Empty state
+  if (!currentCard) {
+    return (
+      <ProtectedRoute pageName="Flashcard Review" pageDescription="Practice vocabulary" pageIcon={PageIcons.notebook}>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 via-white to-secondary-50">
+          <Card className="p-12 text-center max-w-md">
+            <BookOpen className="h-20 w-20 text-gray-300 mx-auto mb-6" />
+            <h3 className="text-2xl font-bold mb-3">No Cards Available</h3>
+            <p className="text-gray-500 mb-6">Add some words to your notebook to start practicing.</p>
+            <Button onClick={() => router.push("/notebook")} size="lg" className="gap-2">
+              <ArrowLeft className="h-5 w-5" /> Go to Notebook
+            </Button>
+          </Card>
+        </div>
+      </ProtectedRoute>
+    )
   }
 
-  const handleRecording = () => {
-    setIsRecording(!isRecording)
-  }
+  const frontContent = getFrontContent()
+  const backContent = getBackContent()
 
   return (
-    <ProtectedRoute
-      pageName="Flashcard Review"
-      pageDescription="Practice your vocabulary with interactive flashcards"
-      pageIcon={PageIcons.notebook}
-    >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header with Back Button */}
-        <div className="mb-6 flex items-center justify-between">
-          <Button
-            variant="outline"
-            onClick={() => router.push("/notebook")}
-            className="gap-2 rounded-xl border-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Notebook
-          </Button>
-          <h1 className="text-2xl font-bold text-gray-900">Flashcard Review</h1>
-          <div className="w-32" /> {/* Spacer for centering */}
-        </div>
+    <ProtectedRoute pageName="Flashcard Review" pageDescription="Practice vocabulary" pageIcon={PageIcons.notebook}>
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50">
+        {/* Header */}
+        <div className="sticky top-0 z-20 bg-white/80 backdrop-blur-lg border-b border-gray-100">
+          <div className="max-w-6xl mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <Button variant="ghost" onClick={() => router.push("/notebook")} className="gap-2 text-gray-600 hover:text-gray-900">
+                <ArrowLeft className="h-5 w-5" /> Back
+              </Button>
 
-        {/* Flashcard with Stats on sides */}
-        <div className="max-w-5xl mx-auto">
-          <div className="flex items-center gap-6 mb-8">
-            {/* Learning stat - Left side */}
-            <div className="flex items-center justify-center px-6 py-3 rounded-r-full bg-warning-50 border-2 border-warning-200">
-              <span className="text-2xl font-bold text-warning-700">{notLearnedCards.size}</span>
-            </div>
-
-            {/* Flashcard in center */}
-            <div
-              className="flex-1 perspective-1000 cursor-pointer"
-              onClick={() => setIsFlipped(!isFlipped)}
-              style={{ perspective: "1000px" }}
-            >
-            <div
-              className="relative w-full h-[480px] transition-transform duration-500 preserve-3d"
-              style={{
-                transformStyle: "preserve-3d",
-                transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
-              }}
-            >
-              {/* Front of Card */}
-              <Card
-                className="absolute inset-0 backface-hidden p-8 border-2 border-gray-100 shadow-xl bg-white"
-                style={{ backfaceVisibility: "hidden" }}
-              >
-                {cardAnimation === "swipe-left" && (
-                  <div className="absolute inset-0 bg-warning-100/50 flex items-center justify-center rounded-lg z-10 transition-all duration-300 animate-in fade-in">
-                    <X className="h-40 w-40 text-warning-500 stroke-[4] animate-in zoom-in duration-300" />
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-success-100">
+                    <Check className="h-4 w-4 text-success-300" />
+                    <span className="font-semibold text-success-300">{knownCards.size}</span>
                   </div>
-                )}
-                {cardAnimation === "swipe-right" && (
-                  <div className="absolute inset-0 bg-success-100/50 flex items-center justify-center rounded-lg z-10 transition-all duration-300 animate-in fade-in">
-                    <Check className="h-40 w-40 text-success-500 stroke-[4] animate-in zoom-in duration-300" />
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-warning-100">
+                    <Target className="h-4 w-4 text-warning-300" />
+                    <span className="font-semibold text-warning-300">{learningCards.size}</span>
                   </div>
-                )}
-
-                <div className="absolute top-8 left-8 flex items-center gap-2">
-                  <Badge className="text-sm px-3 py-1 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-100 border-0">{currentItem.partOfSpeech}</Badge>
-                  <Badge className="text-sm px-3 py-1 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-100 border-0">
-                    {currentItem.level}
-                  </Badge>
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gray-100">
+                    <Clock className="h-4 w-4 text-gray-500" />
+                    <span className="font-semibold text-gray-500">{remainingCards}</span>
+                  </div>
                 </div>
+              </div>
 
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="absolute top-8 right-8 h-10 w-10 rounded-full p-0 hover:bg-yellow-50"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setStarredItems((prev) => {
-                      const newSet = new Set(prev)
-                      if (newSet.has(currentItem.id)) {
-                        newSet.delete(currentItem.id)
-                      } else {
-                        newSet.add(currentItem.id)
-                      }
-                      return newSet
-                    })
-                  }}
-                >
-                  <Star
-                    className={`h-5 w-5 ${starredItems.has(currentItem.id) ? "fill-yellow-400 text-yellow-400" : "text-gray-400"}`}
-                  />
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" onClick={shuffleCards} className="h-10 w-10">
+                  <Shuffle className="h-5 w-5" />
                 </Button>
-
-                <div className="flex items-center justify-center h-full">
-                  <h2 className="text-6xl font-bold text-gray-900">{currentItem.word}</h2>
-                </div>
-              </Card>
-
-              {/* Back of Card */}
-              <Card
-                className="absolute inset-0 backface-hidden p-6 overflow-hidden flex flex-col border-2 border-gray-100 shadow-xl bg-white"
-                style={{
-                  backfaceVisibility: "hidden",
-                  transform: "rotateY(180deg)",
-                }}
-              >
-                <div className="flex flex-col h-full">
-                  <div className="flex items-start justify-between mb-3">
-                    <h2 className="text-2xl font-bold text-gray-900">{currentItem.word}</h2>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-8 w-8 rounded-full p-0 hover:bg-yellow-50"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setStarredItems((prev) => {
-                          const newSet = new Set(prev)
-                          if (newSet.has(currentItem.id)) {
-                            newSet.delete(currentItem.id)
-                          } else {
-                            newSet.add(currentItem.id)
-                          }
-                          return newSet
-                        })
-                      }}
-                    >
-                      <Star
-                        className={`h-4 w-4 ${starredItems.has(currentItem.id) ? "fill-yellow-400 text-yellow-400" : "text-gray-400"}`}
-                      />
-                    </Button>
-                  </div>
-
-                  <p className="text-base text-gray-500 mb-4">{currentItem.pronunciation}</p>
-
-                  <div className="flex-1 space-y-3">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-primary-50 rounded-lg p-3">
-                        <h3 className="text-xs font-bold uppercase text-primary-700 mb-2 flex items-center gap-1.5">
-                          <BookOpen className="h-3.5 w-3.5" />
-                          Meaning
-                        </h3>
-                        <div className="space-y-1.5">
-                          {currentItem.meaning.map((m, idx) => (
-                            <div key={idx} className="flex gap-1.5">
-                              <div className="h-5 w-5 rounded-full bg-primary-200 flex-shrink-0 flex items-center justify-center text-xs font-bold text-primary-700">
-                                {idx + 1}
-                              </div>
-                              <p className="text-xs leading-relaxed text-gray-700">{m}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="bg-success-50 rounded-lg p-3">
-                        <h3 className="text-xs font-bold uppercase text-success-700 mb-2 flex items-center gap-1.5">
-                          <FileText className="h-3.5 w-3.5" />
-                          Vietnamese
-                        </h3>
-                        <div className="space-y-1.5">
-                          {currentItem.vietnamese.map((v, idx) => (
-                            <div key={idx} className="flex gap-1.5">
-                              <div className="h-5 w-5 rounded-full bg-success-200 flex-shrink-0 flex items-center justify-center text-xs font-bold text-success-700">
-                                {idx + 1}
-                              </div>
-                              <p className="text-xs leading-relaxed text-gray-700">{v}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-primary-50 rounded-lg p-3">
-                      <h3 className="text-xs font-bold uppercase text-primary-700 mb-2 flex items-center gap-1.5">
-                        <Zap className="h-3.5 w-3.5" />
-                        Examples
-                      </h3>
-                      <div className="space-y-2">
-                        {currentItem.examples.map((ex, idx) => (
-                          <div key={idx} className="bg-white rounded-lg p-2.5 space-y-0.5 border border-gray-100">
-                            <p className="text-xs italic text-gray-800">"{ex.en}"</p>
-                            <p className="text-xs text-gray-500">"{ex.vi}"</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-3 mt-3 border-t border-gray-100">
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setShadowingOpen(true)
-                        setCurrentSentence(0)
-                      }}
-                      variant="outline"
-                      className="gap-2 bg-transparent w-full h-10 rounded-xl border-2"
-                    >
-                      <Mic className="h-4 w-4" />
-                      Shadowing Practice
-                    </Button>
-                  </div>
-                </div>
-              </Card>
+                <Button variant="ghost" size="icon" onClick={() => setSettingsOpen(true)} className="h-10 w-10">
+                  <Settings className="h-5 w-5" />
+                </Button>
               </div>
             </div>
 
-            {/* Mastered stat - Right side */}
-            <div className="flex items-center justify-center px-6 py-3 rounded-l-full bg-success-50 border-2 border-success-200">
-              <span className="text-2xl font-bold text-success-700">{learnedCards.size}</span>
+            {/* Progress bar */}
+            <div className="mt-3">
+              <Progress value={progress} className="h-2" />
+              <p className="text-xs text-gray-500 mt-1 text-center">{currentIndex + 1} of {totalCards}</p>
             </div>
-          </div>
-
-          {/* Navigation */}
-          <div className="flex justify-between items-center bg-transparent rounded-2xl p-4">
-            <Button
-              variant="outline"
-              className="gap-2 h-12 rounded-xl border-2 bg-transparent"
-              onClick={() => {
-                if (currentCardIndex > 0) {
-                  setCurrentCardIndex(currentCardIndex - 1)
-                  setIsFlipped(false)
-                }
-              }}
-              disabled={currentCardIndex === 0}
-            >
-              <Undo2 className="h-4 w-4" />
-              Back
-            </Button>
-            <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-gray-900">{currentCardIndex + 1}</span>
-              <span className="text-gray-400">/</span>
-              <span className="text-xl text-gray-500">{notebookItems.length}</span>
-            </div>
-            <Button variant="outline" className="gap-2 h-12 rounded-xl border-2 bg-transparent">
-              <Shuffle className="h-4 w-4" />
-              Shuffle
-            </Button>
           </div>
         </div>
 
+        {/* Main content */}
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          {/* Card container */}
+          <div className="relative mb-8">
+            {/* Navigation arrows */}
+            <button
+              onClick={prevCard}
+              disabled={currentIndex === 0}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-16 z-10 h-14 w-14 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:shadow-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="h-8 w-8" />
+            </button>
+
+            <button
+              onClick={nextCard}
+              disabled={currentIndex === totalCards - 1}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-16 z-10 h-14 w-14 rounded-full bg-white shadow-lg border border-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:shadow-xl transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <ChevronRight className="h-8 w-8" />
+            </button>
+
+            {/* Flashcard */}
+            <div
+              className={`flashcard-container relative cursor-pointer transition-all duration-300 ${animationClass}`}
+              onClick={() => setIsFlipped(!isFlipped)}
+            >
+              <div className={`flashcard-inner h-[500px] ${isFlipped ? "flipped" : ""}`}>
+                {/* Front */}
+                <Card className="flashcard-face p-8 bg-white rounded-3xl shadow-2xl border-0 flex flex-col h-[500px]">
+                  {/* Swipe overlays */}
+                  {animationClass === "swipe-left" && (
+                    <div className="absolute inset-0 bg-warning-100/80 rounded-3xl flex items-center justify-center z-10 animate-in fade-in duration-200">
+                      <div className="text-center">
+                        <X className="h-24 w-24 text-warning-300 mx-auto mb-2" strokeWidth={3} />
+                        <p className="text-xl font-bold text-warning-300">Still Learning</p>
+                      </div>
+                    </div>
+                  )}
+                  {animationClass === "swipe-right" && (
+                    <div className="absolute inset-0 bg-success-100/80 rounded-3xl flex items-center justify-center z-10 animate-in fade-in duration-200">
+                      <div className="text-center">
+                        <Check className="h-24 w-24 text-success-300 mx-auto mb-2" strokeWidth={3} />
+                        <p className="text-xl font-bold text-success-300">Got it!</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Top bar */}
+                  <div className="flex items-center justify-between mb-auto">
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-primary-100 text-primary-700 border-0">{currentCard.level}</Badge>
+                      <Badge className="bg-gray-100 text-gray-600 border-0">{currentCard.partOfSpeech}</Badge>
+                      {knownCards.has(currentCard.id) && <Badge className="bg-success-100 text-success-300 border-0">Known</Badge>}
+                      {learningCards.has(currentCard.id) && <Badge className="bg-warning-100 text-warning-300 border-0">Learning</Badge>}
+                    </div>
+                    <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full" onClick={(e) => { e.stopPropagation(); toggleStar() }}>
+                      <Star className={`h-6 w-6 transition-colors ${starredCards.has(currentCard.id) ? "fill-yellow-400 text-yellow-400" : "text-gray-300 hover:text-yellow-400"}`} />
+                    </Button>
+                  </div>
+
+                  {/* Main content */}
+                  <div className="flex-1 flex flex-col items-center justify-center py-8">
+                    <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-4 text-center">{frontContent.main}</h1>
+                    <p className="text-xl text-gray-500 mb-6">{frontContent.sub}</p>
+
+                    <Button variant="outline" size="lg" className="gap-2 rounded-full px-6 bg-transparent" onClick={(e) => { e.stopPropagation(); speakText(currentCard.word) }}>
+                      <Volume2 className="h-5 w-5" /> Listen
+                    </Button>
+                  </div>
+
+                  {/* Bottom hint */}
+                  <div className="text-center">
+                    {showHint && currentCard.examples[0] && (
+                      <p className="text-sm text-gray-400 italic mb-2">Hint: "{currentCard.examples[0].en.substring(0, 30)}..."</p>
+                    )}
+                    <p className="text-sm text-gray-400">Click or press Space to flip</p>
+                  </div>
+                </Card>
+
+                {/* Back */}
+                <Card className="flashcard-face flashcard-back p-8 bg-gradient-to-br from-primary-50 to-white rounded-3xl shadow-2xl border-0 flex flex-col h-[500px] overflow-y-auto scrollbar-hide">
+                  {/* Top bar */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-primary-100 text-primary-700 border-0">{currentCard.level}</Badge>
+                    </div>
+                    <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full" onClick={(e) => { e.stopPropagation(); toggleStar() }}>
+                      <Star className={`h-6 w-6 ${starredCards.has(currentCard.id) ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} />
+                    </Button>
+                  </div>
+
+                  {/* Answer content */}
+                  <div className="flex-1">
+                    <div className="text-center mb-6">
+                      <h2 className="text-4xl font-bold text-gray-900 mb-2">{backContent.main}</h2>
+                      <p className="text-lg text-gray-500">{backContent.sub}</p>
+                    </div>
+
+                    {/* Word info (when showing definition first, show word here) */}
+                    {showDefinitionFirst && (
+                      <div className="flex items-center justify-center gap-3 mb-6">
+                        <Button variant="outline" size="sm" className="gap-2 rounded-full bg-white" onClick={(e) => { e.stopPropagation(); speakText(currentCard.word) }}>
+                          <Volume2 className="h-4 w-4" /> {currentCard.pronunciation}
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Examples */}
+                    {backContent.examples.length > 0 && (
+                      <div className="bg-white rounded-2xl p-5 shadow-sm">
+                        <h3 className="text-sm font-bold uppercase text-primary-700 mb-3 flex items-center gap-2">
+                          <Zap className="h-4 w-4" /> Examples
+                        </h3>
+                        <div className="space-y-3">
+                          {backContent.examples.map((ex, idx) => (
+                            <div key={idx} className="group">
+                              <p className="text-gray-800 flex items-center gap-2">
+                                <span className="text-primary-500">→</span>
+                                <span className="italic">"{ex.en}"</span>
+                                <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100" onClick={(e) => { e.stopPropagation(); speakText(ex.en) }}>
+                                  <Volume2 className="h-3.5 w-3.5" />
+                                </Button>
+                              </p>
+                              <p className="text-gray-500 text-sm ml-5">"{ex.vi}"</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Shadowing button */}
+                  <div className="mt-4">
+                    <Button variant="outline" className="w-full gap-2 rounded-xl h-12 bg-white" onClick={(e) => { e.stopPropagation(); setShadowingOpen(true); setCurrentSentence(0) }}>
+                      <Mic className="h-5 w-5" /> Practice Speaking
+                    </Button>
+                  </div>
+                </Card>
+              </div>
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex items-center justify-center gap-4">
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={markAsLearning}
+              className="gap-3 h-14 px-8 rounded-2xl border-2 border-warning-200 bg-warning-50 hover:bg-warning-100 text-warning-700"
+            >
+              <X className="h-6 w-6" /> Still Learning
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowHint(!showHint)}
+              className="h-14 w-14 rounded-full bg-gray-100 hover:bg-gray-200"
+            >
+              <Lightbulb className={`h-6 w-6 ${showHint ? "text-yellow-500" : "text-gray-400"}`} />
+            </Button>
+
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={markAsKnown}
+              className="gap-3 h-14 px-8 rounded-2xl border-2 border-success-200 bg-success-100 hover:bg-success-100 text-success-300"
+            >
+              <Check className="h-6 w-6" /> Got it!
+            </Button>
+          </div>
+
+          {/* Keyboard shortcuts hint */}
+          <div className="mt-8 text-center">
+            <p className="text-sm text-gray-400">
+              <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono">Space</kbd> flip ·
+              <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono ml-2">←</kbd> prev ·
+              <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono ml-2">→</kbd> next ·
+              <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono ml-2">Shift+←</kbd> learning ·
+              <kbd className="px-2 py-1 bg-gray-100 rounded text-xs font-mono ml-2">Shift+→</kbd> known
+            </p>
+          </div>
+        </div>
+
+        {/* Settings Dialog */}
+        <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader><DialogTitle>Study Settings</DialogTitle></DialogHeader>
+            <div className="space-y-6 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {showDefinitionFirst ? <Eye className="h-5 w-5 text-primary-600" /> : <EyeOff className="h-5 w-5 text-gray-400" />}
+                  <div>
+                    <p className="font-medium">Show definition first</p>
+                    <p className="text-sm text-gray-500">See Vietnamese meaning, guess the word</p>
+                  </div>
+                </div>
+                <Button variant={showDefinitionFirst ? "default" : "outline"} size="sm" onClick={() => setShowDefinitionFirst(!showDefinitionFirst)}>
+                  {showDefinitionFirst ? "On" : "Off"}
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Volume2 className={`h-5 w-5 ${autoPlay ? "text-primary-600" : "text-gray-400"}`} />
+                  <div>
+                    <p className="font-medium">Auto-play pronunciation</p>
+                    <p className="text-sm text-gray-500">Hear the word automatically</p>
+                  </div>
+                </div>
+                <Button variant={autoPlay ? "default" : "outline"} size="sm" onClick={() => setAutoPlay(!autoPlay)}>
+                  {autoPlay ? "On" : "Off"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         {/* Shadowing Dialog */}
         <Dialog open={shadowingOpen} onOpenChange={setShadowingOpen}>
-          <DialogContent className="max-w-3xl bg-white">
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-bold text-center mb-6">Shadowing Practice</DialogTitle>
-            </DialogHeader>
-            {currentItem && (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between mb-4">
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    onClick={() => setCurrentSentence(Math.max(0, currentSentence - 1))}
-                    disabled={currentSentence === 0}
-                    className="rounded-full h-10 w-10"
-                  >
+          <DialogContent className="max-w-2xl">
+            <DialogHeader><DialogTitle className="text-xl font-bold">Speaking Practice</DialogTitle></DialogHeader>
+            {currentCard && currentCard.examples.length > 0 && (
+              <div className="space-y-6 py-4">
+                <div className="flex items-center justify-between">
+                  <Button size="icon" variant="outline" onClick={() => setCurrentSentence(Math.max(0, currentSentence - 1))} disabled={currentSentence === 0} className="rounded-full">
                     <ChevronLeft className="h-5 w-5" />
                   </Button>
-                  <span className="text-sm font-medium">
-                    Sentence {currentSentence + 1} / {currentItem.examples.length}
-                  </span>
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    onClick={() => setCurrentSentence(Math.min(currentItem.examples.length - 1, currentSentence + 1))}
-                    disabled={currentSentence === currentItem.examples.length - 1}
-                    className="rounded-full h-10 w-10"
-                  >
+                  <span className="text-sm font-medium">Sentence {currentSentence + 1} / {currentCard.examples.length}</span>
+                  <Button size="icon" variant="outline" onClick={() => setCurrentSentence(Math.min(currentCard.examples.length - 1, currentSentence + 1))} disabled={currentSentence === currentCard.examples.length - 1} className="rounded-full">
                     <ChevronRight className="h-5 w-5" />
                   </Button>
                 </div>
 
-                <Card className="p-6 bg-primary-50 border-2 border-border">
-                  <p className="text-xl mb-4 text-gray-900">{currentItem.examples[currentSentence].en}</p>
-                  <p className="text-base text-gray-500">{currentItem.examples[currentSentence].vi}</p>
+                <Card className="p-6 bg-primary-50 border-0">
+                  <p className="text-xl text-gray-900 mb-3">{currentCard.examples[currentSentence]?.en}</p>
+                  <p className="text-gray-500">{currentCard.examples[currentSentence]?.vi}</p>
                 </Card>
 
                 <div className="flex flex-col items-center gap-4">
-                  <Button
-                    size="lg"
-                    variant={isRecording ? "destructive" : "default"}
-                    onClick={handleRecording}
-                    className="h-24 w-24 rounded-full"
-                  >
-                    {isRecording ? <Square className="h-10 w-10" /> : <Mic className="h-10 w-10" />}
+                  <Button size="lg" variant={isRecording ? "destructive" : "default"} onClick={() => setIsRecording(!isRecording)} className="h-20 w-20 rounded-full">
+                    {isRecording ? <Square className="h-8 w-8" /> : <Mic className="h-8 w-8" />}
                   </Button>
-                  <p className="text-sm text-gray-500">
-                    {isRecording ? "Recording... Click to stop" : "Click to start recording"}
-                  </p>
+                  <p className="text-sm text-gray-500">{isRecording ? "Recording... Click to stop" : "Click to record"}</p>
                 </div>
 
-                <div className="flex justify-center gap-2">
-                  <Button variant="outline" className="gap-2 bg-transparent">
-                    <Volume2 className="h-4 w-4" />
-                    Play Original
-                  </Button>
-                  <Button variant="outline" className="gap-2 bg-transparent" disabled={!isRecording}>
-                    <Volume2 className="h-4 w-4" />
-                    Play Recording
-                  </Button>
-                </div>
+                <Button variant="outline" className="w-full gap-2 bg-transparent" onClick={() => speakText(currentCard.examples[currentSentence]?.en || "")}>
+                  <Volume2 className="h-4 w-4" /> Play Original
+                </Button>
               </div>
             )}
           </DialogContent>
         </Dialog>
 
         {/* Session Complete Dialog */}
-        <Dialog open={sessionCompleteOpen} onOpenChange={setSessionCompleteOpen}>
-          <DialogContent className="max-w-xl">
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-bold text-center">Session Complete!</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-6 py-6">
-              <div className="flex flex-col items-center gap-6">
-                <div className="relative w-48 h-48">
-                  <svg className="w-48 h-48 transform -rotate-90">
-                    <circle
-                      cx="96"
-                      cy="96"
-                      r="80"
-                      stroke="#fde68a"
-                      strokeWidth="32"
-                      fill="none"
-                      strokeDasharray={`${(notLearnedCards.size / Math.max(learnedCards.size + notLearnedCards.size, 1)) * 502.4} 502.4`}
-                    />
-                    <circle
-                      cx="96"
-                      cy="96"
-                      r="80"
-                      stroke="#86efac"
-                      strokeWidth="32"
-                      fill="none"
-                      strokeDasharray={`${(learnedCards.size / Math.max(learnedCards.size + notLearnedCards.size, 1)) * 502.4} 502.4`}
-                      strokeDashoffset={`-${(notLearnedCards.size / Math.max(learnedCards.size + notLearnedCards.size, 1)) * 502.4}`}
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <p className="text-4xl font-bold text-gray-900">
-                      {learnedCards.size + notLearnedCards.size > 0
-                        ? Math.round((learnedCards.size / (learnedCards.size + notLearnedCards.size)) * 100)
-                        : 0}
-                      %
-                    </p>
-                    <p className="text-sm text-gray-500">Mastered</p>
-                  </div>
-                </div>
+        <Dialog open={sessionComplete} onOpenChange={setSessionComplete}>
+          <DialogContent className="max-w-lg">
+            <VisuallyHidden>
+              <DialogTitle>Session Complete</DialogTitle>
+            </VisuallyHidden>
+            <div className="text-center py-6">
+              <div className="h-20 w-20 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center mx-auto mb-6">
+                <Trophy className="h-10 w-10 text-white" />
+              </div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Session Complete!</h2>
+              <p className="text-gray-500 mb-8">Great job! Here's your progress:</p>
 
-                <div className="flex gap-8">
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded-full bg-yellow-300"></div>
-                    <div>
-                      <p className="text-sm font-medium">Learning</p>
-                      <p className="text-xs text-gray-500">{notLearnedCards.size} cards</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 rounded-full bg-green-300"></div>
-                    <div>
-                      <p className="text-sm font-medium">Mastered</p>
-                      <p className="text-xs text-gray-500">{learnedCards.size} cards</p>
-                    </div>
-                  </div>
-                </div>
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <Card className="p-4 bg-success-100 border-0">
+                  <Check className="h-8 w-8 text-success-300 mx-auto mb-2" />
+                  <p className="text-3xl font-bold text-success-300">{knownCards.size}</p>
+                  <p className="text-sm text-success-300">Known</p>
+                </Card>
+                <Card className="p-4 bg-warning-100 border-0">
+                  <Target className="h-8 w-8 text-warning-300 mx-auto mb-2" />
+                  <p className="text-3xl font-bold text-warning-300">{learningCards.size}</p>
+                  <p className="text-sm text-warning-300">Still Learning</p>
+                </Card>
               </div>
 
-              <div className="space-y-3 pt-2">
-                <Button
-                  className="w-full gap-2 h-12 rounded-xl"
-                  size="lg"
-                  disabled={notLearnedCards.size === 0}
-                  onClick={() => {
-                    setCurrentCardIndex(0)
-                    setSessionCompleteOpen(false)
-                    setIsFlipped(false)
-                  }}
-                >
-                  <Play className="h-5 w-5" />
-                  Review Unmastered ({notLearnedCards.size})
+              <div className="space-y-3">
+                {learningCards.size > 0 && (
+                  <Button onClick={studyLearningOnly} className="w-full h-12 gap-2 rounded-xl">
+                    <Play className="h-5 w-5" /> Study {learningCards.size} Learning Cards
+                  </Button>
+                )}
+                <Button onClick={resetSession} variant="outline" className="w-full h-12 gap-2 rounded-xl bg-transparent">
+                  <RotateCcw className="h-5 w-5" /> Start Over
                 </Button>
-                <Button
-                  className="w-full gap-2 h-12 rounded-xl bg-transparent"
-                  size="lg"
-                  variant="outline"
-                  onClick={() => {
-                    setCurrentCardIndex(0)
-                    setLearnedCards(new Set())
-                    setNotLearnedCards(new Set())
-                    setSessionCompleteOpen(false)
-                    setIsFlipped(false)
-                  }}
-                >
-                  <RotateCcw className="h-5 w-5" />
-                  Start Over
-                </Button>
-                <Button
-                  className="w-full gap-2 h-12 rounded-xl bg-transparent"
-                  size="lg"
-                  variant="outline"
-                  onClick={() => router.push("/notebook")}
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                  Back to Notebook
+                <Button onClick={() => router.push("/notebook")} variant="ghost" className="w-full h-12 gap-2 rounded-xl">
+                  <ArrowLeft className="h-5 w-5" /> Back to Notebook
                 </Button>
               </div>
             </div>
