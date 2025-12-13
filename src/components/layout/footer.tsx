@@ -21,14 +21,18 @@ export function Footer() {
     <footer className="border-t border-border bg-white">
       {/* Main Footer Content */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-        
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-10">
           {/* About DailyEng */}
           <div className="lg:col-span-1 flex flex-col items-center lg:items-start">
-            <Image src="/logo.png" alt="DailyEng Logo" width={180} height={60} className="object-contain mb-4" />
+            <Image
+              src="/logo.png"
+              alt="DailyEng Logo"
+              width={180}
+              height={60}
+              className="object-contain mb-4"
+            />
           </div>
           <div>
-            
             <h4 className="font-bold text-foreground mb-4">
               About Daily<span className="text-primary-600">Eng</span>
             </h4>
@@ -115,7 +119,7 @@ export function Footer() {
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li>
                 <Link
-                  href="/help"
+                  href="/helps"
                   className="hover:text-primary-500 transition-colors"
                 >
                   Help Center

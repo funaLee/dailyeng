@@ -158,7 +158,11 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
     <div className="min-h-screen bg-background font-sans selection:bg-primary-200 selection:text-primary-900">
       {/* Hero Section - Reduced padding to show logos above fold */}
       <section className="relative overflow-hidden pt-12 pb-8 sm:pt-12 sm:pb-12 lg:pt-16 lg:pb-16">
-        <InteractiveGridBackground rows={12} cols={20} className="z-0 opacity-80" />
+        <InteractiveGridBackground
+          rows={12}
+          cols={20}
+          className="z-0 opacity-80"
+        />
 
         <div className="pointer-events-none max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
@@ -178,14 +182,16 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
               <RevealOnScroll delay={200}>
                 <h2 className="text-2xl sm:text-3xl lg:text-4xl font-medium mb-6 leading-relaxed text-gray-500">
                   Master English the <br className="hidden lg:block" />
-                  <span className="text-primary-600 font-semibold">Smart & Fun Way!</span>
+                  <span className="text-primary-600 font-semibold">
+                    Smart & Fun Way!
+                  </span>
                 </h2>
               </RevealOnScroll>
 
               <RevealOnScroll delay={300}>
                 <p className="text-lg sm:text-xl text-gray-400 mb-8 max-w-xl leading-relaxed">
-                  Stop memorizing lists. Start using the language. Practice with real-world scenarios, AI tutors, and
-                  personalized roadmaps.
+                  Stop memorizing lists. Start using the language. Practice with
+                  real-world scenarios, AI tutors, and personalized roadmaps.
                 </p>
               </RevealOnScroll>
 
@@ -193,7 +199,10 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                 delay={400}
                 className="flex flex-col sm:flex-row gap-4 pointer-events-auto w-full sm:w-auto"
               >
-                <Link href="/auth/signup" className="pointer-events-auto w-full sm:w-auto cursor-pointer">
+                <Link
+                  href="/auth/signup"
+                  className="pointer-events-auto w-full sm:w-auto cursor-pointer"
+                >
                   <Button
                     size="lg"
                     variant="default"
@@ -202,7 +211,10 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                     Start Learning Free
                   </Button>
                 </Link>
-                <Link href="/help" className="pointer-events-auto w-full sm:w-auto cursor-pointer">
+                <Link
+                  href="/helps"
+                  className="pointer-events-auto w-full sm:w-auto cursor-pointer"
+                >
                   <Button
                     size="lg"
                     variant="outline"
@@ -213,11 +225,22 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                 </Link>
               </RevealOnScroll>
 
-              <RevealOnScroll delay={500} className="mt-8 flex items-center gap-4 text-sm text-gray-500">
+              <RevealOnScroll
+                delay={500}
+                className="mt-8 flex items-center gap-4 text-sm text-gray-500"
+              >
                 <div className="flex -space-x-2">
                   {[1, 2, 3, 4].map((i) => (
-                    <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 overflow-hidden">
-                      <Image src={`/placeholder-user.jpg`} width={32} height={32} alt="User" />
+                    <div
+                      key={i}
+                      className="w-8 h-8 rounded-full border-2 border-white bg-gray-200 overflow-hidden"
+                    >
+                      <Image
+                        src={`/placeholder-user.jpg`}
+                        width={32}
+                        height={32}
+                        alt="User"
+                      />
                     </div>
                   ))}
                 </div>
@@ -248,15 +271,25 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
       {/* Logos Marquee - Infinite Loop, No Grayscale */}
       <section className="py-8 bg-white border-y border-gray-200 overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 mb-6 text-center">
-          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Prepared for success with</p>
+          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+            Prepared for success with
+          </p>
         </div>
 
         <div className="relative flex overflow-hidden">
           {/* First set of logos */}
           <div className="flex animate-scroll-left whitespace-nowrap py-2">
             {[...partnerLogos, ...partnerLogos].map((logo, index) => (
-              <div key={`logo-1-${index}`} className="flex items-center justify-center mx-12 w-32 h-16 relative">
-                <Image src={logo.src || "/placeholder.svg"} alt={logo.alt} fill className="object-contain" />
+              <div
+                key={`logo-1-${index}`}
+                className="flex items-center justify-center mx-12 w-32 h-16 relative"
+              >
+                <Image
+                  src={logo.src || "/placeholder.svg"}
+                  alt={logo.alt}
+                  fill
+                  className="object-contain"
+                />
               </div>
             ))}
           </div>
@@ -279,20 +312,29 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                       <Users className="w-4 h-4" />
                       <span>Our Community</span>
                     </div>
-                    <div className="text-4xl font-bold mb-1 tracking-tighter">100k+</div>
-                    <div className="text-primary-100 text-base mb-4">active learners worldwide</div>
+                    <div className="text-4xl font-bold mb-1 tracking-tighter">
+                      100k+
+                    </div>
+                    <div className="text-primary-100 text-base mb-4">
+                      active learners worldwide
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md rounded-xl p-3 w-fit border border-white/10">
                     <div className="flex -space-x-1">
                       {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400 drop-shadow-sm" />
+                        <Star
+                          key={i}
+                          className="h-4 w-4 fill-yellow-400 text-yellow-400 drop-shadow-sm"
+                        />
                       ))}
                     </div>
                     <div className="h-6 w-px bg-white/20"></div>
                     <div>
                       <span className="font-bold text-base">4.9</span>
-                      <span className="text-primary-100 text-xs ml-1">/ 5.0</span>
+                      <span className="text-primary-100 text-xs ml-1">
+                        / 5.0
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -306,20 +348,28 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                 <div className="relative z-10">
                   <div className="mb-4 flex gap-1">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-primary-600 text-primary-600" />
+                      <Star
+                        key={i}
+                        className="h-4 w-4 fill-primary-600 text-primary-600"
+                      />
                     ))}
                   </div>
                   <p className="text-gray-900 text-lg font-medium leading-relaxed mb-6">
-                    "This app completely changed how I prepare for my interviews. The AI speaking partner feels
-                    incredibly realistic."
+                    "This app completely changed how I prepare for my
+                    interviews. The AI speaking partner feels incredibly
+                    realistic."
                   </p>
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-linear-to-br from-primary-600 to-secondary-500 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md">
                       TT
                     </div>
                     <div>
-                      <div className="font-bold text-gray-900 text-sm">Thanh Truc</div>
-                      <div className="text-primary-600 text-xs font-medium">Software Engineer</div>
+                      <div className="font-bold text-gray-900 text-sm">
+                        Thanh Truc
+                      </div>
+                      <div className="text-primary-600 text-xs font-medium">
+                        Software Engineer
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -333,9 +383,12 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
       <section className="py-15 bg-linear-to-br from-primary-200 via-primary-50 to-secondary-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <RevealOnScroll className="text-center mb-16">
-            <h2 className="text-4xl sm:text-4xl font-bold text-primary-800 mb-6">Why Learners Choose DailyEng</h2>
+            <h2 className="text-4xl sm:text-4xl font-bold text-primary-800 mb-6">
+              Why Learners Choose DailyEng
+            </h2>
             <p className="text-xl text-gray-600">
-              We combine advanced AI with proven learning methods to help you achieve fluency faster.
+              We combine advanced AI with proven learning methods to help you
+              achieve fluency faster.
             </p>
           </RevealOnScroll>
 
@@ -347,22 +400,32 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                   <div className="w-12 h-12 bg-primary-100 text-primary-600 rounded-2xl flex items-center justify-center mb-6">
                     <Mic className="w-6 h-6" />
                   </div>
-                  <h3 className="text-2xl font-bold mb-4">Speak From Day One</h3>
+                  <h3 className="text-2xl font-bold mb-4">
+                    Speak From Day One
+                  </h3>
                   <p className="text-gray-600 leading-relaxed mb-6">
-                    Don't just read about English. Practice real-life conversations with our AI tutor who listens,
-                    corrects your pronunciation, and helps you sound natural.
+                    Don't just read about English. Practice real-life
+                    conversations with our AI tutor who listens, corrects your
+                    pronunciation, and helps you sound natural.
                   </p>
                   <ul className="space-y-2">
                     <li className="flex items-center gap-2 text-sm text-gray-700">
-                      <CheckCircle2 className="w-4 h-4 text-accent-500" /> Real-time pronunciation scoring
+                      <CheckCircle2 className="w-4 h-4 text-accent-500" />{" "}
+                      Real-time pronunciation scoring
                     </li>
                     <li className="flex items-center gap-2 text-sm text-gray-700">
-                      <CheckCircle2 className="w-4 h-4 text-accent-500" /> Context-based roleplays
+                      <CheckCircle2 className="w-4 h-4 text-accent-500" />{" "}
+                      Context-based roleplays
                     </li>
                   </ul>
                 </div>
                 <div className="flex-1 relative h-50 w-full md:h-full bg-primary-50 rounded-2xl overflow-hidden group-hover:scale-[1.02] transition-transform duration-500">
-                  <Image src="/learning.png" alt="Speaking Practice" fill className="object-cover" />
+                  <Image
+                    src="/learning.png"
+                    alt="Speaking Practice"
+                    fill
+                    className="object-cover"
+                  />
                 </div>
               </Card>
             </RevealOnScroll>
@@ -374,14 +437,19 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                   <div className="w-12 h-12 bg-secondary-100 text-secondary-600 rounded-2xl flex items-center justify-center mb-6">
                     <BookOpen className="w-6 h-6" />
                   </div>
-                  <h3 className="text-xl font-bold mb-3">Contextual Learning</h3>
+                  <h3 className="text-xl font-bold mb-3">
+                    Contextual Learning
+                  </h3>
                   <p className="text-gray-600 text-sm leading-relaxed">
-                    Learn vocabulary and grammar in the context of stories and articles, not isolated lists.
+                    Learn vocabulary and grammar in the context of stories and
+                    articles, not isolated lists.
                   </p>
                 </div>
                 <div className="mt-6 h-32 relative rounded-xl overflow-hidden bg-secondary-50">
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-4xl font-bold text-secondary-200 select-none">A+</span>
+                    <span className="text-4xl font-bold text-secondary-200 select-none">
+                      A+
+                    </span>
                   </div>
                 </div>
               </Card>
@@ -396,7 +464,8 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                   </div>
                   <h3 className="text-xl font-bold mb-3">Stay Motivated</h3>
                   <p className="text-gray-600 text-sm leading-relaxed">
-                    Daily streaks, XP rewards, and leaderboards designed to keep you coming back every day.
+                    Daily streaks, XP rewards, and leaderboards designed to keep
+                    you coming back every day.
                   </p>
                 </div>
                 <div className="mt-6 flex justify-center gap-2">
@@ -417,10 +486,13 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                   <div className="w-12 h-12 bg-secondary-50 text-secondary-600 rounded-2xl flex items-center justify-center mb-6 border border-secondary-100">
                     <Sparkles className="w-6 h-6" />
                   </div>
-                  <h3 className="text-2xl font-bold mb-4 text-gray-900">Kitty Tutor Companion</h3>
+                  <h3 className="text-2xl font-bold mb-4 text-gray-900">
+                    Kitty Tutor Companion
+                  </h3>
                   <p className="text-gray-600 leading-relaxed mb-6">
-                    Stuck on a word? Need grammar help? Kitty is your 24/7 AI companion ready to explain concepts
-                    instantly inside any lesson.
+                    Stuck on a word? Need grammar help? Kitty is your 24/7 AI
+                    companion ready to explain concepts instantly inside any
+                    lesson.
                   </p>
                   <Button
                     variant="secondary"
@@ -448,8 +520,12 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <RevealOnScroll className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">Everything You Need to Fluency</h2>
-            <p className="text-xl text-gray-600">A complete ecosystem for English mastery</p>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Everything You Need to Fluency
+            </h2>
+            <p className="text-xl text-gray-600">
+              A complete ecosystem for English mastery
+            </p>
           </RevealOnScroll>
 
           <RevealOnScroll className="flex flex-col lg:flex-row gap-8">
@@ -460,7 +536,9 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`group flex items-center gap-4 p-4 rounded-2xl text-left transition-all duration-300 cursor-pointer ${
-                    activeTab === tab.id ? "bg-primary-50 ring-1 ring-primary-200 shadow-sm" : "hover:bg-gray-50"
+                    activeTab === tab.id
+                      ? "bg-primary-50 ring-1 ring-primary-200 shadow-sm"
+                      : "hover:bg-gray-50"
                   }`}
                 >
                   <div
@@ -474,15 +552,23 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                   </div>
                   <div>
                     <h3
-                      className={`font-semibold text-lg ${activeTab === tab.id ? "text-primary-900" : "text-gray-700"}`}
+                      className={`font-semibold text-lg ${
+                        activeTab === tab.id
+                          ? "text-primary-900"
+                          : "text-gray-700"
+                      }`}
                     >
                       {tab.label}
                     </h3>
                     {activeTab === tab.id && (
-                      <p className="text-sm text-primary-600 mt-1 font-medium animate-fade-in">Active Feature</p>
+                      <p className="text-sm text-primary-600 mt-1 font-medium animate-fade-in">
+                        Active Feature
+                      </p>
                     )}
                   </div>
-                  {activeTab === tab.id && <ChevronRight className="ml-auto w-5 h-5 text-primary-600" />}
+                  {activeTab === tab.id && (
+                    <ChevronRight className="ml-auto w-5 h-5 text-primary-600" />
+                  )}
                 </button>
               ))}
             </div>
@@ -501,20 +587,31 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                   >
                     <div className="relative h-64 w-full overflow-hidden rounded-t-4xl">
                       <div className="absolute inset-0 bg-linear-to-b from-transparent to-black/60 z-10" />
-                      <Image src={tab.image || "/placeholder.svg"} alt={tab.title} fill className="object-cover" />
+                      <Image
+                        src={tab.image || "/placeholder.svg"}
+                        alt={tab.title}
+                        fill
+                        className="object-cover"
+                      />
                       <div className="absolute bottom-6 left-8 z-20">
                         <div className="inline-block bg-secondary-400 text-white text-xs font-bold px-3 py-1 rounded-full mb-2">
                           FEATURE
                         </div>
-                        <h3 className="text-3xl font-bold text-white">{tab.title}</h3>
+                        <h3 className="text-3xl font-bold text-white">
+                          {tab.title}
+                        </h3>
                       </div>
                     </div>
                     <div className="p-8 flex flex-col justify-between flex-1 bg-white rounded-b-4xl">
-                      <p className="text-lg text-gray-600 leading-relaxed">{tab.description}</p>
+                      <p className="text-lg text-gray-600 leading-relaxed">
+                        {tab.description}
+                      </p>
                       <div className="flex gap-4 mt-6">
                         <Button
                           className="rounded-full px-6 bg-primary-600 hover:bg-primary-600 cursor-pointer"
-                          onClick={() => (window.location.href = "/auth/signup")}
+                          onClick={() =>
+                            (window.location.href = "/auth/signup")
+                          }
                         >
                           Try for free
                         </Button>
@@ -532,14 +629,18 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
       <section className="py-24 bg-primary-50 overflow-hidden">
         <RevealOnScroll className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12 flex items-end justify-between">
           <div>
-            <h2 className="text-4xl font-bold text-primary-900 mb-2">Learner Stories</h2>
+            <h2 className="text-4xl font-bold text-primary-900 mb-2">
+              Learner Stories
+            </h2>
             <div className="flex items-center gap-2">
               <div className="flex text-yellow-400">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="w-5 h-5 fill-current" />
                 ))}
               </div>
-              <span className="font-medium text-primary-600">4.8/5 average rating</span>
+              <span className="font-medium text-primary-600">
+                4.8/5 average rating
+              </span>
             </div>
           </div>
           <Button
@@ -558,7 +659,10 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
 
           <div
             className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-6 h-[500px] overflow-hidden"
-            style={{ maskImage: "linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)" }}
+            style={{
+              maskImage:
+                "linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)",
+            }}
           >
             {/* Column 1 - Scroll Up */}
             <div className="space-y-6 animate-scroll-up hover:paused">
@@ -577,36 +681,49 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                       />
                     </div>
                     <div>
-                      <p className="font-semibold text-sm text-gray-900">{review.name}</p>
-                      <p className="text-xs text-gray-500">IELTS {review.ielts}</p>
+                      <p className="font-semibold text-sm text-gray-900">
+                        {review.name}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        IELTS {review.ielts}
+                      </p>
                     </div>
                   </div>
-                  <p className="text-gray-600 text-sm leading-relaxed">"{review.content}"</p>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    "{review.content}"
+                  </p>
                 </Card>
               ))}
             </div>
 
             {/* Column 2 - Scroll Down */}
             <div className="space-y-6 animate-scroll-down hover:paused hidden md:block">
-              {[...reviews].reverse().concat([...reviews].reverse()).map((review, idx) => (
-                <Card
-                  key={`col2-${idx}`}
-                  className="p-6 border-0 shadow-sm bg-white rounded-2xl cursor-pointer hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center font-bold text-sm">
-                      {review.name.charAt(0)}
+              {[...reviews]
+                .reverse()
+                .concat([...reviews].reverse())
+                .map((review, idx) => (
+                  <Card
+                    key={`col2-${idx}`}
+                    className="p-6 border-0 shadow-sm bg-white rounded-2xl cursor-pointer hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center font-bold text-sm">
+                        {review.name.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm text-gray-900">
+                          {review.name}
+                        </p>
+                        <p className="text-xs text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full inline-block">
+                          Verified Student
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-semibold text-sm text-gray-900">{review.name}</p>
-                      <p className="text-xs text-primary-600 bg-primary-50 px-2 py-0.5 rounded-full inline-block">
-                        Verified Student
-                      </p>
-                    </div>
-                  </div>
-                  <p className="text-gray-600 text-sm leading-relaxed">"{review.content}"</p>
-                </Card>
-              ))}
+                    <p className="text-gray-600 text-sm leading-relaxed">
+                      "{review.content}"
+                    </p>
+                  </Card>
+                ))}
             </div>
             {/* Column 3 - Scroll Up */}
             <div className="space-y-6 animate-scroll-up hover:paused hidden lg:block">
@@ -625,11 +742,15 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                       />
                     </div>
                     <div>
-                      <p className="font-semibold text-sm text-gray-900">{review.name}</p>
+                      <p className="font-semibold text-sm text-gray-900">
+                        {review.name}
+                      </p>
                       <p className="text-xs text-gray-500">TOEFL 105</p>
                     </div>
                   </div>
-                  <p className="text-gray-600 text-sm leading-relaxed">"{review.content}"</p>
+                  <p className="text-gray-600 text-sm leading-relaxed">
+                    "{review.content}"
+                  </p>
                 </Card>
               ))}
             </div>
@@ -643,8 +764,12 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
           <div className="relative">
             {/* Header */}
             <div className="sticky top-0 z-10 bg-white border-b px-10 py-6">
-              <DialogTitle className="text-3xl font-bold text-gray-800">Learner Stories</DialogTitle>
-              <p className="text-gray-500 text-base mt-1">Real success stories from our community</p>
+              <DialogTitle className="text-3xl font-bold text-gray-800">
+                Learner Stories
+              </DialogTitle>
+              <p className="text-gray-500 text-base mt-1">
+                Real success stories from our community
+              </p>
 
               {/* Review navigation dots */}
               <div className="flex items-center gap-2 mt-4">
@@ -653,7 +778,9 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                     key={idx}
                     onClick={() => setCurrentReviewIndex(idx)}
                     className={`h-2.5 rounded-full transition-all cursor-pointer ${
-                      idx === currentReviewIndex ? "bg-primary-600 w-8" : "bg-gray-300 hover:bg-gray-400 w-2.5"
+                      idx === currentReviewIndex
+                        ? "bg-primary-600 w-8"
+                        : "bg-gray-300 hover:bg-gray-400 w-2.5"
                     }`}
                   />
                 ))}
@@ -669,7 +796,10 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                     {/* Photo */}
                     <div className="relative h-80 rounded-2xl overflow-hidden mb-6 shadow-lg">
                       <Image
-                        src={reviews[currentReviewIndex].photo || "/placeholder.svg"}
+                        src={
+                          reviews[currentReviewIndex].photo ||
+                          "/placeholder.svg"
+                        }
                         alt={`${reviews[currentReviewIndex].name}'s journey`}
                         fill
                         className="object-cover"
@@ -681,7 +811,8 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                         <div className="flex items-center gap-2 bg-white/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg">
                           <Trophy className="w-5 h-5 text-yellow-500" />
                           <span className="font-bold text-gray-800">
-                            {reviews[currentReviewIndex].result.type}: {reviews[currentReviewIndex].result.score}
+                            {reviews[currentReviewIndex].result.type}:{" "}
+                            {reviews[currentReviewIndex].result.score}
                           </span>
                         </div>
                       </div>
@@ -728,7 +859,10 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                       <div className="relative shrink-0">
                         <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-xl">
                           <Image
-                            src={reviews[currentReviewIndex].avatar || "/placeholder.svg"}
+                            src={
+                              reviews[currentReviewIndex].avatar ||
+                              "/placeholder.svg"
+                            }
                             alt={reviews[currentReviewIndex].name}
                             width={96}
                             height={96}
@@ -751,7 +885,10 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                         {/* Stars */}
                         <div className="flex gap-1 mt-2">
                           {[...Array(5)].map((_, i) => (
-                            <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                            <Star
+                              key={i}
+                              className="w-5 h-5 fill-yellow-400 text-yellow-400"
+                            />
                           ))}
                         </div>
                       </div>
@@ -771,14 +908,16 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                         Courses Completed
                       </h4>
                       <div className="flex flex-wrap gap-2">
-                        {reviews[currentReviewIndex].courses.map((course, idx) => (
-                          <span
-                            key={idx}
-                            className="bg-primary-100 text-primary-700 px-4 py-2 rounded-full text-sm font-medium"
-                          >
-                            {course}
-                          </span>
-                        ))}
+                        {reviews[currentReviewIndex].courses.map(
+                          (course, idx) => (
+                            <span
+                              key={idx}
+                              className="bg-primary-100 text-primary-700 px-4 py-2 rounded-full text-sm font-medium"
+                            >
+                              {course}
+                            </span>
+                          )
+                        )}
                       </div>
                     </div>
                   </div>
@@ -787,7 +926,11 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
 
               {/* Navigation buttons */}
               <div className="flex justify-between items-center px-10 py-6 border-t bg-white">
-                <Button variant="outline" onClick={prevReview} className="cursor-pointer bg-transparent px-6 py-5">
+                <Button
+                  variant="outline"
+                  onClick={prevReview}
+                  className="cursor-pointer bg-transparent px-6 py-5"
+                >
                   <ChevronLeft className="w-5 h-5 mr-2" />
                   Previous
                 </Button>
@@ -827,12 +970,14 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                   </h2>
 
                   <p className="text-gray-600 text-lg mb-6 leading-relaxed">
-                    Discover your current proficiency with our comprehensive placement test. Get personalized
-                    recommendations based on your results.
+                    Discover your current proficiency with our comprehensive
+                    placement test. Get personalized recommendations based on
+                    your results.
                   </p>
 
                   <blockquote className="border-l-4 border-secondary-400 pl-4 mb-8 italic text-gray-500">
-                    "Knowing where you stand is the first step to reaching where you want to be."
+                    "Knowing where you stand is the first step to reaching where
+                    you want to be."
                   </blockquote>
 
                   <div className="flex flex-col sm:flex-row gap-4">
@@ -855,19 +1000,30 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
 
                 {/* Right Image */}
                 <div className="relative h-64 md:h-auto min-h-[300px] bg-primary-50">
-                  <Image src="/learning.png" alt="English Level Test" fill className="object-cover" />
+                  <Image
+                    src="/learning.png"
+                    alt="English Level Test"
+                    fill
+                    className="object-cover"
+                  />
                   <div className="absolute inset-0 bg-linear-to-t md:bg-linear-to-l from-white/20 to-transparent" />
 
                   {/* Floating badges */}
                   <div className="absolute top-6 right-6 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg cursor-pointer hover:shadow-xl transition-shadow">
-                    <div className="text-xs text-gray-500 font-medium">CEFR Levels</div>
-                    <div className="text-lg font-bold text-secondary-600">A1 - C2</div>
+                    <div className="text-xs text-gray-500 font-medium">
+                      CEFR Levels
+                    </div>
+                    <div className="text-lg font-bold text-secondary-600">
+                      A1 - C2
+                    </div>
                   </div>
 
                   <div className="absolute bottom-6 left-6 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg cursor-pointer hover:shadow-xl transition-shadow">
                     <div className="flex items-center gap-2">
                       <Users className="w-4 h-4 text-secondary-500" />
-                      <span className="text-sm font-semibold text-gray-700">50K+ tests taken</span>
+                      <span className="text-sm font-semibold text-gray-700">
+                        50K+ tests taken
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -900,8 +1056,9 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
               </h2>
 
               <p className="text-lg text-gray-600 max-w-lg">
-                Tell us about your goals, schedule, and preferences. We will create a customized learning roadmap
-                designed specifically for your success.
+                Tell us about your goals, schedule, and preferences. We will
+                create a customized learning roadmap designed specifically for
+                your success.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
@@ -950,49 +1107,60 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                       <Target className="w-5 h-5 text-primary-600" />
                     </div>
                     <div>
-                      <div className="font-semibold text-gray-900">Study Plan Builder</div>
-                      <div className="text-sm text-gray-500">Question 1 of 10</div>
+                      <div className="font-semibold text-gray-900">
+                        Study Plan Builder
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        Question 1 of 10
+                      </div>
                     </div>
                   </div>
 
                   <Progress value={10} className="h-2 [&>div]:bg-primary-600" />
 
                   <div>
-                    <h3 className="font-semibold text-gray-900">What is your primary goal?</h3>
+                    <h3 className="font-semibold text-gray-900">
+                      What is your primary goal?
+                    </h3>
                     <div className="space-y-3">
-                      {["Pass IELTS/TOEFL exam", "Improve for career", "Travel confidently", "Academic studies"].map(
-                        (option, idx) => (
-                          <div
-                            key={option}
-                            className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                              idx === 0
-                                ? "border-primary-600 bg-primary-50"
-                                : "border-gray-200 hover:border-primary-300"
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div
-                                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                                  idx === 0
-                                    ? "border-primary-600 bg-primary-600"
-                                    : "border-gray-300"
-                                }`}
-                              >
-                                {idx === 0 && <Check className="w-3 h-3 text-white" />}
-                              </div>
-                              <span
-                                className={
-                                  idx === 0
-                                    ? "font-medium text-primary-700"
-                                    : "text-gray-600"
-                                }
-                              >
-                                {option}
-                              </span>
+                      {[
+                        "Pass IELTS/TOEFL exam",
+                        "Improve for career",
+                        "Travel confidently",
+                        "Academic studies",
+                      ].map((option, idx) => (
+                        <div
+                          key={option}
+                          className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                            idx === 0
+                              ? "border-primary-600 bg-primary-50"
+                              : "border-gray-200 hover:border-primary-300"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div
+                              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                                idx === 0
+                                  ? "border-primary-600 bg-primary-600"
+                                  : "border-gray-300"
+                              }`}
+                            >
+                              {idx === 0 && (
+                                <Check className="w-3 h-3 text-white" />
+                              )}
                             </div>
+                            <span
+                              className={
+                                idx === 0
+                                  ? "font-medium text-primary-700"
+                                  : "text-gray-600"
+                              }
+                            >
+                              {option}
+                            </span>
                           </div>
-                        ),
-                      )}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -1016,7 +1184,11 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
           {/* Decorative pattern overlay */}
           <div
             className="absolute inset-0 opacity-15"
-            style={{ backgroundImage: "radial-gradient(var(--primary-50) 2px, transparent 2px)", backgroundSize: "24px 24px" }}
+            style={{
+              backgroundImage:
+                "radial-gradient(var(--primary-50) 2px, transparent 2px)",
+              backgroundSize: "24px 24px",
+            }}
           ></div>
         </div>
 
@@ -1025,7 +1197,8 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
             Ready to speak English with confidence?
           </h2>
           <p className="text-xl text-primary-200 mb-12 max-w-2xl mx-auto">
-            Join thousands of learners who are already improving their careers and lives with DailyEng.
+            Join thousands of learners who are already improving their careers
+            and lives with DailyEng.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/auth/signup" className="cursor-pointer">
@@ -1047,27 +1220,47 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
               </Button>
             </Link>
           </div>
-          <p className="mt-6 text-sm text-primary-200 opacity-80">No credit card required • Cancel anytime</p>
+          <p className="mt-6 text-sm text-primary-200 opacity-80">
+            No credit card required • Cancel anytime
+          </p>
         </RevealOnScroll>
       </section>
 
       {/* Custom CSS for animations */}
       <style jsx global>{`
         @keyframes scroll-left {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-50%);
+          }
         }
         @keyframes scroll-up {
-          0% { transform: translateY(0); }
-          100% { transform: translateY(-50%); }
+          0% {
+            transform: translateY(0);
+          }
+          100% {
+            transform: translateY(-50%);
+          }
         }
         @keyframes scroll-down {
-          0% { transform: translateY(-50%); }
-          100% { transform: translateY(0); }
+          0% {
+            transform: translateY(-50%);
+          }
+          100% {
+            transform: translateY(0);
+          }
         }
         @keyframes fade-in-up {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
         .animate-scroll-left {
           animation: scroll-left 40s linear infinite;
@@ -1084,16 +1277,22 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
 
         /* Mask for marquee edges */
         .mask-linear-fade {
-          mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+          mask-image: linear-gradient(
+            to right,
+            transparent,
+            black 10%,
+            black 90%,
+            transparent
+          );
         }
 
         /* Hide scrollbar for cleaner UI */
         .scrollbar-hide::-webkit-scrollbar {
-            display: none;
+          display: none;
         }
         .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+          -ms-overflow-style: none;
+          scrollbar-width: none;
         }
       `}</style>
 
@@ -1101,5 +1300,5 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
         <UsersIcon className="w-0 h-0" />
       </div>
     </div>
-  )
+  );
 }
