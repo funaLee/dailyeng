@@ -16,6 +16,7 @@ import {
   NotebookPen,
   LayoutDashboard,
   GraduationCap,
+  UserIcon,
 } from "lucide-react";
 
 interface ProtectedRouteProps {
@@ -131,4 +132,5 @@ export const PageIcons = {
   notebook: <NotebookPen className="w-10 h-10 text-primary-500" />,
   dashboard: <LayoutDashboard className="w-10 h-10 text-primary-500" />,
   studyPlan: <GraduationCap className="w-10 h-10 text-primary-500" />,
-}
+  profile: <UserIcon className="w-10 h-10 text-primary-500" />,
+};

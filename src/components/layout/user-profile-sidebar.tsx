@@ -4,14 +4,7 @@ import type React from "react"
 import { Card } from "@/components/ui/card"
 import Link from "next/link"
 import { signOut } from "next-auth/react";
-import {
-  LayoutDashboard,
-  UserIcon,
-  Bell,
-  Settings,
-  HeartHandshake,
-  LogOut,
-} from "lucide-react";
+import { UserIcon, Bell, Settings, HelpCircle, LogOut } from "lucide-react";
 
 interface NavButtonProps {
   icon: React.ReactNode;
@@ -72,29 +65,26 @@ function SignOutButton() {
 }
 
 interface UserProfileSidebarProps {
-  activePage?:
-    | "dashboard"
-    | "plan"
-    | "profile"
-    | "notifications"
-    | "settings"
-    | "help";
+  activePage?: "plan" | "profile" | "notifications" | "settings" | "help";
+  userName?: string;
 }
 
 export function UserProfileSidebar({
-  activePage = "dashboard",
+  activePage = "profile",
+  userName = "User",
 }: UserProfileSidebarProps) {
+  const userInitial = userName.charAt(0).toUpperCase() || "U";
   return (
     <Card className="border-border border-2 shadow-sm bg-white overflow-hidden">
       <div className="px-6 py-6">
         <div className="flex flex-col items-center mb-6">
           <div className="w-24 h-24 rounded-full border-2 border-primary-200 bg-primary-200 overflow-hidden shadow-sm mb-3">
             <div className="w-full h-full flex items-center justify-center bg-primary-100 text-primary-600 font-bold text-2xl">
-              T
+              {userInitial}
             </div>
           </div>
           <h3 className="font-semibold text-base text-primary-900 text-center">
-            Le Thi Thanh Truc
+            {userName}
           </h3>
         </div>
 
@@ -111,12 +101,6 @@ export function UserProfileSidebar({
             active={activePage === "profile"}
           />
           <NavButton
-            icon={<LayoutDashboard size={16} />}
-            label="Dashboard"
-            href="/user/dashboard"
-            active={activePage === "dashboard"}
-          />
-          <NavButton
             icon={<Bell size={16} />}
             label="Notification"
             href="/user/notifications"
@@ -129,9 +113,9 @@ export function UserProfileSidebar({
             active={activePage === "settings"}
           />
           <NavButton
-            icon={<HeartHandshake size={16} />}
+            icon={<HelpCircle size={16} />}
             label="Helps"
-            href="/help"
+            href="/helps"
             active={activePage === "help"}
           />
 

@@ -3,10 +3,17 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Menu, X, ChevronDown, User, LayoutDashboard } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Menu, X, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useSession } from "next-auth/react";
+import { NotificationDropdown } from "./notification-dropdown";
+import { ProfileDropdown } from "./profile-dropdown";
 
 type NavItem = {
   href: string;
@@ -109,21 +116,8 @@ export function Navbar() {
           <div className="flex items-center gap-2">
             {isAuthenticated ? (
               <>
-                <Link href="/user/dashboard">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="hidden sm:flex"
-                    title="Dashboard"
-                  >
-                    <LayoutDashboard className="h-5 w-5" />
-                  </Button>
-                </Link>
-                <Link href="/user/profile">
-                  <Button variant="ghost" size="icon" title="Profile">
-                    <User className="h-5 w-5" />
-                  </Button>
-                </Link>
+                <NotificationDropdown />
+                <ProfileDropdown />
               </>
             ) : (
               <>

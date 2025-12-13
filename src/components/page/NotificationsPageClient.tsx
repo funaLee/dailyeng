@@ -6,49 +6,46 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { UserProfileSidebar } from "@/components/layout/user-profile-sidebar"
-import { Search, Filter, ArrowUpDown, Bell } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ProtectedRoute } from "@/components/auth/protected-route"
+import { Search, ArrowUpDown, Bell } from "lucide-react";
+import { ProtectedRoute } from "@/components/auth/protected-route";
 
 interface Notification {
-  id: number
-  title: string
-  description: string
-  category: string
-  timestamp: string
-  date: string
-  read: boolean
+  id: number;
+  title: string;
+  description: string;
+  category: string;
+  timestamp: string;
+  date: string;
+  read: boolean;
 }
 
 interface NotificationsPageClientProps {
-  notifications: Notification[]
+  notifications: Notification[];
 }
 
-export default function NotificationsPageClient({ notifications }: NotificationsPageClientProps) {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [filterCategory, setFilterCategory] = useState("all")
-  const [sortOrder, setSortOrder] = useState("newest")
+export default function NotificationsPageClient({
+  notifications,
+}: NotificationsPageClientProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState("newest");
 
   const filteredNotifications = notifications
     .filter((notif) => {
-      if (filterCategory !== "all" && notif.category.toLowerCase() !== filterCategory.toLowerCase()) {
-        return false
-      }
       if (
         searchQuery &&
         !notif.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
         !notif.description.toLowerCase().includes(searchQuery.toLowerCase())
       ) {
-        return false
+        return false;
       }
-      return true
+      return true;
     })
     .sort((a, b) => {
       if (sortOrder === "newest") {
-        return b.id - a.id
+        return b.id - a.id;
       }
-      return a.id - b.id
-    })
+      return a.id - b.id;
+    });
 
   return (
     <ProtectedRoute
@@ -68,17 +65,19 @@ export default function NotificationsPageClient({ notifications }: Notifications
             {/* Header */}
             <Card className="border-border shadow-sm">
               <CardContent className="p-6">
-                <h1 className="text-2xl font-bold text-foreground">Hello, Thanh Truc!</h1>
+                <h1 className="text-2xl font-bold text-foreground">
+                  Hello, Thanh Truc!
+                </h1>
               </CardContent>
             </Card>
 
             <div className="space-y-4 bg-white p-10 border-border border-2 shadow-sm rounded-2xl">
-
-              
               {/* Title */}
-              <h2 className="text-xl font-bold text-foreground">Your Notifications</h2>
+              <h2 className="text-xl font-bold text-foreground">
+                Your Notifications
+              </h2>
 
-              {/* Search and Filter Controls */}
+              {/* Search and Sort Controls */}
               <div className="flex gap-4 items-center">
                 <div className="flex-1 relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -90,23 +89,11 @@ export default function NotificationsPageClient({ notifications }: Notifications
                   />
                 </div>
 
-                <Select value={filterCategory} onValueChange={setFilterCategory}>
-                  <SelectTrigger className="w-[200px] border-input">
-                    <Filter className="h-4 w-4 mr-2" />
-                    <SelectValue placeholder="Filter by type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="speaking">Speaking</SelectItem>
-                    <SelectItem value="vocabulary">Vocabulary</SelectItem>
-                    <SelectItem value="grammar">Grammar</SelectItem>
-                    <SelectItem value="achievement">Achievement</SelectItem>
-                  </SelectContent>
-                </Select>
-
                 <Button
                   variant="outline"
-                  onClick={() => setSortOrder(sortOrder === "newest" ? "oldest" : "newest")}
+                  onClick={() =>
+                    setSortOrder(sortOrder === "newest" ? "oldest" : "newest")
+                  }
                   className="border-input"
                 >
                   <ArrowUpDown className="h-4 w-4 mr-2" />
@@ -127,12 +114,19 @@ export default function NotificationsPageClient({ notifications }: Notifications
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <h3 className="font-bold text-lg text-foreground">{notification.title}</h3>
-                            <Badge variant="outline" className="border-input text-muted-foreground text-xs px-3 py-0.5">
+                            <h3 className="font-bold text-lg text-foreground">
+                              {notification.title}
+                            </h3>
+                            <Badge
+                              variant="outline"
+                              className="border-input text-muted-foreground text-xs px-3 py-0.5"
+                            >
                               {notification.category}
                             </Badge>
                           </div>
-                          <p className="text-muted-foreground text-sm leading-relaxed">{notification.description}</p>
+                          <p className="text-muted-foreground text-sm leading-relaxed">
+                            {notification.description}
+                          </p>
                         </div>
 
                         <div className="text-right flex flex-col items-end gap-1">
@@ -140,9 +134,13 @@ export default function NotificationsPageClient({ notifications }: Notifications
                             {notification.timestamp}
                           </span>
                           <span className="text-xs text-foreground font-semibold">
-                            {notification.timestamp.includes(":") ? notification.timestamp : ""}
+                            {notification.timestamp.includes(":")
+                              ? notification.timestamp
+                              : ""}
                           </span>
-                          <span className="text-xs text-muted-foreground">{notification.date}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {notification.date}
+                          </span>
                         </div>
                       </div>
                     </CardContent>
@@ -154,5 +152,5 @@ export default function NotificationsPageClient({ notifications }: Notifications
         </div>
       </div>
     </ProtectedRoute>
-  )
+  );
 }
