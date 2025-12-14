@@ -58,9 +58,8 @@ enum TaskType {
 }
 
 enum NotificationType {
-  speaking
-  vocabulary
-  grammar
+  notebook
+  plan
   achievement
   system
 }
@@ -401,6 +400,21 @@ model SpeakingTurn {
   text      String
   audioUrl  String?
   timestamp DateTime        @default(now())
+
+  // [NEW] Fluency & Pronunciation scores per turn
+  pronunciationScore Int? // Average confidence (0-100) from Web Speech API
+  fluencyScore       Int? // Calculated from WPM and pause count
+
+  // [NEW] Raw metrics for debugging/analysis
+  confidenceScores   Float[] // Raw confidence scores from each word result
+  wordCount          Int? // Number of words spoken
+  speakingDurationMs Int? // Duration of speech in milliseconds
+  pauseCount         Int? // Number of significant pauses (>500ms)
+
+  // [NEW] Pitch analysis for intonation scoring
+  pitchVariance     Float? // Standard deviation of pitch samples (Hz)
+  avgPitch          Float? // Average pitch in Hz
+  pitchSamplesCount Int? // Number of valid pitch samples collected
 
   // Relation to error analysis (errors saved after session ends)
   errors SpeakingTurnError[]

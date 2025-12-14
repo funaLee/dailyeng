@@ -430,11 +430,21 @@ export async function startSessionWithGreeting(
   };
 }
 
-// Submit Turn - Simplified: Only saves text, no realtime scoring
+// Submit Turn - Now with speech metrics for fluency & pronunciation scoring
 export async function submitTurn(
   sessionId: string,
   userText: string,
-  audioUrl: string | null = null
+  audioUrl: string | null = null,
+  speechMetrics?: {
+    confidenceScores: number[];
+    wordCount: number;
+    speakingDurationMs: number;
+    pauseCount: number;
+    // [NEW] Pitch data for intonation scoring
+    pitchVariance: number | null;
+    avgPitch: number | null;
+    pitchSamplesCount: number | null;
+  }
 ) {
   // 1. Get Session and Scenario Context
   const session = await prisma.speakingSession.findUnique({
@@ -467,17 +477,89 @@ export async function submitTurn(
     userText
   );
 
-  // 4. Save User Turn (no scores - will be calculated after session ends)
+  // 4. Calculate pronunciation & fluency scores from speech metrics
+  let pronunciationScore: number | null = null;
+  let fluencyScore: number | null = null;
+
+  if (speechMetrics && speechMetrics.wordCount > 0) {
+    // Fluency = based on WPM and pause penalty
+    // Target WPM: 120-150 for fluent English (native ~150-160)
+    const wpm = speechMetrics.speakingDurationMs > 0
+      ? (speechMetrics.wordCount / speechMetrics.speakingDurationMs) * 60000
+      : 0;
+    
+    // WPM score (0-100): optimal at 120-150 WPM, decreases outside 80-180 range
+    // Made slightly stricter: lower base for slow speech
+    let wpmScore = 100;
+    if (wpm < 80) {
+      wpmScore = Math.max(0, 40 + (wpm / 80) * 60); // 0 WPM = 40, 80 WPM = 100
+    } else if (wpm > 180) {
+      wpmScore = Math.max(0, 100 - (wpm - 180) * 0.8); // Stronger penalty for speaking too fast
+    }
+    
+    // Pause penalty: -7 points per pause beyond the first (stricter penalty)
+    const pausePenalty = Math.max(0, (speechMetrics.pauseCount - 1) * 7);
+    
+    fluencyScore = Math.round(Math.max(0, Math.min(100, wpmScore - pausePenalty)));
+
+    // Pronunciation score calculation
+    // Filter out zero/invalid confidence values (Chrome sometimes returns 0)
+    const validConfidences = speechMetrics.confidenceScores.filter((c) => c > 0);
+    
+    if (validConfidences.length > 0) {
+      // If we have valid confidence data from Web Speech API, use it
+      const avgConfidence = 
+        validConfidences.reduce((a, b) => a + b, 0) / 
+        validConfidences.length;
+      pronunciationScore = Math.round(avgConfidence * 100);
+    } else {
+      // Chrome doesn't return confidence in continuous mode (or returns 0)
+      // Estimate pronunciation from fluency (smooth speech correlates with good pronunciation)
+      // Made slightly stricter: lower base scores
+      if (wpm >= 80 && wpm <= 180) {
+        // Natural speaking pace → estimate pronunciation (stricter range)
+        pronunciationScore = Math.round(65 + (fluencyScore / 100) * 20); // 65-85 range
+      } else {
+        // Abnormal pace → less confident in pronunciation
+        pronunciationScore = Math.round(55 + (fluencyScore / 100) * 20); // 55-75 range
+      }
+    }
+
+    console.log("[submitTurn] Speech metrics calculated:", {
+      wordCount: speechMetrics.wordCount,
+      speakingDurationMs: speechMetrics.speakingDurationMs,
+      wpm: wpm.toFixed(1),
+      wpmScore: wpmScore.toFixed(1),
+      pauseCount: speechMetrics.pauseCount,
+      pausePenalty,
+      fluencyScore,
+      hasConfidence: speechMetrics.confidenceScores.length > 0,
+      pronunciationScore,
+    });
+  }
+
+  // 5. Save User Turn with speech metrics
   const userTurn = await prisma.speakingTurn.create({
     data: {
       sessionId,
       role: "user",
       text: userText,
       audioUrl: audioUrl,
+      // [NEW] Speech metrics
+      pronunciationScore,
+      fluencyScore,
+      confidenceScores: speechMetrics?.confidenceScores || [],
+      wordCount: speechMetrics?.wordCount || null,
+      speakingDurationMs: speechMetrics?.speakingDurationMs || null,
+      pauseCount: speechMetrics?.pauseCount || null,
+      // [NEW] Pitch data for intonation scoring
+      pitchVariance: speechMetrics?.pitchVariance || null,
+      avgPitch: speechMetrics?.avgPitch || null,
+      pitchSamplesCount: speechMetrics?.pitchSamplesCount || null,
     },
   });
 
-  // 5. Save AI Turn
+  // 6. Save AI Turn
   const aiTurn = await prisma.speakingTurn.create({
     data: {
       sessionId,
@@ -635,10 +717,76 @@ export async function analyzeAndScoreSession(sessionId: string): Promise<{
     }
   }
 
-  // 6. Calculate scores (fluency, pronunciation, intonation default to 70 for now)
-  const fluencyScore = 70;
-  const pronunciationScore = 70;
-  const intonationScore = 70;
+  // 6. Calculate fluency & pronunciation from turn averages (instead of hardcoded 70)
+  // Filter turns that have valid speech metrics (wordCount > 0 means user actually spoke)
+  const userTurnsWithScores = session.turns.filter(
+    (t: any) => t.role === "user" && t.wordCount !== null && t.wordCount > 0 && t.pronunciationScore !== null
+  );
+
+  const pronunciationScore = userTurnsWithScores.length > 0
+    ? Math.round(
+        userTurnsWithScores.reduce((sum: number, t: any) => sum + t.pronunciationScore, 0) /
+        userTurnsWithScores.length
+      )
+    : 70; // Fallback if no speech data (e.g., user typed instead of speaking)
+
+  const fluencyScore = userTurnsWithScores.length > 0
+    ? Math.round(
+        userTurnsWithScores.reduce((sum: number, t: any) => sum + (t.fluencyScore || 0), 0) /
+        userTurnsWithScores.length
+      )
+    : 70; // Fallback if no speech data
+
+  // 7. Calculate intonation score from pitch variance
+  // Higher variance = more expressive speech = better intonation
+  // Scoring logic:
+  // - Very low variance (<10 Hz): Monotone, score 50-60
+  // - Low variance (10-20 Hz): Limited expression, score 60-70
+  // - Medium variance (20-40 Hz): Good expression, score 70-85
+  // - High variance (40-60 Hz): Excellent expression, score 85-95
+  // - No data: Fallback to 70
+  const turnsWithPitchData = session.turns.filter(
+    (t: any) => t.role === "user" && t.pitchVariance !== null && t.pitchVariance > 0
+  );
+
+  let intonationScore = 65; // Default fallback (lowered from 70)
+  if (turnsWithPitchData.length > 0) {
+    const avgPitchVariance = turnsWithPitchData.reduce(
+      (sum: number, t: any) => sum + t.pitchVariance, 0
+    ) / turnsWithPitchData.length;
+    
+    // Map variance to score (0-100) - Made stricter:
+    // Requires higher variance to reach high scores
+    if (avgPitchVariance < 15) {
+      // Very monotone speech: 45-60
+      intonationScore = 45 + Math.round(avgPitchVariance); 
+    } else if (avgPitchVariance < 30) {
+      // Limited expression: 60-72
+      intonationScore = 60 + Math.round((avgPitchVariance - 15) * 0.8); 
+    } else if (avgPitchVariance < 50) {
+      // Good expression: 72-85
+      intonationScore = 72 + Math.round((avgPitchVariance - 30) * 0.65); 
+    } else if (avgPitchVariance < 70) {
+      // Excellent expression: 85-92
+      intonationScore = 85 + Math.round((avgPitchVariance - 50) * 0.35); 
+    } else {
+      // Exceptional: cap at 92
+      intonationScore = Math.min(92, 85 + Math.round((avgPitchVariance - 50) * 0.35));
+    }
+    
+    console.log("[analyzeAndScoreSession] Pitch variance analysis:", {
+      turnsWithPitchData: turnsWithPitchData.length,
+      avgPitchVariance: avgPitchVariance.toFixed(2),
+      intonationScore,
+    });
+  }
+
+  console.log("[analyzeAndScoreSession] Aggregated speech scores:", {
+    userTurnsWithScores: userTurnsWithScores.length,
+    pronunciationScore,
+    fluencyScore,
+    intonationScore,
+  });
 
   const overallScore = Math.round(
     (analysisResult.grammarScore +
@@ -718,6 +866,170 @@ export async function analyzeAndScoreSession(sessionId: string): Promise<{
       pronunciation: pronunciationScore,
       intonation: intonationScore,
       overall: overallScore,
+    },
+    errorCategories,
+    conversation,
+  };
+}
+
+// ============================================================================
+// Learning Records - Get past sessions for a specific scenario
+// ============================================================================
+
+/**
+ * Fetch all completed sessions for a specific scenario (for Learning Records feature)
+ * Returns sessions sorted by date (newest first)
+ */
+export async function getLearningRecordsForScenario(
+  userId: string,
+  scenarioId: string
+): Promise<{
+  id: string;
+  overallScore: number;
+  grammarScore: number;
+  relevanceScore: number;
+  fluencyScore: number;
+  pronunciationScore: number;
+  intonationScore: number;
+  date: Date;
+}[]> {
+  const sessions = await prisma.speakingSession.findMany({
+    where: {
+      userId,
+      scenarioId,
+      endedAt: { not: null }, // Only completed sessions
+    },
+    select: {
+      id: true,
+      createdAt: true,
+      overallScore: true,
+      grammarScore: true,
+      relevanceScore: true,
+      fluencyScore: true,
+      pronunciationScore: true,
+      intonationScore: true,
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return sessions.map((s) => ({
+    id: s.id,
+    overallScore: s.overallScore ?? 0,
+    grammarScore: s.grammarScore ?? 0,
+    relevanceScore: s.relevanceScore ?? 0,
+    fluencyScore: s.fluencyScore ?? 0,
+    pronunciationScore: s.pronunciationScore ?? 0,
+    intonationScore: s.intonationScore ?? 0,
+    date: s.createdAt,
+  }));
+}
+
+/**
+ * Get detailed session data by ID (for viewing past session records)
+ * Includes all turns with their errors and session-level scores
+ */
+export async function getSessionDetailsById(sessionId: string): Promise<{
+  session: {
+    id: string;
+    createdAt: Date;
+    endedAt: Date | null;
+    duration: number | null;
+    overallScore: number | null;
+    grammarScore: number | null;
+    relevanceScore: number | null;
+    fluencyScore: number | null;
+    pronunciationScore: number | null;
+    intonationScore: number | null;
+    feedbackTitle: string | null;
+    feedbackSummary: string | null;
+    feedbackRating: string | null;
+    feedbackTip: string | null;
+  };
+  scores: {
+    grammar: number;
+    relevance: number;
+    fluency: number;
+    pronunciation: number;
+    intonation: number;
+    overall: number;
+  };
+  errorCategories: { name: string; count: number }[];
+  conversation: {
+    role: "user" | "tutor";
+    text: string;
+    turnId: string;
+    userErrors?: {
+      word: string;
+      correction: string;
+      type: string;
+    }[];
+  }[];
+} | null> {
+  const session = await prisma.speakingSession.findUnique({
+    where: { id: sessionId },
+    include: {
+      turns: {
+        orderBy: { timestamp: "asc" },
+        include: {
+          errors: true,
+        },
+      },
+    },
+  });
+
+  if (!session) return null;
+
+  // Build error categories from turn errors
+  const errorCategoryMap: Record<string, number> = {};
+  for (const turn of session.turns) {
+    for (const error of turn.errors) {
+      errorCategoryMap[error.errorType] =
+        (errorCategoryMap[error.errorType] || 0) + 1;
+    }
+  }
+  const errorCategories = Object.entries(errorCategoryMap).map(
+    ([name, count]) => ({ name, count })
+  );
+
+  // Build conversation with errors
+  const conversation = session.turns.map((t) => ({
+    role: t.role as "user" | "tutor",
+    text: t.text,
+    turnId: t.id,
+    userErrors:
+      t.role === "user" && t.errors.length > 0
+        ? t.errors.map((e) => ({
+            word: e.word,
+            correction: e.correction,
+            type: e.errorType,
+          }))
+        : undefined,
+  }));
+
+  return {
+    session: {
+      id: session.id,
+      createdAt: session.createdAt,
+      endedAt: session.endedAt,
+      duration: session.duration,
+      overallScore: session.overallScore,
+      grammarScore: session.grammarScore,
+      relevanceScore: session.relevanceScore,
+      fluencyScore: session.fluencyScore,
+      pronunciationScore: session.pronunciationScore,
+      intonationScore: session.intonationScore,
+      feedbackTitle: session.feedbackTitle,
+      feedbackSummary: session.feedbackSummary,
+      feedbackRating: session.feedbackRating,
+      feedbackTip: session.feedbackTip,
+    },
+    scores: {
+      grammar: session.grammarScore ?? 0,
+      relevance: session.relevanceScore ?? 0,
+      fluency: session.fluencyScore ?? 0,
+      pronunciation: session.pronunciationScore ?? 0,
+      intonation: session.intonationScore ?? 0,
+      overall: session.overallScore ?? 0,
     },
     errorCategories,
     conversation,

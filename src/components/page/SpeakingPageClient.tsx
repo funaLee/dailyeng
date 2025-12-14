@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Play, Gift, MessageSquarePlus, ChevronRight, ChevronLeft, Plus, Search, X } from "lucide-react"
 import { RadarChart } from "@/components/speaking/radar-chart"
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useTransition, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { ProtectedRoute, PageIcons } from "@/components/auth/protected-route";
 import {
@@ -34,6 +34,7 @@ import {
   getSpeakingScenariosWithProgress,
   searchSpeakingScenarios,
   getCustomTopics,
+  getSpeakingTopicGroups,
 } from "@/actions/speaking";
 import {
   toggleSpeakingBookmark,
@@ -105,7 +106,7 @@ export interface HistoryTopicItem {
 }
 
 export interface SpeakingPageClientProps {
-  topicGroups: TopicGroup[];
+  initialTopicGroups?: TopicGroup[];
   demoCriteria: CriteriaItem[];
   historyGraphData: HistoryGraphItem[];
   historyTopicsData: HistoryTopicItem[];
@@ -118,7 +119,7 @@ type TabType = "available" | "custom" | "history" | "bookmarks";
 const SCENARIOS_PER_PAGE = 12;
 
 export default function SpeakingPageClient({
-  topicGroups,
+  initialTopicGroups = [],
   demoCriteria,
   historyGraphData,
   historyTopicsData,
@@ -128,6 +129,15 @@ export default function SpeakingPageClient({
   const router = useRouter();
   const { data: session } = useSession();
   const [isPending, startTransition] = useTransition();
+
+  // Topic Groups state (client-side fetching)
+  const [topicGroups, setTopicGroups] =
+    useState<TopicGroup[]>(initialTopicGroups);
+  const [topicGroupsLoading, setTopicGroupsLoading] = useState(
+    initialTopicGroups.length === 0
+  );
+  // Flag to prevent re-fetching topic groups after initial load
+  const topicGroupsFetched = useRef(false);
 
   // Available Topics pagination & loading
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
@@ -165,6 +175,36 @@ export default function SpeakingPageClient({
 
   // Custom scenarios state
   const [customScenarios, setCustomScenarios] = useState<Scenario[]>([]);
+
+  // Fetch topic groups client-side (for skeleton loading experience)
+  useEffect(() => {
+    // Prevent re-fetching after initial load
+    if (topicGroupsFetched.current) return;
+
+    // If we have initial data, mark as fetched and skip
+    if (initialTopicGroups.length > 0) {
+      topicGroupsFetched.current = true;
+      setTopicGroupsLoading(false);
+      return;
+    }
+
+    // Mark as fetching to prevent duplicate calls
+    topicGroupsFetched.current = true;
+
+    getSpeakingTopicGroups()
+      .then((groups) => {
+        setTopicGroups(groups);
+        // Set selected group to first group if available and current selection doesn't exist
+        if (
+          groups.length > 0 &&
+          !groups.find((g) => g.name === selectedGroup)
+        ) {
+          setSelectedGroup(groups[0].name);
+        }
+      })
+      .finally(() => setTopicGroupsLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only once on mount
 
   // Fetch scenarios for Available Topics tab with pagination
   useEffect(() => {
@@ -502,6 +542,7 @@ export default function SpeakingPageClient({
                     }}
                     title="Topic Groups"
                     showViewMore={false}
+                    isLoading={topicGroupsLoading}
                   />
 
                   <LevelsSidebar
@@ -515,6 +556,7 @@ export default function SpeakingPageClient({
                     subcategories={currentSubcategories}
                     selectedSubcategory={selectedSubcategory}
                     onSubcategoryChange={setSelectedSubcategory}
+                    isLoading={topicGroupsLoading}
                   />
 
                   {/* Skeleton Loading */}

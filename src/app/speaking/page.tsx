@@ -1,9 +1,6 @@
 import SpeakingPageClient from "@/components/page/SpeakingPageClient";
 import type { CriteriaItem } from "@/components/page/SpeakingPageClient";
-import {
-  getSpeakingTopicGroups,
-  getUserSpeakingHistory,
-} from "@/actions/speaking";
+import { getUserSpeakingHistory } from "@/actions/speaking";
 import { auth } from "@/lib/auth";
 
 // Demo criteria - will be calculated from real session data later
@@ -26,7 +23,6 @@ export default async function SpeakingPage() {
     // Pass empty data - ProtectedRoute will show block UI before content
     return (
       <SpeakingPageClient
-        topicGroups={[]}
         demoCriteria={DEMO_CRITERIA}
         historyGraphData={[]}
         historyTopicsData={[]}
@@ -35,15 +31,12 @@ export default async function SpeakingPage() {
     );
   }
 
-  // Fetch data from database (scenarios will be fetched client-side with pagination)
-  const [topicGroups, historyData] = await Promise.all([
-    getSpeakingTopicGroups(),
-    getUserSpeakingHistory(userId),
-  ]);
+  // Fetch history data from database
+  // Topic groups are now fetched client-side for better loading experience
+  const historyData = await getUserSpeakingHistory(userId);
 
   return (
     <SpeakingPageClient
-      topicGroups={topicGroups}
       demoCriteria={DEMO_CRITERIA}
       historyGraphData={historyData.historyGraph}
       historyTopicsData={historyData.historyTopics}
@@ -51,4 +44,5 @@ export default async function SpeakingPage() {
     />
   );
 }
+
 
