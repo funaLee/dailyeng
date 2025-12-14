@@ -14,61 +14,61 @@ interface RadarChartProps {
 }
 
 export function RadarChart({ data, size = 300, levels = 5, className = "" }: RadarChartProps) {
-  const center = size / 2
-  // SỬA ĐỔI 1: Thay vì trừ cố định 60px, hãy dùng tỷ lệ phần trăm (ví dụ 35% của size)
-  // để đảm bảo luôn có đủ khoảng trống cho Label dù size to hay nhỏ.
-  const maxRadius = (size / 2) * 0.65 
-  const angleStep = (2 * Math.PI) / data.length
+  // Padding for labels outside the chart
+  const padding = 50;
+  const center = size / 2 + padding;
+  const maxRadius = (size / 2) * 0.8;
+  const angleStep = (2 * Math.PI) / data.length;
 
   // Calculate polygon points for the data
   const dataPoints = useMemo(() => {
     return data.map((item, index) => {
-      const angle = angleStep * index - Math.PI / 2
-      const maxValue = item.maxValue || 100
-      const normalizedValue = Math.min(item.value / maxValue, 1)
-      const radius = normalizedValue * maxRadius
-      const x = center + radius * Math.cos(angle)
-      const y = center + radius * Math.sin(angle)
-      return { x, y, ...item, angle }
-    })
-  }, [data, angleStep, center, maxRadius])
+      const angle = angleStep * index - Math.PI / 2;
+      const maxValue = item.maxValue || 100;
+      const normalizedValue = Math.min(item.value / maxValue, 1);
+      const radius = normalizedValue * maxRadius;
+      const x = center + radius * Math.cos(angle);
+      const y = center + radius * Math.sin(angle);
+      return { x, y, ...item, angle };
+    });
+  }, [data, angleStep, center, maxRadius]);
 
   // Generate background polygons for levels
   const backgroundPolygons = useMemo(() => {
     return Array.from({ length: levels }, (_, levelIndex) => {
-      const ratio = (levelIndex + 1) / levels
+      const ratio = (levelIndex + 1) / levels;
       const points = data.map((_, index) => {
-        const angle = angleStep * index - Math.PI / 2
-        const radius = ratio * maxRadius
-        const x = center + radius * Math.cos(angle)
-        const y = center + radius * Math.sin(angle)
-        return `${x},${y}`
-      })
-      return points.join(" ")
-    })
-  }, [levels, data.length, angleStep, center, maxRadius])
+        const angle = angleStep * index - Math.PI / 2;
+        const radius = ratio * maxRadius;
+        const x = center + radius * Math.cos(angle);
+        const y = center + radius * Math.sin(angle);
+        return `${x},${y}`;
+      });
+      return points.join(" ");
+    });
+  }, [levels, data.length, angleStep, center, maxRadius]);
 
   // Generate axis lines
   const axisLines = useMemo(() => {
     return data.map((_, index) => {
-      const angle = angleStep * index - Math.PI / 2
-      const endX = center + maxRadius * Math.cos(angle)
-      const endY = center + maxRadius * Math.sin(angle)
-      return { x1: center, y1: center, x2: endX, y2: endY }
-    })
-  }, [data.length, angleStep, center, maxRadius])
+      const angle = angleStep * index - Math.PI / 2;
+      const endX = center + maxRadius * Math.cos(angle);
+      const endY = center + maxRadius * Math.sin(angle);
+      return { x1: center, y1: center, x2: endX, y2: endY };
+    });
+  }, [data.length, angleStep, center, maxRadius]);
 
   // Calculate label positions
   const labels = useMemo(() => {
     return dataPoints.map((point) => {
-      // SỬA ĐỔI 2: Khoảng cách label cũng nên dựa trên maxRadius
-      const labelRadius = maxRadius + 20 
-      const x = center + labelRadius * Math.cos(point.angle)
-      const y = center + labelRadius * Math.sin(point.angle)
-      
-      let textAnchor: "start" | "middle" | "end" = "middle"
-      if (x > center + 10) textAnchor = "start"
-      else if (x < center - 10) textAnchor = "end"
+      // Khoảng cách label ra khỏi chart
+      const labelRadius = maxRadius + 40;
+      const x = center + labelRadius * Math.cos(point.angle);
+      const y = center + labelRadius * Math.sin(point.angle);
+
+      let textAnchor: "start" | "middle" | "end" = "middle";
+      if (x > center + 10) textAnchor = "start";
+      else if (x < center - 10) textAnchor = "end";
 
       return {
         x,
@@ -76,19 +76,21 @@ export function RadarChart({ data, size = 300, levels = 5, className = "" }: Rad
         label: point.label,
         value: point.value,
         textAnchor,
-      }
-    })
-  }, [dataPoints, center, maxRadius])
+      };
+    });
+  }, [dataPoints, center, maxRadius]);
 
-  const polygonPoints = dataPoints.map((p) => `${p.x},${p.y}`).join(" ")
+  const polygonPoints = dataPoints.map((p) => `${p.x},${p.y}`).join(" ");
+
+  const viewBoxSize = size + padding * 2;
 
   return (
     <div className={className}>
-      <svg 
-        viewBox={`0 0 ${size} ${size}`} 
-        className="w-full h-full"
-        // SỬA ĐỔI 3: Quan trọng nhất - giúp SVG tự co giãn vừa khít container mà không bị méo hay tràn
+      <svg
+        viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}
+        className="w-full h-full max-w-full max-h-full"
         preserveAspectRatio="xMidYMid meet"
+        style={{ overflow: "visible" }}
       >
         {/* Background level polygons */}
         {backgroundPolygons.map((points, index) => (
@@ -142,17 +144,17 @@ export function RadarChart({ data, size = 300, levels = 5, className = "" }: Rad
           <g key={`label-${index}`}>
             <text
               x={label.x}
-              y={label.y - 8}
+              y={label.y - 10}
               textAnchor={label.textAnchor}
-              className="text-[10px] font-semibold fill-gray-700" // Giảm size text một chút để gọn hơn
+              className="text-[14px] font-semibold fill-gray-700"
             >
               {label.label}
             </text>
             <text
               x={label.x}
-              y={label.y + 8}
+              y={label.y + 12}
               textAnchor={label.textAnchor}
-              className="text-sm font-bold fill-gray-900" // Giảm size text số liệu
+              className="text-[16px] font-bold fill-gray-900"
             >
               {label.value}
             </text>
@@ -160,5 +162,5 @@ export function RadarChart({ data, size = 300, levels = 5, className = "" }: Rad
         ))}
       </svg>
     </div>
-  )
+  );
 }

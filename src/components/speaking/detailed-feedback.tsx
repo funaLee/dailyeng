@@ -27,12 +27,13 @@ interface ConversationTurn {
 }
 
 interface DetailedFeedbackProps {
-  scores: FeedbackScore[]
-  errorCategories: ErrorCategory[]
-  conversation: ConversationTurn[]
-  overallRating: string
-  tip: string
-  onBack: () => void
+  scores: FeedbackScore[];
+  errorCategories: ErrorCategory[];
+  conversation: ConversationTurn[];
+  overallRating: string;
+  overallScore: number; // NEW: numeric score for accurate bar height
+  tip: string;
+  onBack: () => void;
 }
 
 export function DetailedFeedback({
@@ -40,55 +41,56 @@ export function DetailedFeedback({
   errorCategories,
   conversation,
   overallRating,
+  overallScore,
   tip,
   onBack,
 }: DetailedFeedbackProps) {
-  const [selectedCategory, setSelectedCategory] = useState("All")
+  const [selectedCategory, setSelectedCategory] = useState("All");
 
   const getRatingColor = (rating: string) => {
     switch (rating.toLowerCase()) {
       case "excellent":
-        return "bg-gradient-to-t from-emerald-500 to-emerald-400"
+        return "bg-gradient-to-t from-emerald-500 to-emerald-400";
       case "good":
-        return "bg-gradient-to-t from-primary-500 to-primary-400"
+        return "bg-gradient-to-t from-primary-500 to-primary-400";
       case "average":
-        return "bg-gradient-to-t from-amber-500 to-amber-400"
+        return "bg-gradient-to-t from-amber-500 to-amber-400";
       case "needs improvement":
-        return "bg-gradient-to-t from-rose-500 to-rose-400"
+        return "bg-gradient-to-t from-rose-500 to-rose-400";
       default:
-        return "bg-gradient-to-t from-primary-500 to-primary-400"
+        return "bg-gradient-to-t from-primary-500 to-primary-400";
     }
-  }
+  };
 
   const getRatingLabelColor = (rating: string) => {
     switch (rating.toLowerCase()) {
       case "excellent":
-        return "text-emerald-600 bg-emerald-50"
+        return "text-emerald-600 bg-emerald-50";
       case "good":
-        return "text-primary-600 bg-primary-50"
+        return "text-primary-600 bg-primary-50";
       case "average":
-        return "text-amber-600 bg-amber-50"
+        return "text-amber-600 bg-amber-50";
       case "needs improvement":
-        return "text-rose-600 bg-rose-50"
+        return "text-rose-600 bg-rose-50";
       default:
-        return "text-primary-600 bg-primary-50"
+        return "text-primary-600 bg-primary-50";
     }
-  }
+  };
 
   const getRatingHeight = (rating: string) => {
     switch (rating.toLowerCase()) {
       case "excellent":
-        return "90%"
+        return "90%";
       case "good":
-        return "70%"
+        return "70%";
       case "average":
-        return "50%"
+        return "50%";
       case "needs improvement":
-        return "30%"
+        return "30%";
       default:
-        return "50%"
+        return "50%";
     }
-  }
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -102,22 +104,30 @@ export function DetailedFeedback({
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-2xl font-bold text-foreground">Detailed Feedback</h1>
-        <Button variant="ghost" size="icon" className="rounded-full hover:bg-muted h-10 w-10">
-          <HelpCircle className="h-5 w-5" />
-        </Button>
+        <h1 className="text-2xl font-bold text-foreground">
+          Detailed Feedback
+        </h1>
+        {/* Empty div for flex spacing */}
+        <div className="w-10" />
       </div>
 
       {/* Score Metrics Row */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {scores.map((score, index) => (
-          <Card key={index} className="p-4 border-2 border-border bg-white hover:border-primary transition-colors">
+          <Card
+            key={index}
+            className="p-4 border-2 border-border bg-white hover:border-primary transition-colors"
+          >
             <div className="flex flex-col items-center text-center">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">{score.label}</p>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                {score.label}
+              </p>
               <div className="p-2 rounded-lg bg-primary-50 text-primary mb-2">
                 {score.icon}
               </div>
-              <span className="text-xl font-bold text-foreground">{score.value}</span>
+              <span className="text-xl font-bold text-foreground">
+                {score.value}
+              </span>
             </div>
           </Card>
         ))}
@@ -130,11 +140,22 @@ export function DetailedFeedback({
           <Card className="h-full py-4 flex flex-col items-center border-2 border-border bg-white">
             <div className="flex-1 w-5 bg-muted rounded-full overflow-hidden relative">
               <div
-                className={`absolute bottom-0 left-0 right-0 ${getRatingColor(overallRating)} transition-all duration-1000 ease-out`}
-                style={{ height: getRatingHeight(overallRating) }}
+                className={`absolute bottom-0 left-0 right-0 ${getRatingColor(
+                  overallRating
+                )} transition-all duration-1000 ease-out`}
+                style={{ height: `${overallScore}%` }}
               />
             </div>
-            <div className={`mt-3 px-2 py-1 rounded text-xs font-bold ${getRatingLabelColor(overallRating)} -rotate-90 md:rotate-0 origin-center`}>
+            {/* Score number */}
+            <div className="mt-2 text-lg font-bold text-foreground">
+              {overallScore}
+            </div>
+            {/* Rating label */}
+            <div
+              className={`px-2 py-1 rounded text-xs font-bold ${getRatingLabelColor(
+                overallRating
+              )}`}
+            >
               {overallRating}
             </div>
           </Card>
@@ -148,7 +169,11 @@ export function DetailedFeedback({
               variant={selectedCategory === "All" ? "default" : "outline"}
               onClick={() => setSelectedCategory("All")}
               size="sm"
-              className={`rounded-full ${selectedCategory === "All" ? "bg-primary hover:bg-primary/90" : "border-border hover:bg-muted"}`}
+              className={`rounded-full ${
+                selectedCategory === "All"
+                  ? "bg-primary hover:bg-primary/90"
+                  : "border-border hover:bg-muted"
+              }`}
             >
               <span className="font-medium mr-1.5 text-sm">
                 {errorCategories.reduce((sum, cat) => sum + cat.count, 0)}
@@ -161,11 +186,13 @@ export function DetailedFeedback({
                 variant={selectedCategory === cat.name ? "default" : "outline"}
                 onClick={() => setSelectedCategory(cat.name)}
                 size="sm"
-                className={`rounded-full ${selectedCategory === cat.name ? "bg-primary hover:bg-primary/90" : "border-border hover:bg-muted"}`}
+                className={`rounded-full ${
+                  selectedCategory === cat.name
+                    ? "bg-primary hover:bg-primary/90"
+                    : "border-border hover:bg-muted"
+                }`}
               >
-                <span className="font-medium mr-1.5 text-sm">
-                  {cat.count}
-                </span>
+                <span className="font-medium mr-1.5 text-sm">{cat.count}</span>
                 {cat.name}
               </Button>
             ))}
@@ -175,7 +202,12 @@ export function DetailedFeedback({
           <Card className="p-4 border-2 border-border bg-white max-h-[500px] overflow-y-auto">
             <div className="space-y-6">
               {conversation.map((turn, index) => (
-                <div key={index} className={`flex ${turn.role === "user" ? "justify-end" : "justify-start"}`}>
+                <div
+                  key={index}
+                  className={`flex ${
+                    turn.role === "user" ? "justify-end" : "justify-start"
+                  }`}
+                >
                   <div className="flex gap-3 max-w-xl">
                     {turn.role === "tutor" && (
                       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary-50 border border-border flex items-center justify-center">
@@ -184,27 +216,57 @@ export function DetailedFeedback({
                     )}
 
                     <div className="space-y-2">
-                      <div
-                        className={`p-4 rounded-xl ${turn.role === "user"
-                          ? "bg-primary text-primary-foreground rounded-tr-sm"
-                          : "bg-muted rounded-tl-sm"
-                          }`}
-                      >
-                        {turn.role === "user" && turn.userErrors ? (
-                          <p className="text-sm leading-relaxed">{renderTextWithErrors(turn.text, turn.userErrors)}</p>
-                        ) : (
-                          <p className="text-sm leading-relaxed">{turn.text}</p>
-                        )}
-                      </div>
+                      {/* Check if this message should be highlighted based on filter */}
+                      {(() => {
+                        const hasFilteredError =
+                          selectedCategory !== "All" &&
+                          turn.userErrors?.some(
+                            (e) => e.type === selectedCategory
+                          );
+                        return (
+                          <div
+                            className={`p-4 rounded-xl transition-all duration-300 ${
+                              turn.role === "user"
+                                ? "bg-primary text-primary-foreground rounded-tr-sm"
+                                : "bg-muted rounded-tl-sm"
+                            } ${
+                              hasFilteredError
+                                ? "ring-2 ring-rose-500 ring-offset-2"
+                                : ""
+                            }`}
+                          >
+                            {turn.role === "user" && turn.userErrors ? (
+                              <p className="text-sm leading-relaxed">
+                                {renderTextWithErrors(
+                                  turn.text,
+                                  turn.userErrors,
+                                  selectedCategory
+                                )}
+                              </p>
+                            ) : (
+                              <p className="text-sm leading-relaxed">
+                                {turn.text}
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })()}
 
                       {/* Corrected sentence */}
                       {turn.role === "user" && turn.correctedSentence && (
                         <div className="ml-auto rounded-lg bg-emerald-50 border border-emerald-200 p-3">
                           <div className="flex items-center gap-2 mb-1">
                             <Lightbulb className="h-3 w-3 text-emerald-600" />
-                            <span className="text-xs font-medium text-emerald-600">Better way</span>
+                            <span className="text-xs font-medium text-emerald-600">
+                              Better way
+                            </span>
                           </div>
-                          <p className="text-sm text-emerald-800">{renderCorrectedText(turn.correctedSentence, turn.userErrors || [])}</p>
+                          <p className="text-sm text-emerald-800">
+                            {renderCorrectedText(
+                              turn.correctedSentence,
+                              turn.userErrors || []
+                            )}
+                          </p>
                         </div>
                       )}
                     </div>
@@ -219,48 +281,87 @@ export function DetailedFeedback({
               ))}
             </div>
           </Card>
+
+          {/* Improvement Tip */}
+          {tip && (
+            <Card className="p-4 border-2 border-amber-200 bg-amber-50">
+              <div className="flex items-start gap-3">
+                <div className="p-2 bg-amber-100 rounded-lg flex-shrink-0">
+                  <Lightbulb className="h-5 w-5 text-amber-600" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-amber-800 mb-1">
+                    Tip for Improvement
+                  </h3>
+                  <p className="text-sm text-amber-700">{tip}</p>
+                </div>
+              </div>
+            </Card>
+          )}
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 // Helper function to render text with error highlights
-function renderTextWithErrors(text: string, errors: { word: string; correction: string; type: string }[]) {
-  const result = text
-  const elements: React.ReactNode[] = []
-  let lastIndex = 0
+function renderTextWithErrors(
+  text: string,
+  errors: { word: string; correction: string; type: string }[],
+  selectedCategory: string = "All"
+) {
+  const result = text;
+  const elements: React.ReactNode[] = [];
+  let lastIndex = 0;
 
   errors.forEach((error, i) => {
-    const index = result.toLowerCase().indexOf(error.word.toLowerCase(), lastIndex)
+    const index = result
+      .toLowerCase()
+      .indexOf(error.word.toLowerCase(), lastIndex);
     if (index !== -1) {
       // Add text before error
       if (index > lastIndex) {
-        elements.push(<span key={`text-${i}`}>{result.slice(lastIndex, index)}</span>)
+        elements.push(
+          <span key={`text-${i}`}>{result.slice(lastIndex, index)}</span>
+        );
       }
+
+      // Check if this error matches the selected filter
+      const isHighlighted =
+        selectedCategory !== "All" && error.type === selectedCategory;
+
       // Add error word with styled badge
       elements.push(
-        <span key={`error-${i}`} className="inline-flex flex-col items-center mx-1 align-bottom group cursor-help relative">
-          <span className="px-1.5 py-0.5 rounded bg-rose-100 text-rose-700 font-semibold line-through decoration-rose-400 decoration-2">
+        <span
+          key={`error-${i}`}
+          className="inline-flex flex-col items-center mx-1 align-bottom group cursor-help relative"
+        >
+          <span
+            className={`px-1.5 py-0.5 rounded font-semibold line-through decoration-2 transition-all duration-300 ${
+              isHighlighted
+                ? "bg-rose-200 text-rose-800 decoration-rose-600 scale-110"
+                : "bg-rose-100 text-rose-700 decoration-rose-400"
+            }`}
+          >
             {result.slice(index, index + error.word.length)}
           </span>
           <span className="absolute bottom-full mb-1 px-2 py-1 bg-rose-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none mb-2">
             {error.type}
             <span className="absolute top-full left-1/2 -ml-1 border-4 border-transparent border-t-rose-800"></span>
           </span>
-        </span>,
-      )
+        </span>
+      );
       // Add correction inline? No, let's just keep the strikethrough distinct and show better version in the correction box
-      lastIndex = index + error.word.length
+      lastIndex = index + error.word.length;
     }
-  })
+  });
 
   // Add remaining text
   if (lastIndex < result.length) {
-    elements.push(<span key="remaining">{result.slice(lastIndex)}</span>)
+    elements.push(<span key="remaining">{result.slice(lastIndex)}</span>);
   }
 
-  return elements.length > 0 ? elements : text
+  return elements.length > 0 ? elements : text;
 }
 
 // Helper function to render corrected text with highlights

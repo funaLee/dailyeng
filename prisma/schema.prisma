@@ -372,10 +372,23 @@ model SpeakingSession {
   scenario   SpeakingScenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
   createdAt  DateTime         @default(now())
 
-  // [ADDED] Session tracking for history
-  endedAt      DateTime? // Null if session is still in progress
-  duration     Int? // Total duration in seconds
-  overallScore Int? // Average score across all turns (0-100)
+  // Session tracking
+  endedAt  DateTime? // Null if session is still in progress
+  duration Int? // Total duration in seconds
+
+  // Session-level scores (calculated after session ends)
+  overallScore       Int? // Overall score (0-100)
+  grammarScore       Int? // Grammar score based on error analysis
+  relevanceScore     Int? // Relevance score based on context matching
+  fluencyScore       Int? // Fluency score (default 70, to be implemented)
+  pronunciationScore Int? // Pronunciation score (default 70, to be implemented)
+  intonationScore    Int? // Intonation score (default 70, to be implemented)
+
+  // AI-generated feedback (generated after session ends)
+  feedbackTitle   String? // Encouraging title e.g. "Great Progress!"
+  feedbackSummary String? // Short feedback summary
+  feedbackRating  String? // Rating: "Excellent", "Good", "Average", "Needs Improvement"
+  feedbackTip     String? // Personalized improvement tip
 
   turns SpeakingTurn[]
 }
@@ -389,28 +402,22 @@ model SpeakingTurn {
   audioUrl  String?
   timestamp DateTime        @default(now())
 
-  // Scores (0-100 scale based on frontend usage)
-  pronunciationScore Int?
-  fluencyScore       Int?
-  grammarScore       Int?
-  contentScore       Int?
-  // [ADDED] Relevance score for detailed feedback
-  relevanceScore     Int?
-  // [ADDED] Intonation and stress score
-  intonationScore    Int?
-
-  // [ADDED] Relation to error analysis
+  // Relation to error analysis (errors saved after session ends)
   errors SpeakingTurnError[]
 }
 
-// [ADDED] Model to store detailed error analysis for speaking turns
+// Model to store detailed error analysis for speaking turns
 model SpeakingTurnError {
-  id         String       @id @default(cuid())
-  turnId     String
-  turn       SpeakingTurn @relation(fields: [turnId], references: [id], onDelete: Cascade)
-  word       String // The incorrect word
-  correction String // The corrected word
-  errorType  String // e.g., "Prepositions", "Articles", "Verb Tense Conjugation"
+  id     String       @id @default(cuid())
+  turnId String
+  turn   SpeakingTurn @relation(fields: [turnId], references: [id], onDelete: Cascade)
+
+  // Error details with position
+  word       String // The incorrect word/phrase
+  correction String // The corrected version
+  errorType  String // e.g., "Grammar", "Vocabulary", "Preposition", "Article", "Verb Tense", "Word Choice"
+  startIndex Int // Start position in the original text
+  endIndex   Int // End position in the original text
 }
 
 model Flashcard {

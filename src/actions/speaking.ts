@@ -1,240 +1,252 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { generateSpeakingResponse, generateScenario, generateSessionSummary, analyzeSessionErrors } from "@/lib/gemini";
+import {
+  generateSpeakingResponse,
+  generateScenario,
+  analyzeSessionConversation,
+  SessionAnalysisResult,
+} from "@/lib/gemini";
 import { revalidatePath } from "next/cache";
 
 // Helper to ensure user exists (Temporary for dev until real auth)
 async function ensureUser(userId: string) {
-    const user = await prisma.user.findUnique({
-        where: { id: userId }
-    });
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
 
-    if (!user) {
-        await prisma.user.create({
-            data: {
-                id: userId,
-                name: "Demo User",
-                email: `demo-${userId}@example.com`,
-                password: "password123", // Mock
-                level: "B1",
-            }
-        });
-    }
+  if (!user) {
+    await prisma.user.create({
+      data: {
+        id: userId,
+        name: "Demo User",
+        email: `demo-${userId}@example.com`,
+        password: "password123", // Mock
+        level: "B1",
+      },
+    });
+  }
 }
 
 // Fetch topics
 export async function getTopics() {
-    return await prisma.speakingScenario.findMany({
-        where: { isCustom: false },
-        include: {
-            topic: true
-        }
-    });
+  return await prisma.speakingScenario.findMany({
+    where: { isCustom: false },
+    include: {
+      topic: true,
+    },
+  });
 }
 
 // Helper to capitalize first letter of each word
 function toTitleCase(str: string): string {
-    return str
-        .split(" ")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ");
+  return str
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }
 
 // Fetch TopicGroups for Speaking Hub
 export async function getSpeakingTopicGroups() {
-    const groups = await prisma.topicGroup.findMany({
-        where: { hubType: "speaking" },
-        orderBy: { order: "asc" },
-    });
+  const groups = await prisma.topicGroup.findMany({
+    where: { hubType: "speaking" },
+    orderBy: { order: "asc" },
+  });
 
-    // Transform to UI format (capitalize names)
-    return groups.map((g) => ({
-        id: g.id,
-        name: toTitleCase(g.name),
-        subcategories: g.subcategories.map((s) => toTitleCase(s)),
-    }));
+  // Transform to UI format (capitalize names)
+  return groups.map((g) => ({
+    id: g.id,
+    name: toTitleCase(g.name),
+    subcategories: g.subcategories.map((s) => toTitleCase(s)),
+  }));
 }
 
 // Fetch all Speaking Scenarios with user progress (with pagination)
 export async function getSpeakingScenariosWithProgress(
-    userId?: string,
-    options?: {
-        page?: number;
-        limit?: number;
-        category?: string;
-        subcategory?: string;
-        levels?: string[];
-    }
+  userId?: string,
+  options?: {
+    page?: number;
+    limit?: number;
+    category?: string;
+    subcategory?: string;
+    levels?: string[];
+  }
 ) {
-    const page = options?.page || 1;
-    const limit = options?.limit || 12;
-    const skip = (page - 1) * limit;
+  const page = options?.page || 1;
+  const limit = options?.limit || 12;
+  const skip = (page - 1) * limit;
 
-    // Build where clause with optional filters
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {
-        isCustom: false,
-        topicGroupId: { not: null },
-    };
+  // Build where clause with optional filters
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const where: any = {
+    isCustom: false,
+    topicGroupId: { not: null },
+  };
 
-    if (options?.category) {
-        where.category = options.category.toLowerCase();
-    }
-    if (options?.subcategory && options.subcategory !== "All") {
-        where.subcategory = options.subcategory.toLowerCase();
-    }
-    if (options?.levels && options.levels.length > 0) {
-        where.difficulty = { in: options.levels };
-    }
+  if (options?.category) {
+    where.category = options.category.toLowerCase();
+  }
+  if (options?.subcategory && options.subcategory !== "All") {
+    where.subcategory = options.subcategory.toLowerCase();
+  }
+  if (options?.levels && options.levels.length > 0) {
+    where.difficulty = { in: options.levels };
+  }
 
-    const [scenarios, total] = await Promise.all([
-        prisma.speakingScenario.findMany({
-            where,
-            include: {
-                sessions: userId ? {
-                    where: { userId },
-                    select: { id: true, overallScore: true }
-                } : false,
-            },
-            orderBy: [
-                { category: "asc" },
-                { subcategory: "asc" },
-                { difficulty: "asc" }
-            ],
-            skip,
-            take: limit,
-        }),
-        prisma.speakingScenario.count({ where }),
-    ]);
+  const [scenarios, total] = await Promise.all([
+    prisma.speakingScenario.findMany({
+      where,
+      include: {
+        sessions: userId
+          ? {
+              where: { userId },
+              select: { id: true, overallScore: true },
+            }
+          : false,
+      },
+      orderBy: [
+        { category: "asc" },
+        { subcategory: "asc" },
+        { difficulty: "asc" },
+      ],
+      skip,
+      take: limit,
+    }),
+    prisma.speakingScenario.count({ where }),
+  ]);
 
-    // Transform to UI Scenario format
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const items = scenarios.map((s: any) => ({
-        id: s.id,
-        title: s.title,
-        description: s.description,
-        category: s.category ? toTitleCase(s.category) : "General",
-        subcategory: s.subcategory ? toTitleCase(s.subcategory) : undefined,
-        level: s.difficulty || "B1",
-        image: s.image || "/learning.png",
-        sessionsCompleted: Array.isArray(s.sessions) ? s.sessions.length : 0,
-        totalSessions: 10, // Default target
-        progress: Array.isArray(s.sessions) ? Math.min(s.sessions.length * 10, 100) : 0,
-        isCustom: s.isCustom,
-    }));
+  // Transform to UI Scenario format
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const items = scenarios.map((s: any) => ({
+    id: s.id,
+    title: s.title,
+    description: s.description,
+    category: s.category ? toTitleCase(s.category) : "General",
+    subcategory: s.subcategory ? toTitleCase(s.subcategory) : undefined,
+    level: s.difficulty || "B1",
+    image: s.image || "/learning.png",
+    sessionsCompleted: Array.isArray(s.sessions) ? s.sessions.length : 0,
+    totalSessions: 10, // Default target
+    progress: Array.isArray(s.sessions)
+      ? Math.min(s.sessions.length * 10, 100)
+      : 0,
+    isCustom: s.isCustom,
+  }));
 
-    return {
-        scenarios: items,
-        total,
-        totalPages: Math.ceil(total / limit),
-        currentPage: page,
-    };
+  return {
+    scenarios: items,
+    total,
+    totalPages: Math.ceil(total / limit),
+    currentPage: page,
+  };
 }
 
 // Search speaking scenarios by title/description
 export async function searchSpeakingScenarios(query: string, userId?: string) {
-    if (!query.trim()) return [];
-    
-    const scenarios = await prisma.speakingScenario.findMany({
-        where: {
-            OR: [
-                { title: { contains: query, mode: 'insensitive' } },
-                { description: { contains: query, mode: 'insensitive' } },
-            ],
-            topicGroupId: { not: null },
-        },
-        take: 50, // Limit search results
-        orderBy: { title: 'asc' },
-    });
+  if (!query.trim()) return [];
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return scenarios.map((s: any) => ({
-        id: s.id,
-        title: s.title,
-        description: s.description,
-        category: s.category ? toTitleCase(s.category) : "General",
-        subcategory: s.subcategory ? toTitleCase(s.subcategory) : undefined,
-        level: s.difficulty || "B1",
-        image: s.image || "/learning.png",
-        sessionsCompleted: 0,
-        totalSessions: 10,
-        progress: 0,
-        isCustom: s.isCustom,
-    }));
+  const scenarios = await prisma.speakingScenario.findMany({
+    where: {
+      OR: [
+        { title: { contains: query, mode: "insensitive" } },
+        { description: { contains: query, mode: "insensitive" } },
+      ],
+      topicGroupId: { not: null },
+    },
+    take: 50, // Limit search results
+    orderBy: { title: "asc" },
+  });
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return scenarios.map((s: any) => ({
+    id: s.id,
+    title: s.title,
+    description: s.description,
+    category: s.category ? toTitleCase(s.category) : "General",
+    subcategory: s.subcategory ? toTitleCase(s.subcategory) : undefined,
+    level: s.difficulty || "B1",
+    image: s.image || "/learning.png",
+    sessionsCompleted: 0,
+    totalSessions: 10,
+    progress: 0,
+    isCustom: s.isCustom,
+  }));
 }
 
 // Fetch user's speaking session history
 export async function getScenarioById(id: string) {
-    const scenario = await prisma.speakingScenario.findUnique({
-        where: { id },
-    });
+  const scenario = await prisma.speakingScenario.findUnique({
+    where: { id },
+  });
 
-    if (!scenario) return null;
+  if (!scenario) return null;
 
-    return {
-        id: scenario.id,
-        title: scenario.title,
-        description: scenario.description,
-        context: scenario.context,
-        goal: scenario.goal,
-        objectives: (scenario.objectives as string[]) || undefined,
-        userRole: scenario.userRole || undefined,
-        botRole: scenario.botRole || undefined,
-        openingLine: scenario.openingLine || undefined,
-    };
+  return {
+    id: scenario.id,
+    title: scenario.title,
+    description: scenario.description,
+    context: scenario.context,
+    goal: scenario.goal,
+    objectives: (scenario.objectives as string[]) || undefined,
+    userRole: scenario.userRole || undefined,
+    botRole: scenario.botRole || undefined,
+    openingLine: scenario.openingLine || undefined,
+  };
 }
-
 
 // Fetch user's speaking session history
 export async function getUserSpeakingHistory(userId: string) {
-    await ensureUser(userId);
-    
-    const sessions = await prisma.speakingSession.findMany({
-        where: { 
-            userId,
-            endedAt: { not: null } // Only completed sessions
-        },
-        include: {
-            scenario: true,
-        },
-        orderBy: { endedAt: "desc" },
-        take: 20, // Limit to recent 20 sessions
-    });
+  await ensureUser(userId);
 
-    // Transform for History tab
-    const historyTopics = sessions.map((s) => ({
-        id: s.id,
-        title: s.scenario.title,
-        description: s.scenario.description,
-        score: s.overallScore || 0,
-        date: s.endedAt?.toISOString().split("T")[0] || s.createdAt.toISOString().split("T")[0],
-        level: s.scenario.difficulty || "B1",
-        image: s.scenario.image || "/learning.png",
-        progress: 100, // Completed
-        wordCount: 0, // Would need to count from turns
+  const sessions = await prisma.speakingSession.findMany({
+    where: {
+      userId,
+      endedAt: { not: null }, // Only completed sessions
+    },
+    include: {
+      scenario: true,
+    },
+    orderBy: { endedAt: "desc" },
+    take: 20, // Limit to recent 20 sessions
+  });
+
+  // Transform for History tab
+  const historyTopics = sessions.map((s) => ({
+    id: s.id,
+    title: s.scenario.title,
+    description: s.scenario.description,
+    score: s.overallScore || 0,
+    date:
+      s.endedAt?.toISOString().split("T")[0] ||
+      s.createdAt.toISOString().split("T")[0],
+    level: s.scenario.difficulty || "B1",
+    image: s.scenario.image || "/learning.png",
+    progress: 100, // Completed
+    wordCount: 0, // Would need to count from turns
+  }));
+
+  // Build history graph from recent sessions
+  const historyGraph = sessions
+    .slice(0, 10)
+    .reverse()
+    .map((s, i) => ({
+      session: i + 1,
+      score: s.overallScore || 0,
     }));
 
-    // Build history graph from recent sessions
-    const historyGraph = sessions.slice(0, 10).reverse().map((s, i) => ({
-        session: i + 1,
-        score: s.overallScore || 0,
-    }));
-
-    return { historyTopics, historyGraph };
+  return { historyTopics, historyGraph };
 }
-
 
 // Fetch custom topics for a user
 export async function getCustomTopics(userId: string) {
-    await ensureUser(userId);
-    return await prisma.speakingScenario.findMany({
-        where: {
-            isCustom: true,
-            createdById: userId
-        },
-        orderBy: { id: 'desc' }
-    });
+  await ensureUser(userId);
+  return await prisma.speakingScenario.findMany({
+    where: {
+      isCustom: true,
+      createdById: userId,
+    },
+    orderBy: { id: "desc" },
+  });
 }
 
 // Create custom scenario
@@ -418,7 +430,7 @@ export async function startSessionWithGreeting(
   };
 }
 
-// Submit Turn
+// Submit Turn - Simplified: Only saves text, no realtime scoring
 export async function submitTurn(
   sessionId: string,
   userText: string,
@@ -441,13 +453,13 @@ export async function submitTurn(
     text: t.text,
   }));
 
-  // 3. Call Gemini with scenario config including role definitions
+  // 3. Call Gemini with scenario config (only getting response, no scoring)
   const scenarioConfig = {
     context: session.scenario.context,
     userRole: session.scenario.userRole || undefined,
     botRole: session.scenario.botRole || undefined,
     goal: session.scenario.goal || undefined,
-    level: session.scenario.difficulty || undefined, // Pass the CEFR level (A1-C2)
+    level: session.scenario.difficulty || undefined,
   };
   const aiResult = await generateSpeakingResponse(
     scenarioConfig,
@@ -455,27 +467,13 @@ export async function submitTurn(
     userText
   );
 
-  // 4. Save User Turn
-  await prisma.speakingTurn.create({
+  // 4. Save User Turn (no scores - will be calculated after session ends)
+  const userTurn = await prisma.speakingTurn.create({
     data: {
       sessionId,
       role: "user",
       text: userText,
-      audioUrl: audioUrl, // In a real app, upload audio to storage and save URL
-      // Fill scores from AI analysis of USER's text
-      pronunciationScore: aiResult.scores.pronunciation,
-      fluencyScore: aiResult.scores.fluency,
-      grammarScore: aiResult.scores.grammar,
-      contentScore: aiResult.scores.content,
-      relevanceScore: aiResult.scores.relevance,
-      intonationScore: aiResult.scores.intonation,
-      errors: {
-        create: aiResult.errors.map((e) => ({
-          word: e.word,
-          correction: e.correction,
-          errorType: e.type,
-        })),
-      },
+      audioUrl: audioUrl,
     },
   });
 
@@ -490,9 +488,8 @@ export async function submitTurn(
 
   return {
     aiResponse: aiResult.response,
-    scores: aiResult.scores,
-    errors: aiResult.errors,
-    turnId: aiTurn.id,
+    userTurnId: userTurn.id,
+    aiTurnId: aiTurn.id,
   };
 }
 
@@ -551,98 +548,178 @@ export async function getOrCreateFreeTalkScenario(userId: string) {
   return scenario;
 }
 
-// Get session summary with AI analysis
-export async function getSessionSummary(sessionId: string) {
-    const session = await prisma.speakingSession.findUnique({
-        where: { id: sessionId },
-        include: {
-            scenario: true,
-            turns: {
-                orderBy: { timestamp: 'asc' }
-            }
-        }
+// ============================================================================
+// NEW: Analyze and Score Session - Called after session ends
+// Replaces getSessionSummary and getDetailedFeedback
+// ============================================================================
+export async function analyzeAndScoreSession(sessionId: string): Promise<{
+  sessionAnalysis: SessionAnalysisResult;
+  scores: {
+    grammar: number;
+    relevance: number;
+    fluency: number;
+    pronunciation: number;
+    intonation: number;
+    overall: number;
+  };
+  errorCategories: { name: string; count: number }[];
+  conversation: {
+    role: "user" | "tutor";
+    text: string;
+    turnId: string;
+    userErrors?: {
+      word: string;
+      correction: string;
+      type: string;
+      startIndex: number;
+      endIndex: number;
+    }[];
+  }[];
+}> {
+  console.log("[analyzeAndScoreSession] Starting for session:", sessionId);
+
+  // 1. Get session with all turns
+  const session = await prisma.speakingSession.findUnique({
+    where: { id: sessionId },
+    include: {
+      scenario: true,
+      turns: { orderBy: { timestamp: "asc" } },
+    },
+  });
+
+  if (!session) throw new Error("Session not found");
+
+  // 2. Prepare turns for Gemini analysis
+  const turnsForAnalysis = session.turns.map((t: any) => ({
+    role: t.role as "user" | "tutor",
+    text: t.text,
+    id: t.id,
+  }));
+
+  // 3. Call Gemini to analyze the entire session
+  const analysisResult = await analyzeSessionConversation(
+    session.scenario.context,
+    turnsForAnalysis
+  );
+
+  console.log(
+    "[analyzeAndScoreSession] Gemini analysis complete - grammar:",
+    analysisResult.grammarScore
+  );
+
+  // 4. Get user turns for saving errors
+  const userTurns = session.turns.filter((t: any) => t.role === "user");
+
+  // 5. Save errors to database for each user turn
+  for (const turnAnalysis of analysisResult.turnAnalyses) {
+    const userTurn = userTurns[turnAnalysis.turnIndex];
+    if (!userTurn) continue;
+
+    // Delete old errors first (if re-analyzing)
+    await prisma.speakingTurnError.deleteMany({
+      where: { turnId: userTurn.id },
     });
 
-    if (!session) throw new Error("Session not found");
-
-    // Prepare conversation for AI
-    const conversation = session.turns.map((t: any) => ({
-        role: t.role as "user" | "tutor",
-        text: t.text
-    }));
-
-    // Get AI summary
-    const summary = await generateSessionSummary(session.scenario.context, conversation);
-
-    return {
-        ...summary,
-        scenarioTitle: session.scenario.title,
-        turnsCount: session.turns.length
-    };
-}
-
-// Get detailed feedback with error analysis
-export async function getDetailedFeedback(sessionId: string) {
-    const session = await prisma.speakingSession.findUnique({
-        where: { id: sessionId },
-        include: {
-            scenario: true,
-            turns: {
-                orderBy: { timestamp: 'asc' },
-                include: {
-                    errors: true
-                }
-            }
-        }
-    });
-
-    if (!session) throw new Error("Session not found");
-
-    // Get user turns for analysis
-    const userTurns = session.turns
-        .filter((t: any) => t.role === "user")
-        .map((t: any) => ({ text: t.text }));
-
-    // Get AI error analysis
-    const errorAnalysis = await analyzeSessionErrors(userTurns);
-
-    // Calculate average scores from turns
-    const userTurnsWithScores = session.turns.filter((t: any) => t.role === "user");
-    const avgScores = {
-        relevance: 0,
-        pronunciation: 0,
-        intonation: 0,
-        fluency: 0,
-        grammar: 0
-    };
-
-    if (userTurnsWithScores.length > 0) {
-        avgScores.relevance = Math.round(userTurnsWithScores.reduce((sum: number, t: any) => sum + (t.relevanceScore || 0), 0) / userTurnsWithScores.length);
-        avgScores.pronunciation = Math.round(userTurnsWithScores.reduce((sum: number, t: any) => sum + (t.pronunciationScore || 0), 0) / userTurnsWithScores.length);
-        avgScores.intonation = Math.round(userTurnsWithScores.reduce((sum: number, t: any) => sum + (t.intonationScore || 0), 0) / userTurnsWithScores.length);
-        avgScores.fluency = Math.round(userTurnsWithScores.reduce((sum: number, t: any) => sum + (t.fluencyScore || 0), 0) / userTurnsWithScores.length);
-        avgScores.grammar = Math.round(userTurnsWithScores.reduce((sum: number, t: any) => sum + (t.grammarScore || 0), 0) / userTurnsWithScores.length);
+    // Save new errors with positions
+    if (turnAnalysis.errors.length > 0) {
+      await prisma.speakingTurnError.createMany({
+        data: turnAnalysis.errors.map((err) => ({
+          turnId: userTurn.id,
+          word: err.word,
+          correction: err.correction,
+          errorType: err.errorType,
+          startIndex: err.startIndex,
+          endIndex: err.endIndex,
+        })),
+      });
     }
+  }
 
-    // Build conversation with merged data
-    const conversation = session.turns.map((t: any) => {
-        const turnAnalysis = t.role === "user"
-            ? errorAnalysis.turnAnalyses.find((a: any) => a.originalText === t.text)
-            : null;
+  // 6. Calculate scores (fluency, pronunciation, intonation default to 70 for now)
+  const fluencyScore = 70;
+  const pronunciationScore = 70;
+  const intonationScore = 70;
 
-        return {
-            role: t.role as "user" | "tutor",
-            text: t.text,
-            userErrors: turnAnalysis?.errors || [],
-            correctedSentence: turnAnalysis?.correctedSentence || t.text
-        };
-    });
+  const overallScore = Math.round(
+    (analysisResult.grammarScore +
+      analysisResult.relevanceScore +
+      fluencyScore +
+      pronunciationScore +
+      intonationScore) /
+      5
+  );
+
+  // 7. Update session with scores and feedback
+  await prisma.speakingSession.update({
+    where: { id: sessionId },
+    data: {
+      endedAt: new Date(),
+      duration: Math.round((Date.now() - session.createdAt.getTime()) / 1000),
+      overallScore,
+      grammarScore: analysisResult.grammarScore,
+      relevanceScore: analysisResult.relevanceScore,
+      fluencyScore,
+      pronunciationScore,
+      intonationScore,
+      feedbackTitle: analysisResult.feedbackTitle,
+      feedbackSummary: analysisResult.feedbackSummary,
+      feedbackRating: analysisResult.feedbackRating,
+      feedbackTip: analysisResult.feedbackTip,
+    },
+  });
+
+  // 8. Calculate error categories
+  const errorCategoryMap: Record<string, number> = {};
+  for (const turnAnalysis of analysisResult.turnAnalyses) {
+    for (const err of turnAnalysis.errors) {
+      errorCategoryMap[err.errorType] =
+        (errorCategoryMap[err.errorType] || 0) + 1;
+    }
+  }
+  const errorCategories = Object.entries(errorCategoryMap).map(
+    ([name, count]) => ({
+      name,
+      count,
+    })
+  );
+
+  // 9. Build conversation with errors for frontend
+  const conversation = session.turns.map((t: any) => {
+    const turnAnalysis = analysisResult.turnAnalyses.find(
+      (ta) => userTurns[ta.turnIndex]?.id === t.id
+    );
 
     return {
-        scores: avgScores,
-        errorCategories: errorAnalysis.errorCategories,
-        conversation,
-        overallRating: errorAnalysis.overallRating,
-        tip: errorAnalysis.tip
+      role: t.role as "user" | "tutor",
+      text: t.text,
+      turnId: t.id,
+      userErrors:
+        turnAnalysis?.errors.map((err) => ({
+          word: err.word,
+          correction: err.correction,
+          type: err.errorType,
+          startIndex: err.startIndex,
+          endIndex: err.endIndex,
+        })) || [],
     };
+  });
+
+  console.log(
+    "[analyzeAndScoreSession] Complete - overall score:",
+    overallScore
+  );
+
+  return {
+    sessionAnalysis: analysisResult,
+    scores: {
+      grammar: analysisResult.grammarScore,
+      relevance: analysisResult.relevanceScore,
+      fluency: fluencyScore,
+      pronunciation: pronunciationScore,
+      intonation: intonationScore,
+      overall: overallScore,
+    },
+    errorCategories,
+    conversation,
+  };
 }

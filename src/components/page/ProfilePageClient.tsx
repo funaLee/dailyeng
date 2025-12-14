@@ -10,11 +10,9 @@ import {
   Target,
   BookOpen,
   Flame,
-  CalendarIcon,
   Clock,
   TrendingUp,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { UserProfileSidebar } from "@/components/layout/user-profile-sidebar";
 import { ProtectedRoute, PageIcons } from "@/components/auth/protected-route";
 
@@ -136,17 +134,6 @@ export default function ProfilePageClient({
 
             {/* Study Heat Map */}
             <Card className="border-2 border-border shadow-md bg-white p-6 hover:shadow-xl transition-all duration-300">
-              <div className="flex items-center justify-between mb-6">
-                <h4 className="font-bold text-slate-700 text-lg flex items-center gap-3">
-                  <div className="p-2 bg-primary-100 rounded-xl">
-                    <CalendarIcon size={20} className="text-primary-600" />
-                  </div>
-                  Study Heat Map
-                </h4>
-                <Badge variant="outline" className="text-sm bg-white px-3 py-1">
-                  Last 10 weeks
-                </Badge>
-              </div>
               <ActivityHeatmap data={activityData} />
             </Card>
 
@@ -298,144 +285,188 @@ function StatCard({
 
 function ActivityHeatmap({ data }: { data: Record<string, number> }) {
   const today = new Date();
+
+  // Calculate stats from data
+  const totalSessions = Object.values(data).reduce(
+    (sum, count) => sum + count,
+    0
+  );
+  const activeDays = Object.values(data).filter((count) => count > 0).length;
+
+  // Calculate max streak
+  const sortedDates = Object.keys(data).sort();
+  let maxStreak = 0;
+  let currentStreak = 0;
+
+  sortedDates.forEach((date) => {
+    if (data[date] > 0) {
+      currentStreak++;
+      maxStreak = Math.max(maxStreak, currentStreak);
+    } else {
+      currentStreak = 0;
+    }
+  });
+
+  // Generate last 52 weeks of data (364 days) - like LeetCode
   const startDate = new Date(today);
-  startDate.setDate(startDate.getDate() - 69); // 10 weeks = 70 days
+  startDate.setDate(startDate.getDate() - 363);
 
-  // Get the first day of week offset (to align with correct weekday)
-  const firstDayOfWeek = startDate.getDay();
+  // Align to start of week (Sunday)
+  const dayOfWeek = startDate.getDay();
+  startDate.setDate(startDate.getDate() - dayOfWeek);
 
-  // Generate all cells
-  const cells: Array<{ date: string; count: number; month?: string }> = [];
+  // Generate weeks array
+  const weeks: Array<
+    Array<{ date: string; count: number; isToday?: boolean }>
+  > = [];
+  const monthPositions: Array<{ month: string; weekIndex: number }> = [];
+  let lastMonth = -1;
 
-  for (let i = 0; i < 70; i++) {
-    const date = new Date(startDate);
-    date.setDate(date.getDate() + i);
-    const dateStr = date.toISOString().split("T")[0];
+  for (let week = 0; week < 53; week++) {
+    const weekDays: Array<{ date: string; count: number; isToday?: boolean }> =
+      [];
 
-    cells.push({
-      date: dateStr,
-      count: data[dateStr] || 0,
-      month:
-        i % 7 === 0 && date.getDate() <= 7
-          ? date.toLocaleDateString("en", { month: "short" })
-          : undefined,
-    });
-  }
+    for (let day = 0; day < 7; day++) {
+      const currentDate = new Date(startDate);
+      currentDate.setDate(startDate.getDate() + week * 7 + day);
+      const dateStr = currentDate.toISOString().split("T")[0];
+      const isToday = dateStr === today.toISOString().split("T")[0];
+      const isFuture = currentDate > today;
 
-  // Group by weeks
-  const weeks: Array<Array<{ date: string; count: number }>> = [];
-  let currentWeek: Array<{ date: string; count: number }> = [];
+      // Track month changes (on first day of week)
+      if (day === 0) {
+        const month = currentDate.getMonth();
+        if (month !== lastMonth && !isFuture) {
+          monthPositions.push({
+            month: currentDate.toLocaleDateString("vi-VN", { month: "short" }),
+            weekIndex: week,
+          });
+          lastMonth = month;
+        }
+      }
 
-  // Add empty cells for alignment
-  for (let i = 0; i < firstDayOfWeek; i++) {
-    currentWeek.push({ date: "", count: -1 });
-  }
-
-  cells.forEach((cell, i) => {
-    currentWeek.push({ date: cell.date, count: cell.count });
-    if (currentWeek.length === 7) {
-      weeks.push(currentWeek);
-      currentWeek = [];
+      weekDays.push({
+        date: isFuture ? "" : dateStr,
+        count: isFuture ? -1 : data[dateStr] || 0,
+        isToday,
+      });
     }
-  });
-
-  if (currentWeek.length > 0) {
-    while (currentWeek.length < 7) {
-      currentWeek.push({ date: "", count: -1 });
-    }
-    weeks.push(currentWeek);
+    weeks.push(weekDays);
   }
-
-  // Get month labels
-  const monthLabels: Array<{ label: string; offset: number }> = [];
-  let lastMonth = "";
-  cells.forEach((cell, i) => {
-    if (cell.month && cell.month !== lastMonth) {
-      monthLabels.push({ label: cell.month, offset: Math.floor(i / 7) });
-      lastMonth = cell.month;
-    }
-  });
 
   const getColor = (count: number) => {
     if (count === -1) return "bg-transparent";
-    if (count === 0) return "bg-slate-100";
+    if (count === 0) return "bg-slate-100 dark:bg-slate-800";
     if (count === 1) return "bg-primary-200";
     if (count === 2) return "bg-primary-300";
     if (count === 3) return "bg-primary-400";
     return "bg-primary-500";
   };
 
+  const dayLabels = ["", "T2", "", "T4", "", "T6", ""];
+
   return (
-    <div className="w-full overflow-x-auto">
-      <div className="inline-block min-w-full">
-        {/* Month labels */}
-        <div className="flex gap-1 mb-2 pl-12">
-          {monthLabels.map((month, i) => (
-            <div
-              key={i}
-              className="text-xs text-slate-500 font-medium"
-              style={{
-                marginLeft:
-                  i === 0
-                    ? 0
-                    : `${
-                        (month.offset - (monthLabels[i - 1]?.offset || 0)) * 17
-                      }px`,
-              }}
-            >
-              {month.label}
-            </div>
-          ))}
+    <div className="w-full">
+      {/* Stats Header - LeetCode style */}
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl font-bold text-slate-800">
+            {totalSessions}
+          </span>
+          <span className="text-slate-600 text-sm">
+            phiên học trong năm qua
+          </span>
         </div>
-
-        {/* Heatmap Grid */}
-        <div className="flex gap-1">
-          {/* Day labels */}
-          <div className="flex flex-col gap-1 justify-around pr-2">
-            <div className="h-[14px]"></div>
-            <div className="text-xs text-slate-500 h-[14px] flex items-center">
-              Tue
-            </div>
-            <div className="h-[14px]"></div>
-            <div className="text-xs text-slate-500 h-[14px] flex items-center">
-              Thu
-            </div>
-            <div className="h-[14px]"></div>
-            <div className="text-xs text-slate-500 h-[14px] flex items-center">
-              Sat
-            </div>
-            <div className="h-[14px]"></div>
+        <div className="flex items-center gap-6 text-sm">
+          <div className="flex items-center gap-2">
+            <span className="text-slate-500">Ngày hoạt động:</span>
+            <span className="font-semibold text-slate-700">{activeDays}</span>
           </div>
+          <div className="flex items-center gap-2">
+            <span className="text-slate-500">Chuỗi dài nhất:</span>
+            <span className="font-semibold text-slate-700">{maxStreak}</span>
+          </div>
+        </div>
+      </div>
 
-          {/* Weeks */}
-          {weeks.map((week, weekIdx) => (
-            <div key={weekIdx} className="flex flex-col gap-1">
-              {week.map((day, dayIdx) => (
+      {/* Heatmap Grid */}
+      <div className="overflow-x-auto pb-2">
+        <div className="inline-flex flex-col gap-1 min-w-full">
+          {/* Grid with day labels */}
+          <div className="flex gap-[3px]">
+            {/* Day labels column */}
+            <div className="flex flex-col gap-[3px] pr-2 w-6">
+              {dayLabels.map((label, idx) => (
                 <div
-                  key={`${weekIdx}-${dayIdx}`}
-                  className={`w-[14px] h-[14px] rounded-sm ${getColor(
-                    day.count
-                  )} transition-all hover:ring-2 hover:ring-slate-400 hover:scale-110 cursor-pointer`}
-                  title={day.date ? `${day.date}: ${day.count} activities` : ""}
-                />
+                  key={idx}
+                  className="h-[11px] text-[10px] text-slate-400 flex items-center justify-end"
+                >
+                  {label}
+                </div>
               ))}
             </div>
-          ))}
-        </div>
 
-        {/* Legend */}
-        <div className="flex items-center justify-between mt-3 text-xs text-slate-500">
-          <span>Đông</span>
-          <div className="flex items-center gap-1">
-            <div className="w-[14px] h-[14px] rounded-sm bg-slate-100"></div>
-            <div className="w-[14px] h-[14px] rounded-sm bg-primary-200"></div>
-            <div className="w-[14px] h-[14px] rounded-sm bg-primary-300"></div>
-            <div className="w-[14px] h-[14px] rounded-sm bg-primary-400"></div>
-            <div className="w-[14px] h-[14px] rounded-sm bg-primary-500"></div>
+            {/* Weeks */}
+            {weeks.map((week, weekIdx) => (
+              <div key={weekIdx} className="flex flex-col gap-[3px]">
+                {week.map((day, dayIdx) => (
+                  <div
+                    key={`${weekIdx}-${dayIdx}`}
+                    className={`w-[11px] h-[11px] rounded-sm ${getColor(
+                      day.count
+                    )} 
+                      ${
+                        day.isToday
+                          ? "ring-1 ring-primary-500 ring-offset-1"
+                          : ""
+                      }
+                      ${
+                        day.count >= 0
+                          ? "hover:ring-1 hover:ring-slate-400 cursor-pointer"
+                          : ""
+                      }
+                      transition-all`}
+                    title={
+                      day.date ? `${day.date}: ${day.count} phiên học` : ""
+                    }
+                  />
+                ))}
+              </div>
+            ))}
           </div>
-          <span>Nhiều</span>
+
+          {/* Month labels */}
+          <div className="flex gap-[3px] pl-8">
+            {monthPositions.map((pos, idx) => {
+              const nextPos = monthPositions[idx + 1]?.weekIndex || 53;
+              const width = (nextPos - pos.weekIndex) * 14; // 11px cell + 3px gap
+              return (
+                <div
+                  key={idx}
+                  className="text-[10px] text-slate-400 capitalize"
+                  style={{ width: `${width}px`, minWidth: `${width}px` }}
+                >
+                  {pos.month}
+                </div>
+              );
+            })}
+          </div>
         </div>
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center justify-end gap-2 mt-2 text-[10px] text-slate-400">
+        <span>Ít</span>
+        <div className="flex gap-[2px]">
+          <div className="w-[11px] h-[11px] rounded-sm bg-slate-100"></div>
+          <div className="w-[11px] h-[11px] rounded-sm bg-primary-200"></div>
+          <div className="w-[11px] h-[11px] rounded-sm bg-primary-300"></div>
+          <div className="w-[11px] h-[11px] rounded-sm bg-primary-400"></div>
+          <div className="w-[11px] h-[11px] rounded-sm bg-primary-500"></div>
+        </div>
+        <span>Nhiều</span>
       </div>
     </div>
   );
 }
+

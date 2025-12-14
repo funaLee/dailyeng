@@ -13,8 +13,8 @@ function generateActivityData(): Record<string, number> {
   const today = new Date();
   const data: Record<string, number> = {};
 
-  // Generate last 10 weeks of data (70 days)
-  for (let i = 69; i >= 0; i--) {
+  // Generate last year of data (365 days) - matches LeetCode style
+  for (let i = 364; i >= 0; i--) {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
     const dateStr = date.toISOString().split("T")[0];
