@@ -3,29 +3,10 @@ import { GoogleGenerativeAI, Content } from "@google/generative-ai";
 const apiKey = process.env.GEMINI_API_KEY;
 
 if (!apiKey) {
-    console.error("Missing GEMINI_API_KEY in environment variables");
+  console.error("Missing GEMINI_API_KEY in environment variables");
 }
 
 const genAI = new GoogleGenerativeAI(apiKey || "");
-
-export interface TurnScore {
-    pronunciation: number;
-    fluency: number;
-    grammar: number;
-    content: number;
-    relevance: number;
-    intonation: number;
-}
-
-export interface FeedbackData {
-  response: string;
-  scores: TurnScore;
-  errors: {
-    word: string;
-    correction: string;
-    type: string;
-  }[];
-}
 
 // Helper function to provide language guidance based on CEFR level
 function getLevelGuidance(level: string): string {
@@ -55,12 +36,15 @@ export interface ScenarioConfig {
   level?: string; // A1, A2, B1, B2, C1, C2
 }
 
+// ============================================================================
+// SIMPLIFIED: generateSpeakingResponse - Only returns AI response during conversation
+// Error analysis and scoring is done AFTER session ends via analyzeSessionConversation
+// ============================================================================
 export async function generateSpeakingResponse(
   scenario: ScenarioConfig,
   history: { role: "user" | "model"; text: string }[],
   userMessage: string
-): Promise<FeedbackData> {
-  // Build role description for system prompt
+): Promise<{ response: string }> {
   const userRoleDesc = scenario.userRole
     ? `The user is playing the role of: ${scenario.userRole}`
     : "";
@@ -76,64 +60,48 @@ export async function generateSpeakingResponse(
       } learners, use ${getLevelGuidance(scenario.level)}.`
     : "";
 
-  // dynamically create model to include context in system instruction
   const model = genAI.getGenerativeModel({
     model: "gemini-2.5-flash",
     systemInstruction: `
-        You are an English tutor helping a language learner practice speaking through roleplay.
-        
-        SCENARIO CONTEXT: ${scenario.context}
-        ${botRoleDesc}
-        ${userRoleDesc}
-        ${goalDesc}
-        ${levelDesc}
-        
-        Your task:
-        1. Stay in character as ${
-          scenario.botRole || "the tutor"
-        } and respond naturally to continue the roleplay.
-        2. Analyze the user's latest message for grammar, vocabulary, and relevance.
-        3. Give scores (0-100) for pronunciation (estimate based on text), fluency (estimate), grammar, content, relevance, intonation (estimate).
-        4. Identify specific errors (grammar, vocab, etc.) and provide corrections.
-        5. Generate a natural, conversational response that advances the scenario. Keep it concise (1-2 sentences).
-        
-        IMPORTANT: Your response should be in character as ${
-          scenario.botRole || "the tutor"
-        }. Be natural and engaging.
-        
-        CRITICAL: Do NOT use any markdown formatting in your response (no **bold**, *italic*, headers, lists, etc.). Your response must be plain text only.
-        
-        Output JSON format ONLY:
-        {
-          "response": "Your in-character response here",
-          "scores": {
-            "pronunciation": 80,
-            "fluency": 80,
-            "grammar": 80,
-            "content": 80,
-            "relevance": 80,
-            "intonation": 80
-          },
-          "errors": [
-            { "word": "wrong_word", "correction": "correct_word", "type": "Grammar/Vocab/etc" }
-          ]
-        }
-        `,
+You are an English tutor helping a language learner practice speaking through roleplay.
+
+SCENARIO CONTEXT: ${scenario.context}
+${botRoleDesc}
+${userRoleDesc}
+${goalDesc}
+${levelDesc}
+
+Your task:
+1. Stay in character as ${
+      scenario.botRole || "the tutor"
+    } and respond naturally to continue the roleplay.
+2. Generate a natural, conversational response that advances the scenario. Keep it concise (1-2 sentences).
+
+IMPORTANT: Your response should be in character as ${
+      scenario.botRole || "the tutor"
+    }. Be natural and engaging.
+CRITICAL: Do NOT use any markdown formatting in your response (no **bold**, *italic*, headers, lists, etc.). Your response must be plain text only.
+
+Output JSON format ONLY:
+{
+  "response": "<your natural in-character response>"
+}
+`,
     generationConfig: {
       temperature: 0.7,
-      maxOutputTokens: 1000,
+      maxOutputTokens: 1024,
       responseMimeType: "application/json",
+      // @ts-expect-error - thinkingConfig is supported but not in types yet
+      thinkingConfig: { thinkingBudget: 0 },
     },
   });
 
   try {
-    // Convert history to Gemini Content format
     const contents: Content[] = history.map((h) => ({
       role: h.role,
       parts: [{ text: h.text }],
     }));
 
-    // Add current user message
     contents.push({
       role: "user",
       parts: [{ text: userMessage }],
@@ -144,41 +112,209 @@ export async function generateSpeakingResponse(
 
     return JSON.parse(text);
   } catch (error) {
-    console.error("Gemini generation error:", error);
-    // Fallback
+    console.error("[generateSpeakingResponse] Gemini generation error:", error);
     return {
       response: "I'm sorry, I didn't catch that. Could you repeat?",
-      scores: {
-        pronunciation: 70,
-        fluency: 70,
-        grammar: 70,
-        content: 70,
-        relevance: 70,
-        intonation: 70,
-      },
-      errors: [],
+    };
+  }
+}
+
+// ============================================================================
+// NEW: Session Analysis Types and Function
+// Called AFTER session ends to analyze all turns at once
+// ============================================================================
+
+export interface TurnError {
+  word: string;
+  correction: string;
+  errorType: string;
+  startIndex: number;
+  endIndex: number;
+}
+
+export interface TurnAnalysis {
+  turnIndex: number; // Index matching the userTurns array
+  errors: TurnError[];
+}
+
+export interface SessionAnalysisResult {
+  // Feedback for Complete page
+  feedbackTitle: string;
+  feedbackSummary: string;
+  feedbackRating: string; // "Excellent" | "Good" | "Average" | "Needs Improvement"
+  feedbackTip: string;
+
+  // Scores (0-100)
+  grammarScore: number;
+  relevanceScore: number;
+
+  // Per-turn error analysis
+  turnAnalyses: TurnAnalysis[];
+}
+
+export async function analyzeSessionConversation(
+  scenarioContext: string,
+  turns: { role: "user" | "tutor"; text: string; id: string }[]
+): Promise<SessionAnalysisResult> {
+  console.log(
+    "[analyzeSessionConversation] Starting analysis with",
+    turns.length,
+    "turns"
+  );
+
+  // Filter user turns for analysis
+  const userTurns = turns.filter((t) => t.role === "user");
+
+  if (userTurns.length === 0) {
+    console.log("[analyzeSessionConversation] No user turns to analyze");
+    return {
+      feedbackTitle: "Session Complete",
+      feedbackSummary: "Start speaking to get feedback on your English!",
+      feedbackRating: "N/A",
+      feedbackTip: "Try to speak more in your next session.",
+      grammarScore: 0,
+      relevanceScore: 0,
+      turnAnalyses: [],
+    };
+  }
+
+  // Build conversation text with turn indices for reference
+  const conversationText = turns
+    .map((t, i) => {
+      const role = t.role === "user" ? "User" : "Tutor";
+      const turnIndex =
+        t.role === "user" ? userTurns.findIndex((u) => u.id === t.id) : -1;
+      const indexLabel = turnIndex >= 0 ? ` [UserTurnIndex: ${turnIndex}]` : "";
+      return `${role}${indexLabel}: "${t.text}"`;
+    })
+    .join("\n");
+
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash",
+    generationConfig: {
+      temperature: 0.3,
+      maxOutputTokens: 16384,
+      responseMimeType: "application/json",
+      // @ts-expect-error - thinkingConfig is supported but not in types yet
+      thinkingConfig: { thinkingBudget: 0 },
+    },
+  });
+
+  const prompt = `You are an expert English language teacher. Analyze this conversation between a learner (User) and AI tutor.
+
+SCENARIO CONTEXT: ${scenarioContext}
+
+CONVERSATION:
+${conversationText}
+
+YOUR TASK:
+1. For each USER turn, identify ALL grammar, vocabulary, and usage errors.
+2. For each error, provide the EXACT position (startIndex, endIndex) in the original text.
+3. Calculate an overall GRAMMAR score (0-100) based on error frequency and severity.
+4. Calculate a RELEVANCE score (0-100) based on how well user responses match the conversation context.
+5. Generate encouraging feedback for the learner.
+
+ERROR TYPES to look for:
+- Grammar: General grammar mistakes
+- Vocabulary: Wrong word usage
+- Preposition: Wrong preposition (in/on/at/to/for)
+- Article: Missing or wrong articles (a/an/the)
+- Verb Tense: Wrong verb tense
+- Word Choice: Inappropriate word for context
+
+SCORING GUIDELINES:
+- Grammar: 90-100 if 0-2 errors, 70-89 if 3-5 errors, 50-69 if 6-10 errors, below 50 if 10+ errors
+- Relevance: Based on how well responses match the context and flow of conversation
+
+Return JSON with this EXACT structure:
+{
+  "feedbackTitle": "<encouraging title, max 5 words>",
+  "feedbackSummary": "<2-sentence constructive feedback>",
+  "feedbackRating": "<Excellent|Good|Average|Needs Improvement>",
+  "feedbackTip": "<specific tip based on most common error type>",
+  "grammarScore": <0-100>,
+  "relevanceScore": <0-100>,
+  "turnAnalyses": [
+    {
+      "turnIndex": <index in userTurns array, starting from 0>,
+      "errors": [
+        {
+          "word": "<exact incorrect word/phrase from text>",
+          "correction": "<correct version>",
+          "errorType": "<Grammar|Vocabulary|Preposition|Article|Verb Tense|Word Choice>",
+          "startIndex": <start position in text>,
+          "endIndex": <end position in text>
+        }
+      ]
+    }
+  ]
+}
+
+IMPORTANT:
+- startIndex and endIndex must be accurate character positions in the USER's original text
+- If a user turn has no errors, still include it with an empty errors array
+- Be thorough but fair - focus on meaningful errors, not minor style preferences`;
+
+  try {
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+
+    console.log(
+      "[analyzeSessionConversation] Raw response length:",
+      text.length
+    );
+
+    const parsed: SessionAnalysisResult = JSON.parse(text);
+
+    // Validate required fields
+    if (!parsed.feedbackTitle || parsed.grammarScore === undefined) {
+      console.error("[analyzeSessionConversation] Invalid response structure");
+      throw new Error("Invalid response structure");
+    }
+
+    console.log(
+      "[analyzeSessionConversation] Success - rating:",
+      parsed.feedbackRating,
+      "grammar:",
+      parsed.grammarScore
+    );
+    return parsed;
+  } catch (e) {
+    console.error("[analyzeSessionConversation] Failed:", e);
+    return {
+      feedbackTitle: "Session Complete",
+      feedbackSummary:
+        "Great effort! Keep practicing to improve your English speaking skills.",
+      feedbackRating: "Good",
+      feedbackTip: "Focus on grammar and vocabulary to improve your speaking.",
+      grammarScore: 70,
+      relevanceScore: 70,
+      turnAnalyses: userTurns.map((_, i) => ({ turnIndex: i, errors: [] })),
     };
   }
 }
 
 export async function generateScenario(topic: string): Promise<{
-    title: string;
-    description: string;
-    goal: string;
-    level: string;
-    context: string;
-    image: string;
+  title: string;
+  description: string;
+  goal: string;
+  level: string;
+  context: string;
+  image: string;
 }> {
-    const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
-        generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 1000,
-            responseMimeType: "application/json",
-        },
-    });
+  // Use gemini-2.5-flash with thinking disabled
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash",
+    generationConfig: {
+      temperature: 0.7,
+      maxOutputTokens: 8192, // High quota - 1M TPM
+      responseMimeType: "application/json",
+      // @ts-expect-error - thinkingConfig is supported but not in types yet
+      thinkingConfig: { thinkingBudget: 0 },
+    },
+  });
 
-    const prompt = `
+  const prompt = `
       Create a speaking roleplay scenario based on the topic: "${topic}".
       
       Output JSON format ONLY:
@@ -192,198 +328,19 @@ export async function generateScenario(topic: string): Promise<{
       }
     `;
 
-    try {
-        const result = await model.generateContent(prompt);
-        const text = result.response.text();
-        return JSON.parse(text);
-    } catch (e) {
-        console.error("Failed to generate scenario", e);
-        return {
-            title: topic,
-            description: "Custom scenario",
-            goal: "Practice conversation",
-            level: "B1",
-            context: `Roleplay about ${topic}`,
-            image: "/learning.png"
-        };
-    }
-}
-
-export interface SessionSummaryData {
-    title: string;
-    description: string;
-    overallScore: number;
-    scores: {
-        relevance: number;
-        pronunciation: number;
-        intonation: number;
-        fluency: number;
-        grammar: number;
+  try {
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    return JSON.parse(text);
+  } catch (e) {
+    console.error("Failed to generate scenario", e);
+    return {
+      title: topic,
+      description: "Custom scenario",
+      goal: "Practice conversation",
+      level: "B1",
+      context: `Roleplay about ${topic}`,
+      image: "/learning.png",
     };
-    newWords?: {
-        word: string;
-        definition: string;
-        example: string;
-    }[];
-}
-
-export async function generateSessionSummary(
-    context: string,
-    conversation: { role: "user" | "tutor"; text: string }[]
-): Promise<SessionSummaryData> {
-    const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
-        generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 1000,
-            responseMimeType: "application/json",
-        },
-    });
-
-    const conversationText = conversation
-        .map((c) => `${c.role === "user" ? "User" : "Tutor"}: ${c.text}`)
-        .join("\n");
-
-    const prompt = `
-      Analyze this English speaking practice conversation and provide a summary.
-      
-      Context: ${context}
-      
-      Conversation:
-      ${conversationText}
-      
-      Provide a comprehensive analysis with:
-      1. A short encouraging title (e.g., "Amazing context understanding", "Great vocabulary usage", "Good pronunciation")
-      2. A detailed paragraph (2-3 sentences) explaining what they did well and what needs improvement
-      3. Scores (0-100) for: relevance, pronunciation (estimate), intonation (estimate), fluency (estimate), grammar
-      4. Overall score (0-100)
-      5. Extract 3 advanced or useful vocabulary words from the conversation (or suggest relevant ones if user vocab was simple) with definitions and context examples.
-      
-      Output JSON format ONLY:
-      {
-        "title": "Short encouraging title",
-        "description": "Detailed feedback paragraph explaining strengths and areas for improvement",
-        "overallScore": 85,
-        "scores": {
-          "relevance": 86,
-          "pronunciation": 88,
-          "intonation": 69,
-          "fluency": 86,
-          "grammar": 88
-        },
-        "newWords": [
-            { "word": "word1", "definition": "definition...", "example": "example usage..." }
-        ]
-      }
-    `;
-
-    try {
-        const result = await model.generateContent(prompt);
-        const text = result.response.text();
-        return JSON.parse(text);
-    } catch (e) {
-        console.error("Failed to generate session summary", e);
-        return {
-            title: "Session Complete",
-            description: "Great effort! Keep practicing to improve your English speaking skills.",
-            overallScore: 75,
-            scores: {
-                relevance: 75,
-                pronunciation: 75,
-                intonation: 70,
-                fluency: 75,
-                grammar: 75,
-            },
-            newWords: []
-        };
-    }
-}
-
-export interface ErrorAnalysis {
-    word: string;
-    correction: string;
-    type: string;
-}
-
-export interface TurnAnalysis {
-    originalText: string;
-    errors: ErrorAnalysis[];
-    correctedSentence: string;
-}
-
-export interface DetailedErrorAnalysis {
-    errorCategories: { name: string; count: number }[];
-    turnAnalyses: TurnAnalysis[];
-    overallRating: string;
-    tip: string;
-}
-
-export async function analyzeSessionErrors(
-    userTurns: { text: string }[]
-): Promise<DetailedErrorAnalysis> {
-    const model = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
-        generationConfig: {
-            temperature: 0.5,
-            maxOutputTokens: 2000,
-            responseMimeType: "application/json",
-        },
-    });
-
-    const turnsText = userTurns.map((t, i) => `Turn ${i + 1}: "${t.text}"`).join("\n");
-
-    const prompt = `
-      Analyze these English sentences from a language learner and identify all grammar, vocabulary, and usage errors.
-      
-      User turns:
-      ${turnsText}
-      
-      For each turn:
-      1. Identify specific errors (grammar, vocabulary, preposition, article, verb tense, word choice, etc.)
-      2. Provide the incorrect word/phrase and its correction
-      3. Generate the fully corrected sentence
-      
-      Also provide:
-      - Error category counts (e.g., {"name": "Prepositions", "count": 3})
-      - Overall rating: "Excellent" (0-5 errors), "Good" (6-10), "Average" (11-15), "Needs Improvement" (16+)
-      - A personalized tip for improvement
-      
-      Output JSON format ONLY:
-      {
-        "errorCategories": [
-          {"name": "Prepositions", "count": 2},
-          {"name": "Articles", "count": 1},
-          {"name": "Verb Tense", "count": 3}
-        ],
-        "turnAnalyses": [
-          {
-            "originalText": "I go to school yesterday",
-            "errors": [
-              {"word": "go", "correction": "went", "type": "Verb Tense"}
-            ],
-            "correctedSentence": "I went to school yesterday"
-          }
-        ],
-        "overallRating": "Good",
-        "tip": "Pay attention to verb tenses when talking about past events. Keep practicing!"
-      }
-    `;
-
-    try {
-        const result = await model.generateContent(prompt);
-        const text = result.response.text();
-        return JSON.parse(text);
-    } catch (e) {
-        console.error("Failed to analyze session errors", e);
-        return {
-            errorCategories: [],
-            turnAnalyses: userTurns.map((t) => ({
-                originalText: t.text,
-                errors: [],
-                correctedSentence: t.text,
-            })),
-            overallRating: "Good",
-            tip: "Keep practicing to improve your English skills!",
-        };
-    }
+  }
 }
