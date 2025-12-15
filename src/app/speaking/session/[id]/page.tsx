@@ -47,8 +47,11 @@ export default async function SpeakingSessionPage({ params }: PageProps) {
     learningRecords = records.map((r) => ({
       id: r.id,
       overallScore: r.overallScore,
-      completedTurns: r.completedTurns,
-      totalTurns: r.totalTurns,
+      grammarScore: r.grammarScore,
+      relevanceScore: r.relevanceScore,
+      fluencyScore: r.fluencyScore,
+      pronunciationScore: r.pronunciationScore,
+      intonationScore: r.intonationScore,
       date: r.date,
     }));
   }
