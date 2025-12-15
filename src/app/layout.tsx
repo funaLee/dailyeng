@@ -5,6 +5,7 @@ import { KittyTutor } from "@/components/layout/kitty-tutor";
 import { SearchCommand } from "@/components/layout/search-command";
 import { ConditionalLayout } from "@/components/layout/conditional-layout";
 import { SessionProvider } from "@/components/providers/session-provider";
+import { UserProfileProvider } from "@/contexts/UserProfileContext";
 import "@/app/globals.css";
 import { Suspense } from "react";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -39,13 +40,15 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <Suspense fallback={<div>Loading...</div>}>
-              <ConditionalLayout>
-                <main className="min-h-screen">{children}</main>
-              </ConditionalLayout>
-              <KittyTutor />
-              <SearchCommand />
-            </Suspense>
+            <UserProfileProvider>
+              <Suspense fallback={<div>Loading...</div>}>
+                <ConditionalLayout>
+                  <main className="min-h-screen">{children}</main>
+                </ConditionalLayout>
+                <KittyTutor />
+                <SearchCommand />
+              </Suspense>
+            </UserProfileProvider>
           </ThemeProvider>
         </SessionProvider>
       </body>

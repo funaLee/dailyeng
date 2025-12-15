@@ -128,6 +128,7 @@ export interface ScenarioData {
   userRole?: string;
   botRole?: string;
   openingLine?: string;
+  image?: string;
 }
 
 export interface InitialTurn {
@@ -1076,7 +1077,7 @@ export default function SpeakingSessionClient({
           <Card className="p-8 bg-white flex flex-col">
             <div className="aspect-video bg-linear-to-br from-primary-200 to-primary-300 rounded-2xl mb-6 relative overflow-hidden">
               <Image
-                src="/learning.png"
+                src={scenario.image || "/learning.png"}
                 alt={scenario.title}
                 fill
                 className="object-cover rounded-2xl"

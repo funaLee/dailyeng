@@ -324,6 +324,7 @@ export interface GeneratedScenario {
   level: string;
   context: string;
   image: string;
+  imageKeyword: string; // For Pexels API search
   userRole: string;
   botRole: string;
   openingLine: string;
@@ -361,6 +362,7 @@ export async function generateScenario(
 ${levelInstruction}
 
 IMPORTANT: Generate a complete, engaging roleplay scenario with realistic roles.
+CRITICAL: ALL content (title, description, context, openingLine, etc.) MUST be in ENGLISH only. Even if the scenario is about a non-English speaking country (e.g., Japan, France, Vietnam), all text must still be written in English.
 
 Output JSON format ONLY:
 {
@@ -368,8 +370,9 @@ Output JSON format ONLY:
   "description": "Brief description of the scenario (1-2 sentences)",
   "goal": "What the user needs to achieve in this conversation",
   "level": "${userLevel || "B1"}",
-  "context": "A USER-FACING description of the situation/setting. This is what the LEARNER sees before starting. Example: 'You are at a coffee shop and want to order your favorite drink. The barista is ready to take your order.' Do NOT include AI instructions here.",
+  "context": "CREATE a detailed, creative USER-FACING description of the situation/setting (2-3 sentences). This is what the LEARNER sees before starting. Do NOT copy the user's input - instead, expand and enrich it into a vivid scenario. Example: 'You are at a cozy coffee shop on a rainy afternoon. The barista behind the counter looks friendly and ready to take your order. You want to order your favorite drink and maybe try something new from their pastry selection.'",
   "image": "/learning.png",
+  "imageKeyword": "A 2-3 word search term for finding a stock photo (e.g., 'coffee shop', 'job interview', 'airport travel')",
   "userRole": "The role the learner plays (e.g., Customer, Job Applicant, Patient, Tourist)",
   "botRole": "The role the AI plays (e.g., Shop Assistant, Interviewer, Doctor, Local Guide)",
   "openingLine": "The AI's first message to start the conversation. Should be natural and in-character.",
@@ -390,6 +393,10 @@ Output JSON format ONLY:
       context:
         parsed.context || "You are having a conversation with the learner.",
       image: parsed.image || "/learning.png",
+      imageKeyword:
+        parsed.imageKeyword ||
+        parsed.title?.split(" ").slice(0, 2).join(" ") ||
+        "english learning",
       userRole: parsed.userRole || "Learner",
       botRole: parsed.botRole || "English Tutor",
       openingLine: parsed.openingLine || "Hello! How can I help you today?",
@@ -409,6 +416,9 @@ Output JSON format ONLY:
         ? `Roleplay about ${topic}`
         : "Have a casual English conversation",
       image: "/learning.png",
+      imageKeyword: topic
+        ? topic.split(" ").slice(0, 2).join(" ")
+        : "conversation practice",
       userRole: "Learner",
       botRole: "English Tutor",
       openingLine:
