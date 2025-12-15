@@ -45,7 +45,11 @@ import {
   startSessionWithGreeting,
   submitTurn,
   analyzeAndScoreSession,
+  getSessionDetailsById,
+  getLearningRecordsForScenario,
 } from "@/actions/speaking";
+import { useSession } from "next-auth/react";
+import { PitchAnalyzer, PitchMetrics } from "@/lib/pitch-analyzer";
 
 // Types
 interface Turn {
@@ -74,8 +78,11 @@ type ViewState =
 export interface LearningRecord {
   id: string;
   overallScore: number;
-  completedTurns: number;
-  totalTurns: number;
+  grammarScore: number;
+  relevanceScore: number;
+  fluencyScore: number;
+  pronunciationScore: number;
+  intonationScore: number;
   date: Date;
 }
 
@@ -172,6 +179,7 @@ export default function SpeakingSessionClient({
   detailedFeedback,
 }: SpeakingSessionClientProps) {
   const router = useRouter();
+  const { data: session } = useSession();
   const { addFlashcard, addXP } = useAppStore();
 
   // Convert serialized dates back to Date objects
@@ -191,6 +199,8 @@ export default function SpeakingSessionClient({
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isLoadingFeedback, setIsLoadingFeedback] = useState(false);
+  const [isLoadingRecords, setIsLoadingRecords] = useState(false);
+  const [dynamicRecords, setDynamicRecords] = useState<LearningRecord[]>([]);
   const [dynamicFeedback, setDynamicFeedback] =
     useState<DetailedFeedbackData | null>(null);
   const [analysisResult, setAnalysisResult] = useState<{
@@ -230,6 +240,15 @@ export default function SpeakingSessionClient({
   const silenceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const noSpeechTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const transcriptRef = useRef<string>("");
+
+  // [NEW] Speech metrics refs for fluency & pronunciation scoring
+  const confidenceScoresRef = useRef<number[]>([]); // Stores confidence from each final result
+  const speechStartTimeRef = useRef<number | null>(null); // When user started speaking
+  const pauseCountRef = useRef<number>(0); // Count of pauses > 500ms
+  const lastSpeechTimeRef = useRef<number | null>(null); // Last speech timestamp for pause detection
+
+  // [NEW] Ref for pitch analyzer (intonation scoring)
+  const pitchAnalyzerRef = useRef<PitchAnalyzer | null>(null);
 
   useEffect(() => {
     calculateStats(turns);
@@ -312,15 +331,36 @@ export default function SpeakingSessionClient({
             noSpeechTimeoutRef.current = null;
           }
 
+          // [NEW] Track speech start time
+          if (!speechStartTimeRef.current) {
+            speechStartTimeRef.current = Date.now();
+          }
+
+          // [NEW] Detect pauses (gap > 500ms between speech events)
+          if (lastSpeechTimeRef.current) {
+            const gap = Date.now() - lastSpeechTimeRef.current;
+            if (gap > 500) {
+              pauseCountRef.current++;
+            }
+          }
+          lastSpeechTimeRef.current = Date.now();
+
           // Get the latest transcript
           let finalTranscript = "";
           let interimTranscript = "";
 
           for (let i = event.resultIndex; i < event.results.length; i++) {
-            if (event.results[i].isFinal) {
-              finalTranscript += event.results[i][0].transcript;
+            const result = event.results[i];
+            const confidence = result[0].confidence;
+
+            if (result.isFinal) {
+              finalTranscript += result[0].transcript;
+              // [NEW] Capture confidence for final results (for pronunciation scoring)
+              if (confidence !== undefined && confidence !== null) {
+                confidenceScoresRef.current.push(confidence);
+              }
             } else {
-              interimTranscript += event.results[i][0].transcript;
+              interimTranscript += result[0].transcript;
             }
           }
 
@@ -417,8 +457,8 @@ export default function SpeakingSessionClient({
 
   const startSession = async () => {
     try {
-      // TODO: Get real userId from auth
-      const userId = "user-1";
+      // Get userId from auth session
+      const userId = session?.user?.id || "user-1"; // Fallback for dev
       const result = await startSessionWithGreeting(userId, scenarioId);
       setSessionId(result.session.id);
       setViewState("active");
@@ -509,6 +549,13 @@ export default function SpeakingSessionClient({
         recognitionRef.current?.start();
         setIsRecording(true);
 
+        // [NEW] Start pitch analyzer for intonation scoring
+        pitchAnalyzerRef.current = new PitchAnalyzer();
+        pitchAnalyzerRef.current.start().catch((err) => {
+          console.warn("[PitchAnalyzer] Failed to start:", err);
+          // Non-critical - continue without pitch analysis
+        });
+
         // Set 10s no-speech timeout - if user doesn't speak at all, turn off mic
         noSpeechTimeoutRef.current = setTimeout(() => {
           if (isRecording && !transcriptRef.current.trim()) {
@@ -544,6 +591,50 @@ export default function SpeakingSessionClient({
 
     setIsProcessing(true);
 
+    // [NEW] Calculate speech metrics before sending
+    const wordCount = text.trim().split(/\s+/).length;
+
+    // Calculate speaking duration: from first speech to last speech event
+    // NOT from start to now (which includes 5s silence timeout)
+    const speakingDurationMs =
+      speechStartTimeRef.current && lastSpeechTimeRef.current
+        ? lastSpeechTimeRef.current - speechStartTimeRef.current
+        : 0;
+
+    // [NEW] Stop pitch analyzer and get metrics
+    const pitchMetrics = pitchAnalyzerRef.current?.stop();
+    pitchAnalyzerRef.current = null;
+
+    const speechMetrics = {
+      confidenceScores: [...confidenceScoresRef.current], // Clone array
+      wordCount,
+      speakingDurationMs: Math.max(speakingDurationMs, 1000), // Min 1s to avoid extreme WPM
+      pauseCount: pauseCountRef.current,
+      // [NEW] Include pitch data for intonation scoring
+      pitchVariance: pitchMetrics?.variance ?? null,
+      avgPitch: pitchMetrics?.avgPitch ?? null,
+      pitchSamplesCount: pitchMetrics?.sampleCount ?? null,
+    };
+
+    // Debug log
+    console.log("[handleSendMessage] Speech metrics:", {
+      wordCount,
+      speakingDurationMs,
+      adjustedDuration: speechMetrics.speakingDurationMs,
+      confidenceCount: confidenceScoresRef.current.length,
+      confidenceScores: confidenceScoresRef.current,
+      pauseCount: pauseCountRef.current,
+      pitchVariance: speechMetrics.pitchVariance,
+      avgPitch: speechMetrics.avgPitch,
+      pitchSamplesCount: speechMetrics.pitchSamplesCount,
+    });
+
+    // [NEW] Reset speech metrics refs for next turn
+    confidenceScoresRef.current = [];
+    speechStartTimeRef.current = null;
+    pauseCountRef.current = 0;
+    lastSpeechTimeRef.current = null;
+
     // Optimistically add user turn
     const tempId = `temp-${Date.now()}`;
     const userTurn: Turn = {
@@ -556,7 +647,8 @@ export default function SpeakingSessionClient({
     setTurns((prev) => [...prev, userTurn]);
 
     try {
-      const result = await submitTurn(sessionId, text);
+      // [MODIFIED] Pass speech metrics to submitTurn
+      const result = await submitTurn(sessionId, text, null, speechMetrics);
 
       // Update user turn with real ID (no scores during conversation)
       setTurns((prev) =>
@@ -607,9 +699,85 @@ export default function SpeakingSessionClient({
     document.body.removeChild(element);
   };
 
-  const handleSelectRecord = (recordId: string) => {
+  const handleSelectRecord = async (recordId: string) => {
     setSelectedRecordId(recordId);
+    setIsLoadingFeedback(true);
     setViewState("detail");
+
+    try {
+      const sessionData = await getSessionDetailsById(recordId);
+
+      if (sessionData) {
+        // Helper function to generate corrected sentence from errors
+        const generateCorrectedSentence = (
+          text: string,
+          errors: { word: string; correction: string; type: string }[]
+        ): string => {
+          if (!errors || errors.length === 0) return text;
+
+          let corrected = text;
+          const sortedErrors = [...errors].sort((a, b) => {
+            const posA = text.toLowerCase().indexOf(a.word.toLowerCase());
+            const posB = text.toLowerCase().indexOf(b.word.toLowerCase());
+            return posB - posA;
+          });
+
+          for (const error of sortedErrors) {
+            const regex = new RegExp(
+              error.word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+              "gi"
+            );
+            corrected = corrected.replace(regex, error.correction);
+          }
+          return corrected;
+        };
+
+        // Transform session data to DetailedFeedbackData format
+        const clientData: DetailedFeedbackData = {
+          scores: [
+            { label: "Relevance", value: sessionData.scores.relevance },
+            { label: "Pronunciation", value: sessionData.scores.pronunciation },
+            {
+              label: "Intonation & Stress",
+              value: sessionData.scores.intonation,
+            },
+            { label: "Fluency", value: sessionData.scores.fluency },
+            { label: "Grammar", value: sessionData.scores.grammar },
+          ],
+          errorCategories: sessionData.errorCategories,
+          conversation: sessionData.conversation.map((c) => {
+            const userErrors = c.userErrors?.map((e) => ({
+              word: e.word,
+              correction: e.correction,
+              type: e.type,
+            }));
+
+            return {
+              role: c.role,
+              text: c.text,
+              userErrors,
+              correctedSentence:
+                c.role === "user" && userErrors && userErrors.length > 0
+                  ? generateCorrectedSentence(c.text, userErrors)
+                  : undefined,
+            };
+          }),
+          overallRating: sessionData.session.feedbackRating || "N/A",
+          tip: sessionData.session.feedbackTip || "Great effort!",
+        };
+
+        setDynamicFeedback(clientData);
+      } else {
+        toast.error("Session not found");
+        setViewState("history");
+      }
+    } catch (error) {
+      console.error("Error loading session details:", error);
+      toast.error("Failed to load session details");
+      setViewState("history");
+    } finally {
+      setIsLoadingFeedback(false);
+    }
   };
 
   // View detailed feedback - uses stored analysisResult (no API call needed)
@@ -698,11 +866,68 @@ export default function SpeakingSessionClient({
   }
 
   if (viewState === "history") {
+    if (isLoadingRecords) {
+      // Skeleton loading for Learning Records
+      return (
+        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
+          <Card className="p-6 border-[1.4px] border-primary-200 max-w-4xl mx-auto bg-white">
+            {/* Header Skeleton */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-xl bg-primary-100 animate-pulse" />
+                <div>
+                  <div className="h-7 w-48 bg-muted rounded animate-pulse mb-2" />
+                  <div className="h-4 w-64 bg-muted rounded animate-pulse" />
+                </div>
+              </div>
+              <div className="h-10 w-24 bg-muted rounded animate-pulse" />
+            </div>
+            {/* Stats Skeleton */}
+            <div className="grid grid-cols-4 gap-4 mb-6">
+              {[1, 2, 3, 4].map((i) => (
+                <div
+                  key={i}
+                  className="p-4 rounded-xl border border-primary-100 bg-card"
+                >
+                  <div className="h-8 w-8 rounded-lg bg-muted animate-pulse mb-2" />
+                  <div className="h-8 w-12 bg-muted rounded animate-pulse mb-1" />
+                  <div className="h-3 w-20 bg-muted rounded animate-pulse" />
+                </div>
+              ))}
+            </div>
+            {/* Section Title Skeleton */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="h-6 w-32 bg-muted rounded animate-pulse" />
+              <div className="h-4 w-20 bg-muted rounded animate-pulse" />
+            </div>
+            {/* Records List Skeleton */}
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="p-4 rounded-xl border border-primary-100 bg-card"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-12 w-12 rounded-full bg-muted animate-pulse" />
+                      <div>
+                        <div className="h-5 w-24 bg-muted rounded animate-pulse mb-2" />
+                        <div className="h-4 w-32 bg-muted rounded animate-pulse" />
+                      </div>
+                    </div>
+                    <div className="h-8 w-16 bg-muted rounded animate-pulse" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+      );
+    }
     return (
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
         <LearningHistory
-          records={learningRecords}
-          onSelectRecord={handleSelectRecord}
+          records={dynamicRecords}
           onBack={() => setViewState("preparation")}
         />
       </div>
@@ -760,7 +985,13 @@ export default function SpeakingSessionClient({
           overallRating={feedbackToUse.overallRating}
           overallScore={overallScore}
           tip={feedbackToUse.tip}
-          onBack={() => setViewState(selectedRecordId ? "history" : "complete")}
+          onBack={() => {
+            setViewState(selectedRecordId ? "history" : "complete");
+            if (selectedRecordId) {
+              setSelectedRecordId(null);
+              setDynamicFeedback(null);
+            }
+          }}
         />
       </div>
     );
@@ -871,7 +1102,35 @@ export default function SpeakingSessionClient({
                   variant="outline"
                   size="lg"
                   className="px-6 bg-transparent"
-                  onClick={() => setViewState("history")}
+                  onClick={async () => {
+                    setViewState("history");
+                    setIsLoadingRecords(true);
+                    try {
+                      // Get userId from session
+                      const userId = session?.user?.id || "user-1"; // Fallback for dev
+                      const records = await getLearningRecordsForScenario(
+                        userId,
+                        scenarioId
+                      );
+                      setDynamicRecords(
+                        records.map((r) => ({
+                          id: r.id,
+                          overallScore: r.overallScore,
+                          grammarScore: r.grammarScore,
+                          relevanceScore: r.relevanceScore,
+                          fluencyScore: r.fluencyScore,
+                          pronunciationScore: r.pronunciationScore,
+                          intonationScore: r.intonationScore,
+                          date: r.date,
+                        }))
+                      );
+                    } catch (error) {
+                      console.error("Failed to fetch learning records:", error);
+                      toast.error("Failed to load learning records");
+                    } finally {
+                      setIsLoadingRecords(false);
+                    }
+                  }}
                 >
                   <RotateCcw className="h-5 w-5" />
                 </Button>
@@ -901,9 +1160,20 @@ export default function SpeakingSessionClient({
                 <Button
                   variant="outline"
                   className="w-full border-2 border-primary-200 hover:bg-primary-50"
-                  onClick={() => {
+                  onClick={async () => {
                     setShowQuitDialog(false);
-                    setViewState("complete");
+                    setViewState("analyzing");
+                    try {
+                      if (sessionId) {
+                        const result = await analyzeAndScoreSession(sessionId);
+                        setAnalysisResult(result);
+                      }
+                      setViewState("complete");
+                    } catch (error) {
+                      console.error("Analysis failed:", error);
+                      toast.error("Failed to analyze session");
+                      setViewState("complete");
+                    }
                   }}
                 >
                   Finish

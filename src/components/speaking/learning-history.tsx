@@ -6,26 +6,34 @@ import { LearningRecordCard } from "./learning-record-card"
 import { History, ArrowLeft, Trophy, Target, TrendingUp, Calendar } from "lucide-react"
 
 interface LearningRecord {
-  id: string
-  overallScore: number
-  completedTurns: number
-  totalTurns: number
-  date: Date
+  id: string;
+  overallScore: number;
+  grammarScore: number;
+  relevanceScore: number;
+  fluencyScore: number;
+  pronunciationScore: number;
+  intonationScore: number;
+  date: Date;
 }
 
 interface LearningHistoryProps {
-  records: LearningRecord[]
-  onSelectRecord: (id: string) => void
-  onBack: () => void
+  records: LearningRecord[];
+  onBack: () => void;
 }
 
-export function LearningHistory({ records, onSelectRecord, onBack }: LearningHistoryProps) {
+export function LearningHistory({ records, onBack }: LearningHistoryProps) {
   // Calculate statistics
-  const totalSessions = records.length
+  const totalSessions = records.length;
   const averageScore =
-    totalSessions > 0 ? Math.round(records.reduce((sum, r) => sum + r.overallScore, 0) / totalSessions) : 0
-  const highestScore = totalSessions > 0 ? Math.max(...records.map((r) => r.overallScore)) : 0
-  const recentTrend = records.length >= 2 ? records[0].overallScore - records[1].overallScore : 0
+    totalSessions > 0
+      ? Math.round(
+          records.reduce((sum, r) => sum + r.overallScore, 0) / totalSessions
+        )
+      : 0;
+  const highestScore =
+    totalSessions > 0 ? Math.max(...records.map((r) => r.overallScore)) : 0;
+  const recentTrend =
+    records.length >= 2 ? records[0].overallScore - records[1].overallScore : 0;
 
   const stats = [
     {
@@ -56,34 +64,47 @@ export function LearningHistory({ records, onSelectRecord, onBack }: LearningHis
       color: recentTrend >= 0 ? "text-success-500" : "text-error-500",
       bg: recentTrend >= 0 ? "bg-success-100" : "bg-error-100",
     },
-  ]
+  ];
 
   return (
     <Card className="p-6 border-[1.4px] border-primary-200 max-w-4xl mx-auto bg-white">
-      {/* Header */}
+      {/* Header - Go back on LEFT, icon + title on RIGHT */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-xl bg-primary-100 flex items-center justify-center">
-            <History className="h-6 w-6 text-primary-500" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Learning Records</h1>
-            <p className="text-sm text-muted-foreground">Track your speaking progress over time</p>
-          </div>
-        </div>
-        <Button variant="outline" onClick={onBack} className="gap-2 bg-transparent">
+        <Button
+          variant="outline"
+          onClick={onBack}
+          className="gap-2 bg-transparent"
+        >
           <ArrowLeft className="h-4 w-4" />
           Go back
         </Button>
+        <div className="flex items-center gap-3">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground text-right">
+              Learning Records
+            </h1>
+            <p className="text-sm text-muted-foreground text-right">
+              Track your speaking progress over time
+            </p>
+          </div>
+          <div className="h-12 w-12 rounded-xl bg-primary-100 flex items-center justify-center">
+            <History className="h-6 w-6 text-primary-500" />
+          </div>
+        </div>
       </div>
 
       {/* Stats Grid */}
       {totalSessions > 0 && (
         <div className="grid grid-cols-4 gap-4 mb-6">
           {stats.map((stat, index) => (
-            <div key={index} className="p-4 rounded-xl border border-primary-100 bg-card">
+            <div
+              key={index}
+              className="p-4 rounded-xl border border-primary-100 bg-card"
+            >
               <div className="flex items-center gap-2 mb-2">
-                <div className={`h-8 w-8 rounded-lg ${stat.bg} flex items-center justify-center`}>
+                <div
+                  className={`h-8 w-8 rounded-lg ${stat.bg} flex items-center justify-center`}
+                >
                   <stat.icon className={`h-4 w-4 ${stat.color}`} />
                 </div>
               </div>
@@ -94,26 +115,22 @@ export function LearningHistory({ records, onSelectRecord, onBack }: LearningHis
         </div>
       )}
 
-      {/* Section Title */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-foreground">Session History</h2>
-        <span className="text-sm text-muted-foreground">
-          {totalSessions} session{totalSessions !== 1 ? "s" : ""}
-        </span>
-      </div>
+      {/* Horizontal Line */}
+      <div className="border-t border-primary-200 mb-4" />
 
-      {/* Records List */}
-      <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
+      {/* Records List - No onClick, just hover effect */}
+      <div className="space-y-3 max-h-[400px] overflow-y-auto overflow-x-visible px-1 -mx-1 pr-3">
         {records.length > 0 ? (
-          records.map((record, index) => (
+          records.map((record) => (
             <LearningRecordCard
               key={record.id}
               overallScore={record.overallScore}
-              completedTurns={record.completedTurns}
-              totalTurns={record.totalTurns}
+              grammarScore={record.grammarScore}
+              relevanceScore={record.relevanceScore}
+              fluencyScore={record.fluencyScore}
+              pronunciationScore={record.pronunciationScore}
+              intonationScore={record.intonationScore}
               date={record.date}
-              previousScore={index < records.length - 1 ? records[index + 1].overallScore : undefined}
-              onClick={() => onSelectRecord(record.id)}
             />
           ))
         ) : (
@@ -121,11 +138,15 @@ export function LearningHistory({ records, onSelectRecord, onBack }: LearningHis
             <div className="h-16 w-16 mx-auto mb-4 rounded-full bg-primary-100 flex items-center justify-center">
               <History className="h-8 w-8 text-primary-400" />
             </div>
-            <p className="text-lg font-medium text-foreground mb-1">No learning records yet</p>
-            <p className="text-sm text-muted-foreground">Complete a speaking session to see your history</p>
+            <p className="text-lg font-medium text-foreground mb-1">
+              No learning records yet
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Complete a speaking session to see your history
+            </p>
           </div>
         )}
       </div>
     </Card>
-  )
+  );
 }

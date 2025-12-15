@@ -200,40 +200,61 @@ export async function analyzeSessionConversation(
     },
   });
 
-  const prompt = `You are an expert English language teacher. Analyze this conversation between a learner (User) and AI tutor.
+  const prompt = `You are a STRICT but fair English language evaluator. Analyze this conversation with HONEST and ACCURATE scoring.
 
 SCENARIO CONTEXT: ${scenarioContext}
 
 CONVERSATION:
 ${conversationText}
 
-YOUR TASK:
-1. For each USER turn, identify ALL grammar, vocabulary, and usage errors.
+YOUR TASK - BE STRICT AND THOROUGH:
+1. For each USER turn, identify ALL errors including:
+   - Grammar mistakes (even subtle ones like subject-verb agreement)
+   - Missing/wrong articles, prepositions, punctuation
+   - Awkward phrasing or unnatural expressions
+   - Vocabulary misuse or informal language in formal context
 2. For each error, provide the EXACT position (startIndex, endIndex) in the original text.
-3. Calculate an overall GRAMMAR score (0-100) based on error frequency and severity.
-4. Calculate a RELEVANCE score (0-100) based on how well user responses match the conversation context.
-5. Generate encouraging feedback for the learner.
+3. Calculate HONEST scores - do NOT inflate scores to be "nice". A native speaker would score 95+.
+4. Generate constructive but honest feedback.
 
 ERROR TYPES to look for:
-- Grammar: General grammar mistakes
-- Vocabulary: Wrong word usage
-- Preposition: Wrong preposition (in/on/at/to/for)
-- Article: Missing or wrong articles (a/an/the)
-- Verb Tense: Wrong verb tense
-- Word Choice: Inappropriate word for context
+- Grammar: Subject-verb agreement, sentence structure, fragments
+- Vocabulary: Wrong word usage, inappropriate register
+- Preposition: Wrong preposition (in/on/at/to/for/with)
+- Article: Missing or wrong articles (a/an/the) - THIS IS COMMON!
+- Verb Tense: Wrong tense, consistency issues
+- Word Choice: Unnatural or awkward word selection
 
-SCORING GUIDELINES:
-- Grammar: 90-100 if 0-2 errors, 70-89 if 3-5 errors, 50-69 if 6-10 errors, below 50 if 10+ errors
-- Relevance: Based on how well responses match the context and flow of conversation
+STRICT SCORING GUIDELINES (be honest, not generous):
+GRAMMAR SCORE:
+- 90-100: PERFECT or near-perfect (0-1 minor errors) - rare for non-native speakers
+- 80-89: Very good (1-2 small errors only)
+- 70-79: Good (3-4 errors, mostly minor)
+- 60-69: Average (5-7 errors, some noticeable)
+- 50-59: Below average (8-10 errors)
+- Below 50: Needs significant improvement (10+ errors)
+
+RELEVANCE SCORE:
+- 90-100: Perfectly on-topic, natural conversation flow
+- 80-89: Mostly relevant, minor deviations
+- 70-79: Generally relevant but some off-topic or unnatural responses
+- 60-69: Partially relevant, noticeable issues with context understanding
+- Below 60: Often off-topic or inappropriate responses
+
+FEEDBACK RATING criteria:
+- "Excellent": Both scores 85+ (rare achievement)
+- "Good": Both scores 70+
+- "Average": At least one score 60-69
+- "Needs Improvement": Any score below 60
 
 Return JSON with this EXACT structure:
 {
-  "feedbackTitle": "<encouraging title, max 5 words>",
-  "feedbackSummary": "<2-sentence constructive feedback>",
+  "feedbackTitle": "<honest but encouraging title, max 5 words>",
+  "feedbackSummary": "<2-sentence HONEST feedback about strengths and areas to improve>",
   "feedbackRating": "<Excellent|Good|Average|Needs Improvement>",
-  "feedbackTip": "<specific tip based on most common error type>",
-  "grammarScore": <0-100>,
-  "relevanceScore": <0-100>,
+  "feedbackTip": "<specific actionable tip based on biggest weakness>",
+  "grammarScore": <0-100 - BE HONEST, don't inflate>,
+  "relevanceScore": <0-100 - BE HONEST>,
   "turnAnalyses": [
     {
       "turnIndex": <index in userTurns array, starting from 0>,
@@ -250,10 +271,12 @@ Return JSON with this EXACT structure:
   ]
 }
 
-IMPORTANT:
-- startIndex and endIndex must be accurate character positions in the USER's original text
-- If a user turn has no errors, still include it with an empty errors array
-- Be thorough but fair - focus on meaningful errors, not minor style preferences`;
+CRITICAL REMINDERS:
+- DO NOT give 90+ unless the speech is nearly perfect
+- Missing articles like "a/an/the" ARE errors - count them!
+- Every user turn must be analyzed, even if it has no errors
+- startIndex and endIndex must be accurate character positions
+- Be a helpful critic, not a flattering friend`;
 
   try {
     const result = await model.generateContent(prompt);
@@ -294,53 +317,103 @@ IMPORTANT:
   }
 }
 
-export async function generateScenario(topic: string): Promise<{
+export interface GeneratedScenario {
   title: string;
   description: string;
   goal: string;
   level: string;
   context: string;
   image: string;
-}> {
+  userRole: string;
+  botRole: string;
+  openingLine: string;
+  objectives: string[];
+}
+
+export async function generateScenario(
+  topic: string | null, // null = random scenario (Surprise Me)
+  userLevel?: string // A1-C2 from user profile
+): Promise<GeneratedScenario> {
   // Use gemini-2.5-flash with thinking disabled
   const model = genAI.getGenerativeModel({
     model: "gemini-2.5-flash",
     generationConfig: {
-      temperature: 0.7,
-      maxOutputTokens: 8192, // High quota - 1M TPM
+      temperature: 0.8, // Slightly higher for more creative scenarios
+      maxOutputTokens: 8192,
       responseMimeType: "application/json",
       // @ts-expect-error - thinkingConfig is supported but not in types yet
       thinkingConfig: { thinkingBudget: 0 },
     },
   });
 
-  const prompt = `
-      Create a speaking roleplay scenario based on the topic: "${topic}".
-      
-      Output JSON format ONLY:
-      {
-        "title": "Short catchy title",
-        "description": "Brief description of the scenario",
-        "goal": "What the user needs to achieve",
-        "level": "A1/A2/B1/B2/C1/C2",
-        "context": "Detailed context instructions for the AI tutor (you) to play this role",
-        "image": "/learning.png"
-      }
-    `;
+  const levelInstruction = userLevel
+    ? `The scenario MUST be appropriate for ${userLevel} level learners. Use ${getLevelGuidance(
+        userLevel
+      )}.`
+    : "The scenario should be appropriate for B1 (intermediate) level learners.";
+
+  const topicInstruction = topic
+    ? `Create a speaking roleplay scenario based on the user's description: "${topic}".`
+    : `Create a RANDOM, creative, and interesting speaking roleplay scenario. Be creative! Choose from diverse topics like: travel, shopping, dining, job interviews, doctor visits, customer service, making friends, apartment hunting, banking, etc.`;
+
+  const prompt = `${topicInstruction}
+
+${levelInstruction}
+
+IMPORTANT: Generate a complete, engaging roleplay scenario with realistic roles.
+
+Output JSON format ONLY:
+{
+  "title": "Short catchy title (2-5 words)",
+  "description": "Brief description of the scenario (1-2 sentences)",
+  "goal": "What the user needs to achieve in this conversation",
+  "level": "${userLevel || "B1"}",
+  "context": "A USER-FACING description of the situation/setting. This is what the LEARNER sees before starting. Example: 'You are at a coffee shop and want to order your favorite drink. The barista is ready to take your order.' Do NOT include AI instructions here.",
+  "image": "/learning.png",
+  "userRole": "The role the learner plays (e.g., Customer, Job Applicant, Patient, Tourist)",
+  "botRole": "The role the AI plays (e.g., Shop Assistant, Interviewer, Doctor, Local Guide)",
+  "openingLine": "The AI's first message to start the conversation. Should be natural and in-character.",
+  "objectives": ["Learning objective 1", "Learning objective 2", "Learning objective 3"]
+}`;
 
   try {
     const result = await model.generateContent(prompt);
     const text = result.response.text();
-    return JSON.parse(text);
+    const parsed = JSON.parse(text);
+
+    // Ensure all fields exist
+    return {
+      title: parsed.title || (topic ? topic.slice(0, 50) : "Random Scenario"),
+      description: parsed.description || "Practice speaking in this scenario",
+      goal: parsed.goal || "Complete the conversation successfully",
+      level: parsed.level || userLevel || "B1",
+      context:
+        parsed.context || "You are having a conversation with the learner.",
+      image: parsed.image || "/learning.png",
+      userRole: parsed.userRole || "Learner",
+      botRole: parsed.botRole || "English Tutor",
+      openingLine: parsed.openingLine || "Hello! How can I help you today?",
+      objectives: parsed.objectives || [
+        "Practice speaking naturally",
+        "Use appropriate vocabulary",
+      ],
+    };
   } catch (e) {
     console.error("Failed to generate scenario", e);
     return {
-      title: topic,
-      description: "Custom scenario",
+      title: topic ? topic.slice(0, 50) : "Practice Conversation",
+      description: "Custom speaking scenario",
       goal: "Practice conversation",
-      level: "B1",
-      context: `Roleplay about ${topic}`,
+      level: userLevel || "B1",
+      context: topic
+        ? `Roleplay about ${topic}`
+        : "Have a casual English conversation",
       image: "/learning.png",
+      userRole: "Learner",
+      botRole: "English Tutor",
+      openingLine:
+        "Hello! I'm here to help you practice English. What would you like to talk about?",
+      objectives: ["Practice speaking naturally", "Build confidence"],
     };
   }
 }
