@@ -4,52 +4,24 @@ import type React from "react";
 
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import {
-  Check,
-  Sparkles,
-  Target,
-  BookOpen,
-  Flame,
-  Clock,
-  TrendingUp,
-} from "lucide-react";
+import { Sparkles, BookOpen, Flame, TrendingUp, Quote } from "lucide-react";
 import { UserProfileSidebar } from "@/components/layout/user-profile-sidebar";
 import { ProtectedRoute, PageIcons } from "@/components/auth/protected-route";
-
-interface Mission {
-  id: string;
-  title: string;
-  points: number;
-  completed: boolean;
-}
+import { useUserProfile } from "@/contexts/UserProfileContext";
 
 interface ProfilePageClientProps {
-  missions: Mission[];
   activityData: Record<string, number>;
   userName?: string;
+  quote?: { text: string; author: string } | null;
 }
 
 export default function ProfilePageClient({
-  missions,
   activityData,
   userName = "User",
+  quote,
 }: ProfilePageClientProps) {
-  // Auth is handled by ProtectedRoute wrapper - no need for Zustand auth state
-  const [activeMissionTab, setActiveMissionTab] = useState<
-    "today" | "weekly" | "monthly"
-  >("today");
-  const [completedMissions, setCompletedMissions] = useState<string[]>([]);
-  const [animatingMission, setAnimatingMission] = useState<string | null>(null);
-
-  const toggleMission = (id: string) => {
-    setAnimatingMission(id);
-    setTimeout(() => {
-      setCompletedMissions((prev) =>
-        prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-      );
-      setAnimatingMission(null);
-    }, 300);
-  };
+  // Get avatar from profile context
+  const { profile } = useUserProfile();
 
   return (
     <ProtectedRoute
@@ -61,7 +33,11 @@ export default function ProfilePageClient({
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
           {/* ================= LEFT SIDEBAR ================= */}
           <div className="md:col-span-3 lg:col-span-3 space-y-6">
-            <UserProfileSidebar activePage="profile" userName={userName} />
+            <UserProfileSidebar
+              activePage="profile"
+              userName={profile?.name || userName}
+              userImage={profile?.image}
+            />
           </div>
 
           {/* ================= MAIN CONTENT ================= */}
@@ -133,101 +109,28 @@ export default function ProfilePageClient({
             </div>
 
             {/* Study Heat Map */}
-            <Card className="border-2 border-border shadow-md bg-white p-6 hover:shadow-xl transition-all duration-300">
+            <Card className="border-2 border-border shadow-md bg-white p-6">
               <ActivityHeatmap data={activityData} />
             </Card>
 
-            {/* Daily Missions */}
-            <Card className="shadow-md overflow-hidden flex flex-col bg-white border-2 border-border">
-              <div className="p-5 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-white to-primary-50/50">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary-100 rounded-xl">
-                    <Target className="text-primary-600" size={20} />
+            {/* Daily Quote */}
+            {quote && (
+              <Card className="border-2 border-border shadow-md bg-white p-8">
+                <div className="flex flex-col items-center text-center">
+                  <Quote className="w-10 h-10 text-primary-300 mb-4 rotate-180" />
+                  <blockquote className="text-lg md:text-xl font-medium text-slate-700 italic leading-relaxed max-w-2xl">
+                    "{quote.text}"
+                  </blockquote>
+                  <div className="mt-4 flex items-center gap-2">
+                    <div className="w-8 h-[2px] bg-primary-300"></div>
+                    <cite className="text-sm font-semibold text-primary-600 not-italic">
+                      {quote.author}
+                    </cite>
+                    <div className="w-8 h-[2px] bg-primary-300"></div>
                   </div>
-                  <div>
-                    <h2 className="font-bold text-slate-800">Daily Missions</h2>
-                    <p className="text-xs text-slate-500">
-                      Complete all to claim rewards
-                    </p>
-                  </div>
                 </div>
-                <div className="bg-gradient-to-r from-primary-500 to-primary-600 text-white text-xs font-bold px-4 py-2 rounded-full flex items-center gap-2 shadow-md">
-                  <Clock size={12} className="animate-pulse" /> 14h 59m left
-                </div>
-              </div>
-              <div className="p-0 flex-1 bg-white">
-                <div className="flex border-b border-slate-100">
-                  {["Today", "Weekly", "Monthly"].map((tab) => (
-                    <button
-                      key={tab}
-                      onClick={() =>
-                        setActiveMissionTab(tab.toLowerCase() as any)
-                      }
-                      className={`flex-1 py-3.5 text-sm font-semibold border-b-2 transition-all ${
-                        activeMissionTab === tab.toLowerCase()
-                          ? "border-primary-600 text-primary-600 bg-primary-50/50"
-                          : "border-transparent text-slate-500 hover:text-slate-700 hover:bg-slate-50"
-                      }`}
-                    >
-                      {tab}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="p-5 space-y-3">
-                  {missions.map((mission, index) => (
-                    <div
-                      key={mission.id}
-                      onClick={() => toggleMission(mission.id)}
-                      className={`group flex items-center gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer transform ${
-                        animatingMission === mission.id
-                          ? "scale-95 opacity-70"
-                          : "scale-100"
-                      } ${
-                        completedMissions.includes(mission.id) ||
-                        mission.completed
-                          ? "bg-gradient-to-r from-primary-50 to-accent-50/30 border-primary-200"
-                          : "bg-white border-slate-100 hover:border-primary-300 hover:shadow-md hover:-translate-y-0.5"
-                      }`}
-                      style={{ animationDelay: `${index * 50}ms` }}
-                    >
-                      <div
-                        className={`w-7 h-7 rounded-full flex items-center justify-center border-2 transition-all ${
-                          completedMissions.includes(mission.id) ||
-                          mission.completed
-                            ? "bg-gradient-to-br from-primary-500 to-primary-600 border-primary-500 text-white shadow-md"
-                            : "border-slate-300 text-transparent group-hover:border-primary-400 group-hover:bg-primary-50"
-                        }`}
-                      >
-                        <Check size={14} strokeWidth={3} />
-                      </div>
-                      <div className="flex-1">
-                        <p
-                          className={`text-sm font-semibold ${
-                            completedMissions.includes(mission.id) ||
-                            mission.completed
-                              ? "text-slate-400 line-through"
-                              : "text-slate-700"
-                          }`}
-                        >
-                          {mission.title}
-                        </p>
-                      </div>
-                      <div
-                        className={`text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 ${
-                          completedMissions.includes(mission.id) ||
-                          mission.completed
-                            ? "bg-accent-100 text-accent-600"
-                            : "bg-gradient-to-r from-orange-100 to-yellow-100 text-orange-600"
-                        }`}
-                      >
-                        <Sparkles size={12} />+{mission.points} XP
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </Card>
+              </Card>
+            )}
           </div>
         </div>
       </div>
@@ -285,6 +188,13 @@ function StatCard({
 
 function ActivityHeatmap({ data }: { data: Record<string, number> }) {
   const today = new Date();
+  const [tooltip, setTooltip] = useState<{
+    show: boolean;
+    x: number;
+    y: number;
+    date: string;
+    count: number;
+  } | null>(null);
 
   // Calculate stats from data
   const totalSessions = Object.values(data).reduce(
@@ -354,16 +264,47 @@ function ActivityHeatmap({ data }: { data: Record<string, number> }) {
     weeks.push(weekDays);
   }
 
+  // GitHub-style green color scale
   const getColor = (count: number) => {
-    if (count === -1) return "bg-transparent";
-    if (count === 0) return "bg-slate-100 dark:bg-slate-800";
-    if (count === 1) return "bg-primary-200";
-    if (count === 2) return "bg-primary-300";
-    if (count === 3) return "bg-primary-400";
-    return "bg-primary-500";
+    if (count === -1) return "bg-transparent"; // Future days
+    if (count === 0) return "bg-[#ebedf0]"; // No activity - GitHub gray
+    if (count === 1) return "bg-[#9be9a8]"; // Level 1 - lightest green
+    if (count === 2) return "bg-[#40c463]"; // Level 2
+    if (count === 3) return "bg-[#30a14e]"; // Level 3
+    return "bg-[#216e39]"; // Level 4 (max) - darkest green
   };
 
-  const dayLabels = ["", "T2", "", "T4", "", "T6", ""];
+  // Format date for tooltip
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  const handleMouseEnter = (
+    e: React.MouseEvent<HTMLDivElement>,
+    day: { date: string; count: number }
+  ) => {
+    if (!day.date) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    setTooltip({
+      show: true,
+      x: rect.left + rect.width / 2,
+      y: rect.top - 8,
+      date: day.date,
+      count: day.count,
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setTooltip(null);
+  };
+
+  const dayLabels = ["", "Mon", "", "Wed", "", "Fri", ""];
 
   return (
     <div className="w-full">
@@ -374,16 +315,16 @@ function ActivityHeatmap({ data }: { data: Record<string, number> }) {
             {totalSessions}
           </span>
           <span className="text-slate-600 text-sm">
-            phiên học trong năm qua
+            sessions in the past year
           </span>
         </div>
         <div className="flex items-center gap-6 text-sm">
           <div className="flex items-center gap-2">
-            <span className="text-slate-500">Ngày hoạt động:</span>
+            <span className="text-slate-500">Active days:</span>
             <span className="font-semibold text-slate-700">{activeDays}</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-slate-500">Chuỗi dài nhất:</span>
+            <span className="text-slate-500">Max streak:</span>
             <span className="font-semibold text-slate-700">{maxStreak}</span>
           </div>
         </div>
@@ -395,7 +336,7 @@ function ActivityHeatmap({ data }: { data: Record<string, number> }) {
           {/* Grid with day labels */}
           <div className="flex gap-[3px]">
             {/* Day labels column */}
-            <div className="flex flex-col gap-[3px] pr-2 w-6">
+            <div className="flex flex-col gap-[3px] pr-2 w-8">
               {dayLabels.map((label, idx) => (
                 <div
                   key={idx}
@@ -412,23 +353,17 @@ function ActivityHeatmap({ data }: { data: Record<string, number> }) {
                 {week.map((day, dayIdx) => (
                   <div
                     key={`${weekIdx}-${dayIdx}`}
-                    className={`w-[11px] h-[11px] rounded-sm ${getColor(
+                    className={`w-[11px] h-[11px] rounded-[3px] ${getColor(
                       day.count
                     )} 
                       ${
                         day.isToday
-                          ? "ring-1 ring-primary-500 ring-offset-1"
+                          ? "ring-1 ring-emerald-600 ring-offset-1"
                           : ""
                       }
-                      ${
-                        day.count >= 0
-                          ? "hover:ring-1 hover:ring-slate-400 cursor-pointer"
-                          : ""
-                      }
-                      transition-all`}
-                    title={
-                      day.date ? `${day.date}: ${day.count} phiên học` : ""
-                    }
+                      ${day.date ? "cursor-pointer" : ""}`}
+                    onMouseEnter={(e) => handleMouseEnter(e, day)}
+                    onMouseLeave={handleMouseLeave}
                   />
                 ))}
               </div>
@@ -454,18 +389,40 @@ function ActivityHeatmap({ data }: { data: Record<string, number> }) {
         </div>
       </div>
 
-      {/* Legend */}
-      <div className="flex items-center justify-end gap-2 mt-2 text-[10px] text-slate-400">
-        <span>Ít</span>
+      {/* Legend - centered */}
+      <div className="flex items-center justify-center gap-2 mt-2 text-[10px] text-slate-400">
+        <span>Less</span>
         <div className="flex gap-[2px]">
-          <div className="w-[11px] h-[11px] rounded-sm bg-slate-100"></div>
-          <div className="w-[11px] h-[11px] rounded-sm bg-primary-200"></div>
-          <div className="w-[11px] h-[11px] rounded-sm bg-primary-300"></div>
-          <div className="w-[11px] h-[11px] rounded-sm bg-primary-400"></div>
-          <div className="w-[11px] h-[11px] rounded-sm bg-primary-500"></div>
+          <div className="w-[11px] h-[11px] rounded-[3px] bg-[#ebedf0]"></div>
+          <div className="w-[11px] h-[11px] rounded-[3px] bg-[#9be9a8]"></div>
+          <div className="w-[11px] h-[11px] rounded-[3px] bg-[#40c463]"></div>
+          <div className="w-[11px] h-[11px] rounded-[3px] bg-[#30a14e]"></div>
+          <div className="w-[11px] h-[11px] rounded-[3px] bg-[#216e39]"></div>
         </div>
-        <span>Nhiều</span>
+        <span>More</span>
       </div>
+
+      {/* Custom Tooltip */}
+      {tooltip && tooltip.show && (
+        <div
+          className="fixed z-50 pointer-events-none"
+          style={{
+            left: tooltip.x,
+            top: tooltip.y,
+            transform: "translate(-50%, -100%)",
+          }}
+        >
+          <div className="bg-slate-800 text-white text-xs rounded-lg px-3 py-2 shadow-lg">
+            <div className="font-semibold text-emerald-400">
+              {tooltip.count} {tooltip.count === 1 ? "session" : "sessions"}
+            </div>
+            <div className="text-slate-300 text-[10px] mt-0.5">
+              {formatDate(tooltip.date)}
+            </div>
+          </div>
+          <div className="w-2 h-2 bg-slate-800 rotate-45 mx-auto -mt-1" />
+        </div>
+      )}
     </div>
   );
 }

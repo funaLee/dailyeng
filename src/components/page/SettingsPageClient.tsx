@@ -13,7 +13,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { UserProfileSidebar } from "@/components/layout/user-profile-sidebar";
 import {
-  Upload,
   User,
   Mail,
   Calendar as CalendarIcon,
@@ -50,6 +49,7 @@ import { updateUserProfile } from "@/actions/user";
 import { changePassword } from "@/actions/auth";
 import { cn } from "@/lib/utils";
 import { Level } from "@prisma/client";
+import { useUserProfile } from "@/contexts/UserProfileContext";
 
 type TabType = "personal" | "password" | "link";
 
@@ -339,6 +339,13 @@ export default function SettingsPageClient({
     message: string;
   }>({ show: false, type: "success", message: "" });
 
+  // Avatar upload states
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(userImage);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
+  // User profile context for refreshing
+  const { refreshProfile } = useUserProfile();
+
   // Use originalData for display name (not affected by form edits)
   const displayName = originalData.name || "User";
   const userInitial = displayName.charAt(0).toUpperCase() || "U";
@@ -426,6 +433,92 @@ export default function SettingsPageClient({
     }
   };
 
+  // Handle avatar upload
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+    if (!allowedTypes.includes(file.type)) {
+      setToast({
+        show: true,
+        type: "error",
+        message: "Invalid file type. Please use JPG, PNG, WebP or GIF.",
+      });
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setToast({
+        show: true,
+        type: "error",
+        message: "File too large. Maximum size is 5MB.",
+      });
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+
+    try {
+      // Convert file to base64
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64 = (reader.result as string).split(",")[1];
+
+        const response = await fetch("/api/upload/avatar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            image: base64,
+            mimeType: file.type,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+          setAvatarUrl(data.url);
+          // Refresh profile context to update navbar and other components
+          await refreshProfile();
+          setToast({
+            show: true,
+            type: "success",
+            message: "Avatar updated successfully!",
+          });
+        } else {
+          setToast({
+            show: true,
+            type: "error",
+            message: data.error || "Failed to upload avatar",
+          });
+        }
+
+        setIsUploadingAvatar(false);
+      };
+
+      reader.onerror = () => {
+        setToast({
+          show: true,
+          type: "error",
+          message: "Failed to read file",
+        });
+        setIsUploadingAvatar(false);
+      };
+
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error("Error uploading avatar:", error);
+      setToast({
+        show: true,
+        type: "error",
+        message: "Failed to upload avatar",
+      });
+      setIsUploadingAvatar(false);
+    }
+  };
+
   return (
     <ProtectedRoute
       pageName="Settings"
@@ -460,45 +553,17 @@ export default function SettingsPageClient({
         <div className="grid lg:grid-cols-12 gap-8">
           {/* Left Sidebar */}
           <div className="lg:col-span-3">
-            <UserProfileSidebar activePage="settings" userName={displayName} />
+            <UserProfileSidebar
+              activePage="settings"
+              userName={displayName}
+              userImage={avatarUrl}
+              onAvatarUpload={handleAvatarUpload}
+              isUploadingAvatar={isUploadingAvatar}
+            />
           </div>
 
           {/* Main Content */}
           <div className="lg:col-span-9 space-y-6">
-            {/* Header with Profile Picture */}
-            <Card className="border-border shadow-sm">
-              <CardContent className="p-8">
-                <h1 className="text-2xl font-bold text-foreground mb-6">
-                  Hello, {displayName}!
-                </h1>
-
-                <div className="flex items-center gap-6">
-                  <div className="relative">
-                    <div className="w-32 h-32 rounded-full bg-muted flex items-center justify-center overflow-hidden border-4 border-primary/20">
-                      {userImage ? (
-                        <img
-                          src={userImage}
-                          alt="Profile"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/30 flex items-center justify-center text-primary font-bold text-4xl">
-                          {userInitial}
-                        </div>
-                      )}
-                    </div>
-                    <Button
-                      size="icon"
-                      variant={"default"}
-                      className="absolute bottom-0 right-0 rounded-full w-10 h-10 bg-primary hover:bg-primary/90"
-                    >
-                      <Upload className="h-5 w-5 text-primary-foreground" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Tabs and Form */}
             <Card className="border-border shadow-sm bg-white">
               <CardContent className="p-8">

@@ -20,6 +20,7 @@ import {
   markNotificationsAsRead,
   type NotificationResult,
 } from "@/actions/notification";
+import { useUserProfile } from "@/contexts/UserProfileContext";
 
 // Type labels for NotificationType enum
 const typeLabels: Record<string, string> = {
@@ -104,6 +105,9 @@ export default function NotificationsPageClient({
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
   const [isLoading, setIsLoading] = useState(false);
+
+  // Get avatar from profile context
+  const { profile } = useUserProfile();
 
   // Refs for IntersectionObserver - marks as read in DB only (no UI update until reload)
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -226,7 +230,11 @@ export default function NotificationsPageClient({
         <div className="grid lg:grid-cols-12 gap-8">
           {/* Left Sidebar */}
           <div className="lg:col-span-3">
-            <UserProfileSidebar activePage="notifications" />
+            <UserProfileSidebar
+              activePage="notifications"
+              userName={profile?.name || userName}
+              userImage={profile?.image}
+            />
           </div>
 
           {/* Main Content */}

@@ -1,10 +1,20 @@
 "use client"
 
 import type React from "react"
-import { Card } from "@/components/ui/card"
-import Link from "next/link"
+import { useState, useRef } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 import { signOut } from "next-auth/react";
-import { UserIcon, Bell, Settings, HelpCircle, LogOut } from "lucide-react";
+import {
+  UserIcon,
+  Bell,
+  Settings,
+  HelpCircle,
+  LogOut,
+  Upload,
+  Loader2,
+} from "lucide-react";
 
 interface NavButtonProps {
   icon: React.ReactNode;
@@ -67,21 +77,68 @@ function SignOutButton() {
 interface UserProfileSidebarProps {
   activePage?: "plan" | "profile" | "notifications" | "settings" | "help";
   userName?: string;
+  userImage?: string | null;
+  onAvatarUpload?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  isUploadingAvatar?: boolean;
 }
 
 export function UserProfileSidebar({
   activePage = "profile",
   userName = "User",
+  userImage,
+  onAvatarUpload,
+  isUploadingAvatar = false,
 }: UserProfileSidebarProps) {
   const userInitial = userName.charAt(0).toUpperCase() || "U";
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const showUploadButton = activePage === "settings" && onAvatarUpload;
+
   return (
     <Card className="border-border border-2 shadow-sm bg-white overflow-hidden">
       <div className="px-6 py-6">
         <div className="flex flex-col items-center mb-6">
-          <div className="w-24 h-24 rounded-full border-2 border-primary-200 bg-primary-200 overflow-hidden shadow-sm mb-3">
-            <div className="w-full h-full flex items-center justify-center bg-primary-100 text-primary-600 font-bold text-2xl">
-              {userInitial}
+          <div className="relative">
+            <div className="w-24 h-24 rounded-full border-2 border-primary-200 bg-primary-200 overflow-hidden shadow-sm mb-3">
+              {isUploadingAvatar ? (
+                <div className="w-full h-full flex items-center justify-center bg-primary-100">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary-600" />
+                </div>
+              ) : userImage ? (
+                <img
+                  src={userImage}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-primary-100 text-primary-600 font-bold text-2xl">
+                  {userInitial}
+                </div>
+              )}
             </div>
+            {showUploadButton && (
+              <>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={onAvatarUpload}
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  className="hidden"
+                />
+                <Button
+                  size="icon"
+                  variant="default"
+                  className="absolute bottom-2 right-0 rounded-full w-8 h-8 bg-primary hover:bg-primary/90"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploadingAvatar}
+                >
+                  {isUploadingAvatar ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-primary-foreground" />
+                  ) : (
+                    <Upload className="h-4 w-4 text-primary-foreground" />
+                  )}
+                </Button>
+              </>
+            )}
           </div>
           <h3 className="font-semibold text-base text-primary-900 text-center">
             {userName}
