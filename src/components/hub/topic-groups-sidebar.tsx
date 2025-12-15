@@ -38,9 +38,9 @@ export function TopicGroupsSidebar({
                 key={i}
                 className="w-full px-3 py-2 rounded-lg flex items-center gap-2 bg-white border border-primary-200"
               >
-                <Skeleton className="h-2 w-2 rounded-full flex-shrink-0" />
+                <Skeleton className="h-2 w-2 rounded-full flex-shrink-0 bg-gray-200" />
                 <Skeleton
-                  className="h-4 flex-1"
+                  className="h-4 flex-1 bg-gray-200"
                   style={{ width: `${60 + Math.random() * 30}%` }}
                 />
               </div>

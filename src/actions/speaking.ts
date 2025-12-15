@@ -249,30 +249,121 @@ export async function getCustomTopics(userId: string) {
   });
 }
 
-// Create custom scenario
+// Create custom scenario with complete data and auto-start session
 export async function createCustomScenario(
   userId: string,
   topicPrompt: string
-) {
+): Promise<{ scenario: any; sessionId: string }> {
   await ensureUser(userId);
-  const generated = await generateScenario(topicPrompt);
+  
+  // Get user's current level
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { level: true },
+  });
+  const userLevel = user?.level || "B1";
+  
+  // Generate scenario with user's level
+  const generated = await generateScenario(topicPrompt, userLevel);
 
+  // Create scenario with all fields
   const scenario = await prisma.speakingScenario.create({
     data: {
       title: generated.title,
       description: generated.description,
       goal: generated.goal,
-      difficulty: generated.level as any, // Cast to enum
+      difficulty: generated.level as any,
       context: generated.context,
       image: generated.image,
+      userRole: generated.userRole,
+      botRole: generated.botRole,
+      openingLine: generated.openingLine,
+      objectives: generated.objectives,
       isCustom: true,
       createdById: userId,
       category: "Custom",
     },
   });
 
+  // Create a session for immediate practice
+  const session = await prisma.speakingSession.create({
+    data: {
+      userId,
+      scenarioId: scenario.id,
+    },
+  });
+
+  // Save opening greeting as first turn
+  if (generated.openingLine) {
+    await prisma.speakingTurn.create({
+      data: {
+        sessionId: session.id,
+        role: "tutor",
+        text: generated.openingLine,
+      },
+    });
+  }
+
   revalidatePath("/speaking");
-  return scenario;
+  return { scenario, sessionId: session.id };
+}
+
+// Create random scenario (Surprise Me feature)
+export async function createRandomScenario(
+  userId: string
+): Promise<{ scenario: any; sessionId: string }> {
+  await ensureUser(userId);
+  
+  // Get user's current level
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { level: true },
+  });
+  const userLevel = user?.level || "B1";
+  
+  // Generate random scenario (pass null as topic)
+  const generated = await generateScenario(null, userLevel);
+
+  // Create scenario with all fields
+  const scenario = await prisma.speakingScenario.create({
+    data: {
+      title: generated.title,
+      description: generated.description,
+      goal: generated.goal,
+      difficulty: generated.level as any,
+      context: generated.context,
+      image: generated.image,
+      userRole: generated.userRole,
+      botRole: generated.botRole,
+      openingLine: generated.openingLine,
+      objectives: generated.objectives,
+      isCustom: true,
+      createdById: userId,
+      category: "Random",
+    },
+  });
+
+  // Create a session for immediate practice
+  const session = await prisma.speakingSession.create({
+    data: {
+      userId,
+      scenarioId: scenario.id,
+    },
+  });
+
+  // Save opening greeting as first turn
+  if (generated.openingLine) {
+    await prisma.speakingTurn.create({
+      data: {
+        sessionId: session.id,
+        role: "tutor",
+        text: generated.openingLine,
+      },
+    });
+  }
+
+  revalidatePath("/speaking");
+  return { scenario, sessionId: session.id };
 }
 
 // Mock scenarios data for database seeding (matches UI mock data)
@@ -591,44 +682,7 @@ export async function getSessionHistory(userId: string) {
   return sessions;
 }
 
-export async function getOrCreateFreeTalkScenario(userId: string) {
-  await ensureUser(userId);
 
-  // Check if Free Talk scenario exists (globally or for user)
-  // We'll make a global one or a specific custom logic.
-  // Let's make a system-wide Free Talk scenario if possible, or a custom one if strict.
-  // For simplicity, let's create a "Free Talk" custom scenario if not found.
-
-  const freeTalkTitle = "Free Talk Mode";
-
-  let scenario = await prisma.speakingScenario.findFirst({
-    where: {
-      title: freeTalkTitle,
-      isCustom: true,
-      createdById: userId,
-    },
-  });
-
-  if (!scenario) {
-    scenario = await prisma.speakingScenario.create({
-      data: {
-        title: freeTalkTitle,
-        description:
-          "Open conversation with AI tutor. Talk about anything you want!",
-        goal: "Practice free conversation",
-        difficulty: "B1", // Default
-        context:
-          "You are having a casual conversation with a friendly AI tutor.",
-        image: "/scenarios/free-talk.png", // Ensure this image path is handled or generic
-        isCustom: true,
-        createdById: userId, // Link to user so they own it
-        category: "Custom",
-      },
-    });
-  }
-
-  return scenario;
-}
 
 // ============================================================================
 // NEW: Analyze and Score Session - Called after session ends
@@ -1033,5 +1087,185 @@ export async function getSessionDetailsById(sessionId: string): Promise<{
     },
     errorCategories,
     conversation,
+  };
+}
+
+// ============================================================================
+// Speaking History Feature - Sessions list and stats for History tab
+// ============================================================================
+
+/**
+ * Get paginated speaking sessions for History tab with optional rating filter
+ */
+export async function getSpeakingHistorySessions(
+  userId: string,
+  options?: {
+    page?: number;
+    limit?: number;
+    rating?: string; // "Excellent" | "Good" | "Average" | "Needs Improvement"
+  }
+): Promise<{
+  sessions: {
+    id: string;
+    scenarioId: string;
+    scenarioTitle: string;
+    overallScore: number;
+    grammarScore: number;
+    relevanceScore: number;
+    fluencyScore: number;
+    pronunciationScore: number;
+    intonationScore: number;
+    feedbackRating: string;
+    createdAt: Date;
+  }[];
+  totalPages: number;
+  totalCount: number;
+}> {
+  const page = options?.page || 1;
+  const limit = options?.limit || 10;
+  const skip = (page - 1) * limit;
+
+  // Build where clause
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const where: any = {
+    userId,
+    endedAt: { not: null }, // Only completed sessions
+  };
+
+  // Add rating filter if specified
+  if (options?.rating) {
+    where.feedbackRating = options.rating;
+  }
+
+  const [sessions, totalCount] = await Promise.all([
+    prisma.speakingSession.findMany({
+      where,
+      include: {
+        scenario: {
+          select: { id: true, title: true },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+    }),
+    prisma.speakingSession.count({ where }),
+  ]);
+
+  return {
+    sessions: sessions.map((s) => ({
+      id: s.id,
+      scenarioId: s.scenario.id,
+      scenarioTitle: s.scenario.title,
+      overallScore: s.overallScore ?? 0,
+      grammarScore: s.grammarScore ?? 0,
+      relevanceScore: s.relevanceScore ?? 0,
+      fluencyScore: s.fluencyScore ?? 0,
+      pronunciationScore: s.pronunciationScore ?? 0,
+      intonationScore: s.intonationScore ?? 0,
+      feedbackRating: s.feedbackRating ?? "N/A",
+      createdAt: s.createdAt,
+    })),
+    totalPages: Math.ceil(totalCount / limit),
+    totalCount,
+  };
+}
+
+/**
+ * Get speaking history stats from last 20 sessions for charts
+ */
+export async function getSpeakingHistoryStats(userId: string): Promise<{
+  performanceData: { session: number; score: number }[];
+  criteriaAverages: {
+    relevance: number;
+    pronunciation: number;
+    intonation: number;
+    fluency: number;
+    grammar: number;
+  };
+  totalSessions: number;
+  highestScore: number;
+  averageScore: number;
+}> {
+  // Get last 20 completed sessions
+  const sessions = await prisma.speakingSession.findMany({
+    where: {
+      userId,
+      endedAt: { not: null },
+    },
+    select: {
+      overallScore: true,
+      grammarScore: true,
+      relevanceScore: true,
+      fluencyScore: true,
+      pronunciationScore: true,
+      intonationScore: true,
+      createdAt: true,
+    },
+    orderBy: { createdAt: "desc" },
+    take: 20,
+  });
+
+  if (sessions.length === 0) {
+    return {
+      performanceData: [],
+      criteriaAverages: {
+        relevance: 0,
+        pronunciation: 0,
+        intonation: 0,
+        fluency: 0,
+        grammar: 0,
+      },
+      totalSessions: 0,
+      highestScore: 0,
+      averageScore: 0,
+    };
+  }
+
+  // Reverse to show oldest first for chart (left to right chronological)
+  const reversedSessions = [...sessions].reverse();
+  const performanceData = reversedSessions.map((s, i) => ({
+    session: i + 1,
+    score: s.overallScore ?? 0,
+  }));
+
+  // Calculate averages
+  const totalSessions = sessions.length;
+  const scores = sessions.map((s) => s.overallScore ?? 0);
+  const highestScore = Math.max(...scores);
+  const averageScore = Math.round(
+    scores.reduce((a, b) => a + b, 0) / totalSessions
+  );
+
+  // Calculate criteria averages
+  const criteriaAverages = {
+    relevance: Math.round(
+      sessions.reduce((sum, s) => sum + (s.relevanceScore ?? 0), 0) /
+        totalSessions
+    ),
+    pronunciation: Math.round(
+      sessions.reduce((sum, s) => sum + (s.pronunciationScore ?? 0), 0) /
+        totalSessions
+    ),
+    intonation: Math.round(
+      sessions.reduce((sum, s) => sum + (s.intonationScore ?? 0), 0) /
+        totalSessions
+    ),
+    fluency: Math.round(
+      sessions.reduce((sum, s) => sum + (s.fluencyScore ?? 0), 0) /
+        totalSessions
+    ),
+    grammar: Math.round(
+      sessions.reduce((sum, s) => sum + (s.grammarScore ?? 0), 0) /
+        totalSessions
+    ),
+  };
+
+  return {
+    performanceData,
+    criteriaAverages,
+    totalSessions,
+    highestScore,
+    averageScore,
   };
 }

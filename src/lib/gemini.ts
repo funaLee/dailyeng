@@ -317,53 +317,103 @@ CRITICAL REMINDERS:
   }
 }
 
-export async function generateScenario(topic: string): Promise<{
+export interface GeneratedScenario {
   title: string;
   description: string;
   goal: string;
   level: string;
   context: string;
   image: string;
-}> {
+  userRole: string;
+  botRole: string;
+  openingLine: string;
+  objectives: string[];
+}
+
+export async function generateScenario(
+  topic: string | null, // null = random scenario (Surprise Me)
+  userLevel?: string // A1-C2 from user profile
+): Promise<GeneratedScenario> {
   // Use gemini-2.5-flash with thinking disabled
   const model = genAI.getGenerativeModel({
     model: "gemini-2.5-flash",
     generationConfig: {
-      temperature: 0.7,
-      maxOutputTokens: 8192, // High quota - 1M TPM
+      temperature: 0.8, // Slightly higher for more creative scenarios
+      maxOutputTokens: 8192,
       responseMimeType: "application/json",
       // @ts-expect-error - thinkingConfig is supported but not in types yet
       thinkingConfig: { thinkingBudget: 0 },
     },
   });
 
-  const prompt = `
-      Create a speaking roleplay scenario based on the topic: "${topic}".
-      
-      Output JSON format ONLY:
-      {
-        "title": "Short catchy title",
-        "description": "Brief description of the scenario",
-        "goal": "What the user needs to achieve",
-        "level": "A1/A2/B1/B2/C1/C2",
-        "context": "Detailed context instructions for the AI tutor (you) to play this role",
-        "image": "/learning.png"
-      }
-    `;
+  const levelInstruction = userLevel
+    ? `The scenario MUST be appropriate for ${userLevel} level learners. Use ${getLevelGuidance(
+        userLevel
+      )}.`
+    : "The scenario should be appropriate for B1 (intermediate) level learners.";
+
+  const topicInstruction = topic
+    ? `Create a speaking roleplay scenario based on the user's description: "${topic}".`
+    : `Create a RANDOM, creative, and interesting speaking roleplay scenario. Be creative! Choose from diverse topics like: travel, shopping, dining, job interviews, doctor visits, customer service, making friends, apartment hunting, banking, etc.`;
+
+  const prompt = `${topicInstruction}
+
+${levelInstruction}
+
+IMPORTANT: Generate a complete, engaging roleplay scenario with realistic roles.
+
+Output JSON format ONLY:
+{
+  "title": "Short catchy title (2-5 words)",
+  "description": "Brief description of the scenario (1-2 sentences)",
+  "goal": "What the user needs to achieve in this conversation",
+  "level": "${userLevel || "B1"}",
+  "context": "A USER-FACING description of the situation/setting. This is what the LEARNER sees before starting. Example: 'You are at a coffee shop and want to order your favorite drink. The barista is ready to take your order.' Do NOT include AI instructions here.",
+  "image": "/learning.png",
+  "userRole": "The role the learner plays (e.g., Customer, Job Applicant, Patient, Tourist)",
+  "botRole": "The role the AI plays (e.g., Shop Assistant, Interviewer, Doctor, Local Guide)",
+  "openingLine": "The AI's first message to start the conversation. Should be natural and in-character.",
+  "objectives": ["Learning objective 1", "Learning objective 2", "Learning objective 3"]
+}`;
 
   try {
     const result = await model.generateContent(prompt);
     const text = result.response.text();
-    return JSON.parse(text);
+    const parsed = JSON.parse(text);
+
+    // Ensure all fields exist
+    return {
+      title: parsed.title || (topic ? topic.slice(0, 50) : "Random Scenario"),
+      description: parsed.description || "Practice speaking in this scenario",
+      goal: parsed.goal || "Complete the conversation successfully",
+      level: parsed.level || userLevel || "B1",
+      context:
+        parsed.context || "You are having a conversation with the learner.",
+      image: parsed.image || "/learning.png",
+      userRole: parsed.userRole || "Learner",
+      botRole: parsed.botRole || "English Tutor",
+      openingLine: parsed.openingLine || "Hello! How can I help you today?",
+      objectives: parsed.objectives || [
+        "Practice speaking naturally",
+        "Use appropriate vocabulary",
+      ],
+    };
   } catch (e) {
     console.error("Failed to generate scenario", e);
     return {
-      title: topic,
-      description: "Custom scenario",
+      title: topic ? topic.slice(0, 50) : "Practice Conversation",
+      description: "Custom speaking scenario",
       goal: "Practice conversation",
-      level: "B1",
-      context: `Roleplay about ${topic}`,
+      level: userLevel || "B1",
+      context: topic
+        ? `Roleplay about ${topic}`
+        : "Have a casual English conversation",
       image: "/learning.png",
+      userRole: "Learner",
+      botRole: "English Tutor",
+      openingLine:
+        "Hello! I'm here to help you practice English. What would you like to talk about?",
+      objectives: ["Practice speaking naturally", "Build confidence"],
     };
   }
 }
