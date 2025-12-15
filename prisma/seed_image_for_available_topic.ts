@@ -15,9 +15,14 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const prisma = new PrismaClient();
 
-// Configuration
-const PEXELS_API_KEY = "jrSkB4Z8f4u7iE3rTkF9X3ygPXyO5XVkyw7ON4kG6xEMgGGIcWDWUNST";
+// Configuration - Use environment variables for API keys
+const PEXELS_API_KEY = process.env.PEXELS_API_KEY;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+if (!PEXELS_API_KEY) {
+  console.error("❌ Missing PEXELS_API_KEY in environment variables");
+  process.exit(1);
+}
 
 if (!GEMINI_API_KEY) {
   console.error("❌ Missing GEMINI_API_KEY in environment variables");
@@ -163,7 +168,7 @@ async function searchPexelsImage(keyword: string): Promise<string | null> {
       `https://api.pexels.com/v1/search?query=${encodeURIComponent(keyword)}&per_page=3&orientation=landscape`,
       {
         headers: {
-          Authorization: PEXELS_API_KEY,
+          Authorization: PEXELS_API_KEY!,
         },
       }
     );
