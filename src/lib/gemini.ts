@@ -427,3 +427,73 @@ Output JSON format ONLY:
     };
   }
 }
+
+// ============================================================================
+// DORARA: AI Chat Assistant for DailyEng
+// ============================================================================
+
+export interface DoraraMessage {
+  role: "user" | "tutor";
+  content: string;
+}
+
+/**
+ * Generate a response from Dorara
+ * @param systemInstruction - Complete system instruction with context and user info
+ * @param history - Conversation history
+ * @param userMessage - The new message from the user
+ */
+export async function generateDoraraResponse(
+  systemInstruction: string,
+  history: DoraraMessage[],
+  userMessage: string
+): Promise<{ response: string }> {
+  const model = genAI.getGenerativeModel({
+    model: "gemini-2.5-flash",
+    systemInstruction: systemInstruction,
+    generationConfig: {
+      temperature: 0.7,
+      maxOutputTokens: 2048,
+      // @ts-expect-error - thinkingConfig is supported but not in types yet
+      thinkingConfig: { thinkingBudget: 0 },
+    },
+  });
+
+  try {
+    // Convert history to Gemini Content format
+    // Map "tutor" role to "model" for Gemini API
+    const contents: Content[] = history.map((msg) => ({
+      role: msg.role === "tutor" ? "model" : "user",
+      parts: [{ text: msg.content }],
+    }));
+
+    // Add the new user message
+    contents.push({
+      role: "user",
+      parts: [{ text: userMessage }],
+    });
+
+    const result = await model.generateContent({ contents });
+    const text = result.response.text();
+
+    // Clean any accidental markdown from response
+    const cleanedText = text
+      .replace(/\*\*/g, "") // Remove bold
+      .replace(/\*/g, "") // Remove italic
+      .replace(/#{1,6}\s/g, "") // Remove headers
+      .replace(/```[\s\S]*?```/g, "") // Remove code blocks
+      .replace(/`/g, "") // Remove inline code
+      .replace(/^[-•]\s/gm, "• ") // Keep bullet points but normalize
+      .trim();
+
+    return { response: cleanedText };
+  } catch (error) {
+    console.error("[generateDoraraResponse] Gemini generation error:", error);
+    return {
+      response:
+        "Xin lỗi, tôi gặp chút trục trặc. Bạn có thể hỏi lại được không?",
+    };
+  }
+}
+
+

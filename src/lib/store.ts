@@ -28,8 +28,8 @@ interface AppStore {
   updateStreak: (streak: number) => void;
 
   // UI
-  kittyOpen: boolean;
-  setKittyOpen: (open: boolean) => void;
+  doraraOpen: boolean;
+  setDoraraOpen: (open: boolean) => void;
   searchOpen: boolean;
   setSearchOpen: (open: boolean) => void;
 
@@ -73,8 +73,8 @@ export const useAppStore = create<AppStore>((set) => ({
       stats: state.stats ? { ...state.stats, streak } : null,
     })),
 
-  kittyOpen: false,
-  setKittyOpen: (open) => set({ kittyOpen: open }),
+  doraraOpen: false,
+  setDoraraOpen: (open) => set({ doraraOpen: open }),
   searchOpen: false,
   setSearchOpen: (open) => set({ searchOpen: open }),
 
