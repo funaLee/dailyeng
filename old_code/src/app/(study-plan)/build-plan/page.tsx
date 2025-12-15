@@ -1,0 +1,596 @@
+// Server Component - No "use client" directive
+// Data fetching happens here on the server
+
+import BuildPlanPageClient from "@/components/page/BuildPlanPageClient";
+import type { Question, Course } from "@/components/page/BuildPlanPageClient";
+
+// Mock data - In the future, this can be replaced with actual data fetching
+
+const questions: Question[] = [
+  {
+    id: 1,
+    question: "What is your primary goal for learning English?",
+    iconId: "briefcase",
+    subtitle: "This helps us recommend the most relevant courses for you",
+    options: [
+      {
+        id: "career",
+        value: "career",
+        label: "Career Advancement",
+        iconId: "briefcase",
+        description: "Get promoted, change jobs, or work internationally",
+      },
+      {
+        id: "study",
+        value: "study",
+        label: "Academic Study",
+        iconId: "graduation-cap",
+        description: "Prepare for university or academic programs",
+      },
+      {
+        id: "exam",
+        value: "exam",
+        label: "Pass an Exam",
+        iconId: "target",
+        description: "IELTS, TOEFL, TOEIC, or other certifications",
+      },
+      {
+        id: "travel",
+        value: "travel",
+        label: "Travel & Culture",
+        iconId: "plane",
+        description: "Communicate while traveling abroad",
+      },
+      {
+        id: "personal",
+        value: "personal",
+        label: "Personal Growth",
+        iconId: "star",
+        description: "Self-improvement and intellectual curiosity",
+      },
+    ],
+  },
+  {
+    id: 2,
+    question: "Which exam are you preparing for? (if any)",
+    iconId: "target",
+    subtitle: "Select all that apply",
+    multiSelect: true,
+    options: [
+      {
+        id: "ielts",
+        value: "ielts",
+        label: "IELTS",
+        description: "International English Language Testing System",
+      },
+      {
+        id: "toefl",
+        value: "toefl",
+        label: "TOEFL",
+        description: "Test of English as a Foreign Language",
+      },
+      {
+        id: "toeic",
+        value: "toeic",
+        label: "TOEIC",
+        description: "Test of English for International Communication",
+      },
+      {
+        id: "cambridge",
+        value: "cambridge",
+        label: "Cambridge (FCE/CAE/CPE)",
+        description: "Cambridge English Qualifications",
+      },
+      {
+        id: "duolingo",
+        value: "duolingo",
+        label: "Duolingo English Test",
+        description: "Modern adaptive English test",
+      },
+      {
+        id: "none",
+        value: "none",
+        label: "No specific exam",
+        description: "I'm not preparing for any exam",
+      },
+    ],
+  },
+  {
+    id: 3,
+    question: "How much time can you dedicate to learning each day?",
+    iconId: "clock",
+    options: [
+      {
+        id: "15min",
+        value: "15min",
+        label: "15 minutes",
+        iconId: "clock",
+        description: "Quick daily practice",
+      },
+      {
+        id: "30min",
+        value: "30min",
+        label: "30 minutes",
+        iconId: "clock",
+        description: "Moderate daily commitment",
+      },
+      {
+        id: "1hour",
+        value: "1hour",
+        label: "1 hour",
+        iconId: "clock",
+        description: "Dedicated daily study",
+      },
+      {
+        id: "2hours",
+        value: "2hours",
+        label: "2+ hours",
+        iconId: "clock",
+        description: "Intensive learning schedule",
+      },
+    ],
+  },
+  {
+    id: 4,
+    question: "When do you need to achieve your goal?",
+    options: [
+      {
+        id: "1month",
+        value: "1month",
+        label: "Within 1 month",
+        description: "Urgent deadline approaching",
+      },
+      {
+        id: "3months",
+        value: "3months",
+        label: "Within 3 months",
+        description: "Short-term goal",
+      },
+      {
+        id: "6months",
+        value: "6months",
+        label: "Within 6 months",
+        description: "Medium-term planning",
+      },
+      {
+        id: "1year",
+        value: "1year",
+        label: "Within 1 year",
+        description: "Long-term commitment",
+      },
+      {
+        id: "flexible",
+        value: "flexible",
+        label: "No specific deadline",
+        description: "Learning at my own pace",
+      },
+    ],
+  },
+  {
+    id: 5,
+    question: "Which skills do you want to improve the most?",
+    iconId: "brain",
+    subtitle: "Select up to 3 skills",
+    multiSelect: true,
+    options: [
+      {
+        id: "speaking",
+        value: "speaking",
+        label: "Speaking",
+        iconId: "users",
+        description: "Fluency, pronunciation, confidence",
+      },
+      {
+        id: "listening",
+        value: "listening",
+        label: "Listening",
+        iconId: "headphones",
+        description: "Understanding native speakers",
+      },
+      {
+        id: "reading",
+        value: "reading",
+        label: "Reading",
+        iconId: "book-open",
+        description: "Comprehension and speed",
+      },
+      {
+        id: "writing",
+        value: "writing",
+        label: "Writing",
+        iconId: "pen-tool",
+        description: "Essays, emails, reports",
+      },
+      {
+        id: "vocabulary",
+        value: "vocabulary",
+        label: "Vocabulary",
+        iconId: "brain",
+        description: "Word knowledge and usage",
+      },
+      {
+        id: "grammar",
+        value: "grammar",
+        label: "Grammar",
+        iconId: "book-open",
+        description: "Accuracy and structure",
+      },
+    ],
+  },
+  {
+    id: 6,
+    question: "What type of English do you need most?",
+    iconId: "globe",
+    options: [
+      {
+        id: "general",
+        value: "general",
+        label: "General English",
+        iconId: "globe",
+        description: "Everyday communication",
+      },
+      {
+        id: "business",
+        value: "business",
+        label: "Business English",
+        iconId: "briefcase",
+        description: "Professional workplace communication",
+      },
+      {
+        id: "academic",
+        value: "academic",
+        label: "Academic English",
+        iconId: "graduation-cap",
+        description: "University and research",
+      },
+      {
+        id: "conversational",
+        value: "conversational",
+        label: "Conversational",
+        iconId: "message-circle",
+        description: "Casual daily conversations",
+      },
+    ],
+  },
+  {
+    id: 7,
+    question: "How do you prefer to learn?",
+    iconId: "book-open",
+    subtitle: "Select all that apply",
+    multiSelect: true,
+    options: [
+      {
+        id: "video",
+        value: "video",
+        label: "Video Lessons",
+        description: "Watch and learn from instructors",
+      },
+      {
+        id: "interactive",
+        value: "interactive",
+        label: "Interactive Exercises",
+        description: "Practice with quizzes and games",
+      },
+      {
+        id: "conversation",
+        value: "conversation",
+        label: "AI Conversation Practice",
+        description: "Talk with AI tutors",
+      },
+      {
+        id: "reading",
+        value: "reading",
+        label: "Reading Materials",
+        description: "Articles, stories, and texts",
+      },
+      {
+        id: "flashcards",
+        value: "flashcards",
+        label: "Flashcards & Spaced Repetition",
+        description: "Memorize vocabulary efficiently",
+      },
+    ],
+  },
+  {
+    id: 8,
+    question: "What topics interest you most?",
+    iconId: "star",
+    subtitle: "Select up to 4 topics",
+    multiSelect: true,
+    options: [
+      {
+        id: "tech",
+        value: "tech",
+        label: "Technology & Innovation",
+        description: "AI, startups, digital trends",
+      },
+      {
+        id: "business",
+        value: "business",
+        label: "Business & Finance",
+        description: "Markets, economics, entrepreneurship",
+      },
+      {
+        id: "science",
+        value: "science",
+        label: "Science & Nature",
+        description: "Environment, health, discoveries",
+      },
+      {
+        id: "culture",
+        value: "culture",
+        label: "Culture & Arts",
+        description: "Movies, music, literature",
+      },
+      {
+        id: "sports",
+        value: "sports",
+        label: "Sports & Fitness",
+        description: "Athletics, wellness, competitions",
+      },
+      {
+        id: "travel",
+        value: "travel",
+        label: "Travel & Lifestyle",
+        description: "Food, fashion, destinations",
+      },
+    ],
+  },
+  {
+    id: 9,
+    question: "What challenges do you face when learning English?",
+    iconId: "target",
+    subtitle: "Select all that apply",
+    multiSelect: true,
+    options: [
+      {
+        id: "motivation",
+        value: "motivation",
+        label: "Staying Motivated",
+        description: "Hard to maintain consistency",
+      },
+      {
+        id: "speaking-fear",
+        value: "speaking-fear",
+        label: "Fear of Speaking",
+        description: "Nervous to speak with others",
+      },
+      {
+        id: "vocabulary",
+        value: "vocabulary",
+        label: "Remembering Vocabulary",
+        description: "Words don't stick",
+      },
+      {
+        id: "grammar",
+        value: "grammar",
+        label: "Understanding Grammar",
+        description: "Rules are confusing",
+      },
+      {
+        id: "listening",
+        value: "listening",
+        label: "Understanding Native Speakers",
+        description: "They speak too fast",
+      },
+      {
+        id: "time",
+        value: "time",
+        label: "Finding Time",
+        description: "Busy schedule",
+      },
+    ],
+  },
+  {
+    id: 10,
+    question: "What motivates you to keep learning?",
+    iconId: "star",
+    subtitle: "Select your top motivators",
+    multiSelect: true,
+    options: [
+      {
+        id: "progress",
+        value: "progress",
+        label: "Seeing Progress",
+        description: "Tracking improvements motivates me",
+      },
+      {
+        id: "rewards",
+        value: "rewards",
+        label: "Rewards & Achievements",
+        description: "Badges, points, and milestones",
+      },
+      {
+        id: "community",
+        value: "community",
+        label: "Community & Competition",
+        description: "Learning with others",
+      },
+      {
+        id: "practical",
+        value: "practical",
+        label: "Real-world Application",
+        description: "Using English in daily life",
+      },
+      {
+        id: "goals",
+        value: "goals",
+        label: "Clear Goals",
+        description: "Working towards specific targets",
+      },
+      {
+        id: "fun",
+        value: "fun",
+        label: "Fun & Engaging Content",
+        description: "Enjoying the learning process",
+      },
+    ],
+  },
+];
+
+const allCourses: Course[] = [
+  {
+    id: "ielts-complete",
+    title: "IELTS Complete Preparation",
+    description:
+      "Comprehensive IELTS preparation covering all four skills with practice tests and expert strategies.",
+    duration: "12 weeks",
+    level: "Intermediate - Advanced",
+    category: "Exam Prep",
+    image: "/learning.png",
+    skills: ["Speaking", "Listening", "Reading", "Writing"],
+    lessons: 50,
+    match: 90,
+  },
+  {
+    id: "toeic-intensive",
+    title: "TOEIC Intensive Course",
+    description:
+      "Master the TOEIC test with focused practice on Listening and Reading sections.",
+    duration: "8 weeks",
+    level: "Intermediate",
+    category: "Exam Prep",
+    image: "/learning.png",
+    skills: ["Listening", "Reading", "Vocabulary"],
+    lessons: 40,
+    match: 85,
+  },
+  {
+    id: "business-english",
+    title: "Business English Mastery",
+    description:
+      "Professional communication skills for the workplace including meetings, presentations, and emails.",
+    duration: "10 weeks",
+    level: "Intermediate - Advanced",
+    category: "Business",
+    image: "/learning.png",
+    skills: ["Speaking", "Writing", "Vocabulary"],
+    lessons: 45,
+    match: 80,
+  },
+  {
+    id: "speaking-confidence",
+    title: "Speaking with Confidence",
+    description:
+      "Overcome speaking anxiety and develop fluency through AI conversation practice.",
+    duration: "6 weeks",
+    level: "All Levels",
+    category: "Speaking",
+    image: "/learning.png",
+    skills: ["Speaking", "Pronunciation", "Fluency"],
+    lessons: 30,
+    match: 95,
+  },
+  {
+    id: "academic-writing",
+    title: "Academic Writing Excellence",
+    description:
+      "Master academic essay writing, research papers, and formal writing conventions.",
+    duration: "8 weeks",
+    level: "Intermediate - Advanced",
+    category: "Academic",
+    image: "/learning.png",
+    skills: ["Writing", "Grammar", "Vocabulary"],
+    lessons: 40,
+    match: 75,
+  },
+  {
+    id: "vocabulary-builder",
+    title: "Vocabulary Builder Pro",
+    description:
+      "Expand your vocabulary with spaced repetition and contextual learning.",
+    duration: "Ongoing",
+    level: "All Levels",
+    category: "Vocabulary",
+    image: "/learning.png",
+    skills: ["Vocabulary", "Reading"],
+    lessons: 60,
+    match: 88,
+  },
+  {
+    id: "grammar-foundations",
+    title: "Grammar Foundations",
+    description:
+      "Build a solid grammar foundation from basic to advanced structures.",
+    duration: "10 weeks",
+    level: "Beginner - Intermediate",
+    category: "Grammar",
+    image: "/learning.png",
+    skills: ["Grammar", "Writing"],
+    lessons: 50,
+    match: 82,
+  },
+  {
+    id: "listening-mastery",
+    title: "Listening Mastery",
+    description:
+      "Understand native speakers with diverse accents through authentic materials.",
+    duration: "8 weeks",
+    level: "Intermediate",
+    category: "Listening",
+    image: "/learning.png",
+    skills: ["Listening", "Vocabulary"],
+    lessons: 40,
+    match: 78,
+  },
+  {
+    id: "toefl-prep",
+    title: "TOEFL iBT Preparation",
+    description:
+      "Complete preparation for the TOEFL iBT test with strategies and practice.",
+    duration: "10 weeks",
+    level: "Intermediate - Advanced",
+    category: "Exam Prep",
+    image: "/learning.png",
+    skills: ["Speaking", "Listening", "Reading", "Writing"],
+    lessons: 55,
+    match: 92,
+  },
+  {
+    id: "conversation-daily",
+    title: "Daily Conversation Practice",
+    description:
+      "Practice everyday conversations with AI tutors on various topics.",
+    duration: "Ongoing",
+    level: "All Levels",
+    category: "Speaking",
+    image: "/learning.png",
+    skills: ["Speaking", "Listening", "Fluency"],
+    lessons: 70,
+    match: 88,
+  },
+  {
+    id: "reading-speed",
+    title: "Speed Reading & Comprehension",
+    description:
+      "Improve reading speed while maintaining comprehension with diverse texts.",
+    duration: "6 weeks",
+    level: "Intermediate",
+    category: "Reading",
+    image: "/learning.png",
+    skills: ["Reading", "Vocabulary"],
+    lessons: 35,
+    match: 70,
+  },
+  {
+    id: "pronunciation-perfect",
+    title: "Perfect Pronunciation",
+    description:
+      "Master English pronunciation with AI-powered feedback and practice.",
+    duration: "6 weeks",
+    level: "All Levels",
+    category: "Speaking",
+    image: "/learning.png",
+    skills: ["Pronunciation", "Speaking"],
+    lessons: 30,
+    match: 85,
+  },
+];
+
+export default async function BuildPlanPage() {
+  // In the future, you can fetch data from DB, API, or File System here
+  // const questions = await fetchQuestions()
+  // const allCourses = await fetchCourses()
+
+  return <BuildPlanPageClient questions={questions} allCourses={allCourses} />;
+}

@@ -1,0 +1,628 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Level {
+  A1
+  A2
+  B1
+  B2
+  C1
+  C2
+}
+
+enum PartOfSpeech {
+  noun
+  verb
+  adjective
+  adverb
+  preposition
+  conjunction
+  pronoun
+  interjection
+  phrase
+}
+
+enum QuizType {
+  multiple_choice @map("multiple-choice")
+  fill_blank      @map("fill-blank")
+  matching
+}
+
+enum Role {
+  user
+  tutor
+}
+
+enum StudyGoal {
+  casual
+  intermediate
+  fluent
+  conversation
+  travel
+  work
+  exam
+}
+
+enum TaskType {
+  vocab
+  grammar
+  speaking
+  listening
+}
+
+enum NotificationType {
+  speaking
+  vocabulary
+  grammar
+  achievement
+  system
+}
+
+enum ShopItemCategory {
+  power_up  @map("Power-up")
+  boost     @map("Boost")
+  cosmetic  @map("Cosmetic")
+  access    @map("Access")
+  learning  @map("Learning")
+  analytics @map("Analytics")
+}
+
+enum CollectionRarity {
+  common
+  rare
+  epic
+  legendary
+  mythical
+  ssr
+}
+
+enum CollectionType {
+  daily
+  gadget
+  character
+  poster
+  ssr_collab
+}
+
+model User {
+  id       String  @id @default(cuid())
+  name     String?
+  email    String  @unique
+  password String?
+  image    String?
+
+  // Profile fields
+  phoneNumber String?
+  dateOfBirth DateTime?
+  gender      String?
+  address     String?
+  // [ADDED] User's current English level
+  level       Level?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profileStats     ProfileStats?
+  studyPlan        StudyPlan?
+  flashcards       Flashcard[]
+  speakingSessions SpeakingSession[]
+  topicProgress    UserTopicProgress[]
+
+  // New relations
+  notifications        Notification[]
+  notebookItems        NotebookItem[]
+  placementTestResults PlacementTestResult[]
+  inventory            UserInventory[]
+  collection           UserCollection[]
+  feedbacks            Feedback[]
+  userLessonProgresses UserLessonProgress[]
+  // [ADDED] Speaking bookmarks
+  speakingBookmarks    SpeakingBookmark[]
+  // [ADDED] Custom speaking scenarios created by user
+  customScenarios      SpeakingScenario[]    @relation("UserCustomScenarios")
+  // [FIXED] Missing relations
+  courseRegs           CourseRegistration[]
+  dailyMissions        UserDailyMission[]
+  activities           UserActivity[]
+  leaderboardEntries   LeaderboardEntry[]
+}
+
+model ProfileStats {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  xp                   Int      @default(0)
+  streak               Int      @default(0)
+  totalLearningMinutes Int      @default(0)
+  badges               String[] // Stored as array of strings
+  // [ADDED] Current coins/points balance for shop
+  coins                Int      @default(0)
+
+  vocabScore     Int       @default(0)
+  grammarScore   Int       @default(0)
+  speakingScore  Int       @default(0)
+  listeningScore Int       @default(0)
+  readingScore   Int       @default(0)
+  // [ADDED] Writing score
+  writingScore   Int       @default(0)
+  // [ADDED] Last streak update date
+  lastStreakDate DateTime?
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      NotificationType
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+}
+
+model Topic {
+  id            String  @id @default(cuid())
+  title         String
+  subtitle      String?
+  description   String
+  level         Level
+  wordCount     Int
+  estimatedTime Int
+  thumbnail     String?
+  // [ADDED] Category for organizing topics (e.g., "Tenses", "Vocabulary")
+  category      String?
+  // [ADDED] Subcategory for more granular organization
+  subcategory   String?
+  // [ADDED] Order for sorting topics
+  order         Int     @default(0)
+  // [ADDED] Link to parent course
+  courseId      String?
+  course        Course? @relation(fields: [courseId], references: [id])
+
+  vocabItems        VocabItem[]
+  grammarNotes      GrammarNote[]
+  quizItems         QuizItem[]
+  listeningTasks    ListeningTask[]
+  readingPassages   ReadingPassage[]
+  speakingScenarios SpeakingScenario[]
+  userProgress      UserTopicProgress[]
+  lessons           Lesson[]
+}
+
+// [ADDED] Course model for organizing topics into structured courses
+model Course {
+  id                  String   @id @default(cuid())
+  name                String
+  description         String
+  // [ADDED] Estimated completion date/duration
+  estimatedCompletion String?
+  // [ADDED] Course thumbnail/image
+  thumbnail           String?
+  // [ADDED] Course category (e.g., "IELTS", "Business", "TOEIC")
+  category            String?
+  // [ADDED] Order for sorting courses
+  order               Int      @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  topics        Topic[]
+  registrations CourseRegistration[]
+}
+
+// [ADDED] User course registration for tracking enrolled courses
+model CourseRegistration {
+  id           String    @id @default(cuid())
+  userId       String
+  // [FIXED] Added relation to User
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId     String
+  course       Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  progress     Int       @default(0)
+  status       String    @default("active") // active, completed, paused
+  registeredAt DateTime  @default(now())
+  completedAt  DateTime?
+
+  @@unique([userId, courseId])
+}
+
+model UserTopicProgress {
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topicId  String
+  topic    Topic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  progress Int    @default(0)
+
+  @@unique([userId, topicId])
+}
+
+model VocabItem {
+  id                 String       @id @default(cuid())
+  topicId            String
+  topic              Topic        @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  word               String
+  pronunciation      String
+  meaning            String
+  vietnameseMeaning  String
+  partOfSpeech       PartOfSpeech
+  collocations       String[]
+  exampleSentence    String
+  exampleTranslation String
+}
+
+model NotebookItem {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  word          String
+  // [UPDATED] Added pronunciation field for notebook items
+  pronunciation String?
+  meaning       String[]
+  // [ADDED] Vietnamese translations
+  vietnamese    String[]
+  examples      Json // Array of {en: string, vi: string}
+  // [ADDED] Part of speech
+  partOfSpeech  String?
+  // [ADDED] Level indicator
+  level         String?
+  note          String?
+  tags          String[]
+  collectionId  String // e.g. "vocabulary", "grammar"
+  masteryLevel  Int       @default(0)
+  isStarred     Boolean   @default(false)
+  // [ADDED] Last reviewed date for SRS tracking
+  lastReviewed  DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model GrammarNote {
+  id          String @id @default(cuid())
+  topicId     String
+  topic       Topic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  title       String
+  explanation String
+  examples    Json // Array of {en: string, vi: string}
+}
+
+model QuizItem {
+  id            String   @id @default(cuid())
+  topicId       String
+  topic         Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  question      String
+  type          QuizType
+  options       String[]
+  correctAnswer String
+  explanation   String
+}
+
+model ListeningTask {
+  id            String   @id @default(cuid())
+  topicId       String
+  topic         Topic    @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  type          String // dictation, mcq, etc.
+  question      String
+  audioUrl      String
+  transcript    String
+  options       String[]
+  correctAnswer String
+}
+
+model ReadingPassage {
+  id        String @id @default(cuid())
+  topicId   String
+  topic     Topic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  title     String
+  content   String
+  glossary  Json // Array of objects
+  questions Json // Array of objects
+}
+
+model SpeakingScenario {
+  id          String  @id @default(cuid())
+  topicId     String? // Optional link to a topic
+  topic       Topic?  @relation(fields: [topicId], references: [id])
+  title       String
+  description String
+  goal        String
+  difficulty  Level?
+  context     String
+  // [ADDED] Category for organizing scenarios (e.g., "Daily Life", "Professional English", "Travel")
+  category    String?
+  // [ADDED] Subcategory for specific topics (e.g., "Shopping", "Dining")
+  subcategory String?
+  // [ADDED] Estimated duration in minutes
+  duration    Int?
+  // [ADDED] Image/thumbnail for the scenario
+  image       String?
+  
+  // [ADDED] Learning objectives and key expressions (JSON)
+  objectives      Json?
+  keyExpressions  Json?
+
+  // [ADDED] Custom scenario created by user
+  createdById String?
+  createdBy   User?   @relation("UserCustomScenarios", fields: [createdById], references: [id])
+  isCustom    Boolean @default(false)
+
+  sessions  SpeakingSession[]
+  bookmarks SpeakingBookmark[]
+}
+
+// [ADDED] Model for bookmarking speaking scenarios
+model SpeakingBookmark {
+  id         String           @id @default(cuid())
+  userId     String
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scenarioId String
+  scenario   SpeakingScenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  createdAt  DateTime         @default(now())
+
+  @@unique([userId, scenarioId])
+}
+
+model SpeakingSession {
+  id         String           @id @default(cuid())
+  userId     String
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scenarioId String
+  scenario   SpeakingScenario @relation(fields: [scenarioId], references: [id], onDelete: Cascade)
+  createdAt  DateTime         @default(now())
+
+  turns SpeakingTurn[]
+}
+
+model SpeakingTurn {
+  id        String          @id @default(cuid())
+  sessionId String
+  session   SpeakingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role      Role
+  text      String
+  audioUrl  String?
+  timestamp DateTime        @default(now())
+
+  // Scores (0-100 scale based on frontend usage)
+  pronunciationScore Int?
+  fluencyScore       Int?
+  grammarScore       Int?
+  contentScore       Int?
+  // [ADDED] Relevance score for detailed feedback
+  relevanceScore     Int?
+  // [ADDED] Intonation and stress score
+  intonationScore    Int?
+
+  // [ADDED] Relation to error analysis
+  errors SpeakingTurnError[]
+}
+
+// [ADDED] Model to store detailed error analysis for speaking turns
+model SpeakingTurnError {
+  id         String       @id @default(cuid())
+  turnId     String
+  turn       SpeakingTurn @relation(fields: [turnId], references: [id], onDelete: Cascade)
+  word       String // The incorrect word
+  correction String // The corrected word
+  errorType  String // e.g., "Prepositions", "Articles", "Verb Tense Conjugation"
+}
+
+model Flashcard {
+  id             String    @id @default(cuid())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topicId        String? // Optional link to topic
+  front          String
+  back           String
+  createdAt      DateTime  @default(now())
+  lastReviewed   DateTime?
+  interval       Int       @default(0)
+  easeFactor     Float     @default(2.5)
+  repetitions    Int       @default(0)
+  // [ADDED] Next review date for SRS algorithm
+  nextReviewDate DateTime?
+}
+
+model StudyPlan {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goal          StudyGoal
+  level         Level
+  minutesPerDay Int
+  // [ADDED] Words per day goal
+  wordsPerDay   Int       @default(10)
+  // [ADDED] User interests for personalization
+  interests     String[]
+  preferences   Json? // Stores questionnaire answers
+  examDate      DateTime? // [ADDED] Target exam date
+  createdAt     DateTime  @default(now())
+
+  tasks StudyTask[]
+}
+
+model StudyTask {
+  id        String    @id @default(cuid())
+  planId    String
+  plan      StudyPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  date      DateTime
+  type      TaskType
+  completed Boolean   @default(false)
+  
+  // [ADDED] Task details for schedule view
+  title     String?
+  // Stores time as "HH:MM", e.g. "06:00"
+  startTime String? 
+  endTime   String?
+  link      String?  // URL to the lesson or resource
+}
+
+model PlacementTestResult {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  score     Int
+  level     Level
+  breakdown Json // JSON object for section scores
+  createdAt DateTime @default(now())
+}
+
+enum LessonType {
+  vocabulary
+  translate
+  listening
+  reading
+  writing
+  quiz
+}
+
+enum LessonStatus {
+  not_started
+  in_progress
+  completed
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model Lesson {
+  id          String     @id @default(cuid())
+  topicId     String
+  topic       Topic      @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  duration    String? // e.g. "10 min"
+  type        LessonType
+  order       Int        @default(0)
+
+  userProgress UserLessonProgress[]
+}
+
+model UserLessonProgress {
+  id          String       @id @default(cuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId    String
+  lesson      Lesson       @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  status      LessonStatus @default(not_started)
+  progress    Int          @default(0)
+  score       Int?
+  completedAt DateTime?
+  updatedAt   DateTime     @updatedAt
+
+  @@unique([userId, lessonId])
+}
+
+model ShopItem {
+  id          String           @id @default(cuid())
+  name        String
+  description String
+  category    ShopItemCategory
+  price       Int
+  icon        String
+  image       String?
+  details     String?
+  status      String // available, active, etc.
+
+  inventory UserInventory[]
+}
+
+model UserInventory {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId       String
+  item         ShopItem  @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  status       String // active, used
+  purchaseDate DateTime  @default(now())
+  expiryDate   DateTime?
+}
+
+model CollectionItem {
+  id       String           @id @default(cuid())
+  name     String
+  type     CollectionType
+  rarity   CollectionRarity
+  image    String
+  metadata Json? // For specific attributes like movieName, ability, etc.
+
+  users UserCollection[]
+}
+
+model UserCollection {
+  id         String         @id @default(cuid())
+  userId     String
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId     String
+  item       CollectionItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  obtainedAt DateTime       @default(now())
+}
+
+// [ADDED] Daily missions/tasks system for gamification
+model DailyMission {
+  id          String  @id @default(cuid())
+  title       String
+  description String?
+  points      Int     @default(0)
+  type        String // e.g., "login", "study", "vocab", "speaking"
+  requirement Int     @default(1) // e.g., study 30 minutes, learn 10 words
+  isActive    Boolean @default(true)
+
+  userMissions UserDailyMission[]
+}
+
+// [ADDED] User's daily mission progress
+model UserDailyMission {
+  id          String       @id @default(cuid())
+  userId      String
+  // [FIXED] Added relation to User
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  missionId   String
+  mission     DailyMission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+  progress    Int          @default(0)
+  completed   Boolean      @default(false)
+  completedAt DateTime?
+  // [FIXED] Use Date type for proper uniqueness
+  date        DateTime     @default(now()) @db.Date
+
+  @@unique([userId, missionId, date])
+}
+
+// [ADDED] User activity tracking for heatmap/statistics
+model UserActivity {
+  id           String   @id @default(cuid())
+  userId       String
+  // [FIXED] Added relation to User
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date         DateTime @db.Date
+  lessonsCount Int      @default(0)
+  minutesSpent Int      @default(0)
+  wordsLearned Int      @default(0)
+  xpEarned     Int      @default(0)
+
+  @@unique([userId, date])
+}
+
+// [ADDED] Leaderboard entries for weekly/monthly rankings
+model LeaderboardEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  // [FIXED] Added relation to User
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  period    String // e.g., "2025-W01", "2025-01" for week/month
+  type      String // "weekly", "monthly"
+  xp        Int      @default(0)
+  rank      Int?
+  createdAt DateTime @default(now())
+
+  @@unique([userId, period, type])
+}
