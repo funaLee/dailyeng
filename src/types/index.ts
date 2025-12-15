@@ -16,13 +16,26 @@ export const TopicSchema = z.object({
 export const VocabItemSchema = z.object({
   id: z.string(),
   word: z.string(),
-  pronunciation: z.string(), // IPA
+  pronunciation: z.string().optional(), // IPA generic
+  phon_br: z.string().optional(), // UK IPA
+  phon_n_am: z.string().optional(), // US IPA
   meaning: z.string(),
   vietnameseMeaning: z.string(),
-  partOfSpeech: z.enum(["noun", "verb", "adjective", "adverb", "preposition"]),
-  collocations: z.array(z.string()),
-  exampleSentence: z.string(),
-  exampleTranslation: z.string(),
+  partOfSpeech: z.string(), // Relaxed from enum for flexibility
+  collocations: z.array(z.string()).optional(),
+  exampleSentence: z.string().optional(),
+  exampleTranslation: z.string().optional(),
+  // Rich data fields
+  definitions: z.array(z.object({
+    definition_en: z.string(),
+    definition_vi: z.string(),
+    examples: z.array(z.object({
+      en: z.string(),
+      vi: z.string()
+    })).optional()
+  })).optional(),
+  synonyms: z.array(z.string()).optional(),
+  antonyms: z.array(z.string()).optional(),
 })
 
 export const GrammarNoteSchema = z.object({

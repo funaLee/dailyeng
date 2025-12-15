@@ -47,57 +47,149 @@ export const mockVocab: Record<string, VocabItem[]> = {
       id: "v1",
       word: "passport",
       pronunciation: "/ˈpæspɔːrt/",
+      phon_br: "ˈpɑːspɔːt",
+      phon_n_am: "ˈpæspɔːrt",
       meaning: "An official document for international travel",
       vietnameseMeaning: "Hộ chiếu",
       partOfSpeech: "noun",
-      collocations: ["renew a passport", "check your passport"],
+      collocations: ["renew a passport", "valid passport", "passport control"],
+      definitions: [
+        {
+          definition_en: "An official document issued by a government, certifying the holder's identity and citizenship and entitling them to travel under its protection to and from foreign countries.",
+          definition_vi: "Tài liệu chính thức do chính phủ cấp, chứng nhận danh tính và quốc tịch của người giữ và cho phép họ đi du lịch dưới sự bảo vệ của chính phủ đến và đi từ các quốc gia nước ngoài.",
+          examples: [
+            { en: "I need to renew my passport before the trip.", vi: "Tôi cần gia hạn hộ chiếu trước chuyến đi." },
+            { en: "Please show your passport at the border.", vi: "Vui lòng xuất trình hộ chiếu tại biên giới." }
+          ]
+        }
+      ],
+      synonyms: ["travel document", "identification"],
       exampleSentence: "I need to renew my passport before the trip.",
       exampleTranslation: "Tôi cần gia hạn hộ chiếu trước chuyến đi.",
     },
     {
       id: "v2",
-      word: "luggage",
-      pronunciation: "/ˈlʌɡɪdʒ/",
-      meaning: "Bags and suitcases for carrying belongings",
-      vietnameseMeaning: "Hành lý",
+      word: "itinerary",
+      pronunciation: "/aɪˈtɪnəreri/",
+      phon_br: "aɪˈtɪnərəri",
+      phon_n_am: "aɪˈtɪnəreri",
+      meaning: "A planned route or journey",
+      vietnameseMeaning: "Lịch trình",
       partOfSpeech: "noun",
-      collocations: ["pack luggage", "check luggage"],
-      exampleSentence: "Please put your luggage on the conveyor belt.",
-      exampleTranslation: "Vui lòng đặt hành lý của bạn lên băng chuyền.",
+      collocations: ["detailed itinerary", "plan an itinerary", "travel itinerary"],
+      definitions: [
+        {
+          definition_en: "A planned route or journey.",
+          definition_vi: "Lộ trình hoặc hành trình đã lên kế hoạch.",
+          examples: [
+            { en: "We planned a detailed itinerary for our trip to Japan.", vi: "Chúng tôi đã lên một lịch trình chi tiết cho chuyến đi Nhật Bản." }
+          ]
+        },
+        {
+          definition_en: "A document recording a route or journey.",
+          definition_vi: "Tài liệu ghi lại lộ trình hoặc hành trình.",
+          examples: [
+            { en: "Send me your itinerary so I know when to pick you up.", vi: "Gửi tôi lịch trình của bạn để tôi biết khi nào đón." }
+          ]
+        }
+      ],
+      synonyms: ["schedule", "program", "route", "plan"],
+      exampleSentence: "Our itinerary includes visits to three countries.",
+      exampleTranslation: "Lịch trình của chúng tôi bao gồm thăm ba quốc gia.",
     },
     {
       id: "v3",
       word: "accommodation",
       pronunciation: "/əˌkɒməˈdeɪʃən/",
+      phon_br: "əˌkɒməˈdeɪʃn",
+      phon_n_am: "əˌkɑːməˈdeɪʃn",
       meaning: "A place to stay during travel",
       vietnameseMeaning: "Chỗ ở",
       partOfSpeech: "noun",
-      collocations: ["book accommodation", "find accommodation"],
+      collocations: ["book accommodation", "luxury accommodation", "student accommodation"],
+      definitions: [
+        {
+          definition_en: "A room, group of rooms, or building in which someone may live or stay.",
+          definition_vi: "Phòng, nhóm phòng hoặc tòa nhà nơi ai đó có thể sống hoặc ở lại.",
+          examples: [
+            { en: "The price includes flights and accommodation.", vi: "Giá bao gồm vé máy bay và chỗ ở." }
+          ]
+        }
+      ],
+      synonyms: ["housing", "lodging", "quarters"],
       exampleSentence: "We booked accommodation near the beach.",
       exampleTranslation: "Chúng tôi đã đặt chỗ ở gần bãi biển.",
     },
     {
       id: "v4",
-      word: "itinerary",
-      pronunciation: "/aɪˈtɪnəreri/",
-      meaning: "A planned route or journey",
-      vietnameseMeaning: "Lịch trình",
+      word: "destination",
+      pronunciation: "/ˌdestɪˈneɪʃn/",
+      phon_br: "ˌdestɪˈneɪʃn",
+      phon_n_am: "ˌdestɪˈneɪʃn",
+      meaning: "The place to which someone or something is going or being sent.",
+      vietnameseMeaning: "Điểm đến",
       partOfSpeech: "noun",
-      collocations: ["plan an itinerary", "follow an itinerary"],
-      exampleSentence: "Our itinerary includes visits to three countries.",
-      exampleTranslation: "Lịch trình của chúng tôi bao gồm thăm ba quốc gia.",
+      collocations: ["final destination", "holiday destination", "tourist destination"],
+      definitions: [
+        {
+          definition_en: "The place to which someone or something is going or being sent.",
+          definition_vi: "Nơi ai đó hoặc cái gì đó đang đi tới.",
+          examples: [
+            { en: "Paris is a popular tourist destination.", vi: "Paris là một điểm đến du lịch phổ biến." }
+          ]
+        }
+      ],
+      synonyms: ["stop", "terminus", "goal"],
+      exampleSentence: "We reached our destination after a long drive.",
+      exampleTranslation: "Chúng tôi đã đến điểm đến sau một chặng đường dài.",
     },
     {
       id: "v5",
-      word: "souvenir",
-      pronunciation: "/ˌsuːvəˈnɪr/",
-      meaning: "A memento or gift from a place visited",
-      vietnameseMeaning: "Quà lưu niệm",
+      word: "excursion",
+      pronunciation: "/ɪkˈskɜːrʒn/",
+      phon_br: "ɪkˈskɜːʃn",
+      phon_n_am: "ɪkˈskɜːrʒn",
+      meaning: "A short journey or trip, especially one engaged in as a leisure activity.",
+      vietnameseMeaning: "Chuyến tham quan, dã ngoại",
       partOfSpeech: "noun",
-      collocations: ["buy souvenirs", "collect souvenirs"],
-      exampleSentence: "I bought some souvenirs from the local market.",
-      exampleTranslation: "Tôi đã mua một số quà lưu niệm từ chợ địa phương.",
+      collocations: ["go on an excursion", "day excursion", "school excursion"],
+      definitions: [
+        {
+          definition_en: "A short journey or trip, especially one engaged in as a leisure activity.",
+          definition_vi: "Một chuyến đi ngắn, đặc biệt là để giải trí.",
+          examples: [
+            { en: "We went on a day excursion to the mountains.", vi: "Chúng tôi đã đi dã ngoại trong ngày đến vùng núi." }
+          ]
+        }
+      ],
+      synonyms: ["trip", "tour", "outing", "expedition"],
+      antonyms: ["stay"],
+      exampleSentence: "The cruise includes several shore excursions.",
+      exampleTranslation: "Chuyến du thuyền bao gồm một vài chuyến tham quan trên bờ.",
     },
+    {
+      id: "v6",
+      word: "sightseeing",
+      pronunciation: "/ˈsaɪtsiːɪŋ/",
+      phon_br: "ˈsaɪtsiːɪŋ",
+      phon_n_am: "ˈsaɪtsiːɪŋ",
+      meaning: "The activity of visiting places of interest in a particular location.",
+      vietnameseMeaning: "Tham quan, ngắm cảnh",
+      partOfSpeech: "noun",
+      collocations: ["go sightseeing", "sightseeing tour", "sightseeing bus"],
+      definitions: [
+        {
+          definition_en: "The activity of visiting places of interest in a particular location.",
+          definition_vi: "Hoạt động thăm quan các địa điểm thú vị tại một địa điểm cụ thể.",
+          examples: [
+            { en: "We did a lot of sightseeing in Rome.", vi: "Chúng tôi đã đi tham quan rất nhiều ở Rome." }
+          ]
+        }
+      ],
+      synonyms: ["tourism", "viewing"],
+      exampleSentence: "I love going sightseeing when I visit new cities.",
+      exampleTranslation: "Tôi thích đi ngắm cảnh khi đến thăm các thành phố mới.",
+    }
   ],
   "2": [
     {
