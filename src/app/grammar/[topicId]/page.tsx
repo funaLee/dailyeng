@@ -168,14 +168,14 @@ function getTopicData(topicId: string) {
       topicId === "1"
         ? "Travel Grammar"
         : topicId === "2"
-        ? "Food & Dining Grammar"
-        : "Job Interview Grammar",
+          ? "Food & Dining Grammar"
+          : "Job Interview Grammar",
     description:
       topicId === "1"
         ? "Master grammar rules for travel conversations"
         : topicId === "2"
-        ? "Learn grammar for food and dining situations"
-        : "Professional grammar for job interviews",
+          ? "Learn grammar for food and dining situations"
+          : "Professional grammar for job interviews",
     level: "A2",
   };
 }
@@ -206,8 +206,6 @@ export default async function GrammarTopicPage({ params }: PageProps) {
       topicId={topicId}
       topic={topic}
       grammarNotes={grammarNotes}
-      lessonGroups={mockGrammarLessonGroups}
-      courseSections={mockGrammarCourseSections}
     />
   );
 }
