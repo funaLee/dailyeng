@@ -27,6 +27,9 @@ import {
   Lock,
   CheckCircle,
   XCircle,
+  Eye,
+  EyeOff,
+  ShieldX,
 } from "lucide-react";
 import {
   Select,
@@ -44,6 +47,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { updateUserProfile } from "@/actions/user";
+import { changePassword } from "@/actions/auth";
 import { cn } from "@/lib/utils";
 import { Level } from "@prisma/client";
 
@@ -93,6 +97,202 @@ function formatDate(date: Date): string {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const year = date.getFullYear();
   return `${day}/${month}/${year}`;
+}
+
+// Change Password Section Component
+function ChangePasswordSection({ isGoogleUser }: { isGoogleUser: boolean }) {
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(false);
+
+    // Validate passwords match
+    if (newPassword !== confirmPassword) {
+      setError("New passwords do not match");
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setError("New password must be at least 8 characters");
+      return;
+    }
+
+    startTransition(async () => {
+      const result = await changePassword(currentPassword, newPassword);
+
+      if (result.success) {
+        setSuccess(true);
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+        // Hide success after 3 seconds
+        setTimeout(() => setSuccess(false), 3000);
+      } else {
+        setError(result.error || "Failed to change password");
+      }
+    });
+  };
+
+  // Google users cannot change password
+  if (isGoogleUser) {
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+            <ShieldX className="h-8 w-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground mb-2">
+            Password Change Not Available
+          </h3>
+          <p className="text-muted-foreground max-w-sm">
+            You signed in with Google, so you can only use Google to access your
+            account. Password management is handled by Google.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Success message */}
+      {success && (
+        <div className="p-4 rounded-xl bg-green-50 border border-green-200 flex items-center gap-3">
+          <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+          <p className="text-sm text-green-700 font-medium">
+            Password changed successfully!
+          </p>
+        </div>
+      )}
+
+      {/* Error message */}
+      {error && (
+        <div className="p-4 rounded-xl bg-red-50 border border-red-200 flex items-center gap-3">
+          <XCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Current Password */}
+        <div>
+          <label className="block text-sm font-semibold text-foreground mb-2">
+            Current Password<span className="text-destructive">*</span>
+          </label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              type={showCurrentPassword ? "text" : "password"}
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              placeholder="Enter your current password"
+              className="pl-10 pr-10 border-input"
+              required
+              disabled={isPending}
+            />
+            <button
+              type="button"
+              onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {showCurrentPassword ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* New Password */}
+        <div>
+          <label className="block text-sm font-semibold text-foreground mb-2">
+            New Password<span className="text-destructive">*</span>
+          </label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              type={showNewPassword ? "text" : "password"}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Enter your new password"
+              className="pl-10 pr-10 border-input"
+              required
+              disabled={isPending}
+              minLength={8}
+            />
+            <button
+              type="button"
+              onClick={() => setShowNewPassword(!showNewPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {showNewPassword ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
+            </button>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            Must be at least 8 characters
+          </p>
+        </div>
+
+        {/* Confirm New Password */}
+        <div>
+          <label className="block text-sm font-semibold text-foreground mb-2">
+            Confirm New Password<span className="text-destructive">*</span>
+          </label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+            <Input
+              type={showConfirmPassword ? "text" : "password"}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Confirm your new password"
+              className="pl-10 pr-10 border-input"
+              required
+              disabled={isPending}
+              minLength={8}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {showConfirmPassword ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Submit Button */}
+        <div className="pt-2">
+          <Button
+            type="submit"
+            disabled={isPending}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-8"
+          >
+            <Save className="h-4 w-4 mr-2" />
+            {isPending ? "Changing..." : "Change Password"}
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
 }
 
 // Toast Reader Component (handles URL params)
@@ -723,11 +923,7 @@ export default function SettingsPageClient({
 
                 {/* Change Password Tab */}
                 {activeTab === "password" && (
-                  <div className="space-y-6">
-                    <p className="text-muted-foreground">
-                      Change password functionality coming soon...
-                    </p>
-                  </div>
+                  <ChangePasswordSection isGoogleUser={isGoogleUser} />
                 )}
 
                 {/* Link Account Tab */}

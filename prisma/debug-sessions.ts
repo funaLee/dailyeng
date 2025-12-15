@@ -17,7 +17,7 @@ async function main() {
   });
 
   console.log("Most recent 10 sessions:");
-  sessions.forEach((s, i) => {
+  sessions.forEach((s: any, i: number) => {
     console.log(
       `${i + 1}. userId: "${s.userId}", scenarioId: ${s.scenarioId.substring(
         0,
@@ -33,7 +33,7 @@ async function main() {
     select: { id: true, email: true, name: true },
   });
   console.log("\nUsers in database:");
-  users.forEach((u) =>
+  users.forEach((u: any) =>
     console.log(`  - id: "${u.id}", email: ${u.email}, name: ${u.name}`)
   );
 }
