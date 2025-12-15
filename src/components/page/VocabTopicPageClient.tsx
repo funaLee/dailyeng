@@ -2,236 +2,148 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  TopicHeader,
-  CourseOutlineSidebar,
-  LessonsContentView,
-  GradesView,
-  CourseInfoView,
-} from "@/components/hub";
+import { TopicHeader } from "@/components/hub";
 import { ProtectedRoute } from "@/components/auth/protected-route";
-
-interface Lesson {
-  id: string;
-  title: string;
-  duration: string;
-  status: "not_started" | "in_progress" | "completed";
-  score?: number;
-  progress?: number;
-}
-
-interface LessonGroupData {
-  id: string;
-  title: string;
-  type:
-    | "vocabulary"
-    | "translate"
-    | "listening"
-    | "reading"
-    | "writing"
-    | "quiz";
-  lessons: Lesson[];
-}
-
-interface CourseTopic {
-  id: string;
-  title: string;
-  isExpanded?: boolean;
-  colorVariant?: "pink" | "blue" | "teal";
-  subTopics: { id: string; title: string }[];
-}
-
-interface LessonGrade {
-  id: string;
-  title: string;
-  type: string;
-  score: number | null;
-  status: "not_started" | "in_progress" | "completed";
-}
-
-interface SkillScore {
-  skill: string;
-  score: number;
-  fullMark: number;
-}
-
-interface CourseInfoTopic {
-  id: string;
-  title: string;
-  description: string;
-  subTopics: {
-    id: string;
-    title: string;
-    description: string;
-    lessons: {
-      id: string;
-      title: string;
-      description: string;
-      duration: string;
-      type: string;
-    }[];
-  }[];
-}
-
-interface CourseInfo {
-  courseName: string;
-  courseDescription: string;
-  totalHours: string;
-  totalLessons: number;
-  totalTopics: number;
-  totalSubTopics: number;
-  level: string;
-  targetAudience: string;
-  objectives: string[];
-  topics: CourseInfoTopic[];
-}
-
-interface TopicData {
-  id: string;
-  title: string;
-  description: string;
-  level: string;
-  thumbnail?: string;
-}
+import { Button } from "@/components/ui/button";
+import { VocabFlashcardStack } from "@/components/learning/VocabFlashcardStack";
+import { VocabPracticeMode } from "@/components/learning/VocabPracticeMode";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { Flame, BookOpen, GraduationCap, ChevronLeft } from "lucide-react";
 
 interface VocabTopicPageClientProps {
   topicId: string;
-  topic: TopicData;
-  vocab: any[];
-  courseData: {
-    courseName: string;
-    topics: CourseTopic[];
+  topic: {
+    id: string;
+    title: string;
+    description: string;
+    level: string;
   };
-  subTopicLessons: Record<string, LessonGroupData[]>;
-  lessonGrades: LessonGrade[];
-  skillScores: SkillScore[];
-  courseInfo: CourseInfo;
+  vocab: any[];
 }
 
 export default function VocabTopicPageClient({
   topicId,
   topic,
   vocab,
-  courseData,
-  subTopicLessons,
-  lessonGrades,
-  skillScores,
-  courseInfo,
 }: VocabTopicPageClientProps) {
   const router = useRouter();
-  const [activeSubTopic, setActiveSubTopic] = useState<string>("dogs");
-  const [activeView, setActiveView] = useState<"outline" | "grades" | "info">(
-    "outline"
-  );
+  const [learningPhase, setLearningPhase] = useState<"study" | "practice">("study");
+  const [currentWordIndex, setCurrentWordIndex] = useState(0);
 
-  const handleSubTopicSelect = (subTopicId: string) => {
-    setActiveSubTopic(subTopicId);
-    setActiveView("outline");
+  const [wordStatuses, setWordStatuses] = useState<Record<string, string>>({});
+
+  // Use all vocab, no level filtering for now as per user request to show list
+  const displayVocab = vocab;
+
+  const handleRate = (wordId: string, rating: string) => {
+    setWordStatuses(prev => ({
+      ...prev,
+      [wordId]: rating
+    }));
   };
 
-  const handleStartLesson = (lessonId: string) => {
-    router.push(`/vocab/${topicId}/lesson/${lessonId}`);
-  };
-
-  const handleViewChange = (view: "outline" | "grades" | "info") => {
-    setActiveView(view);
-  };
-
-  const getCurrentSubTopicTitle = () => {
-    for (const topic of courseData.topics) {
-      const subTopic = topic.subTopics.find((st) => st.id === activeSubTopic);
-      if (subTopic) return subTopic.title;
-    }
-    return "Lessons";
-  };
-
-  const getCurrentLessonGroups = () => {
-    return subTopicLessons[activeSubTopic] || [];
-  };
-
-  if (!topic) {
-    return (
-      <ProtectedRoute>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-          <div className="h-96 bg-muted animate-pulse rounded-2xl" />
-        </div>
-      </ProtectedRoute>
-    );
-  }
-
-  const wordCount = vocab.length || 12;
-
-  const renderRightContent = () => {
-    switch (activeView) {
-      case "grades":
-        return (
-          <GradesView
-            lessonGrades={lessonGrades}
-            skillScores={skillScores}
-            overallProgress={12}
-            averageScore={85}
-          />
-        );
-      case "info":
-        return (
-          <CourseInfoView
-            courseName={courseInfo.courseName}
-            courseDescription={courseInfo.courseDescription}
-            totalHours={courseInfo.totalHours}
-            totalLessons={courseInfo.totalLessons}
-            totalTopics={courseInfo.totalTopics}
-            totalSubTopics={courseInfo.totalSubTopics}
-            level={courseInfo.level}
-            targetAudience={courseInfo.targetAudience}
-            objectives={courseInfo.objectives}
-            topics={courseInfo.topics}
-          />
-        );
-      case "outline":
-      default:
-        return (
-          <LessonsContentView
-            subTopicTitle={getCurrentSubTopicTitle()}
-            lessonGroups={getCurrentLessonGroups()}
-            onLessonClick={handleStartLesson}
-          />
-        );
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "again": return "bg-red-500";
+      case "hard": return "bg-orange-500";
+      case "good": return "bg-yellow-500";
+      case "easy": return "bg-green-500";
+      case "master": return "bg-blue-500";
+      default: return "bg-slate-200";
     }
   };
 
   return (
     <ProtectedRoute>
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 space-y-4 h-[calc(100vh-80px)] flex flex-col">
         {/* Topic Header */}
-        <TopicHeader
-          title={topic.title}
-          description={topic.description}
-          wordCount={wordCount}
-          duration="30 mins"
-          levels={topic.level === "A2" ? ["A2"] : [topic.level, "A2"]}
-          backUrl="/vocab"
-          backLabel="Back to Topic"
-        />
+        {/* Header with Back Button */}
+        <div className="flex items-center justify-between">
+          <Button
+            variant="ghost"
+            className="gap-2 -ml-2 text-slate-500 hover:text-slate-900"
+            onClick={() => router.push('/vocab')}
+          >
+            <ChevronLeft className="h-5 w-5" />
+            Back to Vocabulary Hub
+          </Button>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
-          {/* Left Sidebar - Course Outline (only topics and sub-topics) */}
-          <div className="lg:col-span-1">
-            <CourseOutlineSidebar
-              courseName={courseData.courseName}
-              topics={courseData.topics}
-              activeSubTopic={activeSubTopic}
-              onSubTopicSelect={handleSubTopicSelect}
-              showGrades={true}
-              showInfo={true}
-              activeView={activeView}
-              onViewChange={handleViewChange}
-            />
-          </div>
-
-          {/* Right Content - Dynamic based on activeView */}
-          <div className="lg:col-span-3">{renderRightContent()}</div>
+          <h1 className="text-xl font-bold text-slate-800 hidden sm:block">
+            {topic.title}
+          </h1>
         </div>
+
+        {/* Level Controls */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-3 rounded-2xl border-2 border-border shadow-sm">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-slate-500">Mode:</span>
+            <div className="flex gap-2">
+              <Button
+                variant={learningPhase === "study" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setLearningPhase("study")}
+                className="gap-2"
+              >
+                <BookOpen className="h-4 w-4" /> Learn
+              </Button>
+              <Button
+                variant={learningPhase === "practice" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setLearningPhase("practice")}
+                className="gap-2"
+              >
+                <Flame className="h-4 w-4" /> Practice
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Learning Content */}
+        <div className="flex-1 min-h-0">
+          {learningPhase === "study" ? (
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 h-full">
+              {/* Left: Vocab List */}
+              <div className="md:col-span-4 lg:col-span-3 bg-white rounded-xl border-2 border-border shadow-sm overflow-hidden flex flex-col h-full">
+                <div className="p-3 border-b border-border bg-slate-50 flex justify-between items-center">
+                  <h3 className="font-bold text-slate-700 text-lg">Words</h3>
+                  <span className="text-[12px] bg-white px-2 py-0.5 rounded-full border border-border text-slate-500">{displayVocab.length}</span>
+                </div>
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
+                  {displayVocab.map((word, idx) => (
+                    <button
+                      key={word.id}
+                      onClick={() => setCurrentWordIndex(idx)}
+                      className={`w-full text-left px-3 py-3 rounded-lg transition-all flex items-center justify-between group text-md ${idx === currentWordIndex
+                        ? "bg-primary-50 text-primary-700 font-semibold ring-1 ring-primary-200"
+                        : "hover:bg-slate-50 text-slate-600"
+                        }`}
+                    >
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${wordStatuses[word.id] ? getStatusColor(wordStatuses[word.id]) : "bg-slate-200"}`} />
+                        <span className="truncate">{word.word}</span>
+                      </div>
+                      {idx === currentWordIndex && <div className="w-1.5 h-1.5 rounded-full bg-primary-500 flex-shrink-0" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Right: Flashcards */}
+              <div className="md:col-span-8 lg:col-span-9 h-full flex flex-col">
+                <VocabFlashcardStack
+                  words={displayVocab}
+                  currentIndex={currentWordIndex}
+                  onIndexChange={setCurrentWordIndex}
+                  onRate={handleRate}
+                  onComplete={() => setLearningPhase("practice")}
+                />
+              </div>
+            </div>
+          ) : (
+            <VocabPracticeMode />
+          )}
+        </div>
+
       </div>
     </ProtectedRoute>
   );

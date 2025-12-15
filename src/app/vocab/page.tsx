@@ -356,14 +356,65 @@ const mindmapData = [
   },
 ];
 
+
 export default async function VocabPage() {
   // Mock data - will be replaced with actual data fetching from DB/API later
-  const topics = mockTopics;
+  // Map mockTopics to VocabTopic interface with correct categories
+  const vocabTopics = mockTopics.map(topic => {
+    let category = "Daily Life";
+    let subcategory = "Travel";
+
+    if (topic.id === "1") {
+      category = "Daily Life";
+      subcategory = "Travel";
+    } else if (topic.id === "2") {
+      category = "Daily Life";
+      subcategory = "Food & Dining";
+    } else if (topic.id === "3") {
+      category = "Professional";
+      subcategory = "Job Interview";
+    }
+
+    return {
+      id: topic.id,
+      title: topic.title,
+      description: topic.description,
+      level: topic.level,
+      category,
+      subcategory,
+      lessonCount: topic.wordCount,
+      estimatedTime: topic.estimatedTime,
+      progress: topic.progress || 0,
+      thumbnail: topic.thumbnail
+    };
+  });
+
+  // Construct vocabGroups
+  const vocabGroups = [
+    {
+      id: "daily-life",
+      name: "Daily Life",
+      subcategories: ["Travel", "Food & Dining"],
+      topics: vocabTopics.filter(t => t.category === "Daily Life")
+    },
+    {
+      id: "professional",
+      name: "Professional",
+      subcategories: ["Job Interview"],
+      topics: vocabTopics.filter(t => t.category === "Professional")
+    },
+    {
+      id: "academic",
+      name: "Academic",
+      subcategories: ["Science"],
+      topics: []
+    }
+  ];
 
   return (
     <VocabPageClient
-      courses={COURSES}
-      topics={topics}
+      vocabGroups={vocabGroups as any} // Cast to any to bypass strict TopicGroup check if interface slightly differs
+      vocabTopics={vocabTopics}
       currentTopic={CURRENT_TOPIC}
       dictionaryWords={dictionaryWords}
       mindmapData={mindmapData}

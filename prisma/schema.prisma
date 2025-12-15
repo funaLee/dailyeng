@@ -244,6 +244,8 @@ model NotebookItem {
   isStarred     Boolean   @default(false)
   // [ADDED] Last reviewed date for SRS tracking
   lastReviewed  DateTime?
+  // [ADDED] Next review date for SRS algorithm
+  nextReview    DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }

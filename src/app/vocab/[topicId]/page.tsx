@@ -47,12 +47,12 @@ const subTopicLessons: Record<
     id: string;
     title: string;
     type:
-      | "vocabulary"
-      | "translate"
-      | "listening"
-      | "reading"
-      | "writing"
-      | "quiz";
+    | "vocabulary"
+    | "translate"
+    | "listening"
+    | "reading"
+    | "writing"
+    | "quiz";
     lessons: Array<{
       id: string;
       title: string;
@@ -558,18 +558,18 @@ export default async function TopicDetailPage({ params }: PageProps) {
   const foundTopic = mockTopics.find((t) => t.id === topicId);
   const topic = foundTopic
     ? {
-        id: foundTopic.id,
-        title: foundTopic.title,
-        description: foundTopic.description,
-        level: foundTopic.level,
-        thumbnail: foundTopic.thumbnail,
-      }
+      id: foundTopic.id,
+      title: foundTopic.title,
+      description: foundTopic.description,
+      level: foundTopic.level,
+      thumbnail: foundTopic.thumbnail,
+    }
     : {
-        id: topicId,
-        title: "Topic",
-        description: "Topic description",
-        level: "A2",
-      };
+      id: topicId,
+      title: "Topic",
+      description: "Topic description",
+      level: "A2",
+    };
 
   const vocab = mockVocab[topicId] || [];
 
@@ -578,11 +578,6 @@ export default async function TopicDetailPage({ params }: PageProps) {
       topicId={topicId}
       topic={topic}
       vocab={vocab}
-      courseData={mockCourseData}
-      subTopicLessons={subTopicLessons}
-      lessonGrades={mockLessonGrades}
-      skillScores={mockSkillScores}
-      courseInfo={mockCourseInfo}
     />
   );
 }
