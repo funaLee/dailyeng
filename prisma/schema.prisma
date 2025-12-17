@@ -67,13 +67,14 @@ enum NotificationType {
 enum HubType {
   speaking
   grammar
+  vocab
 }
 
 model User {
   id            String    @id @default(cuid())
-  name          String?
+  name          String // Required - validated in auth.ts
   email         String    @unique
-  emailVerified DateTime?
+  emailVerified DateTime? // Required by PrismaAdapter for OAuth
   password      String?
   image         String?
 
@@ -115,6 +116,8 @@ model User {
   dailyMissions        UserDailyMission[]
   activities           UserActivity[]
   leaderboardEntries   LeaderboardEntry[]
+  // [ADDED] Vocabulary word progress per user
+  vocabProgress        UserVocabProgress[]
 }
 
 model ProfileStats {
@@ -213,13 +216,39 @@ model VocabItem {
   topicId            String
   topic              Topic        @relation(fields: [topicId], references: [id], onDelete: Cascade)
   word               String
-  pronunciation      String
+  pronunciation      String? // Generic IPA (optional)
+  phonBr             String? // [ADDED] UK pronunciation
+  phonNAm            String? // [ADDED] US pronunciation
   meaning            String
   vietnameseMeaning  String
   partOfSpeech       PartOfSpeech
   collocations       String[]
   exampleSentence    String
   exampleTranslation String
+  // [ADDED] Rich definitions with examples (JSON array)
+  definitions        Json? // Array of { definition_en, definition_vi, examples: [{ en, vi }] }
+  // [ADDED] Word relationships
+  synonyms           String[]
+  antonyms           String[]
+
+  // [ADDED] User progress relation
+  userProgress UserVocabProgress[]
+}
+
+// [ADDED] Model for tracking user's mastery of individual vocabulary words
+model UserVocabProgress {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vocabItemId  String
+  vocabItem    VocabItem @relation(fields: [vocabItemId], references: [id], onDelete: Cascade)
+  masteryLevel Int       @default(0) // 0-100
+  lastReviewed DateTime?
+  nextReview   DateTime? // For SRS algorithm
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([userId, vocabItemId])
 }
 
 model NotebookItem {

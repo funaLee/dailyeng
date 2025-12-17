@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
+  trustHost: true, // Trust host for production builds (fixes UntrustedHost error)
   providers: [
     // Google OAuth Provider
     Google({
@@ -69,6 +70,36 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
   // Callbacks
   callbacks: {
+    // Authorized callback for middleware - handles authentication logic
+    authorized({ auth, request: { nextUrl } }) {
+      const isLoggedIn = !!auth?.user;
+      const pathname = nextUrl.pathname;
+
+      // Routes that require authentication
+      const isProtectedRoute = pathname.startsWith("/user");
+
+      // Auth routes - users already logged in should be redirected away
+      const isAuthRoute =
+        pathname.startsWith("/auth/signin") ||
+        pathname.startsWith("/auth/signup");
+
+      // If user is on auth page and already logged in, redirect to home
+      if (isAuthRoute && isLoggedIn) {
+        return Response.redirect(new URL("/", nextUrl));
+      }
+
+      // If route is protected and user is not logged in, redirect to signin
+      if (isProtectedRoute && !isLoggedIn) {
+        const callbackUrl = encodeURIComponent(pathname + nextUrl.search);
+        return Response.redirect(
+          new URL(`/auth/signin?callbackUrl=${callbackUrl}`, nextUrl)
+        );
+      }
+
+      // Allow the request to continue
+      return true;
+    },
+
     async jwt({ token, user, account }) {
       // Lưu user id vào token khi đăng nhập lần đầu
       if (user) {
