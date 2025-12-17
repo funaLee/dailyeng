@@ -2,6 +2,9 @@ import { getUserProfile } from "@/actions/user";
 import SettingsPageClient from "@/components/page/SettingsPageClient";
 import { redirect } from "next/navigation";
 
+// Force dynamic rendering because this page uses auth headers
+export const dynamic = "force-dynamic";
+
 export default async function SettingsPage() {
   const { user, isGoogleUser, error } = await getUserProfile();
 
