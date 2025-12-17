@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -20,11 +20,82 @@ import {
   ArrowRight,
   Check,
   Loader2,
+  HelpCircle,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export interface SignUpPageClientProps {
   benefits: string[];
 }
+
+// Email validation regex
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Password strength calculation
+type PasswordStrength = {
+  level: 0 | 1 | 2 | 3 | 4;
+  label: string;
+  color: string;
+  bgColor: string;
+};
+
+const getPasswordStrength = (password: string): PasswordStrength => {
+  if (!password || password.length < 8) {
+    return {
+      level: 0,
+      label: "Too Short",
+      color: "text-gray-400",
+      bgColor: "bg-gray-200",
+    };
+  }
+
+  const hasLetter = /[a-zA-Z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasUppercase = /[A-Z]/.test(password);
+  const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+  // Level 1: At least 8 chars (weak)
+  if (!hasLetter || !hasNumber) {
+    return {
+      level: 1,
+      label: "Weak",
+      color: "text-error-500",
+      bgColor: "bg-error-500",
+    };
+  }
+
+  // Level 2: Has letters + numbers (fair - minimum acceptable)
+  if (!hasUppercase) {
+    return {
+      level: 2,
+      label: "Fair",
+      color: "text-warning-500",
+      bgColor: "bg-warning-500",
+    };
+  }
+
+  // Level 3: Has letters + numbers + uppercase (good)
+  if (!hasSpecial) {
+    return {
+      level: 3,
+      label: "Good",
+      color: "text-success-500",
+      bgColor: "bg-success-500",
+    };
+  }
+
+  // Level 4: Has all (strong)
+  return {
+    level: 4,
+    label: "Strong",
+    color: "text-primary-500",
+    bgColor: "bg-primary-500",
+  };
+};
 
 export default function SignUpPageClient({ benefits }: SignUpPageClientProps) {
   const router = useRouter();
@@ -35,13 +106,40 @@ export default function SignUpPageClient({ benefits }: SignUpPageClientProps) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  // Real-time validation states
+  const [nameTouched, setNameTouched] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
+
+  // Computed validations
+  const trimmedName = name.trim();
+  const isNameValid = trimmedName.length >= 2 && trimmedName.length <= 50;
+  const isEmailValid = emailRegex.test(email);
+  const passwordStrength = getPasswordStrength(password);
+  const isPasswordValid = passwordStrength.level >= 2; // Fair or above
+
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
+    // Client-side validation
+    if (!isNameValid) {
+      setError("Name must be between 2 and 50 characters");
+      return;
+    }
+
+    if (!isEmailValid) {
+      setError("Please enter a valid email address");
+      return;
+    }
+
+    if (!isPasswordValid) {
+      setError("Password must contain both letters and numbers");
+      return;
+    }
+
     startTransition(async () => {
       // First, register the user
-      const registerResult = await registerUser(name, email, password);
+      const registerResult = await registerUser(trimmedName, email, password);
 
       if (!registerResult.success) {
         setError(registerResult.error || "Đăng ký thất bại");
@@ -87,7 +185,7 @@ export default function SignUpPageClient({ benefits }: SignUpPageClientProps) {
             </p>
           </div>
 
-          <Card className="p-8 border-2 border-primary-100 rounded-3xl shadow-xl shadow-primary-100/20">
+          <Card className="p-8 border-2 border-primary-100 rounded-3xl shadow-xl shadow-primary-100/20 bg-white">
             {error && (
               <div className="mb-6 p-4 rounded-2xl bg-error-50 border border-error-200 flex gap-3">
                 <AlertCircle className="h-5 w-5 text-error-500 flex-shrink-0 mt-0.5" />
@@ -96,6 +194,7 @@ export default function SignUpPageClient({ benefits }: SignUpPageClientProps) {
             )}
 
             <form onSubmit={handleSignUp} className="space-y-5">
+              {/* Full Name Field */}
               <div>
                 <label className="text-sm font-semibold text-foreground">
                   Full Name
@@ -104,13 +203,24 @@ export default function SignUpPageClient({ benefits }: SignUpPageClientProps) {
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  onBlur={() => setNameTouched(true)}
                   placeholder="John Doe"
-                  className="w-full mt-2 px-4 py-3 rounded-xl border-2 border-gray-200 bg-background focus:outline-none focus:border-primary-400 focus:ring-4 focus:ring-primary-100 transition-all"
+                  className={`w-full mt-2 px-4 py-3 rounded-xl border-2 bg-background focus:outline-none focus:ring-4 transition-all ${
+                    nameTouched && !isNameValid && name.length > 0
+                      ? "border-error-300 focus:border-error-400 focus:ring-error-100"
+                      : "border-gray-200 focus:border-primary-400 focus:ring-primary-100"
+                  }`}
                   required
                   disabled={isLoading}
                 />
+                {nameTouched && !isNameValid && name.length > 0 && (
+                  <p className="text-xs text-error-500 mt-1">
+                    Name must be between 2 and 50 characters
+                  </p>
+                )}
               </div>
 
+              {/* Email Field */}
               <div>
                 <label className="text-sm font-semibold text-foreground">
                   Email
@@ -119,17 +229,82 @@ export default function SignUpPageClient({ benefits }: SignUpPageClientProps) {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  onBlur={() => setEmailTouched(true)}
                   placeholder="you@example.com"
-                  className="w-full mt-2 px-4 py-3 rounded-xl border-2 border-gray-200 bg-background focus:outline-none focus:border-primary-400 focus:ring-4 focus:ring-primary-100 transition-all"
+                  className={`w-full mt-2 px-4 py-3 rounded-xl border-2 bg-background focus:outline-none focus:ring-4 transition-all ${
+                    emailTouched && !isEmailValid && email.length > 0
+                      ? "border-error-300 focus:border-error-400 focus:ring-error-100"
+                      : "border-gray-200 focus:border-primary-400 focus:ring-primary-100"
+                  }`}
                   required
                   disabled={isLoading}
                 />
+                {emailTouched && !isEmailValid && email.length > 0 && (
+                  <p className="text-xs text-error-500 mt-1">
+                    Please enter a valid email address (e.g., name@example.com)
+                  </p>
+                )}
               </div>
 
+              {/* Password Field with Strength Indicator */}
               <div>
-                <label className="text-sm font-semibold text-foreground">
-                  Password
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-semibold text-foreground">
+                    Password
+                  </label>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        className="text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <HelpCircle className="h-4 w-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="left"
+                      className="max-w-xs p-3 text-left"
+                    >
+                      <p className="font-semibold mb-2">
+                        Password Requirements:
+                      </p>
+                      <ul className="space-y-1 text-xs">
+                        <li
+                          className={
+                            password.length >= 8 ? "text-success-400" : ""
+                          }
+                        >
+                          • At least 8 characters
+                        </li>
+                        <li
+                          className={
+                            /[a-zA-Z]/.test(password) && /[0-9]/.test(password)
+                              ? "text-success-400"
+                              : ""
+                          }
+                        >
+                          • Contains letters and numbers (minimum)
+                        </li>
+                        <li
+                          className={
+                            /[A-Z]/.test(password) ? "text-success-400" : ""
+                          }
+                        >
+                          • Contains uppercase letter (recommended)
+                        </li>
+                        <li
+                          className={
+                            /[!@#$%^&*(),.?":{}|<>]/.test(password)
+                              ? "text-success-400"
+                              : ""
+                          }
+                        >
+                          • Contains special character (strongest)
+                        </li>
+                      </ul>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
                 <input
                   type="password"
                   value={password}
@@ -140,9 +315,32 @@ export default function SignUpPageClient({ benefits }: SignUpPageClientProps) {
                   disabled={isLoading}
                   minLength={8}
                 />
-                <p className="text-xs text-muted-foreground mt-2">
-                  Must be at least 8 characters
-                </p>
+                {/* Password Strength Indicator */}
+                {password.length > 0 && (
+                  <div className="mt-2">
+                    <div className="flex items-center gap-2">
+                      {/* Strength Bars */}
+                      <div className="flex gap-1 flex-1">
+                        {[1, 2, 3, 4].map((level) => (
+                          <div
+                            key={level}
+                            className={`h-1.5 flex-1 rounded-full transition-all ${
+                              passwordStrength.level >= level
+                                ? passwordStrength.bgColor
+                                : "bg-gray-200"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      {/* Strength Label */}
+                      <span
+                        className={`text-xs font-medium ${passwordStrength.color}`}
+                      >
+                        {passwordStrength.label}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <Button

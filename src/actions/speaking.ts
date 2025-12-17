@@ -191,6 +191,7 @@ export async function getScenarioById(id: string) {
     userRole: scenario.userRole || undefined,
     botRole: scenario.botRole || undefined,
     openingLine: scenario.openingLine || undefined,
+    image: scenario.image || "/learning.png",
   };
 }
 
@@ -249,22 +250,100 @@ export async function getCustomTopics(userId: string) {
   });
 }
 
+// ============================================================================
+// Pexels API Integration for Dynamic Images
+// ============================================================================
+
+interface PexelsPhoto {
+  id: number;
+  src: {
+    original: string;
+    large2x: string;
+    large: string;
+    medium: string;
+    small: string;
+  };
+}
+
+interface PexelsResponse {
+  total_results: number;
+  photos: PexelsPhoto[];
+}
+
+/**
+ * Fetch an image from Pexels API based on keyword
+ * Returns medium-sized image URL or fallback
+ */
+async function fetchPexelsImage(keyword: string): Promise<string> {
+  const PEXELS_API_KEY = process.env.PEXELS_API_KEY;
+
+  if (!PEXELS_API_KEY) {
+    console.warn(
+      "[fetchPexelsImage] PEXELS_API_KEY not found, using fallback image"
+    );
+    return "/learning.png";
+  }
+
+  try {
+    const response = await fetch(
+      `https://api.pexels.com/v1/search?query=${encodeURIComponent(
+        keyword
+      )}&per_page=3&orientation=landscape`,
+      {
+        headers: {
+          Authorization: PEXELS_API_KEY,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      console.error(`[fetchPexelsImage] Pexels API error: ${response.status}`);
+      return "/learning.png";
+    }
+
+    const data: PexelsResponse = await response.json();
+
+    if (data.photos.length === 0) {
+      console.log(`[fetchPexelsImage] No photos found for "${keyword}"`);
+      return "/learning.png";
+    }
+
+    // Randomly pick from top 3 for variety
+    const randomIndex = Math.floor(
+      Math.random() * Math.min(3, data.photos.length)
+    );
+    const imageUrl = data.photos[randomIndex].src.medium;
+
+    console.log(`[fetchPexelsImage] Found image for "${keyword}": ${imageUrl}`);
+    return imageUrl;
+  } catch (error) {
+    console.error(
+      `[fetchPexelsImage] Error fetching image for "${keyword}":`,
+      error
+    );
+    return "/learning.png";
+  }
+}
+
 // Create custom scenario with complete data and auto-start session
 export async function createCustomScenario(
   userId: string,
   topicPrompt: string
 ): Promise<{ scenario: any; sessionId: string }> {
   await ensureUser(userId);
-  
+
   // Get user's current level
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { level: true },
   });
   const userLevel = user?.level || "B1";
-  
+
   // Generate scenario with user's level
   const generated = await generateScenario(topicPrompt, userLevel);
+
+  // Fetch image from Pexels using the generated keyword
+  const imageUrl = await fetchPexelsImage(generated.imageKeyword);
 
   // Create scenario with all fields
   const scenario = await prisma.speakingScenario.create({
@@ -274,7 +353,7 @@ export async function createCustomScenario(
       goal: generated.goal,
       difficulty: generated.level as any,
       context: generated.context,
-      image: generated.image,
+      image: imageUrl, // Use Pexels image instead of static
       userRole: generated.userRole,
       botRole: generated.botRole,
       openingLine: generated.openingLine,
@@ -313,16 +392,19 @@ export async function createRandomScenario(
   userId: string
 ): Promise<{ scenario: any; sessionId: string }> {
   await ensureUser(userId);
-  
+
   // Get user's current level
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { level: true },
   });
   const userLevel = user?.level || "B1";
-  
+
   // Generate random scenario (pass null as topic)
   const generated = await generateScenario(null, userLevel);
+
+  // Fetch image from Pexels using the generated keyword
+  const imageUrl = await fetchPexelsImage(generated.imageKeyword);
 
   // Create scenario with all fields
   const scenario = await prisma.speakingScenario.create({
@@ -332,7 +414,7 @@ export async function createRandomScenario(
       goal: generated.goal,
       difficulty: generated.level as any,
       context: generated.context,
-      image: generated.image,
+      image: imageUrl, // Use Pexels image instead of static
       userRole: generated.userRole,
       botRole: generated.botRole,
       openingLine: generated.openingLine,

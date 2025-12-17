@@ -4,10 +4,26 @@ import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Search, X, Bookmark, Network, Edit, ChevronLeft, ChevronRight } from "lucide-react"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { ProtectedRoute, PageIcons } from "@/components/auth/protected-route"
+import {
+  Search,
+  X,
+  Bookmark,
+  ChevronLeft,
+  ChevronRight,
+  Network,
+  Edit,
+} from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { ProtectedRoute, PageIcons } from "@/components/auth/protected-route";
 import {
   HubHero,
   TopicGroupsSidebar,
@@ -15,161 +31,343 @@ import {
   TopicCard,
   SubcategoryPills,
   type TopicGroup,
-} from "@/components/hub"
-import { VocabMindmap } from "@/components/hub/vocab-mindmap"
-import { VocabItem } from "@/types"
+} from "@/components/hub";
+import { VocabMindmap } from "@/components/hub/vocab-mindmap";
+import { mockVocab } from "@/lib/mock-data";
+import {
+  getVocabTopicGroups,
+  getVocabTopicsWithProgress,
+  searchVocabTopics,
+} from "@/actions/vocab";
 
-// New Interface based on Grammar Hub structure
+// Interface for vocab topics from server
 interface VocabTopic {
-  id: string
-  title: string
-  description: string
-  level: string
-  category: string
-  subcategory: string
-  lessonCount: number
-  estimatedTime: number
-  progress: number
-  thumbnail?: string
-}
-
-interface DictionaryWord {
-  id: string
-  word: string
-  pronunciation: string
-  meaning: string
-  partOfSpeech: string
-  level: string
-  category: string
-  masteryLevel: number
-}
-
-interface MindmapTopicGroup {
-  id: string
-  name: string
-  color: "primary" | "secondary" | "accent"
-  topics: {
-    id: string
-    title: string
-    words: VocabItem[]
-  }[]
-}
-
-interface CurrentTopic {
-  id: string
-  title: string
-  subtitle: string
-  progress: number
+  id: string;
+  title: string;
+  description: string;
+  level: string;
+  category: string;
+  subcategory: string;
+  wordCount: number;
+  estimatedTime: number;
+  progress: number;
+  thumbnail?: string;
 }
 
 interface VocabPageClientProps {
-  vocabGroups: TopicGroup[]
-  vocabTopics: VocabTopic[]
-  currentTopic: CurrentTopic
-  dictionaryWords: DictionaryWord[]
-  mindmapData: MindmapTopicGroup[]
+  userId: string;
 }
 
-type TabType = "topics" | "bookmarks" | "mindmap" | "dictionary"
+// Mock data for Dictionary tab
+const MOCK_DICTIONARY_WORDS = [
+  {
+    id: "1",
+    word: "Abandon",
+    pronunciation: "/əˈbændən/",
+    meaning: "To leave behind or give up completely",
+    partOfSpeech: "Verb",
+    level: "B1",
+  },
+  {
+    id: "2",
+    word: "Accomplish",
+    pronunciation: "/əˈkʌmplɪʃ/",
+    meaning: "To complete or achieve something successfully",
+    partOfSpeech: "Verb",
+    level: "B1",
+  },
+  {
+    id: "3",
+    word: "Benefit",
+    pronunciation: "/ˈbenɪfɪt/",
+    meaning: "An advantage or profit gained from something",
+    partOfSpeech: "Noun",
+    level: "A2",
+  },
+  {
+    id: "4",
+    word: "Collaborate",
+    pronunciation: "/kəˈlæbəreɪt/",
+    meaning: "To work together with others on a project",
+    partOfSpeech: "Verb",
+    level: "B2",
+  },
+  {
+    id: "5",
+    word: "Determine",
+    pronunciation: "/dɪˈtɜːmɪn/",
+    meaning: "To decide or establish something precisely",
+    partOfSpeech: "Verb",
+    level: "B1",
+  },
+  {
+    id: "6",
+    word: "Efficient",
+    pronunciation: "/ɪˈfɪʃnt/",
+    meaning: "Working in a well-organized and competent way",
+    partOfSpeech: "Adjective",
+    level: "B2",
+  },
+  {
+    id: "7",
+    word: "Family",
+    pronunciation: "/ˈfæmɪli/",
+    meaning: "A group of people related by blood or marriage",
+    partOfSpeech: "Noun",
+    level: "A1",
+  },
+  {
+    id: "8",
+    word: "Generate",
+    pronunciation: "/ˈdʒenəreɪt/",
+    meaning: "To produce or create something",
+    partOfSpeech: "Verb",
+    level: "B2",
+  },
+  {
+    id: "9",
+    word: "Hypothesis",
+    pronunciation: "/haɪˈpɒθəsɪs/",
+    meaning: "A proposed explanation for a phenomenon",
+    partOfSpeech: "Noun",
+    level: "C1",
+  },
+  {
+    id: "10",
+    word: "Implement",
+    pronunciation: "/ˈɪmplɪment/",
+    meaning: "To put a plan or decision into effect",
+    partOfSpeech: "Verb",
+    level: "B2",
+  },
+];
 
-export default function VocabPageClient({
-  vocabGroups,
-  vocabTopics,
-  currentTopic,
-  dictionaryWords,
-  mindmapData,
-}: VocabPageClientProps) {
-  const [searchQuery, setSearchQuery] = useState("")
-  // Hub Filters
-  const [selectedLevels, setSelectedLevels] = useState<string[]>(["A1", "A2"])
-  const [selectedGroup, setSelectedGroup] = useState<string>("Daily Life")
-  const [selectedSubcategory, setSelectedSubcategory] = useState<string>("Travel")
-  const [activeTab, setActiveTab] = useState<TabType>("topics")
-  const [bookmarkedTopics, setBookmarkedTopics] = useState<string[]>([])
+// Mock data for Mindmap tab
+const MOCK_MINDMAP_DATA = [
+  {
+    id: "daily-life",
+    name: "Daily Life",
+    color: "primary" as const,
+    topics: [
+      { id: "1", title: "Travel", words: mockVocab["1"] || [] },
+      { id: "2", title: "Food & Dining", words: mockVocab["2"] || [] },
+    ],
+  },
+  {
+    id: "professional",
+    name: "Professional",
+    color: "secondary" as const,
+    topics: [{ id: "3", title: "Job Interview", words: mockVocab["3"] || [] }],
+  },
+  {
+    id: "academic",
+    name: "Academic",
+    color: "accent" as const,
+    topics: [
+      {
+        id: "academic-1",
+        title: "Science",
+        words: mockVocab["1"]?.slice(0, 3) || [],
+      },
+    ],
+  },
+];
 
-  // Dictionary State
-  const [dictionarySearch, setDictionarySearch] = useState("")
-  const [selectedAlphabet, setSelectedAlphabet] = useState<string | null>(null)
-  const [selectedDictLevels, setSelectedDictLevels] = useState<string[]>([])
-  const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 10
+type TabType = "topics" | "bookmarks" | "mindmap" | "dictionary";
 
-  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")
-  const dictLevels = ["A1", "A2", "B1", "B2", "C1", "C2"]
+const TOPICS_PER_PAGE = 12;
 
+export default function VocabPageClient({ userId }: VocabPageClientProps) {
+  // Loading states
+  const [topicGroupsLoading, setTopicGroupsLoading] = useState(true);
+  const [topicsLoading, setTopicsLoading] = useState(true);
+
+  // Data states
+  const [topicGroups, setTopicGroups] = useState<TopicGroup[]>([]);
+  const [topics, setTopics] = useState<VocabTopic[]>([]);
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalTopics, setTotalTopics] = useState(0);
+
+  // Filters - defaults: All subcategory, no level filter (All)
+  const [selectedGroup, setSelectedGroup] = useState<string>("");
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string>("All");
+  const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
+
+  // Search & UI states
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<VocabTopic[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabType>("topics");
+  const [bookmarkedTopics, setBookmarkedTopics] = useState<string[]>([]);
+
+  // Dictionary state
+  const [dictionarySearch, setDictionarySearch] = useState("");
+  const [selectedAlphabet, setSelectedAlphabet] = useState<string | null>(null);
+  const [selectedDictLevels, setSelectedDictLevels] = useState<string[]>([]);
+  const [dictPage, setDictPage] = useState(1);
+  const dictItemsPerPage = 10;
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+  const dictLevels = ["A1", "A2", "B1", "B2", "C1", "C2"];
+
+  // Fetch topic groups on mount
   useEffect(() => {
-    const saved = localStorage.getItem("vocab-bookmarks")
+    getVocabTopicGroups()
+      .then((groups) => {
+        setTopicGroups(groups);
+        // Set first group as selected if available
+        if (groups.length > 0 && !selectedGroup) {
+          setSelectedGroup(groups[0].name);
+        }
+      })
+      .finally(() => setTopicGroupsLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Fetch topics when filters change
+  useEffect(() => {
+    if (!selectedGroup) return;
+
+    setTopicsLoading(true);
+    getVocabTopicsWithProgress(userId || undefined, {
+      page: currentPage,
+      limit: TOPICS_PER_PAGE,
+      category: selectedGroup,
+      subcategory: selectedSubcategory,
+      levels: selectedLevels.length > 0 ? selectedLevels : undefined,
+    })
+      .then((result) => {
+        setTopics(result.topics);
+        setTotalPages(result.totalPages);
+        setTotalTopics(result.total);
+      })
+      .finally(() => setTopicsLoading(false));
+  }, [userId, selectedGroup, selectedSubcategory, selectedLevels, currentPage]);
+
+  // Load bookmarks from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("vocab-bookmarks");
     if (saved) {
-      setBookmarkedTopics(JSON.parse(saved))
+      setBookmarkedTopics(JSON.parse(saved));
     }
-  }, [])
+  }, []);
+
+  // Search handler with debounce
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setIsSearching(true);
+      searchVocabTopics(searchQuery, userId || undefined)
+        .then(setSearchResults)
+        .finally(() => setIsSearching(false));
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, userId]);
 
   const handleBookmarkToggle = (topicId: string) => {
     setBookmarkedTopics((prev) => {
-      const newBookmarks = prev.includes(topicId) ? prev.filter((id) => id !== topicId) : [...prev, topicId]
-      localStorage.setItem("vocab-bookmarks", JSON.stringify(newBookmarks))
-      return newBookmarks
-    })
-  }
+      const newBookmarks = prev.includes(topicId)
+        ? prev.filter((id) => id !== topicId)
+        : [...prev, topicId];
+      localStorage.setItem("vocab-bookmarks", JSON.stringify(newBookmarks));
+      return newBookmarks;
+    });
+  };
 
   const toggleLevel = (level: string) => {
     if (level === "All") {
-      const allLevels = ["A1", "A2", "B1", "B2", "C1", "C2"]
+      // Toggle all levels
+      const allLevels = ["A1", "A2", "B1", "B2", "C1", "C2"];
       if (selectedLevels.length === allLevels.length) {
-        setSelectedLevels([])
+        setSelectedLevels([]);
       } else {
-        setSelectedLevels(allLevels)
+        setSelectedLevels(allLevels);
       }
     } else {
-      setSelectedLevels((prev) => (prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level]))
+      setSelectedLevels((prev) =>
+        prev.includes(level)
+          ? prev.filter((l) => l !== level)
+          : [...prev, level]
+      );
     }
-  }
+    // Reset to page 1 when filter changes
+    setCurrentPage(1);
+  };
 
-  // --- Filtering Logic ---
-  const isSearchMode = searchQuery.trim().length > 0
-  const currentSubcategories = vocabGroups.find((g) => g.name === selectedGroup)?.subcategories || []
+  const handleGroupChange = (name: string) => {
+    setSelectedGroup(name);
+    setSelectedSubcategory("All");
+    setCurrentPage(1);
+  };
 
-  // Filter topics based on search or normal mode
-  const filteredTopics = vocabTopics.filter((topic) => {
-    if (isSearchMode) {
-      return (
-        topic.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        topic.description.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    }
+  const handleSubcategoryChange = (subcat: string) => {
+    setSelectedSubcategory(subcat);
+    setCurrentPage(1);
+  };
 
-    const matchesLevel = selectedLevels.length === 0 || selectedLevels.includes(topic.level)
-    const matchesGroup = topic.category === selectedGroup
-    const matchesSubcategory = !selectedSubcategory || selectedSubcategory === "All" || topic.subcategory === selectedSubcategory
+  // Get current subcategories for selected group
+  const currentSubcategories =
+    topicGroups.find((g) => g.name === selectedGroup)?.subcategories || [];
 
-    return matchesLevel && matchesGroup && matchesSubcategory
-  })
+  const isSearchMode = searchQuery.trim().length > 0;
+  const displayTopics = isSearchMode ? searchResults : topics;
 
-  // Filter Dictionary
-  const filteredDictionaryWords = dictionaryWords.filter((word) => {
+  // Bookmarked topics (filter from fetched topics or search for more)
+  const bookmarkedTopicsList = topics.filter((topic) =>
+    bookmarkedTopics.includes(topic.id)
+  );
+
+  // Dictionary filtering
+  const filteredDictionaryWords = MOCK_DICTIONARY_WORDS.filter((word) => {
     const matchesSearch =
       word.word.toLowerCase().includes(dictionarySearch.toLowerCase()) ||
-      word.meaning.toLowerCase().includes(dictionarySearch.toLowerCase())
-    const matchesAlphabet = !selectedAlphabet || word.word.toUpperCase().startsWith(selectedAlphabet)
-    const matchesLevel = selectedDictLevels.length === 0 || selectedDictLevels.includes(word.level)
-    return matchesSearch && matchesAlphabet && matchesLevel
-  })
+      word.meaning.toLowerCase().includes(dictionarySearch.toLowerCase());
+    const matchesAlphabet =
+      !selectedAlphabet || word.word.toUpperCase().startsWith(selectedAlphabet);
+    const matchesLevel =
+      selectedDictLevels.length === 0 ||
+      selectedDictLevels.includes(word.level);
+    return matchesSearch && matchesAlphabet && matchesLevel;
+  });
 
-  const totalPages = Math.ceil(filteredDictionaryWords.length / itemsPerPage)
-  const paginatedWords = filteredDictionaryWords.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+  const dictTotalPages = Math.ceil(
+    filteredDictionaryWords.length / dictItemsPerPage
+  );
+  const paginatedWords = filteredDictionaryWords.slice(
+    (dictPage - 1) * dictItemsPerPage,
+    dictPage * dictItemsPerPage
+  );
 
   const toggleDictLevel = (level: string) => {
-    setSelectedDictLevels((prev) => (prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level]))
-  }
-
-  const bookmarkedTopicsList = vocabTopics.filter((topic) => bookmarkedTopics.includes(topic.id))
+    setSelectedDictLevels((prev) =>
+      prev.includes(level) ? prev.filter((l) => l !== level) : [...prev, level]
+    );
+  };
 
   const tabs = [
     { id: "topics", label: "Available Topics" },
     { id: "bookmarks", label: "Bookmarks" },
     { id: "mindmap", label: "Mindmap" },
     { id: "dictionary", label: "Dictionary" },
-  ]
+  ];
+
+  // Skeleton for topic cards
+  const TopicCardSkeleton = () => (
+    <Card className="p-4 rounded-2xl border-2 border-gray-100">
+      <Skeleton className="h-32 w-full rounded-xl mb-4 bg-gray-200" />
+      <Skeleton className="h-5 w-3/4 mb-2 bg-gray-200" />
+      <Skeleton className="h-4 w-full mb-2 bg-gray-200" />
+      <Skeleton className="h-4 w-1/2 mb-4 bg-gray-200" />
+      <Skeleton className="h-9 w-full rounded-full bg-gray-200" />
+    </Card>
+  );
 
   return (
     <ProtectedRoute
@@ -183,7 +381,10 @@ export default function VocabPageClient({
           description="Expand your vocabulary with structured topics and interactive flashcards."
           primaryAction={{ label: "View Study Plan" }}
           secondaryAction={{ label: "Browse Topics" }}
-          notification={{ text: "Recommended: Daily Routine", actionLabel: "Start" }}
+          notification={{
+            text: "Recommended: Daily Routine",
+            actionLabel: "Start",
+          }}
           decorativeWords={["lexicon", "fluency", "expression"]}
         />
 
@@ -195,10 +396,11 @@ export default function VocabPageClient({
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as TabType)}
-                  className={`pb-3 px-2 text-lg font-bold transition-colors border-b-2 whitespace-nowrap cursor-pointer ${activeTab === tab.id
-                    ? "border-primary text-primary"
-                    : "border-transparent text-muted-foreground hover:text-gray-900"
-                    }`}
+                  className={`pb-3 px-2 text-lg font-bold transition-colors border-b-2 whitespace-nowrap cursor-pointer ${
+                    activeTab === tab.id
+                      ? "border-primary text-primary"
+                      : "border-transparent text-muted-foreground hover:text-gray-900"
+                  }`}
                 >
                   {tab.label}
                 </button>
@@ -206,11 +408,15 @@ export default function VocabPageClient({
             </div>
           )}
           <div className="flex-1" />
-          <div className="relative mb-4 sm:mb-0">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-primary-400" />
+          <div className="relative mb-4 sm:mb-0 flex items-center">
+            <Search className="absolute left-3 h-4 w-4 text-primary-400" />
             <Input
-              placeholder="Search vocabulary topics..."
-              className={`pl-10 pr-10 h-12 text-base rounded-full border-2 transition-all ${isSearchMode ? 'w-80 border-primary-400 shadow-lg bg-white' : 'w-64 border-primary-200 hover:border-primary-300'}`}
+              placeholder="Search all topics..."
+              className={`pl-10 pr-10 h-9 text-sm rounded-full border-2 transition-all ${
+                isSearchMode
+                  ? "w-80 border-primary-400 shadow-lg bg-white"
+                  : "w-64 border-primary-200 hover:border-primary-300"
+              }`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -229,28 +435,36 @@ export default function VocabPageClient({
         <div className="mt-6">
           {activeTab === "topics" && (
             <>
-              {/* Search Mode - Show results without filters */}
+              {/* Search Mode */}
               {isSearchMode ? (
                 <div className="space-y-6">
                   <div className="flex items-center justify-between">
                     <h2 className="text-xl font-bold">
-                      Search Results for "{searchQuery}" ({filteredTopics.length} found)
+                      {isSearching
+                        ? "Searching..."
+                        : `Search Results for "${searchQuery}" (${searchResults.length} found)`}
                     </h2>
                   </div>
 
-                  {filteredTopics.length > 0 ? (
+                  {isSearching ? (
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                      {filteredTopics.map((topic) => (
+                      {Array.from({ length: 4 }).map((_, i) => (
+                        <TopicCardSkeleton key={i} />
+                      ))}
+                    </div>
+                  ) : searchResults.length > 0 ? (
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                      {searchResults.map((topic) => (
                         <TopicCard
                           key={topic.id}
                           id={topic.id}
                           title={topic.title}
                           description={topic.description}
                           level={topic.level}
-                          wordCount={topic.lessonCount}
+                          wordCount={topic.wordCount}
                           progress={topic.progress}
                           href={`/vocab/${topic.id}`}
-                          onNotYet={() => { }}
+                          onNotYet={() => {}}
                           type="vocabulary"
                           isBookmarked={bookmarkedTopics.includes(topic.id)}
                           onBookmarkToggle={handleBookmarkToggle}
@@ -261,11 +475,18 @@ export default function VocabPageClient({
                   ) : (
                     <Card className="p-12 rounded-3xl border-[1.4px] border-primary-200 text-center">
                       <Search className="h-16 w-16 text-primary-200 mx-auto mb-4" />
-                      <h3 className="text-xl font-bold text-foreground mb-2">No Results Found</h3>
+                      <h3 className="text-xl font-bold text-foreground mb-2">
+                        No Results Found
+                      </h3>
                       <p className="text-muted-foreground mb-6">
-                        Try adjusting your search terms or browse topics by category.
+                        Try adjusting your search terms or browse topics by
+                        category.
                       </p>
-                      <Button variant="default" onClick={() => setSearchQuery("")} className="cursor-pointer">
+                      <Button
+                        variant="default"
+                        onClick={() => setSearchQuery("")}
+                        className="cursor-pointer"
+                      >
                         Clear Search
                       </Button>
                     </Card>
@@ -276,49 +497,140 @@ export default function VocabPageClient({
                 <div className="grid lg:grid-cols-5 gap-8">
                   <div className="lg:col-span-1 space-y-6">
                     <TopicGroupsSidebar
-                      groups={vocabGroups}
+                      groups={topicGroups}
                       selectedGroup={selectedGroup}
-                      onGroupChange={(name, firstSub) => {
-                        setSelectedGroup(name)
-                        setSelectedSubcategory(firstSub)
-                      }}
+                      onGroupChange={handleGroupChange}
+                      showViewMore={false}
+                      isLoading={topicGroupsLoading}
                     />
-                    <LevelsSidebar selectedLevels={selectedLevels} onLevelToggle={toggleLevel} />
+                    <LevelsSidebar
+                      selectedLevels={selectedLevels}
+                      onLevelToggle={toggleLevel}
+                    />
                   </div>
 
                   <div className="lg:col-span-4 space-y-6">
                     <SubcategoryPills
                       subcategories={currentSubcategories}
                       selectedSubcategory={selectedSubcategory}
-                      onSubcategoryChange={setSelectedSubcategory}
+                      onSubcategoryChange={handleSubcategoryChange}
+                      isLoading={topicGroupsLoading}
                     />
 
-                    {filteredTopics.length > 0 ? (
+                    {topicsLoading ? (
                       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                        {filteredTopics.map((topic) => (
-                          <TopicCard
-                            key={topic.id}
-                            id={topic.id}
-                            title={topic.title}
-                            description={topic.description}
-                            level={topic.level}
-                            wordCount={topic.lessonCount}
-                            progress={topic.progress}
-                            href={`/vocab/${topic.id}`}
-                            onNotYet={() => { }}
-                            type="vocabulary"
-                            isBookmarked={bookmarkedTopics.includes(topic.id)}
-                            onBookmarkToggle={handleBookmarkToggle}
-                            thumbnail={topic.thumbnail}
-                          />
+                        {Array.from({ length: 6 }).map((_, i) => (
+                          <TopicCardSkeleton key={i} />
                         ))}
                       </div>
+                    ) : displayTopics.length > 0 ? (
+                      <>
+                        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                          {displayTopics.map((topic) => (
+                            <TopicCard
+                              key={topic.id}
+                              id={topic.id}
+                              title={topic.title}
+                              description={topic.description}
+                              level={topic.level}
+                              wordCount={topic.wordCount}
+                              progress={topic.progress}
+                              href={`/vocab/${topic.id}`}
+                              onNotYet={() => {}}
+                              type="vocabulary"
+                              isBookmarked={bookmarkedTopics.includes(topic.id)}
+                              onBookmarkToggle={handleBookmarkToggle}
+                              thumbnail={topic.thumbnail}
+                            />
+                          ))}
+                        </div>
+
+                        {/* Pagination */}
+                        {totalPages > 1 && (
+                          <div className="flex items-center justify-center gap-2 mt-8">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-9 w-9 p-0 cursor-pointer"
+                              onClick={() =>
+                                setCurrentPage((p) => Math.max(1, p - 1))
+                              }
+                              disabled={currentPage === 1}
+                            >
+                              <ChevronLeft className="h-4 w-4" />
+                            </Button>
+
+                            {Array.from(
+                              { length: totalPages },
+                              (_, i) => i + 1
+                            ).map((page) => {
+                              const showPage =
+                                page === 1 ||
+                                page === totalPages ||
+                                Math.abs(page - currentPage) <= 1;
+
+                              const showEllipsis =
+                                (page === 2 && currentPage > 3) ||
+                                (page === totalPages - 1 &&
+                                  currentPage < totalPages - 2);
+
+                              if (showEllipsis) {
+                                return (
+                                  <span
+                                    key={page}
+                                    className="px-2 text-muted-foreground"
+                                  >
+                                    ...
+                                  </span>
+                                );
+                              }
+
+                              if (!showPage) return null;
+
+                              return (
+                                <Button
+                                  key={page}
+                                  variant={
+                                    currentPage === page ? "default" : "outline"
+                                  }
+                                  size="sm"
+                                  className="h-9 w-9 p-0 cursor-pointer"
+                                  onClick={() => setCurrentPage(page)}
+                                >
+                                  {page}
+                                </Button>
+                              );
+                            })}
+
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-9 w-9 p-0 cursor-pointer"
+                              onClick={() =>
+                                setCurrentPage((p) =>
+                                  Math.min(totalPages, p + 1)
+                                )
+                              }
+                              disabled={currentPage === totalPages}
+                            >
+                              <ChevronRight className="h-4 w-4" />
+                            </Button>
+
+                            <span className="ml-4 text-sm text-muted-foreground">
+                              {totalTopics} topics
+                            </span>
+                          </div>
+                        )}
+                      </>
                     ) : (
                       <Card className="p-12 rounded-3xl border-[1.4px] border-primary-200 text-center">
                         <Search className="h-16 w-16 text-primary-200 mx-auto mb-4" />
-                        <h3 className="text-xl font-bold text-foreground mb-2">No Topics Found</h3>
+                        <h3 className="text-xl font-bold text-foreground mb-2">
+                          No Topics Found
+                        </h3>
                         <p className="text-muted-foreground">
-                          No vocabulary topics match your current filters. Try selecting different levels or categories.
+                          No vocabulary topics match your current filters. Try
+                          selecting different levels or categories.
                         </p>
                       </Card>
                     )}
@@ -346,10 +658,10 @@ export default function VocabPageClient({
                         title={topic.title}
                         description={topic.description}
                         level={topic.level}
-                        wordCount={topic.lessonCount}
+                        wordCount={topic.wordCount}
                         progress={topic.progress}
                         href={`/vocab/${topic.id}`}
-                        onNotYet={() => { }}
+                        onNotYet={() => {}}
                         type="vocabulary"
                         isBookmarked={true}
                         onBookmarkToggle={handleBookmarkToggle}
@@ -361,11 +673,18 @@ export default function VocabPageClient({
               ) : (
                 <Card className="p-12 rounded-3xl border-[1.4px] border-primary-200 text-center bg-white">
                   <Bookmark className="h-16 w-16 text-primary-200 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-foreground mb-2">No Bookmarks Yet</h3>
+                  <h3 className="text-xl font-bold text-foreground mb-2">
+                    No Bookmarks Yet
+                  </h3>
                   <p className="text-muted-foreground mb-6">
-                    Click the bookmark icon on any topic card to save it here for quick access.
+                    Click the bookmark icon on any topic card to save it here
+                    for quick access.
                   </p>
-                  <Button variant="default" onClick={() => setActiveTab("topics")} className="cursor-pointer">
+                  <Button
+                    variant="default"
+                    onClick={() => setActiveTab("topics")}
+                    className="cursor-pointer"
+                  >
                     Browse Topics
                   </Button>
                 </Card>
@@ -377,14 +696,17 @@ export default function VocabPageClient({
             <div className="space-y-6">
               <div className="flex items-center gap-3 mb-6">
                 <Network className="h-6 w-6 text-primary-500" />
-                <h2 className="text-xl font-bold text-foreground">Vocabulary Mindmap</h2>
-                <span className="text-sm text-muted-foreground">Explore words organized by topic groups</span>
+                <h2 className="text-xl font-bold text-foreground">
+                  Vocabulary Mindmap
+                </h2>
+                <span className="text-sm text-muted-foreground">
+                  Explore words organized by topic groups
+                </span>
               </div>
-              <VocabMindmap topicGroups={mindmapData} />
+              <VocabMindmap topicGroups={MOCK_MINDMAP_DATA} />
             </div>
           )}
 
-          {/* Reintegrated Dictionary Tab */}
           {activeTab === "dictionary" && (
             <Card className="p-8 rounded-3xl border-2 border-primary-100 bg-white">
               <div className="flex items-center justify-between mb-6">
@@ -412,7 +734,9 @@ export default function VocabPageClient({
                   {alphabet.map((letter) => (
                     <Button
                       key={letter}
-                      variant={selectedAlphabet === letter ? "default" : "outline"}
+                      variant={
+                        selectedAlphabet === letter ? "default" : "outline"
+                      }
                       size="sm"
                       className="h-8 w-8 text-xs font-semibold cursor-pointer"
                       onClick={() => setSelectedAlphabet(letter)}
@@ -423,13 +747,19 @@ export default function VocabPageClient({
                 </div>
               </div>
 
-              <div className="mb-6">
+              <div className="mb-6 mt-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-muted-foreground">Level:</span>
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Level:
+                  </span>
                   {dictLevels.map((level) => (
                     <Button
                       key={level}
-                      variant={selectedDictLevels.includes(level) ? "default" : "outline"}
+                      variant={
+                        selectedDictLevels.includes(level)
+                          ? "default"
+                          : "outline"
+                      }
                       size="sm"
                       className="h-8 px-3 text-xs font-semibold cursor-pointer"
                       onClick={() => toggleDictLevel(level)}
@@ -451,9 +781,11 @@ export default function VocabPageClient({
               </div>
 
               <div className="mb-4 text-sm text-muted-foreground">
-                Showing {paginatedWords.length} of {filteredDictionaryWords.length} words
+                Showing {paginatedWords.length} of{" "}
+                {filteredDictionaryWords.length} words
                 {selectedAlphabet && ` starting with "${selectedAlphabet}"`}
-                {selectedDictLevels.length > 0 && ` at level ${selectedDictLevels.join(", ")}`}
+                {selectedDictLevels.length > 0 &&
+                  ` at level ${selectedDictLevels.join(", ")}`}
               </div>
 
               <div className="rounded-xl border overflow-hidden">
@@ -471,20 +803,35 @@ export default function VocabPageClient({
                   <TableBody>
                     {paginatedWords.length > 0 ? (
                       paginatedWords.map((word) => (
-                        <TableRow key={word.id} className="hover:bg-primary-50/50 transition-colors">
-                          <TableCell className="font-semibold text-primary-600">{word.word}</TableCell>
-                          <TableCell className="text-slate-500 font-mono text-sm">{word.pronunciation}</TableCell>
-                          <TableCell className="max-w-xs truncate">{word.meaning}</TableCell>
+                        <TableRow
+                          key={word.id}
+                          className="hover:bg-primary-50/50 transition-colors"
+                        >
+                          <TableCell className="font-semibold text-primary-600">
+                            {word.word}
+                          </TableCell>
+                          <TableCell className="text-slate-500 font-mono text-sm">
+                            {word.pronunciation}
+                          </TableCell>
+                          <TableCell className="max-w-xs truncate">
+                            {word.meaning}
+                          </TableCell>
                           <TableCell>
                             <Badge variant="outline" className="text-xs">
                               {word.partOfSpeech}
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Badge className="bg-primary-100 text-primary-700 text-xs">{word.level}</Badge>
+                            <Badge className="bg-primary-100 text-primary-700 text-xs">
+                              {word.level}
+                            </Badge>
                           </TableCell>
                           <TableCell>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 cursor-pointer"
+                            >
                               <Edit className="h-4 w-4" />
                             </Button>
                           </TableCell>
@@ -492,7 +839,10 @@ export default function VocabPageClient({
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                        <TableCell
+                          colSpan={6}
+                          className="text-center py-8 text-muted-foreground"
+                        >
                           No words found matching your filters.
                         </TableCell>
                       </TableRow>
@@ -501,53 +851,38 @@ export default function VocabPageClient({
                 </Table>
               </div>
 
-              {totalPages > 1 && (
+              {dictTotalPages > 1 && (
                 <div className="flex items-center justify-center gap-2 mt-6">
                   <Button
                     variant="outline"
                     size="sm"
                     className="h-9 w-9 p-0 cursor-pointer bg-transparent"
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
+                    onClick={() => setDictPage((p) => Math.max(1, p - 1))}
+                    disabled={dictPage === 1}
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
-
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                    const showPage = page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1
-
-                    const showEllipsis =
-                      (page === 2 && currentPage > 3) || (page === totalPages - 1 && currentPage < totalPages - 2)
-
-                    if (showEllipsis) {
-                      return (
-                        <span key={page} className="px-2 text-muted-foreground">
-                          ...
-                        </span>
-                      )
-                    }
-
-                    if (!showPage) return null
-
-                    return (
+                  {Array.from({ length: dictTotalPages }, (_, i) => i + 1).map(
+                    (page) => (
                       <Button
                         key={page}
-                        variant={currentPage === page ? "default" : "outline"}
+                        variant={dictPage === page ? "default" : "outline"}
                         size="sm"
                         className="h-9 w-9 p-0 cursor-pointer"
-                        onClick={() => setCurrentPage(page)}
+                        onClick={() => setDictPage(page)}
                       >
                         {page}
                       </Button>
                     )
-                  })}
-
+                  )}
                   <Button
                     variant="outline"
                     size="sm"
                     className="h-9 w-9 p-0 cursor-pointer bg-transparent"
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={currentPage === totalPages}
+                    onClick={() =>
+                      setDictPage((p) => Math.min(dictTotalPages, p + 1))
+                    }
+                    disabled={dictPage === dictTotalPages}
                   >
                     <ChevronRight className="h-4 w-4" />
                   </Button>
@@ -555,9 +890,8 @@ export default function VocabPageClient({
               )}
             </Card>
           )}
-
         </div>
       </div>
     </ProtectedRoute>
-  )
+  );
 }
