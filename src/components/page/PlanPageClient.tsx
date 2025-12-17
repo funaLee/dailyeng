@@ -209,11 +209,11 @@ export default function PlanPageClient({
                 {/* Stats Row */}
                 <div className="grid grid-cols-3 gap-4">
                   <div className="rounded-xl border border-primary-200 bg-primary-50/50 p-4 text-center">
-                    <p className="text-xs text-primary-600 font-medium mb-1">Số giờ học trong ngày</p>
+                    <p className="text-xs text-primary-600 font-medium mb-1">Daily study hours</p>
                     <p className="text-xl font-bold text-primary-900">{stats.dailyHours}h</p>
                   </div>
                   <div className="rounded-xl border border-primary-200 bg-primary-50/50 p-4 text-center">
-                    <p className="text-xs text-primary-600 font-medium mb-1">Số giờ học trong tuần</p>
+                    <p className="text-xs text-primary-600 font-medium mb-1">Weekly study hours</p>
                     <p className="text-xl font-bold text-primary-900">{stats.weeklyHours}h</p>
                   </div>
                   <div className="rounded-xl border border-primary-200 bg-primary-50/50 p-4 text-center">
@@ -438,13 +438,13 @@ export default function PlanPageClient({
                 <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
                   <Target className="w-5 h-5 text-primary-600" />
                 </div>
-                <h2 className="text-xl font-bold text-slate-800">Mục tiêu của bạn</h2>
+                <h2 className="text-xl font-bold text-slate-800">Your Goals</h2>
               </div>
 
               <div className="space-y-4">
                 {/* Current Level */}
                 <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
-                  <span className="text-sm text-slate-600">Trình độ hiện tại</span>
+                  <span className="text-sm text-slate-600">Current Level</span>
                   <span className="px-4 py-1.5 bg-primary-100 text-primary-700 font-bold text-sm rounded-lg border-2 border-primary-200">
                     IELTS {studyGoals.currentLevel}
                   </span>
@@ -452,7 +452,7 @@ export default function PlanPageClient({
 
                 {/* Target Level */}
                 <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
-                  <span className="text-sm text-slate-600">Mục tiêu của bạn</span>
+                  <span className="text-sm text-slate-600">Target Level</span>
                   <span className="px-4 py-1.5 bg-success-100 text-success-700 font-bold text-sm rounded-lg border-2 border-success-200">
                     IELTS {studyGoals.targetLevel}
                   </span>
@@ -460,12 +460,12 @@ export default function PlanPageClient({
 
                 {/* Study Hours */}
                 <div className="mt-6 p-5 bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl border border-primary-200 text-center">
-                  <p className="text-sm text-slate-600 mb-2">Giờ học ước tính mỗi tuần</p>
+                  <p className="text-sm text-slate-600 mb-2">Estimated study hours per week</p>
                   <div className="flex items-baseline justify-center gap-1">
                     <span className="text-4xl font-bold text-primary-700">{studyGoals.hoursPerWeek}h</span>
-                    <span className="text-lg text-primary-600">/ tuần</span>
+                    <span className="text-lg text-primary-600">/ week</span>
                   </div>
-                  <p className="text-xs text-slate-500 mt-2">trong {studyGoals.durationMonths} tháng</p>
+                  <p className="text-xs text-slate-500 mt-2">for {studyGoals.durationMonths} months</p>
                 </div>
               </div>
             </Card>
@@ -476,14 +476,14 @@ export default function PlanPageClient({
                 <div className="w-10 h-10 bg-secondary-100 rounded-full flex items-center justify-center">
                   <Calendar className="w-5 h-5 text-secondary-600" />
                 </div>
-                <h2 className="text-xl font-bold text-slate-800">Lịch thi IELTS</h2>
+                <h2 className="text-xl font-bold text-slate-800">IELTS Exam Schedule</h2>
               </div>
 
               <div className="space-y-4">
                 {/* Exam Date and Days Remaining */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 text-center relative">
-                    <p className="text-xs text-slate-500 mb-1">Ngày dự thi</p>
+                    <p className="text-xs text-slate-500 mb-1">Exam Date</p>
                     {isEditingExamDate ? (
                       <div className="flex flex-col gap-2">
                         <input
@@ -500,7 +500,7 @@ export default function PlanPageClient({
                     ) : (
                       <div className="flex items-center justify-center gap-2">
                         <span className="font-bold text-slate-800">
-                          {ieltsExam.examDate ? new Date(ieltsExam.examDate).toLocaleDateString("vi-VN") : "N/A"}
+                          {ieltsExam.examDate ? new Date(ieltsExam.examDate).toLocaleDateString("en-US") : "N/A"}
                         </span>
                         <button
                           onClick={() => setIsEditingExamDate(true)}
@@ -512,8 +512,8 @@ export default function PlanPageClient({
                     )}
                   </div>
                   <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 text-center">
-                    <p className="text-xs text-slate-500 mb-1">Số ngày còn lại</p>
-                    <span className="font-bold text-primary-600 text-lg">{ieltsExam.daysRemaining} ngày</span>
+                    <p className="text-xs text-slate-500 mb-1">Days Remaining</p>
+                    <span className="font-bold text-primary-600 text-lg">{ieltsExam.daysRemaining} days</span>
                   </div>
                 </div>
 
@@ -527,9 +527,9 @@ export default function PlanPageClient({
                   <div className="flex items-start gap-2 justify-center">
                     <Sparkles className="w-5 h-5 text-success-600 flex-shrink-0 mt-0.5" />
                     <p className="text-sm text-success-700">
-                      Bạn sẽ đạt được aim nếu học với lịch học hiện tại vào ngày{" "}
+                      You will reach your goal if you follow your current study plan by{" "}
                       <span className="font-bold">
-                        {ieltsExam.examDate ? new Date(ieltsExam.examDate).toLocaleDateString("vi-VN") : "..."}
+                        {ieltsExam.examDate ? new Date(ieltsExam.examDate).toLocaleDateString("en-US") : "..."}
                       </span>!
                     </p>
                   </div>
@@ -542,7 +542,7 @@ export default function PlanPageClient({
                 <div className="w-10 h-10 bg-warning-100 rounded-full flex items-center justify-center">
                   <Bell className="w-5 h-5 text-warning-600" />
                 </div>
-                <h2 className="text-xl font-bold text-slate-800">Lời nhắc</h2>
+                <h2 className="text-xl font-bold text-slate-800">Reminders</h2>
               </div>
 
               <div className="space-y-3 flex-1">
@@ -623,10 +623,10 @@ export default function PlanPageClient({
             </Card>
           </div>
 
-          {/* 4. Plans Grid Section (GRID LAYOUT UPDATED) */}
-          <div className="grid grid-cols-1 lg:grid-cols-7 gap-8">
-            {/* My Study Plan - Takes up 2 Columns */}
-            <Card className="p-6 h-full border-primary-100 shadow-md lg:col-span-2 bg-white">
+          {/* 4. My Study Plan Section */}
+          <div className="grid grid-cols-1 gap-8">
+            {/* My Study Plan */}
+            <Card className="p-6 border-primary-100 shadow-md bg-white">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-slate-800">My Study Plan</h2>
                 <Button
@@ -675,44 +675,7 @@ export default function PlanPageClient({
               </div>
             </Card>
 
-            {/* Detail Study Plan - Takes up 5 Columns */}
-            <Card className="p-6 border-primary-100 shadow-md lg:col-span-5 bg-white">
-              <div className="flex items-center justify-between mb-1">
-                <h2 className="text-xl font-bold text-slate-800">Detail Study Plan</h2>
-                <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary-600">
-                  <Brain className="w-5 h-5" />
-                </Button>
-              </div>
 
-              {selectedPlan ? (
-                <>
-                  <h3 className="text-lg font-bold mb-4 text-primary-900">{selectedPlan.title}</h3>
-                  <p className="text-sm text-slate-500 mb-6 border-b border-gray-100 pb-4">{selectedPlan.topic}</p>
-
-                  {/* Detailed Stats */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-                    <div className="border border-primary-100 bg-primary-50/50 rounded-xl p-3 text-center">
-                      <p className="text-xs text-primary-600 font-medium mb-1">Duration</p>
-                      <p className="font-bold text-slate-800">{selectedPlan.duration}</p>
-                    </div>
-                  </div>
-
-                  {/* Gamification Placeholders */}
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-bold text-sm text-slate-800">Learning Journey</h4>
-                      <span className="text-xs text-primary-600">10 Modules</span>
-                    </div>
-                    <GamificationRoadmap />
-                  </div>
-                </>
-              ) : (
-                <div className="flex flex-col items-center justify-center h-64 text-center">
-                  <p className="text-slate-500 mb-2">No plan selected or no tasks for today.</p>
-                  <p className="text-sm text-slate-400">Take a break or create a new plan!</p>
-                </div>
-              )}
-            </Card>
           </div>
         </div>
       </div>
