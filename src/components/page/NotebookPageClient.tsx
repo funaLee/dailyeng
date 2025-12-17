@@ -1,7 +1,8 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useTransition } from "react"
+import { createNotebook, deleteNotebook, createNotebookItem, deleteNotebookItem } from "@/actions/notebook"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -103,12 +104,12 @@ export default function NotebookPageClient({
   )
 
   // UI state
-  const [selectedCollection, setSelectedCollection] = useState<string>("vocabulary")
+  const [selectedCollection, setSelectedCollection] = useState<string>("")
   const [viewMode, setViewMode] = useState<"list" | "flashcards" | "statistics">("list")
   const [searchQuery, setSearchQuery] = useState("")
   const [starredItems, setStarredItems] = useState<Set<string>>(new Set())
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
-  const [collectionTypeFilter, setCollectionTypeFilter] = useState<CollectionType | "all">("all")
+  const [collectionTypeFilter, setCollectionTypeFilter] = useState<CollectionType>("vocabulary")
 
   // Filter state
   const [masteryFilter, setMasteryFilter] = useState<string[]>([])
@@ -168,7 +169,6 @@ export default function NotebookPageClient({
 
   // Filtered collections
   const filteredCollections = useMemo(() => {
-    if (collectionTypeFilter === "all") return collections
     return collections.filter(c => c.type === collectionTypeFilter)
   }, [collections, collectionTypeFilter])
 
@@ -294,7 +294,7 @@ export default function NotebookPageClient({
       if (currentCardIndex < flashcardItems.length - 1) setCurrentCardIndex(currentCardIndex + 1)
       else setSessionCompleteOpen(true)
       setCardAnimation("")
-    }, 400)
+    }, 500)
   }
 
   const handleReviewAnswer = (quality: number) => {
@@ -314,31 +314,96 @@ export default function NotebookPageClient({
     }
   }
 
-  const handleAddCollection = () => {
+  const [isPending, startTransition] = useTransition()
+
+  const handleAddCollection = async () => {
     if (!newCollectionName.trim()) return
-    const newId = `${newCollectionType}-${Date.now()}`
-    setCollections(prev => [...prev, {
-      id: newId, name: newCollectionName, count: 0, mastered: 0, color: "primary",
-      type: newCollectionType, icon: getCollectionIcon(newCollectionType)
-    }])
-    setNewCollectionName("")
-    setNewCollectionType("vocabulary")
-    setNewCollectionOpen(false)
+    
+    startTransition(async () => {
+      const result = await createNotebook({
+        name: newCollectionName,
+        type: newCollectionType,
+        color: "primary",
+      })
+      
+      if (result.success && result.notebook) {
+        setCollections(prev => [...prev, {
+          ...result.notebook!,
+          type: result.notebook!.type as CollectionType,
+          icon: getCollectionIcon(result.notebook!.type as CollectionType)
+        }])
+        setNewCollectionName("")
+        setNewCollectionType("vocabulary")
+        setNewCollectionOpen(false)
+      } else {
+        // Fallback to local state if not authenticated
+        const newId = `${newCollectionType}-${Date.now()}`
+        setCollections(prev => [...prev, {
+          id: newId, name: newCollectionName, count: 0, mastered: 0, color: "primary",
+          type: newCollectionType, icon: getCollectionIcon(newCollectionType)
+        }])
+        setNewCollectionName("")
+        setNewCollectionType("vocabulary")
+        setNewCollectionOpen(false)
+      }
+    })
   }
 
-  const handleAddItem = () => {
+  const handleAddItem = async () => {
     if (!newItem.word.trim()) return
-    const item: NotebookItem = {
-      id: `v${Date.now()}`, word: newItem.word, pronunciation: newItem.pronunciation || "/.../",
-      meaning: newItem.meaning.split("\n").filter(Boolean), vietnamese: newItem.vietnamese.split("\n").filter(Boolean),
-      examples: newItem.example ? [{ en: newItem.example, vi: newItem.exampleVi }] : [],
-      partOfSpeech: newItem.partOfSpeech, level: newItem.level, note: newItem.note,
-      tags: newItem.tags.split(",").map(t => t.trim()).filter(Boolean),
-      collectionId: selectedCollection, masteryLevel: 0, nextReview: new Date().toISOString()
-    }
-    setVocabularyItems(prev => [...prev, item])
-    setNewItem({ word: "", pronunciation: "", meaning: "", vietnamese: "", example: "", exampleVi: "", partOfSpeech: "noun", level: "A2", note: "", tags: "" })
-    setAddItemOpen(false)
+    
+    const meaningArr = newItem.meaning.split("\n").filter(Boolean)
+    const vietnameseArr = newItem.vietnamese.split("\n").filter(Boolean)
+    const examplesArr = newItem.example ? [{ en: newItem.example, vi: newItem.exampleVi }] : []
+    const tagsArr = newItem.tags.split(",").map(t => t.trim()).filter(Boolean)
+    
+    startTransition(async () => {
+      // Try to save to DB first
+      const result = await createNotebookItem({
+        notebookId: selectedCollection,
+        word: newItem.word,
+        pronunciation: newItem.pronunciation || "/.../",
+        meaning: meaningArr,
+        vietnamese: vietnameseArr,
+        examples: examplesArr,
+        partOfSpeech: newItem.partOfSpeech,
+        level: newItem.level,
+        note: newItem.note || undefined,
+        tags: tagsArr,
+      })
+      
+      if (result.success && result.item) {
+        // Use DB item
+        const item: NotebookItem = {
+          id: result.item.id,
+          word: result.item.word,
+          pronunciation: result.item.pronunciation || "/.../",
+          meaning: result.item.meaning,
+          vietnamese: result.item.vietnamese,
+          examples: result.item.examples,
+          partOfSpeech: result.item.partOfSpeech || "noun",
+          level: result.item.level || "A2",
+          note: result.item.note || undefined,
+          tags: result.item.tags,
+          collectionId: result.item.notebookId,
+          masteryLevel: result.item.masteryLevel,
+          nextReview: result.item.nextReview || undefined,
+        }
+        setVocabularyItems(prev => [...prev, item])
+      } else {
+        // Fallback to local state for sample notebooks
+        const item: NotebookItem = {
+          id: `v${Date.now()}`, word: newItem.word, pronunciation: newItem.pronunciation || "/.../",
+          meaning: meaningArr, vietnamese: vietnameseArr, examples: examplesArr,
+          partOfSpeech: newItem.partOfSpeech, level: newItem.level, note: newItem.note,
+          tags: tagsArr, collectionId: selectedCollection, masteryLevel: 0, nextReview: new Date().toISOString()
+        }
+        setVocabularyItems(prev => [...prev, item])
+      }
+      
+      setNewItem({ word: "", pronunciation: "", meaning: "", vietnamese: "", example: "", exampleVi: "", partOfSpeech: "noun", level: "A2", note: "", tags: "" })
+      setAddItemOpen(false)
+    })
   }
 
   const handleAddGrammar = () => {
@@ -361,32 +426,44 @@ export default function NotebookPageClient({
     setEditItemOpen(false)
   }
 
-  const handleDeleteItem = () => {
+  const handleDeleteItem = async () => {
     if (!itemToDelete) return
-    setVocabularyItems(prev => prev.filter(item => item.id !== itemToDelete))
-    setGrammarItems(prev => prev.filter(item => item.id !== itemToDelete))
-    setSelectedItems(prev => { const s = new Set(prev); s.delete(itemToDelete); return s })
-    setItemToDelete(null)
-    setDeleteConfirmOpen(false)
+    
+    startTransition(async () => {
+      // Try to delete from DB
+      await deleteNotebookItem(itemToDelete)
+      
+      // Update local state
+      setVocabularyItems(prev => prev.filter(item => item.id !== itemToDelete))
+      setGrammarItems(prev => prev.filter(item => item.id !== itemToDelete))
+      setSelectedItems(prev => { const s = new Set(prev); s.delete(itemToDelete); return s })
+      setItemToDelete(null)
+      setDeleteConfirmOpen(false)
+    })
   }
 
-  const handleDeleteNotebook = () => {
+  const handleDeleteNotebook = async () => {
     if (!notebookToDelete) return
-    // Remove all items in this notebook
-    setVocabularyItems(prev => prev.filter(item => item.collectionId !== notebookToDelete))
-    setGrammarItems(prev => prev.filter(item => item.collectionId !== notebookToDelete))
-    // Remove the notebook
-    setCollections(prev => prev.filter(c => c.id !== notebookToDelete))
-    // Select first available notebook
-    setSelectedCollection(prev => {
-      if (prev === notebookToDelete) {
-        const remaining = collections.filter(c => c.id !== notebookToDelete)
-        return remaining.length > 0 ? remaining[0].id : ""
-      }
-      return prev
+    
+    startTransition(async () => {
+      const result = await deleteNotebook(notebookToDelete)
+      
+      // Remove all items in this notebook (local state)
+      setVocabularyItems(prev => prev.filter(item => item.collectionId !== notebookToDelete))
+      setGrammarItems(prev => prev.filter(item => item.collectionId !== notebookToDelete))
+      // Remove the notebook
+      setCollections(prev => prev.filter(c => c.id !== notebookToDelete))
+      // Select first available notebook
+      setSelectedCollection(prev => {
+        if (prev === notebookToDelete) {
+          const remaining = collections.filter(c => c.id !== notebookToDelete)
+          return remaining.length > 0 ? remaining[0].id : ""
+        }
+        return prev
+      })
+      setNotebookToDelete(null)
+      setDeleteNotebookOpen(false)
     })
-    setNotebookToDelete(null)
-    setDeleteNotebookOpen(false)
   }
 
   const resetSession = () => {
@@ -442,11 +519,11 @@ export default function NotebookPageClient({
 
               {/* Notebook Type Filter */}
               <div className="flex gap-1 mb-4 p-1 bg-gray-100 rounded-lg">
-                {(["all", "vocabulary", "grammar"] as const).map(type => (
-                  <button key={type} onClick={() => setCollectionTypeFilter(type)}
-                    className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-all ${collectionTypeFilter === type ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"
+                {(["vocabulary", "grammar"] as const).map(type => (
+                  <button key={type} onClick={() => { setCollectionTypeFilter(type); setSelectedCollection(""); }}
+                    className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-all ${collectionTypeFilter === type ? "bg-white shadow-sm text-gray-900" : "text-gray-500 hover:text-gray-700"
                       }`}>
-                    {type === "all" ? "All" : type === "vocabulary" ? "Vocabulary" : "Grammar"}
+                    {type === "vocabulary" ? "Vocabulary" : "Grammar"}
                   </button>
                 ))}
               </div>
@@ -464,7 +541,6 @@ export default function NotebookPageClient({
                       <div className="flex-1 text-left">
                         <div className="flex items-center gap-2">
                           <p className={`font-semibold ${selectedCollection === collection.id ? "text-primary-700" : "text-gray-900"}`}>{collection.name}</p>
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">{collection.type === "vocabulary" ? "V" : "G"}</Badge>
                         </div>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-xs text-gray-500">{collection.count} items</span>
@@ -517,8 +593,8 @@ export default function NotebookPageClient({
             <div className="flex items-center justify-between mb-6 gap-4">
               <div className="flex gap-8 border-b border-gray-200 pb-0">
                 {[
-                  { value: "list", label: currentCollectionType === "vocabulary" ? "List View" : "All Rules" },
-                  { value: "flashcards", label: currentCollectionType === "vocabulary" ? "Flashcards" : "Quizzes" },
+                  { value: "list", label: collectionTypeFilter === "vocabulary" ? "List View" : "All Rules" },
+                  { value: "flashcards", label: collectionTypeFilter === "vocabulary" ? "Flashcards" : "Quizzes" },
                   { value: "statistics", label: "Statistics" }
                 ].map((tab) => (
                   <button
@@ -539,18 +615,47 @@ export default function NotebookPageClient({
                 {viewMode === "list" && selectedItems.size > 0 && currentCollectionType === "vocabulary" && (
                   <Button onClick={startPractice} className="gap-2 rounded-xl h-11 cursor-pointer"><GraduationCap className="h-4 w-4" /> Practice ({selectedItems.size})</Button>
                 )}
-                {viewMode === "list" && currentCollectionType === "vocabulary" && (
-                  <Button onClick={() => setAddItemOpen(true)} variant="outline" className="gap-2 rounded-xl h-11 bg-transparent cursor-pointer"><Plus className="h-4 w-4" /> Add Word</Button>
-                )}
-                {viewMode === "list" && currentCollectionType === "grammar" && (
-                  <Button onClick={() => setAddGrammarOpen(true)} variant="outline" className="gap-2 rounded-xl h-11 bg-transparent cursor-pointer"><Plus className="h-4 w-4" /> Add Rule</Button>
-                )}
+
+
               </div>
             </div>
 
             <div className="flex-1">
+              {/* WELCOME SCREEN - No notebook selected */}
+              {!selectedCollection && (
+                <Card className="p-12 rounded-2xl border-2 border-primary-100 bg-white text-center min-h-[320px] flex items-center justify-center">
+                  <div className="max-w-md mx-auto">
+                    <div className={`h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-6 ${collectionTypeFilter === "vocabulary" ? "bg-primary-100" : "bg-secondary-100"}`}>
+                      {collectionTypeFilter === "vocabulary" ? (
+                        <BookOpen className="h-10 w-10 text-primary-500" />
+                      ) : (
+                        <FileText className="h-10 w-10 text-secondary-500" />
+                      )}
+                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                      {collectionTypeFilter === "vocabulary" ? "Vocabulary Notebook" : "Grammar Notebook"}
+                    </h2>
+                    <p className="text-gray-500 mb-6 min-h-[48px]">
+                      {collectionTypeFilter === "vocabulary" 
+                        ? "Choose a vocabulary notebook from the sidebar to start learning. Practice words with flashcards and track your progress."
+                        : "Choose a grammar notebook from the sidebar to review rules. Test your knowledge with quizzes and track your mastery."}
+                    </p>
+                    <div className="flex items-center justify-center gap-6 text-sm text-gray-400">
+                      <div className="flex items-center gap-2">
+                        {collectionTypeFilter === "vocabulary" ? <GraduationCap className="h-4 w-4" /> : <Brain className="h-4 w-4" />}
+                        <span>{collectionTypeFilter === "vocabulary" ? "Flashcards" : "Quizzes"}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <BarChart3 className="h-4 w-4" />
+                        <span>Statistics</span>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              )}
+
               {/* VOCABULARY LIST */}
-              {viewMode === "list" && currentCollectionType === "vocabulary" && (
+              {selectedCollection && viewMode === "list" && currentCollectionType === "vocabulary" && (
                 <Card className="p-6 rounded-2xl border-2 border-primary-100 bg-white">
                   <div className="flex items-center justify-between gap-4 mb-4">
                     {/* Left: Select All */}
@@ -645,20 +750,29 @@ export default function NotebookPageClient({
                     </TableBody>
                   </Table>
                   {filteredVocabItems.length === 0 && <div className="text-center py-12"><BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-4" /><p className="text-gray-500">No words found. Add some words to get started!</p></div>}
+                  
+                  {/* Add Word Button */}
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <Button onClick={() => setAddItemOpen(true)} variant="outline" className="w-full gap-2 h-11 rounded-xl border-2 border-dashed border-gray-300 hover:border-primary-300 hover:bg-primary-50 bg-transparent cursor-pointer transition-all">
+                      <Plus className="h-4 w-4" /> Add Word
+                    </Button>
+                  </div>
                 </Card>
               )}
 
               {/* GRAMMAR LIST */}
-              {viewMode === "list" && currentCollectionType === "grammar" && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <div className="relative flex-1 max-w-sm">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input placeholder="Search grammar rules..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 h-10 rounded-xl border-2" />
+              {selectedCollection && viewMode === "list" && currentCollectionType === "grammar" && (
+                <Card className="p-6 rounded-2xl border-2 border-primary-100 bg-white">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary-400" />
+                      <Input placeholder="Search grammar rules..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9 pr-3 h-9 text-sm rounded-full border-2 border-primary-200 hover:border-primary-300 focus:border-primary-400 transition-all" />
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-9 w-9"><Filter className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full hover:bg-primary-50 cursor-pointer">
+                          <Filter className="h-4 w-4 text-primary-500" />
+                        </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-56">
                         <DropdownMenuLabel className="text-xs text-gray-500">Level</DropdownMenuLabel>
@@ -670,55 +784,65 @@ export default function NotebookPageClient({
                     </DropdownMenu>
                   </div>
 
-                  {filteredGrammarItems.map((item) => (
-                    <Card key={item.id} className="p-6 rounded-2xl border-2 border-primary-100 bg-white hover:border-primary-300 transition-all cursor-pointer group">
-                      <div className="flex items-start justify-between mb-4">
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <Badge className="bg-primary-100 text-primary-700">{item.category}</Badge>
-                            <Badge className="bg-gray-100 text-gray-600">{item.level}</Badge>
-                          </div>
-                          <h3 className="text-xl font-bold text-gray-900">{item.title}</h3>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className={`px-3 py-1 rounded text-xs font-medium ${getMasteryConfig(item.masteryLevel).bgLight} ${getMasteryConfig(item.masteryLevel).textColor}`}>{item.masteryLevel}%</div>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 hover:bg-red-50" onClick={() => { setItemToDelete(item.id); setDeleteConfirmOpen(true) }}><Trash2 className="h-4 w-4 text-gray-400" /></Button>
-                        </div>
-                      </div>
-
-                      <div className="bg-primary-50 rounded-lg p-4 mb-4">
-                        <p className="text-sm font-mono font-semibold text-primary-700">{item.rule}</p>
-                      </div>
-
-                      <p className="text-gray-600 mb-4">{item.explanation}</p>
-
-                      {item.examples.length > 0 && (
-                        <div className="space-y-2">
-                          <h4 className="text-sm font-semibold text-gray-700">Examples:</h4>
-                          {item.examples.map((ex, idx) => (
-                            <div key={idx} className="bg-gray-50 rounded-lg p-3 space-y-1">
-                              <p className="text-sm text-gray-800 flex items-center gap-2">
-                                <span className="text-primary-600">→</span> {ex.en}
-                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => speakText(ex.en)}><Volume2 className="h-3 w-3" /></Button>
-                              </p>
-                              <p className="text-sm text-gray-500 pl-5">{ex.vi}</p>
+                  <div className="space-y-4">
+                    {filteredGrammarItems.map((item) => (
+                      <div key={item.id} className="p-5 rounded-xl border-2 border-gray-100 hover:border-primary-200 transition-all group">
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge className="bg-primary-100 text-primary-700">{item.category}</Badge>
+                              <Badge className="bg-gray-100 text-gray-600">{item.level}</Badge>
                             </div>
-                          ))}
+                            <h3 className="text-lg font-bold text-gray-900">{item.title}</h3>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className={`px-3 py-1 rounded text-xs font-medium ${getMasteryConfig(item.masteryLevel).bgLight} ${getMasteryConfig(item.masteryLevel).textColor}`}>{item.masteryLevel}%</div>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 hover:bg-red-50" onClick={() => { setItemToDelete(item.id); setDeleteConfirmOpen(true) }}><Trash2 className="h-4 w-4 text-gray-400" /></Button>
+                          </div>
                         </div>
-                      )}
-                    </Card>
-                  ))}
+
+                        <div className="bg-primary-50 rounded-lg p-3 mb-3">
+                          <p className="text-sm font-mono font-semibold text-primary-700">{item.rule}</p>
+                        </div>
+
+                        <p className="text-sm text-gray-600 mb-3">{item.explanation}</p>
+
+                        {item.examples.length > 0 && (
+                          <div className="space-y-2">
+                            <h4 className="text-xs font-semibold text-gray-700">Examples:</h4>
+                            {item.examples.map((ex, idx) => (
+                              <div key={idx} className="bg-gray-50 rounded-lg p-2.5 space-y-0.5">
+                                <p className="text-sm text-gray-800 flex items-center gap-2">
+                                  <span className="text-primary-600">→</span> {ex.en}
+                                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => speakText(ex.en)}><Volume2 className="h-3 w-3" /></Button>
+                                </p>
+                                <p className="text-sm text-gray-500 pl-5">{ex.vi}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
                   {filteredGrammarItems.length === 0 && (
-                    <Card className="p-12 text-center rounded-2xl border-2 border-primary-100 bg-white">
+                    <div className="text-center py-12">
                       <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
                       <p className="text-gray-500">No grammar rules found. Add some rules to get started!</p>
-                    </Card>
+                    </div>
                   )}
-                </div>
+
+                  {/* Add Rule Button */}
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <Button onClick={() => setAddGrammarOpen(true)} variant="outline" className="w-full gap-2 h-11 rounded-xl border-2 border-dashed border-gray-300 hover:border-primary-300 hover:bg-primary-50 bg-transparent cursor-pointer transition-all">
+                      <Plus className="h-4 w-4" /> Add Rule
+                    </Button>
+                  </div>
+                </Card>
               )}
 
               {/* VOCABULARY FLASHCARDS - Same style as FlashcardReviewClient */}
-              {viewMode === "flashcards" && currentCollectionType === "vocabulary" && currentItem && (
+              {selectedCollection && viewMode === "flashcards" && currentCollectionType === "vocabulary" && currentItem && (
                 <div className="max-w-5xl mx-auto">
                   {/* Flashcard with Stats on sides */}
                   <div className="flex items-center gap-6 mb-8">
@@ -746,13 +870,13 @@ export default function NotebookPageClient({
                           style={{ backfaceVisibility: "hidden" }}
                         >
                           {cardAnimation === "swipe-left" && (
-                            <div className="absolute inset-0 bg-warning-100/50 flex items-center justify-center rounded-lg z-10 transition-all duration-300 animate-in fade-in">
-                              <X className="h-40 w-40 text-warning-500 stroke-[4] animate-in zoom-in duration-300" />
+                            <div className="absolute inset-0 bg-orange-100/60 flex items-center justify-center rounded-lg z-10 transition-all duration-300 animate-in fade-in">
+                              <X className="h-40 w-40 text-orange-500 stroke-[4] animate-in zoom-in duration-300" />
                             </div>
                           )}
                           {cardAnimation === "swipe-right" && (
-                            <div className="absolute inset-0 bg-success-100/50 flex items-center justify-center rounded-lg z-10 transition-all duration-300 animate-in fade-in">
-                              <Check className="h-40 w-40 text-success-500 stroke-[4] animate-in zoom-in duration-300" />
+                            <div className="absolute inset-0 bg-green-100/60 flex items-center justify-center rounded-lg z-10 transition-all duration-300 animate-in fade-in">
+                              <Check className="h-40 w-40 text-green-500 stroke-[4] animate-in zoom-in duration-300" />
                             </div>
                           )}
 
@@ -774,7 +898,7 @@ export default function NotebookPageClient({
                           </Button>
 
                           <div className="flex items-center justify-center h-full">
-                            <h2 className="text-6xl font-bold text-gray-900">{currentItem.word}</h2>
+                            <h2 className="text-5xl font-bold text-gray-900">{currentItem.word}</h2>
                           </div>
                         </Card>
 
@@ -787,8 +911,8 @@ export default function NotebookPageClient({
                           }}
                         >
                           <div className="flex flex-col h-full">
-                            <div className="flex items-start justify-between mb-3">
-                              <h2 className="text-2xl font-bold text-gray-900">{currentItem.word}</h2>
+                            <div className="flex items-start justify-between mb-2">
+                              <h2 className="text-xl font-bold text-gray-900">{currentItem.word}</h2>
                               <Button
                                 size="sm"
                                 variant="ghost"
@@ -802,48 +926,48 @@ export default function NotebookPageClient({
                               </Button>
                             </div>
 
-                            <p className="text-base text-gray-500 mb-4">{currentItem.pronunciation}</p>
+                            <p className="text-sm text-gray-500 mb-3">{currentItem.pronunciation}</p>
 
-                            <div className="flex-1 space-y-3">
-                              <div className="grid grid-cols-2 gap-3">
-                                <div className="bg-primary-50 rounded-lg p-3">
-                                  <h3 className="text-xs font-bold uppercase text-primary-700 mb-2 flex items-center gap-1.5">
+                            <div className="flex-1 space-y-2.5 overflow-y-auto">
+                              <div className="grid grid-cols-2 gap-2.5">
+                                <div className="bg-primary-50 rounded-lg p-2.5">
+                                  <h3 className="text-xs font-bold uppercase text-primary-700 mb-1.5 flex items-center gap-1.5">
                                     <BookOpen className="h-3.5 w-3.5" /> Meaning
                                   </h3>
-                                  <div className="space-y-1.5">
+                                  <div className="space-y-1">
                                     {currentItem.meaning.map((m, idx) => (
                                       <div key={idx} className="flex gap-1.5">
-                                        <div className="h-5 w-5 rounded-full bg-primary-200 flex-shrink-0 flex items-center justify-center text-xs font-bold text-primary-700">{idx + 1}</div>
-                                        <p className="text-xs leading-relaxed text-gray-700">{m}</p>
+                                        <div className="h-4 w-4 rounded-full bg-primary-200 flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-primary-700">{idx + 1}</div>
+                                        <p className="text-sm leading-snug text-gray-700">{m}</p>
                                       </div>
                                     ))}
                                   </div>
                                 </div>
 
-                                <div className="bg-success-50 rounded-lg p-3">
-                                  <h3 className="text-xs font-bold uppercase text-success-700 mb-2 flex items-center gap-1.5">
+                                <div className="bg-success-50 rounded-lg p-2.5">
+                                  <h3 className="text-xs font-bold uppercase text-success-700 mb-1.5 flex items-center gap-1.5">
                                     <FileText className="h-3.5 w-3.5" /> Vietnamese
                                   </h3>
-                                  <div className="space-y-1.5">
+                                  <div className="space-y-1">
                                     {currentItem.vietnamese.map((v, idx) => (
                                       <div key={idx} className="flex gap-1.5">
-                                        <div className="h-5 w-5 rounded-full bg-success-200 flex-shrink-0 flex items-center justify-center text-xs font-bold text-success-700">{idx + 1}</div>
-                                        <p className="text-xs leading-relaxed text-gray-700">{v}</p>
+                                        <div className="h-4 w-4 rounded-full bg-success-200 flex-shrink-0 flex items-center justify-center text-[10px] font-bold text-success-700">{idx + 1}</div>
+                                        <p className="text-sm leading-snug text-gray-700">{v}</p>
                                       </div>
                                     ))}
                                   </div>
                                 </div>
                               </div>
 
-                              <div className="bg-primary-50 rounded-lg p-3">
-                                <h3 className="text-xs font-bold uppercase text-primary-700 mb-2 flex items-center gap-1.5">
+                              <div className="bg-primary-50 rounded-lg p-2.5">
+                                <h3 className="text-xs font-bold uppercase text-primary-700 mb-1.5 flex items-center gap-1.5">
                                   <Zap className="h-3.5 w-3.5" /> Examples
                                 </h3>
-                                <div className="space-y-2">
+                                <div className="space-y-1.5">
                                   {currentItem.examples.map((ex, idx) => (
-                                    <div key={idx} className="bg-white rounded-lg p-2.5 space-y-0.5 border border-gray-100">
-                                      <p className="text-xs italic text-gray-800">"{ex.en}"</p>
-                                      <p className="text-xs text-gray-500">"{ex.vi}"</p>
+                                    <div key={idx} className="bg-white rounded-lg p-2 space-y-0.5 border border-gray-100">
+                                      <p className="text-sm italic text-gray-800">"{ex.en}"</p>
+                                      <p className="text-sm text-gray-500">"{ex.vi}"</p>
                                     </div>
                                   ))}
                                 </div>
@@ -931,7 +1055,7 @@ export default function NotebookPageClient({
                 </div>
               )}
 
-              {viewMode === "flashcards" && currentCollectionType === "vocabulary" && !currentItem && (
+              {selectedCollection && viewMode === "flashcards" && currentCollectionType === "vocabulary" && !currentItem && (
                 <Card className="p-12 text-center rounded-2xl border-2 border-primary-100 bg-white">
                   <Brain className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-xl font-bold text-gray-900 mb-2">No cards to practice</h3>
@@ -941,7 +1065,7 @@ export default function NotebookPageClient({
               )}
 
               {/* GRAMMAR QUIZZES */}
-              {viewMode === "flashcards" && currentCollectionType === "grammar" && (
+              {selectedCollection && viewMode === "flashcards" && currentCollectionType === "grammar" && (
                 <div className="max-w-3xl mx-auto">
                   {filteredGrammarItems.length > 0 ? (
                     <Card className="p-6 rounded-2xl border-2 border-primary-100 bg-white">
@@ -1021,82 +1145,138 @@ export default function NotebookPageClient({
               )}
 
               {/* STATISTICS VIEW */}
-              {viewMode === "statistics" && (
-                <div className="max-w-4xl mx-auto space-y-6">
-                  {/* Due for review */}
+              {selectedCollection && viewMode === "statistics" && (
+                <div className="space-y-8">
+                  {/* Due for review - Banner */}
                   {dueCount > 0 && currentCollectionType === "vocabulary" && (
-                    <Card className="p-6 rounded-2xl border-2 border-primary-100 bg-white">
-                      <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-4 flex-1">
-                          <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg shadow-primary-200">
-                            <Zap className="h-7 w-7 text-white" />
-                          </div>
-                          <div>
-                            <h2 className="text-xl font-bold text-gray-900">Ready to Practice!</h2>
-                            <p className="text-gray-600 text-sm">You have <span className="font-bold text-primary-600">{dueCount} words</span> ready for review.</p>
-                          </div>
+                    <Card className="p-6 border-primary-200 shadow-md bg-gradient-to-r from-primary-50 via-white to-primary-50">
+                      <div className="flex items-center gap-5">
+                        <div className="w-14 h-14 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center shadow-lg">
+                          <Zap className="h-7 w-7 text-white" />
                         </div>
-                        <Button size="lg" onClick={startReview} className="gap-2 h-11 px-6 rounded-xl"><Zap className="h-5 w-5" /> Start Review</Button>
+                        <div className="flex-1">
+                          <h2 className="text-xl font-bold text-slate-800">Ready to Practice!</h2>
+                          <p className="text-sm text-slate-600">You have <span className="font-bold text-primary-600">{dueCount} words</span> ready for review today.</p>
+                        </div>
+                        <Button onClick={startReview} className="gap-2 h-11 px-6 rounded-xl bg-primary-500 hover:bg-primary-600 shadow-md">
+                          <Zap className="h-4 w-4" /> Start Review
+                        </Button>
                       </div>
                     </Card>
                   )}
 
-                  {/* Stats cards */}
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    <Card className="p-5 text-center border-2 border-gray-100 bg-white">
-                      <div className="h-12 w-12 rounded-xl bg-primary-100 flex items-center justify-center mx-auto mb-2"><BookOpen className="h-6 w-6 text-primary-600" /></div>
-                      <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
-                      <p className="text-sm text-gray-500">Total {currentCollectionType === "vocabulary" ? "Words" : "Rules"}</p>
-                    </Card>
-                    <Card className="p-5 text-center border-2 border-gray-100 bg-white">
-                      <div className="h-12 w-12 rounded-xl bg-success-100 flex items-center justify-center mx-auto mb-2"><Award className="h-6 w-6 text-success-300" /></div>
-                      <p className="text-3xl font-bold text-gray-900">{stats.mastered}</p>
-                      <p className="text-sm text-gray-500">Mastered</p>
-                    </Card>
-                    <Card className="p-5 text-center border-2 border-gray-100 bg-white">
-                      <div className="h-12 w-12 rounded-xl bg-warning-100 flex items-center justify-center mx-auto mb-2"><Flame className="h-6 w-6 text-warning-300" /></div>
-                      <p className="text-3xl font-bold text-gray-900">{stats.learning}</p>
-                      <p className="text-sm text-gray-500">Learning</p>
-                    </Card>
-                    <Card className="p-5 text-center border-2 border-gray-100 bg-white">
-                      <div className="h-12 w-12 rounded-xl bg-secondary-100 flex items-center justify-center mx-auto mb-2"><BarChart3 className="h-6 w-6 text-secondary-600" /></div>
-                      <p className="text-3xl font-bold text-gray-900">{stats.avgMastery}%</p>
-                      <p className="text-sm text-gray-500">Avg. Mastery</p>
-                    </Card>
-                  </div>
+                  {/* Overview Stats */}
+                  <Card className="p-6 border-primary-200 shadow-md bg-white">
+                    <div className="flex items-center gap-3 mb-5">
+                      <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                        <BarChart3 className="w-5 h-5 text-primary-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-slate-800">Learning Overview</h3>
+                        <p className="text-xs text-slate-500">Summary of your learning progress</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="rounded-xl border border-primary-200 bg-gradient-to-br from-primary-50 to-white p-4 text-center">
+                        <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <BookOpen className="h-5 w-5 text-primary-600" />
+                        </div>
+                        <p className="text-2xl font-bold text-primary-700">{stats.total}</p>
+                        <p className="text-xs text-slate-600 font-medium">Total {currentCollectionType === "vocabulary" ? "Words" : "Rules"}</p>
+                      </div>
+                      <div className="rounded-xl border border-success-200 bg-gradient-to-br from-success-50 to-white p-4 text-center">
+                        <div className="w-10 h-10 bg-success-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <Award className="h-5 w-5 text-success-600" />
+                        </div>
+                        <p className="text-2xl font-bold text-success-700">{stats.mastered}</p>
+                        <p className="text-xs text-slate-600 font-medium">Mastered</p>
+                      </div>
+                      <div className="rounded-xl border border-warning-200 bg-gradient-to-br from-warning-50 to-white p-4 text-center">
+                        <div className="w-10 h-10 bg-warning-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <Flame className="h-5 w-5 text-warning-600" />
+                        </div>
+                        <p className="text-2xl font-bold text-warning-700">{stats.learning}</p>
+                        <p className="text-xs text-slate-600 font-medium">Learning</p>
+                      </div>
+                      <div className="rounded-xl border border-secondary-200 bg-gradient-to-br from-secondary-50 to-white p-4 text-center">
+                        <div className="w-10 h-10 bg-secondary-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <Target className="h-5 w-5 text-secondary-600" />
+                        </div>
+                        <p className="text-2xl font-bold text-secondary-700">{stats.avgMastery}%</p>
+                        <p className="text-xs text-slate-600 font-medium">Avg. Mastery</p>
+                      </div>
+                    </div>
+                    <div className="mt-4 p-4 bg-gradient-to-r from-primary-50 to-blue-50 rounded-xl border border-primary-100">
+                      <p className="text-sm text-slate-700 text-center">
+                        💡 <span className="font-semibold">Pro tip:</span> Practice daily to maintain and improve your mastery. Consistency is the key to success!
+                      </p>
+                    </div>
+                  </Card>
 
-                  {/* Charts */}
+                  {/* Charts Row */}
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Donut Chart */}
-                    <Card className="p-6 rounded-2xl border-2 border-primary-100 bg-white">
-                      <h3 className="text-lg font-bold text-gray-900 mb-6">Learning Status</h3>
-                      <div className="flex items-center justify-center gap-8">
+                    {/* Learning Status - Donut Chart */}
+                    <Card className="p-6 border-primary-200 shadow-md bg-white">
+                      <div className="flex items-center gap-3 mb-5">
+                        <div className="w-10 h-10 bg-success-100 rounded-full flex items-center justify-center">
+                          <Target className="w-5 h-5 text-success-600" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-slate-800">Learning Status</h3>
+                          <p className="text-xs text-slate-500">Distribution by mastery level</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-center gap-6 py-3">
                         <div className="relative">
-                          <svg width="160" height="160" viewBox="0 0 160 160">
-                            <circle cx="80" cy="80" r="60" fill="none" stroke="#e5e7eb" strokeWidth="24" />
-                            <circle cx="80" cy="80" r="60" fill="none" stroke="#22c55e" strokeWidth="24"
+                          <svg width="130" height="130" viewBox="0 0 160 160">
+                            <circle cx="80" cy="80" r="60" fill="none" stroke="#f1f5f9" strokeWidth="16" />
+                            <circle cx="80" cy="80" r="60" fill="none" stroke="#22c55e" strokeWidth="16"
                               strokeDasharray={`${(stats.mastered / Math.max(stats.total, 1)) * 377} 377`} strokeDashoffset="94.25" strokeLinecap="round" />
-                            <circle cx="80" cy="80" r="60" fill="none" stroke="#f59e0b" strokeWidth="24"
+                            <circle cx="80" cy="80" r="60" fill="none" stroke="#f59e0b" strokeWidth="16"
                               strokeDasharray={`${(stats.learning / Math.max(stats.total, 1)) * 377} 377`}
                               strokeDashoffset={`${94.25 - (stats.mastered / Math.max(stats.total, 1)) * 377}`} strokeLinecap="round" />
                           </svg>
                           <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            <span className="text-3xl font-bold text-gray-900">{stats.total > 0 ? Math.round((stats.mastered / stats.total) * 100) : 0}%</span>
-                            <span className="text-xs text-gray-500">Mastered</span>
+                            <span className="text-2xl font-bold text-slate-800">{stats.total > 0 ? Math.round((stats.mastered / stats.total) * 100) : 0}%</span>
+                            <span className="text-[10px] text-slate-500">Mastered</span>
                           </div>
                         </div>
                         <div className="space-y-3">
-                          <div className="flex items-center gap-3"><div className="w-4 h-4 rounded bg-success-200" /><span className="text-sm text-gray-700">{stats.mastered} Mastered</span></div>
-                          <div className="flex items-center gap-3"><div className="w-4 h-4 rounded bg-warning-200" /><span className="text-sm text-gray-700">{stats.learning} Learning</span></div>
-                          <div className="flex items-center gap-3"><div className="w-4 h-4 rounded bg-gray-300" /><span className="text-sm text-gray-700">{stats.newItems} New</span></div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-success-500" />
+                            <span className="text-xs font-semibold text-slate-700">{stats.mastered} Mastered</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-warning-500" />
+                            <span className="text-xs font-semibold text-slate-700">{stats.learning} Learning</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full bg-slate-300" />
+                            <span className="text-xs font-semibold text-slate-700">{stats.newItems} New</span>
+                          </div>
                         </div>
+                      </div>
+                      <div className="mt-4 p-4 bg-gradient-to-r from-success-50 to-emerald-50 rounded-xl border border-success-100">
+                        <p className="text-sm text-success-800 text-center leading-relaxed">
+                          🎯 This chart shows your vocabulary mastery ratio. <span className="font-semibold">Goal: reach 80% or higher!</span>
+                          <br />
+                          <span className="text-success-600">Keep practicing and you&apos;ll get there! 💪</span>
+                        </p>
                       </div>
                     </Card>
 
                     {/* Level Distribution */}
-                    <Card className="p-6 rounded-2xl border-2 border-primary-100 bg-white">
-                      <h3 className="text-lg font-bold text-gray-900 mb-6">Distribution by Level</h3>
-                      <div className="space-y-4">
+                    <Card className="p-6 border-primary-200 shadow-md bg-white">
+                      <div className="flex items-center gap-3 mb-5">
+                        <div className="w-10 h-10 bg-secondary-100 rounded-full flex items-center justify-center">
+                          <BarChart3 className="w-5 h-5 text-secondary-600" />
+                        </div>
+                        <div>
+                          <h3 className="text-lg font-bold text-slate-800">Level Distribution</h3>
+                          <p className="text-xs text-slate-500">Vocabulary count by CEFR level</p>
+                        </div>
+                      </div>
+                      <div className="space-y-2 py-2">
                         {["A1", "A2", "B1", "B2", "C1", "C2"].map((level) => {
                           const items = currentCollectionType === "vocabulary"
                             ? vocabularyItems.filter(i => i.collectionId === selectedCollection && i.level === level)
@@ -1104,38 +1284,64 @@ export default function NotebookPageClient({
                           const count = items.length
                           const percentage = stats.total > 0 ? (count / stats.total) * 100 : 0
                           return (
-                            <div key={level} className="flex items-center gap-4">
-                              <span className="w-8 text-sm font-semibold text-gray-700">{level}</span>
-                              <div className="flex-1 h-8 bg-gray-100 rounded-lg overflow-hidden">
-                                <div className="h-full bg-primary-500 rounded-lg flex items-center justify-end pr-3" style={{ width: `${Math.max(percentage, 5)}%` }}>
-                                  {percentage > 15 && <span className="text-xs font-semibold text-white">{count}</span>}
+                            <div key={level} className="flex items-center gap-2">
+                              <span className="w-9 text-xs font-bold text-slate-600 bg-slate-100 rounded px-2 py-1 text-center">{level}</span>
+                              <div className="flex-1 h-6 bg-slate-100 rounded-lg overflow-hidden">
+                                <div 
+                                  className="h-full bg-gradient-to-r from-primary-400 to-primary-500 rounded-lg flex items-center justify-end pr-2 transition-all duration-500" 
+                                  style={{ width: `${Math.max(percentage, 5)}%` }}
+                                >
+                                  {percentage > 15 && <span className="text-[10px] font-bold text-white">{count}</span>}
                                 </div>
                               </div>
-                              {percentage <= 15 && <span className="text-xs font-semibold text-gray-500 w-8">{count}</span>}
+                              {percentage <= 15 && <span className="text-xs font-bold text-slate-500 w-6 text-right">{count}</span>}
                             </div>
                           )
                         })}
                       </div>
+                      <div className="mt-4 p-4 bg-gradient-to-r from-secondary-50 to-purple-50 rounded-xl border border-secondary-100">
+                        <p className="text-sm text-secondary-800 text-center leading-relaxed">
+                          📊 <span className="font-semibold">CEFR</span> is the European language proficiency scale.
+                          <br />
+                          <span className="text-secondary-600">A1-A2 (Basic) → B1-B2 (Intermediate) → C1-C2 (Advanced)</span>
+                        </p>
+                      </div>
                     </Card>
                   </div>
 
-                  {/* Mastery breakdown */}
-                  <Card className="p-6 rounded-2xl border-2 border-primary-100 bg-white">
-                    <h3 className="text-lg font-bold text-gray-900 mb-6">Mastery Breakdown</h3>
-                    <div className="grid grid-cols-5 gap-4">
+                  {/* Mastery Breakdown */}
+                  <Card className="p-6 border-primary-200 shadow-md bg-white">
+                    <div className="flex items-center gap-3 mb-5">
+                      <div className="w-10 h-10 bg-warning-100 rounded-full flex items-center justify-center">
+                        <Brain className="w-5 h-5 text-warning-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-slate-800">Mastery Breakdown</h3>
+                        <p className="text-xs text-slate-500">Vocabulary classified by 5 memory levels</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-5 gap-3">
                       {MASTERY_LEVELS.map((level) => {
                         const items = currentCollectionType === "vocabulary"
                           ? vocabularyItems.filter(i => i.collectionId === selectedCollection)
                           : grammarItems.filter(i => i.collectionId === selectedCollection)
                         const count = items.filter(i => getMasteryCategory(i.masteryLevel) === level.value).length
                         return (
-                          <div key={level.value} className={`p-4 rounded-xl ${level.bgLight} text-center`}>
-                            <div className={`h-3 w-3 rounded-full ${level.color} mx-auto mb-2`} />
-                            <p className="text-2xl font-bold text-gray-900">{count}</p>
-                            <p className={`text-xs font-medium ${level.textColor}`}>{level.label}</p>
+                          <div key={level.value} className={`p-4 rounded-xl border-2 ${level.bgLight} text-center transition-all hover:shadow-lg hover:scale-105`}>
+                            <div className={`h-3 w-3 rounded-full ${level.color} mx-auto mb-2 shadow-sm`} />
+                            <p className="text-xl font-bold text-slate-800">{count}</p>
+                            <p className={`text-[10px] font-semibold ${level.textColor}`}>{level.label}</p>
                           </div>
                         )
                       })}
+                    </div>
+                    <div className="mt-5 p-4 bg-gradient-to-r from-warning-50 to-orange-50 rounded-xl border border-warning-100">
+                      <p className="text-sm text-warning-800 text-center leading-relaxed">
+                        🧠 <span className="font-semibold">How it works:</span> New (0-19%) → Learning (20-39%) → Familiar (40-59%) → Confident (60-79%) → Mastered (80-100%)
+                      </p>
+                      <p className="text-sm text-warning-700 text-center mt-2">
+                        ✨ Every correct answer in flashcards increases your mastery. <span className="font-semibold">You&apos;re doing great!</span>
+                      </p>
                     </div>
                   </Card>
                 </div>
@@ -1273,7 +1479,7 @@ export default function NotebookPageClient({
 
         {/* Add Word */}
         <Dialog open={addItemOpen} onOpenChange={setAddItemOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>Add New Word</DialogTitle></DialogHeader>
             <div className="space-y-4 py-4">
               <div className="grid grid-cols-2 gap-4">
@@ -1311,7 +1517,7 @@ export default function NotebookPageClient({
 
         {/* Add Grammar */}
         <Dialog open={addGrammarOpen} onOpenChange={setAddGrammarOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader><DialogTitle>Add Grammar Rule</DialogTitle></DialogHeader>
             <div className="space-y-4 py-4">
               <div className="grid grid-cols-2 gap-4">

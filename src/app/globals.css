@@ -362,35 +362,13 @@
   transform: rotateY(180deg);
 }
 
-/* Swipe animations */
+/* Swipe animations - just overlay effect, no movement */
 .swipe-left {
-  animation: swipeLeft 0.4s ease-out;
+  /* No transform animation - overlay handles the visual feedback */
 }
 
 .swipe-right {
-  animation: swipeRight 0.4s ease-out;
-}
-
-@keyframes swipeLeft {
-  0% {
-    transform: translateX(0) rotate(0deg);
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(-100%) rotate(-15deg);
-    opacity: 0;
-  }
-}
-
-@keyframes swipeRight {
-  0% {
-    transform: translateX(0) rotate(0deg);
-    opacity: 1;
-  }
-  100% {
-    transform: translateX(100%) rotate(15deg);
-    opacity: 0;
-  }
+  /* No transform animation - overlay handles the visual feedback */
 }
 
 /* Card transition animation - slide effect when changing cards */
