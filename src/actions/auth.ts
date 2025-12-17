@@ -21,13 +21,42 @@ export async function registerUser(
   password: string
 ): Promise<AuthResult> {
   try {
-    // Validate input
+    // Validate input - basic presence check
     if (!name || !email || !password) {
-      return { success: false, error: "Vui lòng điền đầy đủ thông tin" };
+      return { success: false, error: "Please fill in all fields" };
     }
 
+    // Validate name
+    const trimmedName = name.trim();
+    if (trimmedName.length < 2) {
+      return { success: false, error: "Name must be at least 2 characters" };
+    }
+    if (trimmedName.length > 50) {
+      return { success: false, error: "Name must be less than 50 characters" };
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return { success: false, error: "Please enter a valid email address" };
+    }
+
+    // Validate password length
     if (password.length < 8) {
-      return { success: false, error: "Mật khẩu phải có ít nhất 8 ký tự" };
+      return {
+        success: false,
+        error: "Password must be at least 8 characters",
+      };
+    }
+
+    // Validate password strength (must contain letters and numbers)
+    const hasLetter = /[a-zA-Z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    if (!hasLetter || !hasNumber) {
+      return {
+        success: false,
+        error: "Password must contain both letters and numbers",
+      };
     }
 
     // Check if user already exists
@@ -36,7 +65,7 @@ export async function registerUser(
     });
 
     if (existingUser) {
-      return { success: false, error: "Email đã được sử dụng" };
+      return { success: false, error: "Email is already in use" };
     }
 
     // Hash password
@@ -45,7 +74,7 @@ export async function registerUser(
     // Create user
     await prisma.user.create({
       data: {
-        name,
+        name: trimmedName,
         email,
         password: hashedPassword,
       },

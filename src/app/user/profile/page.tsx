@@ -1,12 +1,8 @@
 import ProfilePageClient from "@/components/page/ProfilePageClient";
 import { getUserProfile } from "@/actions/user";
 
-interface Mission {
-  id: string;
-  title: string;
-  points: number;
-  completed: boolean;
-}
+// Force dynamic rendering because this page uses auth headers
+export const dynamic = "force-dynamic";
 
 // Generate realistic activity data based on completed lessons
 function generateActivityData(): Record<string, number> {
@@ -35,32 +31,50 @@ function generateActivityData(): Record<string, number> {
   return data;
 }
 
+// Fallback quotes when API fails
+const fallbackQuotes = [
+  { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+  { text: "In the middle of difficulty lies opportunity.", author: "Albert Einstein" },
+  { text: "It does not matter how slowly you go as long as you do not stop.", author: "Confucius" },
+  { text: "The future belongs to those who believe in the beauty of their dreams.", author: "Eleanor Roosevelt" },
+  { text: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
+];
+
+// Fetch random quote from zenquotes.io
+async function fetchQuote(): Promise<{ text: string; author: string }> {
+  try {
+    const res = await fetch("https://zenquotes.io/api/random", {
+      cache: "no-store", // Fresh on each page load
+    });
+    if (!res.ok) throw new Error("API failed");
+    const data = await res.json();
+    if (data && data.length > 0) {
+      return {
+        text: data[0].q,
+        author: data[0].a,
+      };
+    }
+    throw new Error("No data");
+  } catch {
+    // Return random fallback quote if API fails
+    const randomIndex = Math.floor(Math.random() * fallbackQuotes.length);
+    return fallbackQuotes[randomIndex];
+  }
+}
+
 export default async function ProfilePage() {
   // Fetch user data
   const { user } = await getUserProfile();
   const userName = user?.name || "User";
 
-  // Mock data - will be replaced with actual data fetching from DB/API later
-  const missions: Mission[] = [
-    { id: "m1", title: "Đăng nhập hôm nay", points: 5, completed: true },
-    { id: "m2", title: "Học 30 phút", points: 10, completed: false },
-    { id: "m3", title: "Học 10 từ vựng mới", points: 10, completed: false },
-    {
-      id: "m4",
-      title: "Hoàn thành bài học hôm nay",
-      points: 40,
-      completed: false,
-    },
-    { id: "m5", title: "Luyện nói 1 lần", points: 30, completed: false },
-  ];
-
   const activityData = generateActivityData();
+  const quote = await fetchQuote();
 
   return (
     <ProfilePageClient
-      missions={missions}
       activityData={activityData}
       userName={userName}
+      quote={quote}
     />
   );
 }

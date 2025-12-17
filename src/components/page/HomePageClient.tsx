@@ -487,10 +487,10 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                     <Sparkles className="w-6 h-6" />
                   </div>
                   <h3 className="text-2xl font-bold mb-4 text-gray-900">
-                    Kitty Tutor Companion
+                    Dorara Companion
                   </h3>
                   <p className="text-gray-600 leading-relaxed mb-6">
-                    Stuck on a word? Need grammar help? Kitty is your 24/7 AI
+                    Stuck on a word? Need grammar help? Dorara is your 24/7 AI
                     companion ready to explain concepts instantly inside any
                     lesson.
                   </p>
@@ -498,7 +498,7 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                     variant="secondary"
                     className="bg-secondary-300 hover:bg-secondary-400 text-white rounded-full cursor-pointer"
                   >
-                    Chat with Kitty
+                    Chat with Dorara
                   </Button>
                 </div>
                 <div className="flex-1 relative h-64 w-full md:h-full rounded-2xl overflow-hidden bg-secondary-50/50">

@@ -41,12 +41,15 @@ export function SearchCommand() {
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 z-40 bg-black/50" onClick={() => setSearchOpen(false)} />
+      <div
+        className="fixed inset-0 z-40 bg-black/50"
+        onClick={() => setSearchOpen(false)}
+      />
 
       {/* Command Palette */}
       <div className="fixed top-1/2 left-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2">
         <div className="rounded-2xl bg-background border border-border shadow-xl overflow-hidden">
-          <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
+          <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
             <Search className="h-5 w-5 text-muted-foreground" />
             <input
               autoFocus
@@ -86,5 +89,5 @@ export function SearchCommand() {
         </div>
       </div>
     </>
-  )
+  );
 }

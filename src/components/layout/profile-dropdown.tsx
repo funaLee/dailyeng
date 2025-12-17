@@ -20,10 +20,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useUserProfile } from "@/contexts/UserProfileContext";
 
 export function ProfileDropdown() {
   const { data: session } = useSession();
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { profile } = useUserProfile();
+  const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   // Prevent hydration mismatch
@@ -40,14 +42,25 @@ export function ProfileDropdown() {
   };
 
   const isDark = resolvedTheme === "dark";
-  const userName = session?.user?.name || "Guest User";
+
+  // Use profile data if available, fallback to session
+  const userName = profile?.name || session?.user?.name || "Guest User";
+  const userImage = profile?.image || session?.user?.image;
   const userInitial = userName.charAt(0).toUpperCase();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" title="Profile">
-          <User className="h-5 w-5" />
+          {userImage ? (
+            <img
+              src={userImage}
+              alt="Profile"
+              className="h-7 w-7 rounded-full object-cover"
+            />
+          ) : (
+            <User className="h-5 w-5" />
+          )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -56,8 +69,16 @@ export function ProfileDropdown() {
       >
         {/* Avatar + Username */}
         <div className="flex items-center gap-3 px-2 py-3">
-          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold text-lg shadow-md">
-            {userInitial}
+          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold text-lg shadow-md overflow-hidden">
+            {userImage ? (
+              <img
+                src={userImage}
+                alt="Profile"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              userInitial
+            )}
           </div>
           <span className="text-gray-800 font-medium text-sm truncate">
             {userName}

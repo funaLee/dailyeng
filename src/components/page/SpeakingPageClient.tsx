@@ -200,6 +200,7 @@ export default function SpeakingPageClient({
 
   // Custom scenarios state
   const [customScenarios, setCustomScenarios] = useState<Scenario[]>([]);
+  const [customScenariosLoading, setCustomScenariosLoading] = useState(false);
 
   // History tab state (lazy loaded)
   interface HistorySession {
@@ -345,22 +346,25 @@ export default function SpeakingPageClient({
     if (!session?.user?.id) return;
     if (activeTab !== "custom") return;
 
-    getCustomTopics(session.user.id).then((customTopics) => {
-      setCustomScenarios(
-        customTopics.map((s) => ({
-          id: s.id,
-          title: s.title,
-          description: s.description,
-          category: s.category || "Custom",
-          level: s.difficulty || "B1",
-          image: s.image || "/learning.png",
-          sessionsCompleted: 0,
-          totalSessions: 10,
-          progress: 0,
-          isCustom: true,
-        }))
-      );
-    });
+    setCustomScenariosLoading(true);
+    getCustomTopics(session.user.id)
+      .then((customTopics) => {
+        setCustomScenarios(
+          customTopics.map((s) => ({
+            id: s.id,
+            title: s.title,
+            description: s.description,
+            category: s.category || "Custom",
+            level: s.difficulty || "B1",
+            image: s.image || "/learning.png",
+            sessionsCompleted: 0,
+            totalSessions: 10,
+            progress: 0,
+            isCustom: true,
+          }))
+        );
+      })
+      .finally(() => setCustomScenariosLoading(false));
   }, [session?.user?.id, activeTab]);
 
   // Lazy load history stats when History tab is first opened
@@ -566,7 +570,7 @@ export default function SpeakingPageClient({
               <Search className="absolute left-3 h-4 w-4 text-primary-400" />
               <Input
                 placeholder="Search all topics..."
-                className={`pl-10 pr-10 h-10 text-sm rounded-full border-2 transition-all ${
+                className={`pl-10 pr-10 h-9 text-sm rounded-full border-2 transition-all ${
                   isSearchMode
                     ? "w-80 border-primary-400 shadow-lg bg-white"
                     : "w-64 border-primary-200 hover:border-primary-300"
@@ -985,30 +989,50 @@ export default function SpeakingPageClient({
                 <h3 className="text-xl font-bold mt-8 mb-4">
                   Your Custom Scenarios
                 </h3>
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 pb-4">
-                  {customScenarios.map((topic) => (
-                    <TopicCard
-                      key={topic.id}
-                      id={topic.id}
-                      title={topic.title}
-                      description={topic.description}
-                      level={topic.level}
-                      wordCount={7}
-                      thumbnail={topic.image}
-                      progress={topic.progress}
-                      href={`/speaking/session/${topic.id}`}
-                      onNotYet={() => {}}
-                      type="speaking"
-                      isBookmarked={bookmarkedTopics.includes(topic.id)}
-                      onBookmarkToggle={handleBookmarkToggle}
-                    />
-                  ))}
-                  {customScenarios.length === 0 && (
-                    <p className="text-muted-foreground col-span-full text-center py-8">
-                      You haven't created any custom scenarios yet.
-                    </p>
-                  )}
-                </div>
+                {customScenariosLoading ? (
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 pb-4">
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className="animate-pulse rounded-2xl border border-gray-200 bg-white p-4"
+                      >
+                        <div className="h-32 bg-gray-200 rounded-xl mb-4" />
+                        <div className="h-5 bg-gray-200 rounded w-3/4 mb-2" />
+                        <div className="h-4 bg-gray-100 rounded w-full mb-1" />
+                        <div className="h-4 bg-gray-100 rounded w-2/3 mb-4" />
+                        <div className="flex justify-between items-center">
+                          <div className="h-6 w-12 bg-gray-200 rounded-full" />
+                          <div className="h-8 w-24 bg-gray-200 rounded-lg" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 pb-4">
+                    {customScenarios.map((topic) => (
+                      <TopicCard
+                        key={topic.id}
+                        id={topic.id}
+                        title={topic.title}
+                        description={topic.description}
+                        level={topic.level}
+                        wordCount={7}
+                        thumbnail={topic.image}
+                        progress={topic.progress}
+                        href={`/speaking/session/${topic.id}`}
+                        onNotYet={() => {}}
+                        type="speaking"
+                        isBookmarked={bookmarkedTopics.includes(topic.id)}
+                        onBookmarkToggle={handleBookmarkToggle}
+                      />
+                    ))}
+                    {customScenarios.length === 0 && (
+                      <p className="text-muted-foreground col-span-full text-center py-8">
+                        You haven't created any custom scenarios yet.
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
