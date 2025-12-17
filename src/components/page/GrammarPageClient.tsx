@@ -191,6 +191,7 @@ export default function GrammarPageClient({
         <HubHero
           title="GRAMMAR HUB"
           description="Master English grammar with structured lessons."
+          imageSrc="/hero-grammar.jpg"
           primaryAction={{ label: "Build Study Plan" }}
           secondaryAction={{ label: "Choose Learning Topic" }}
           notification={{
@@ -207,10 +208,11 @@ export default function GrammarPageClient({
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as TabType)}
-                  className={`pb-3 px-2 text-lg font-bold transition-colors border-b-2 whitespace-nowrap cursor-pointer ${activeTab === tab.id
+                  className={`pb-3 px-2 text-lg font-bold transition-colors border-b-2 whitespace-nowrap cursor-pointer ${
+                    activeTab === tab.id
                       ? "border-primary text-primary"
                       : "border-transparent text-muted-foreground hover:text-gray-900"
-                    }`}
+                  }`}
                 >
                   {tab.label}
                 </button>
@@ -222,10 +224,11 @@ export default function GrammarPageClient({
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary-400" />
             <Input
               placeholder="Search all grammar topics..."
-              className={`pl-10 pr-10 h-10 text-sm rounded-full border-2 transition-all ${isSearchMode
+              className={`pl-10 pr-10 h-10 text-sm rounded-full border-2 transition-all ${
+                isSearchMode
                   ? "w-80 border-primary-400 shadow-lg bg-white"
                   : "w-64 border-primary-200 hover:border-primary-300"
-                }`}
+              }`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -264,7 +267,7 @@ export default function GrammarPageClient({
                         wordCount={topic.lessonCount}
                         progress={topic.progress}
                         href={`/grammar/${topic.id}`}
-                        onNotYet={() => { }}
+                        onNotYet={() => {}}
                         type="grammar"
                         isBookmarked={bookmarkedTopics.includes(topic.id)}
                         onBookmarkToggle={handleBookmarkToggle}
@@ -329,7 +332,7 @@ export default function GrammarPageClient({
                           wordCount={topic.lessonCount}
                           progress={topic.progress}
                           href={`/grammar/${topic.id}`}
-                          onNotYet={() => { }}
+                          onNotYet={() => {}}
                           type="grammar"
                           isBookmarked={bookmarkedTopics.includes(topic.id)}
                           onBookmarkToggle={handleBookmarkToggle}
@@ -375,7 +378,7 @@ export default function GrammarPageClient({
                       wordCount={topic.lessonCount}
                       progress={topic.progress}
                       href={`/grammar/${topic.id}`}
-                      onNotYet={() => { }}
+                      onNotYet={() => {}}
                       type="grammar"
                       isBookmarked={true}
                       onBookmarkToggle={handleBookmarkToggle}

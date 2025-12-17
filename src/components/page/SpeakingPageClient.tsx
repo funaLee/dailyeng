@@ -535,6 +535,7 @@ export default function SpeakingPageClient({
           <HubHero
             title="SPEAKING ROOM"
             description="Practice real conversations with AI tutors and get instant feedback on your pronunciation, fluency, grammar, and content."
+            imageSrc="/hero-speaking.jpg"
             primaryAction={{ label: "Build Study Plan" }}
             secondaryAction={{
               label: "Random Topic",

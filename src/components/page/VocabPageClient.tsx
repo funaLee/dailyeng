@@ -379,6 +379,7 @@ export default function VocabPageClient({ userId }: VocabPageClientProps) {
         <HubHero
           title="VOCABULARY HUB"
           description="Expand your vocabulary with structured topics and interactive flashcards."
+          imageSrc="/hero-vocabulary.jpg"
           primaryAction={{ label: "View Study Plan" }}
           secondaryAction={{ label: "Browse Topics" }}
           notification={{
