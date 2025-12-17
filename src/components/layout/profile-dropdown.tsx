@@ -1,17 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useTheme } from "next-themes";
 import { signOut, useSession } from "next-auth/react";
-import {
-  User,
-  Settings,
-  SunMedium,
-  Moon,
-  LogOut,
-  HelpCircle,
-} from "lucide-react";
+import { User, Settings, LogOut, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -25,23 +16,10 @@ import { useUserProfile } from "@/contexts/UserProfileContext";
 export function ProfileDropdown() {
   const { data: session } = useSession();
   const { profile } = useUserProfile();
-  const { setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  // Prevent hydration mismatch
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: "/" });
   };
-
-  const toggleTheme = () => {
-    setTheme(resolvedTheme === "dark" ? "light" : "dark");
-  };
-
-  const isDark = resolvedTheme === "dark";
 
   // Use profile data if available, fallback to session
   const userName = profile?.name || session?.user?.name || "Guest User";
@@ -97,29 +75,6 @@ export function ProfileDropdown() {
             <User className="h-4 w-4" />
             <span>Profile</span>
           </Link>
-        </DropdownMenuItem>
-
-        {/* Appearance Toggle */}
-        <DropdownMenuItem
-          onClick={(e) => {
-            e.preventDefault();
-            toggleTheme();
-          }}
-          className="cursor-pointer text-gray-700 hover:bg-gray-100 focus:bg-gray-100 focus:text-gray-900 py-2"
-        >
-          <div className="flex items-center justify-between w-full">
-            <div className="flex items-center gap-3">
-              {mounted && isDark ? (
-                <Moon className="h-4 w-4" />
-              ) : (
-                <SunMedium className="h-4 w-4" />
-              )}
-              <span>Appearance</span>
-            </div>
-            <span className="text-xs text-gray-500">
-              {mounted ? (isDark ? "Dark" : "Light") : "..."}
-            </span>
-          </div>
         </DropdownMenuItem>
 
         {/* Settings */}

@@ -256,10 +256,10 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
               <div className="absolute -inset-4 bg-linear-to-r from-primary-100 to-secondary-100 rounded-full opacity-30 blur-3xl z-0" />
               <StackedCardBackground
                 images={[
-                  "/learning.png",
-                  "/abstract-job-concept.png",
-                  "/diverse-travelers-world-map.png",
-                  "/diverse-food-spread.png",
+                  "/carousel-1.jpg",
+                  "/carousel-2.jpg",
+                  "/carousel-3.jpg",
+                  "/carousel-4.jpg",
                 ]}
                 autoPlayInterval={3000}
               />
@@ -421,7 +421,7 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                 </div>
                 <div className="flex-1 relative h-50 w-full md:h-full bg-primary-50 rounded-2xl overflow-hidden group-hover:scale-[1.02] transition-transform duration-500">
                   <Image
-                    src="/learning.png"
+                    src="/Speak-From-Day-One.jpg"
                     alt="Speaking Practice"
                     fill
                     className="object-cover"
@@ -504,7 +504,7 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                 <div className="flex-1 relative h-64 w-full md:h-full rounded-2xl overflow-hidden bg-secondary-50/50">
                   <div className="absolute inset-0 bg-linear-to-r from-white/40 to-transparent z-10" />
                   <Image
-                    src="/abstract-job-concept.png"
+                    src="/Dorara-Companion.jpg"
                     alt="AI Companion"
                     fill
                     className="object-cover opacity-80 mix-blend-multiply group-hover:scale-105 transition-transform duration-700"
@@ -707,8 +707,13 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                     className="p-6 border-0 shadow-sm bg-white rounded-2xl cursor-pointer hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="w-10 h-10 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center font-bold text-sm">
-                        {review.name.charAt(0)}
+                      <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden relative">
+                        <Image
+                          src={review.avatar || "/placeholder.svg"}
+                          alt={review.name}
+                          fill
+                          className="object-cover"
+                        />
                       </div>
                       <div>
                         <p className="font-semibold text-sm text-gray-900">
@@ -1001,7 +1006,7 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                 {/* Right Image */}
                 <div className="relative h-64 md:h-auto min-h-[300px] bg-primary-50">
                   <Image
-                    src="/learning.png"
+                    src="/test.jpg"
                     alt="English Level Test"
                     fill
                     className="object-cover"
