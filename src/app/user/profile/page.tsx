@@ -1,6 +1,9 @@
 import ProfilePageClient from "@/components/page/ProfilePageClient";
 import { getUserProfile } from "@/actions/user";
 
+// Force dynamic rendering because this page uses auth headers
+export const dynamic = "force-dynamic";
+
 // Generate realistic activity data based on completed lessons
 function generateActivityData(): Record<string, number> {
   const today = new Date();
