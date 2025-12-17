@@ -1146,19 +1146,19 @@ export default function NotebookPageClient({
 
               {/* STATISTICS VIEW */}
               {selectedCollection && viewMode === "statistics" && (
-                <div className="space-y-8">
+                <div className="space-y-6">
                   {/* Due for review - Banner */}
                   {dueCount > 0 && currentCollectionType === "vocabulary" && (
-                    <Card className="p-6 border-primary-200 shadow-md bg-gradient-to-r from-primary-50 via-white to-primary-50">
-                      <div className="flex items-center gap-5">
-                        <div className="w-14 h-14 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl flex items-center justify-center shadow-lg">
-                          <Zap className="h-7 w-7 text-white" />
+                    <Card className="p-5 rounded-2xl border-2 border-primary-200 shadow-md bg-gradient-to-r from-primary-50 via-white to-primary-50">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-600 rounded-xl flex items-center justify-center shadow-md">
+                          <Zap className="h-6 w-6 text-white" />
                         </div>
                         <div className="flex-1">
-                          <h2 className="text-xl font-bold text-slate-800">Ready to Practice!</h2>
+                          <h2 className="text-lg font-bold text-slate-800">Ready to Practice!</h2>
                           <p className="text-sm text-slate-600">You have <span className="font-bold text-primary-600">{dueCount} words</span> ready for review today.</p>
                         </div>
-                        <Button onClick={startReview} className="gap-2 h-11 px-6 rounded-xl bg-primary-500 hover:bg-primary-600 shadow-md">
+                        <Button onClick={startReview} className="gap-2 h-10 px-5 rounded-xl bg-primary-500 hover:bg-primary-600 shadow-sm">
                           <Zap className="h-4 w-4" /> Start Review
                         </Button>
                       </div>
@@ -1166,117 +1166,106 @@ export default function NotebookPageClient({
                   )}
 
                   {/* Overview Stats */}
-                  <Card className="p-6 border-primary-200 shadow-md bg-white">
-                    <div className="flex items-center gap-3 mb-5">
+                  <Card className="p-5 rounded-2xl border-2 border-primary-200 shadow-md bg-white">
+                    <div className="flex items-center gap-3 mb-4">
                       <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
                         <BarChart3 className="w-5 h-5 text-primary-600" />
                       </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-slate-800">Learning Overview</h3>
-                        <p className="text-xs text-slate-500">Summary of your learning progress</p>
-                      </div>
+                      <h3 className="text-lg font-bold text-slate-800">Learning Overview</h3>
                     </div>
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                      <div className="rounded-xl border border-primary-200 bg-gradient-to-br from-primary-50 to-white p-4 text-center">
-                        <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                          <BookOpen className="h-5 w-5 text-primary-600" />
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                      <div className="rounded-xl border-2 border-primary-100 bg-primary-50/50 p-4 text-center">
+                        <div className="w-9 h-9 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <BookOpen className="h-4 w-4 text-primary-600" />
                         </div>
-                        <p className="text-2xl font-bold text-primary-700">{stats.total}</p>
+                        <p className="text-xl font-bold text-primary-700">{stats.total}</p>
                         <p className="text-xs text-slate-600 font-medium">Total {currentCollectionType === "vocabulary" ? "Words" : "Rules"}</p>
                       </div>
-                      <div className="rounded-xl border border-success-200 bg-gradient-to-br from-success-50 to-white p-4 text-center">
-                        <div className="w-10 h-10 bg-success-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                          <Award className="h-5 w-5 text-success-600" />
+                      <div className="rounded-xl border-2 border-success-100 bg-success-50/50 p-4 text-center">
+                        <div className="w-9 h-9 bg-success-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <Award className="h-4 w-4 text-success-600" />
                         </div>
-                        <p className="text-2xl font-bold text-success-700">{stats.mastered}</p>
+                        <p className="text-xl font-bold text-success-700">{stats.mastered}</p>
                         <p className="text-xs text-slate-600 font-medium">Mastered</p>
                       </div>
-                      <div className="rounded-xl border border-warning-200 bg-gradient-to-br from-warning-50 to-white p-4 text-center">
-                        <div className="w-10 h-10 bg-warning-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                          <Flame className="h-5 w-5 text-warning-600" />
+                      <div className="rounded-xl border-2 border-warning-100 bg-warning-50/50 p-4 text-center">
+                        <div className="w-9 h-9 bg-warning-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <Flame className="h-4 w-4 text-warning-600" />
                         </div>
-                        <p className="text-2xl font-bold text-warning-700">{stats.learning}</p>
+                        <p className="text-xl font-bold text-warning-700">{stats.learning}</p>
                         <p className="text-xs text-slate-600 font-medium">Learning</p>
                       </div>
-                      <div className="rounded-xl border border-secondary-200 bg-gradient-to-br from-secondary-50 to-white p-4 text-center">
-                        <div className="w-10 h-10 bg-secondary-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                          <Target className="h-5 w-5 text-secondary-600" />
+                      <div className="rounded-xl border-2 border-secondary-100 bg-secondary-50/50 p-4 text-center">
+                        <div className="w-9 h-9 bg-secondary-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                          <Target className="h-4 w-4 text-secondary-600" />
                         </div>
-                        <p className="text-2xl font-bold text-secondary-700">{stats.avgMastery}%</p>
+                        <p className="text-xl font-bold text-secondary-700">{stats.avgMastery}%</p>
                         <p className="text-xs text-slate-600 font-medium">Avg. Mastery</p>
                       </div>
                     </div>
-                    <div className="mt-4 p-4 bg-gradient-to-r from-primary-50 to-blue-50 rounded-xl border border-primary-100">
-                      <p className="text-sm text-slate-700 text-center">
-                        💡 <span className="font-semibold">Pro tip:</span> Practice daily to maintain and improve your mastery. Consistency is the key to success!
+                    <div className="mt-4 p-3 bg-gradient-to-r from-primary-50 to-blue-50 rounded-xl border border-primary-100">
+                      <p className="text-sm text-slate-600 text-center">
+                        💡 Practice daily to maintain your mastery. Consistency is key!
                       </p>
                     </div>
                   </Card>
 
                   {/* Charts Row */}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                     {/* Learning Status - Donut Chart */}
-                    <Card className="p-6 border-primary-200 shadow-md bg-white">
-                      <div className="flex items-center gap-3 mb-5">
+                    <Card className="p-5 rounded-2xl border-2 border-primary-200 shadow-md bg-white">
+                      <div className="flex items-center gap-3 mb-4">
                         <div className="w-10 h-10 bg-success-100 rounded-full flex items-center justify-center">
                           <Target className="w-5 h-5 text-success-600" />
                         </div>
-                        <div>
-                          <h3 className="text-lg font-bold text-slate-800">Learning Status</h3>
-                          <p className="text-xs text-slate-500">Distribution by mastery level</p>
-                        </div>
+                        <h3 className="text-lg font-bold text-slate-800">Learning Status</h3>
                       </div>
-                      <div className="flex items-center justify-center gap-6 py-3">
+                      <div className="flex items-center justify-center gap-6 py-2">
                         <div className="relative">
-                          <svg width="130" height="130" viewBox="0 0 160 160">
-                            <circle cx="80" cy="80" r="60" fill="none" stroke="#f1f5f9" strokeWidth="16" />
-                            <circle cx="80" cy="80" r="60" fill="none" stroke="#22c55e" strokeWidth="16"
+                          <svg width="120" height="120" viewBox="0 0 160 160">
+                            <circle cx="80" cy="80" r="60" fill="none" stroke="#f1f5f9" strokeWidth="14" />
+                            <circle cx="80" cy="80" r="60" fill="none" stroke="#22c55e" strokeWidth="14"
                               strokeDasharray={`${(stats.mastered / Math.max(stats.total, 1)) * 377} 377`} strokeDashoffset="94.25" strokeLinecap="round" />
-                            <circle cx="80" cy="80" r="60" fill="none" stroke="#f59e0b" strokeWidth="16"
+                            <circle cx="80" cy="80" r="60" fill="none" stroke="#f59e0b" strokeWidth="14"
                               strokeDasharray={`${(stats.learning / Math.max(stats.total, 1)) * 377} 377`}
                               strokeDashoffset={`${94.25 - (stats.mastered / Math.max(stats.total, 1)) * 377}`} strokeLinecap="round" />
                           </svg>
                           <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            <span className="text-2xl font-bold text-slate-800">{stats.total > 0 ? Math.round((stats.mastered / stats.total) * 100) : 0}%</span>
+                            <span className="text-xl font-bold text-slate-800">{stats.total > 0 ? Math.round((stats.mastered / stats.total) * 100) : 0}%</span>
                             <span className="text-[10px] text-slate-500">Mastered</span>
                           </div>
                         </div>
-                        <div className="space-y-3">
+                        <div className="space-y-2">
                           <div className="flex items-center gap-2">
                             <div className="w-3 h-3 rounded-full bg-success-500" />
-                            <span className="text-xs font-semibold text-slate-700">{stats.mastered} Mastered</span>
+                            <span className="text-xs font-medium text-slate-700">{stats.mastered} Mastered</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <div className="w-3 h-3 rounded-full bg-warning-500" />
-                            <span className="text-xs font-semibold text-slate-700">{stats.learning} Learning</span>
+                            <span className="text-xs font-medium text-slate-700">{stats.learning} Learning</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <div className="w-3 h-3 rounded-full bg-slate-300" />
-                            <span className="text-xs font-semibold text-slate-700">{stats.newItems} New</span>
+                            <span className="text-xs font-medium text-slate-700">{stats.newItems} New</span>
                           </div>
                         </div>
                       </div>
-                      <div className="mt-4 p-4 bg-gradient-to-r from-success-50 to-emerald-50 rounded-xl border border-success-100">
-                        <p className="text-sm text-success-800 text-center leading-relaxed">
-                          🎯 This chart shows your vocabulary mastery ratio. <span className="font-semibold">Goal: reach 80% or higher!</span>
-                          <br />
-                          <span className="text-success-600">Keep practicing and you&apos;ll get there! 💪</span>
+                      <div className="mt-3 p-3 bg-gradient-to-r from-success-50 to-emerald-50 rounded-xl border border-success-100">
+                        <p className="text-sm text-success-700 text-center">
+                          🎯 Goal: reach 80% mastery! Keep practicing! 💪
                         </p>
                       </div>
                     </Card>
 
                     {/* Level Distribution */}
-                    <Card className="p-6 border-primary-200 shadow-md bg-white">
-                      <div className="flex items-center gap-3 mb-5">
+                    <Card className="p-5 rounded-2xl border-2 border-primary-200 shadow-md bg-white">
+                      <div className="flex items-center gap-3 mb-4">
                         <div className="w-10 h-10 bg-secondary-100 rounded-full flex items-center justify-center">
                           <BarChart3 className="w-5 h-5 text-secondary-600" />
                         </div>
-                        <div>
-                          <h3 className="text-lg font-bold text-slate-800">Level Distribution</h3>
-                          <p className="text-xs text-slate-500">Vocabulary count by CEFR level</p>
-                        </div>
+                        <h3 className="text-lg font-bold text-slate-800">Level Distribution</h3>
                       </div>
-                      <div className="space-y-2 py-2">
+                      <div className="space-y-2 py-1">
                         {["A1", "A2", "B1", "B2", "C1", "C2"].map((level) => {
                           const items = currentCollectionType === "vocabulary"
                             ? vocabularyItems.filter(i => i.collectionId === selectedCollection && i.level === level)
@@ -1285,8 +1274,8 @@ export default function NotebookPageClient({
                           const percentage = stats.total > 0 ? (count / stats.total) * 100 : 0
                           return (
                             <div key={level} className="flex items-center gap-2">
-                              <span className="w-9 text-xs font-bold text-slate-600 bg-slate-100 rounded px-2 py-1 text-center">{level}</span>
-                              <div className="flex-1 h-6 bg-slate-100 rounded-lg overflow-hidden">
+                              <span className="w-8 text-xs font-bold text-slate-600 bg-slate-100 rounded px-1.5 py-0.5 text-center">{level}</span>
+                              <div className="flex-1 h-5 bg-slate-100 rounded-lg overflow-hidden">
                                 <div 
                                   className="h-full bg-gradient-to-r from-primary-400 to-primary-500 rounded-lg flex items-center justify-end pr-2 transition-all duration-500" 
                                   style={{ width: `${Math.max(percentage, 5)}%` }}
@@ -1294,56 +1283,20 @@ export default function NotebookPageClient({
                                   {percentage > 15 && <span className="text-[10px] font-bold text-white">{count}</span>}
                                 </div>
                               </div>
-                              {percentage <= 15 && <span className="text-xs font-bold text-slate-500 w-6 text-right">{count}</span>}
+                              {percentage <= 15 && <span className="text-xs font-bold text-slate-500 w-5 text-right">{count}</span>}
                             </div>
                           )
                         })}
                       </div>
-                      <div className="mt-4 p-4 bg-gradient-to-r from-secondary-50 to-purple-50 rounded-xl border border-secondary-100">
-                        <p className="text-sm text-secondary-800 text-center leading-relaxed">
-                          📊 <span className="font-semibold">CEFR</span> is the European language proficiency scale.
-                          <br />
-                          <span className="text-secondary-600">A1-A2 (Basic) → B1-B2 (Intermediate) → C1-C2 (Advanced)</span>
+                      <div className="mt-3 p-3 bg-gradient-to-r from-secondary-50 to-purple-50 rounded-xl border border-secondary-100">
+                        <p className="text-sm text-secondary-700 text-center">
+                          📊 CEFR: A1-A2 (Basic) → B1-B2 (Intermediate) → C1-C2 (Advanced)
                         </p>
                       </div>
                     </Card>
                   </div>
 
-                  {/* Mastery Breakdown */}
-                  <Card className="p-6 border-primary-200 shadow-md bg-white">
-                    <div className="flex items-center gap-3 mb-5">
-                      <div className="w-10 h-10 bg-warning-100 rounded-full flex items-center justify-center">
-                        <Brain className="w-5 h-5 text-warning-600" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-slate-800">Mastery Breakdown</h3>
-                        <p className="text-xs text-slate-500">Vocabulary classified by 5 memory levels</p>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-5 gap-3">
-                      {MASTERY_LEVELS.map((level) => {
-                        const items = currentCollectionType === "vocabulary"
-                          ? vocabularyItems.filter(i => i.collectionId === selectedCollection)
-                          : grammarItems.filter(i => i.collectionId === selectedCollection)
-                        const count = items.filter(i => getMasteryCategory(i.masteryLevel) === level.value).length
-                        return (
-                          <div key={level.value} className={`p-4 rounded-xl border-2 ${level.bgLight} text-center transition-all hover:shadow-lg hover:scale-105`}>
-                            <div className={`h-3 w-3 rounded-full ${level.color} mx-auto mb-2 shadow-sm`} />
-                            <p className="text-xl font-bold text-slate-800">{count}</p>
-                            <p className={`text-[10px] font-semibold ${level.textColor}`}>{level.label}</p>
-                          </div>
-                        )
-                      })}
-                    </div>
-                    <div className="mt-5 p-4 bg-gradient-to-r from-warning-50 to-orange-50 rounded-xl border border-warning-100">
-                      <p className="text-sm text-warning-800 text-center leading-relaxed">
-                        🧠 <span className="font-semibold">How it works:</span> New (0-19%) → Learning (20-39%) → Familiar (40-59%) → Confident (60-79%) → Mastered (80-100%)
-                      </p>
-                      <p className="text-sm text-warning-700 text-center mt-2">
-                        ✨ Every correct answer in flashcards increases your mastery. <span className="font-semibold">You&apos;re doing great!</span>
-                      </p>
-                    </div>
-                  </Card>
+
                 </div>
               )}
             </div>
