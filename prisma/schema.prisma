@@ -118,6 +118,8 @@ model User {
   leaderboardEntries   LeaderboardEntry[]
   // [ADDED] Vocabulary word progress per user
   vocabProgress        UserVocabProgress[]
+  // [ADDED] User's notebooks
+  notebooks            Notebook[]
 }
 
 model ProfileStats {
@@ -251,6 +253,22 @@ model UserVocabProgress {
   @@unique([userId, vocabItemId])
 }
 
+// [ADDED] Notebook model for user's notebook collections
+model Notebook {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  type      String   // "vocabulary" or "grammar"
+  color     String   @default("primary")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items NotebookItem[]
+
+  @@unique([userId, name])
+}
+
 model NotebookItem {
   id            String    @id @default(cuid())
   userId        String
@@ -268,7 +286,9 @@ model NotebookItem {
   level         String?
   note          String?
   tags          String[]
-  collectionId  String // e.g. "vocabulary", "grammar"
+  // [UPDATED] Now references Notebook model
+  notebookId    String
+  notebook      Notebook  @relation(fields: [notebookId], references: [id], onDelete: Cascade)
   masteryLevel  Int       @default(0)
   isStarred     Boolean   @default(false)
   // [ADDED] Last reviewed date for SRS tracking
