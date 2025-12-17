@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useTransition } from "react";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 import {
   X,
   Send,
@@ -200,62 +201,14 @@ export function Dorara() {
           `}
           aria-label="Open Dorara"
         >
-          {/* Orbital Bell Icon */}
-          <div className="relative">
-            <svg viewBox="0 0 100 100" className="h-10 w-10" fill="none">
-              {/* Orbital ring behind bell */}
-              <ellipse
-                cx="50"
-                cy="50"
-                rx="42"
-                ry="16"
-                transform="rotate(-25 50 50)"
-                stroke="white"
-                strokeWidth="6"
-                fill="none"
-              />
-              {/* Main bell body */}
-              <ellipse
-                cx="50"
-                cy="48"
-                rx="26"
-                ry="30"
-                fill="#fbbf24"
-                stroke="white"
-                strokeWidth="4"
-              />
-              {/* Bell top bump */}
-              <ellipse
-                cx="50"
-                cy="22"
-                rx="8"
-                ry="6"
-                fill="#fbbf24"
-                stroke="white"
-                strokeWidth="3"
-              />
-              {/* Bell clapper */}
-              <ellipse cx="50" cy="74" rx="6" ry="5" fill="white" />
-              {/* Orbital ring front part */}
-              <path
-                d="M72 32 Q92 48 72 64"
-                stroke="white"
-                strokeWidth="6"
-                fill="none"
-              />
-              {/* Shine effect */}
-              <ellipse
-                cx="38"
-                cy="38"
-                rx="5"
-                ry="8"
-                fill="white"
-                opacity="0.5"
-              />
-            </svg>
-            {/* Sparkle indicator */}
-            <Sparkles className="absolute -top-1 -right-1 h-4 w-4 text-accent-300 animate-pulse" />
-          </div>
+          {/* Dorara Avatar */}
+          <Image
+            src="/dorara-assistant.png"
+            alt="Dorara"
+            width={40}
+            height={40}
+            className="rounded-full"
+          />
         </button>
       )}
 
@@ -266,45 +219,15 @@ export function Dorara() {
           <div className="bg-gradient-to-l from-primary-500 to-primary-600 p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                {/* Orbital Bell avatar */}
-                <div className="h-12 w-12 rounded-full bg-primary-500 border-2 border-primary-400 flex items-center justify-center shadow-md">
-                  <svg viewBox="0 0 100 100" className="h-8 w-8" fill="none">
-                    <ellipse
-                      cx="50"
-                      cy="50"
-                      rx="40"
-                      ry="15"
-                      transform="rotate(-25 50 50)"
-                      stroke="white"
-                      strokeWidth="5"
-                      fill="none"
-                    />
-                    <ellipse
-                      cx="50"
-                      cy="48"
-                      rx="24"
-                      ry="28"
-                      fill="#fbbf24"
-                      stroke="white"
-                      strokeWidth="3"
-                    />
-                    <ellipse
-                      cx="50"
-                      cy="24"
-                      rx="7"
-                      ry="5"
-                      fill="#fbbf24"
-                      stroke="white"
-                      strokeWidth="2.5"
-                    />
-                    <ellipse cx="50" cy="72" rx="5" ry="4" fill="white" />
-                    <path
-                      d="M70 34 Q88 48 70 62"
-                      stroke="white"
-                      strokeWidth="5"
-                      fill="none"
-                    />
-                  </svg>
+                {/* Dorara Avatar */}
+                <div className="h-12 w-12 rounded-full bg-primary-500 border-2 border-primary-400 shadow-md flex items-center justify-center">
+                  <Image
+                    src="/dorara-assistant.png"
+                    alt="Dorara"
+                    width={36}
+                    height={36}
+                    className="object-cover rounded-full"
+                  />
                 </div>
                 <div>
                   <p className="font-bold text-white text-lg flex items-center gap-2">
@@ -385,29 +308,14 @@ export function Dorara() {
                 }`}
               >
                 {msg.role === "tutor" && (
-                  <div className="h-8 w-8 rounded-full bg-primary-500 border border-primary-400 flex items-center justify-center mr-2 flex-shrink-0 shadow-sm">
-                    <svg viewBox="0 0 100 100" className="h-5 w-5" fill="none">
-                      <ellipse
-                        cx="50"
-                        cy="50"
-                        rx="38"
-                        ry="14"
-                        transform="rotate(-25 50 50)"
-                        stroke="white"
-                        strokeWidth="6"
-                        fill="none"
-                      />
-                      <ellipse
-                        cx="50"
-                        cy="48"
-                        rx="22"
-                        ry="26"
-                        fill="#fbbf24"
-                        stroke="white"
-                        strokeWidth="4"
-                      />
-                      <ellipse cx="50" cy="70" rx="5" ry="4" fill="white" />
-                    </svg>
+                  <div className="h-8 w-8 rounded-full bg-primary-500 border border-primary-400 mr-2 flex-shrink-0 shadow-sm flex items-center justify-center">
+                    <Image
+                      src="/dorara-assistant.png"
+                      alt="Dorara"
+                      width={24}
+                      height={24}
+                      className="object-cover rounded-full"
+                    />
                   </div>
                 )}
                 <div
@@ -424,29 +332,14 @@ export function Dorara() {
 
             {isPending && (
               <div className="flex justify-start">
-                <div className="h-8 w-8 rounded-full bg-primary-500 border border-primary-400 flex items-center justify-center mr-2 shadow-sm">
-                  <svg viewBox="0 0 100 100" className="h-5 w-5" fill="none">
-                    <ellipse
-                      cx="50"
-                      cy="50"
-                      rx="38"
-                      ry="14"
-                      transform="rotate(-25 50 50)"
-                      stroke="white"
-                      strokeWidth="6"
-                      fill="none"
-                    />
-                    <ellipse
-                      cx="50"
-                      cy="48"
-                      rx="22"
-                      ry="26"
-                      fill="#fbbf24"
-                      stroke="white"
-                      strokeWidth="4"
-                    />
-                    <ellipse cx="50" cy="70" rx="5" ry="4" fill="white" />
-                  </svg>
+                <div className="h-8 w-8 rounded-full bg-primary-500 border border-primary-400 mr-2 shadow-sm flex items-center justify-center">
+                  <Image
+                    src="/dorara-assistant.png"
+                    alt="Dorara"
+                    width={24}
+                    height={24}
+                    className="object-cover rounded-full"
+                  />
                 </div>
                 <div className="bg-white border border-primary-100 rounded-2xl rounded-bl-md px-4 py-3 shadow-sm">
                   <div className="flex gap-1.5">

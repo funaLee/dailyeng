@@ -4,7 +4,7 @@ import type React from "react";
 
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Sparkles, BookOpen, Flame, TrendingUp, Quote } from "lucide-react";
+import { Clock, BookOpen, Flame, TrendingUp, Quote } from "lucide-react";
 import { UserProfileSidebar } from "@/components/layout/user-profile-sidebar";
 import { ProtectedRoute, PageIcons } from "@/components/auth/protected-route";
 import { useUserProfile } from "@/contexts/UserProfileContext";
@@ -12,16 +12,28 @@ import { useUserProfile } from "@/contexts/UserProfileContext";
 interface ProfilePageClientProps {
   activityData: Record<string, number>;
   userName?: string;
+  userLevel?: string;
+  currentStreak?: number;
   quote?: { text: string; author: string } | null;
 }
 
 export default function ProfilePageClient({
   activityData,
   userName = "User",
+  userLevel = "A1",
+  currentStreak = 0,
   quote,
 }: ProfilePageClientProps) {
   // Get avatar from profile context
   const { profile } = useUserProfile();
+
+  // Dynamic greeting based on current time
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+  };
 
   return (
     <ProtectedRoute
@@ -47,19 +59,16 @@ export default function ProfilePageClient({
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-primary-600 text-sm font-medium">
-                      Good morning
+                      {getGreeting()} ✨
                     </span>
-                    <Sparkles
-                      size={14}
-                      className="text-primary-600 animate-pulse"
-                    />
                   </div>
                   <h1 className="text-2xl sm:text-3xl font-bold mb-2 text-primary-800">
-                    Welcome back, Truc!
+                    Welcome back, {profile?.name || userName}!
                   </h1>
-                  <p className="text-primary-600 text-sm max-w-md">
-                    You're on a 3-day streak! Keep up the great work and
-                    complete today's missions.
+                  <p className="text-primary-600 text-sm">
+                    {currentStreak > 0
+                      ? `You're on a ${currentStreak}-day streak! Keep up the great work and complete today's missions.`
+                      : "Start your learning journey today and build your streak!"}
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
@@ -68,10 +77,7 @@ export default function ProfilePageClient({
                       Current Level
                     </p>
                     <div className="text-3xl font-black mt-1 text-secondary-500">
-                      A2{" "}
-                      <span className="text-lg font-normal text-primary-700">
-                        / B1
-                      </span>
+                      {userLevel}
                     </div>
                   </div>
                 </div>
@@ -80,20 +86,24 @@ export default function ProfilePageClient({
 
             <div className="grid grid-cols-3 gap-4">
               <StatCard
-                label="Total XP"
-                value="12,450"
-                icon={<Sparkles className="text-yellow-500" size={20} />}
-                trend="+250 today"
+                label="Total Study Time"
+                value="48h 30m"
+                icon={<Clock className="text-yellow-500" size={20} />}
+                trend="+1h 20m today"
                 trendUp={true}
                 bgColor="bg-gradient-to-br from-yellow-50 to-orange-50"
                 iconBg="bg-yellow-100"
               />
               <StatCard
                 label="Day Streak"
-                value="3 Days"
+                value={
+                  currentStreak === 0
+                    ? "0 Days"
+                    : `${currentStreak} ${currentStreak === 1 ? "Day" : "Days"}`
+                }
                 icon={<Flame className="text-orange-500" size={20} />}
-                trend="Keep going!"
-                trendUp={true}
+                trend={currentStreak > 0 ? "Keep going!" : "Start today!"}
+                trendUp={currentStreak > 0}
                 bgColor="bg-gradient-to-br from-orange-50 to-red-50"
                 iconBg="bg-orange-100"
               />
@@ -197,7 +207,7 @@ function ActivityHeatmap({ data }: { data: Record<string, number> }) {
   } | null>(null);
 
   // Calculate stats from data
-  const totalSessions = Object.values(data).reduce(
+  const totalLessons = Object.values(data).reduce(
     (sum, count) => sum + count,
     0
   );
@@ -264,14 +274,14 @@ function ActivityHeatmap({ data }: { data: Record<string, number> }) {
     weeks.push(weekDays);
   }
 
-  // GitHub-style green color scale
+  // GitHub-style green color scale - every 3 lessons changes color
   const getColor = (count: number) => {
     if (count === -1) return "bg-transparent"; // Future days
     if (count === 0) return "bg-[#ebedf0]"; // No activity - GitHub gray
-    if (count === 1) return "bg-[#9be9a8]"; // Level 1 - lightest green
-    if (count === 2) return "bg-[#40c463]"; // Level 2
-    if (count === 3) return "bg-[#30a14e]"; // Level 3
-    return "bg-[#216e39]"; // Level 4 (max) - darkest green
+    if (count <= 3) return "bg-[#9be9a8]"; // 1-3 lessons - Level 1 lightest green
+    if (count <= 6) return "bg-[#40c463]"; // 4-6 lessons - Level 2
+    if (count <= 9) return "bg-[#30a14e]"; // 7-9 lessons - Level 3
+    return "bg-[#216e39]"; // 10+ lessons - Level 4 (max) - darkest green
   };
 
   // Format date for tooltip
@@ -312,10 +322,10 @@ function ActivityHeatmap({ data }: { data: Record<string, number> }) {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
         <div className="flex items-center gap-2">
           <span className="text-2xl font-bold text-slate-800">
-            {totalSessions}
+            {totalLessons}
           </span>
           <span className="text-slate-600 text-sm">
-            sessions in the past year
+            lessons in the past year
           </span>
         </div>
         <div className="flex items-center gap-6 text-sm">
@@ -414,7 +424,7 @@ function ActivityHeatmap({ data }: { data: Record<string, number> }) {
         >
           <div className="bg-slate-800 text-white text-xs rounded-lg px-3 py-2 shadow-lg">
             <div className="font-semibold text-emerald-400">
-              {tooltip.count} {tooltip.count === 1 ? "session" : "sessions"}
+              {tooltip.count} {tooltip.count === 1 ? "lesson" : "lessons"}
             </div>
             <div className="text-slate-300 text-[10px] mt-0.5">
               {formatDate(tooltip.date)}

@@ -51,7 +51,7 @@ import { cn } from "@/lib/utils";
 import { Level } from "@prisma/client";
 import { useUserProfile } from "@/contexts/UserProfileContext";
 
-type TabType = "personal" | "password" | "link";
+type TabType = "personal" | "password";
 
 interface SettingsFormData {
   name: string;
@@ -577,7 +577,7 @@ export default function SettingsPageClient({
                         : "border-transparent text-muted-foreground hover:text-foreground"
                     }`}
                   >
-                    Personal information
+                    Personal Information
                   </button>
                   <button
                     onClick={() => setActiveTab("password")}
@@ -588,16 +588,6 @@ export default function SettingsPageClient({
                     }`}
                   >
                     Change Password
-                  </button>
-                  <button
-                    onClick={() => setActiveTab("link")}
-                    className={`pb-3 px-2 text-base font-bold transition-colors border-b-2 ${
-                      activeTab === "link"
-                        ? "border-primary text-primary"
-                        : "border-transparent text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    Link Account
                   </button>
                 </div>
 
@@ -989,15 +979,6 @@ export default function SettingsPageClient({
                 {/* Change Password Tab */}
                 {activeTab === "password" && (
                   <ChangePasswordSection isGoogleUser={isGoogleUser} />
-                )}
-
-                {/* Link Account Tab */}
-                {activeTab === "link" && (
-                  <div className="space-y-6">
-                    <p className="text-muted-foreground">
-                      Link account functionality coming soon...
-                    </p>
-                  </div>
                 )}
               </CardContent>
             </Card>
