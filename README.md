@@ -1,325 +1,186 @@
-# DailyEng – Nền tảng học tiếng Anh tự động hóa bằng AI
+# 🚀 DailyEng – Nền tảng học tiếng Anh cá nhân hóa với AI
 
-*(Đồ án môn học IE104 – Xây dựng Website)*
+**DailyEng** là một ứng dụng Web hiện đại hỗ trợ học tiếng Anh toàn diện, ứng dụng trí tuệ nhân tạo (AI) để tối ưu hóa việc luyện nói, ghi nhớ từ vựng và xây dựng lộ trình học tập riêng biệt cho từng người dùng.
+
+Dự án được xây dựng với mục tiêu mang lại trải nghiệm học tập trực quan, hiệu suất cao và có tính ứng dụng thực tế cao.
+
+## ✨ Tính năng nổi bật
+
+Dựa trên việc kiểm tra mã nguồn thực tế và lược đồ cơ sở dữ liệu mới nhất trong các tệp tin bạn đã cung cấp, tôi xin xác nhận lại các tính năng chính xác của hệ thống như sau:
+
+### 1. 🧠 Hệ thống ghi nhớ thông minh (SRS)
+
+* **Thuật toán SM-2 chuẩn hóa**: Triển khai thuật toán SuperMemo-2 tại `src/lib/srs.ts` để tối ưu hóa khoảng cách ôn tập.
+* **Chỉ số thông minh**: Tự động tính toán **Ease Factor** (mặc định 2.5), **Interval** và số lần lặp lại (**repetitions**).
+* **Quản lý Notebook**: Lưu trữ từ vựng vào `NotebookItem` với trạng thái `isStarred` và theo dõi `masteryLevel` từ 0 đến 100.
+* **Lịch trình ôn tập**: Tự động nhắc nhở thông qua trường `nextReviewDate` trong Model `Flashcard` và `nextReview` trong `NotebookItem`.
+
+### 2. 🗣️ Speaking Room & AI Lab
+
+* **Hội thoại Role-play**: Hỗ trợ các kịch bản thực tế với định nghĩa vai người dùng (`userRole`) và vai của Bot (`botRole`).
+* **Phân tích AI chi tiết**: Chấm điểm lượt nói qua 4 tiêu chí: **Pronunciation** (phát âm), **Fluency** (độ lưu loát), **Grammar** (ngữ pháp) và **Intonation** (ngữ điệu).
+* **Phân tích lỗi sai**: Model `SpeakingTurnError` lưu trữ chi tiết từ bị sai, loại lỗi (Grammar, Vocabulary, Preposition...) và gợi ý phiên bản sửa lỗi chính xác.
+* **Shadowing & Metrics**: Theo dõi tốc độ nói (WPM), số lần dừng nghỉ (`pauseCount`) và cao độ giọng nói (`pitchVariance`) để đánh giá độ tự nhiên.
+
+### 3. 📚 Vocabulary Hub (Focus: Learning & Translation)
+
+* **Học từ vựng chuyên sâu**: Cung cấp phiên âm chuẩn (`phonBr`, `phonNAm`), nghĩa chi tiết, loại từ và các ví dụ ngữ cảnh có dịch thuật.
+* **Luyện dịch & Mindmap**:
+* **Translate Lab**: Tích hợp tại `src/components/vocab/translate-speak-lab.tsx` để luyện dịch thuật Anh-Việt theo ngữ cảnh.
+* **Sơ đồ tư duy**: Hiển thị mối liên hệ từ vựng qua collocations, từ đồng nghĩa và trái nghĩa.
 
 
-DailyEng là một nền tảng học tiếng Anh hiện đại, ứng dụng AI để hỗ trợ luyện từ vựng, luyện nói, luyện nghe – đọc – viết, hệ thống SRS ghi nhớ từ vựng, cùng lộ trình học cá nhân hóa.
-Website được xây dựng với **Next.js 14**, **TypeScript**, **Tailwind CSS**, và **Zustand**, theo hướng **hiện đại – trực quan – hiệu suất cao**.
+* **Hình thức luyện tập**: Tập trung vào trắc nghiệm (`multiple_choice`), điền vào chỗ trống (`fill_blank`) và nối từ (`matching`).
 
----
+### 4. 📅 Study Plan & Gamification
 
-# 1. ✨ Tính năng chính
+* **Lộ trình cá nhân hóa**: Xây dựng dựa trên mục tiêu (`StudyGoal`), trình độ hiện tại (`Level`) và thời gian cam kết mỗi ngày.
+* **Hệ thống Daily Missions**: Theo dõi tiến độ nhiệm vụ hàng ngày (như học bao nhiêu từ, luyện nói bao nhiêu phút) qua Model `UserDailyMission`.
+* **Cơ chế Gamification**:
+* **XP & Streak**: Tích lũy điểm kinh nghiệm và duy trì chuỗi ngày học để thăng hạng.
+* **Leaderboard**: Bảng xếp hạng người dùng theo tuần/tháng.
+* **Badges & Coins**: Nhận huy hiệu thành tựu và tích lũy tiền ảo (`coins`) để sử dụng trong hệ thống.
 
-### 🟦 1. Vocabulary Hub
 
-* Học từ theo chủ đề (Oxford)
-* Hiển thị phát âm, nghĩa, collocations, ví dụ
-* Tìm kiếm theo từ hoặc topic
-* Luyện từ vựng: MCQ, gap-fill, dictation, translation
-* Daily Review theo Spaced Repetition (SM-2)
 
-### 🟧 2. Translate & Speak Lab
+### 5. 📊 Hồ sơ & Theo dõi tiến độ
 
-* Dịch Việt ↔ Anh theo ngữ cảnh
-* Luyện nói theo tình huống
-* Ghi âm và AI đánh giá phát âm
-* Writing lab: chấm lỗi + gợi ý cải thiện
+* **Radar kỹ năng**: Biểu đồ hình nhện hiển thị điểm số của 5 kỹ năng: Vocab, Grammar, Speaking, Listening và Writing.
+* **Study Heatmap**: Theo dõi hoạt động học tập chi tiết hàng ngày qua `UserActivity`, bao gồm số phút đã học và số từ đã thuộc.
+* **Thông báo thông minh**: Hệ thống gửi thông báo về lịch học (`plan`), thành tựu (`achievement`) và nhắc nhở ôn tập từ vựng.
 
-### 🟩 3. Listening & Reading
 
-* Bài nghe với transcript, từ vựng kèm theo
-* Bài đọc song ngữ + glossary
-* Câu hỏi luyện tập sau mỗi bài
+## 🛠 Công nghệ sử dụng
 
-### 🟪 4. Quiz System
+### Frontend & Core
 
-* Nhiều dạng bài tập:
-  MCQ, điền từ, nối cặp, reorder, comprehension
-* Hệ thống XP + streak + badges
+* **Framework:** Next.js 15 (App Router)
+* **Ngôn ngữ:** TypeScript
+* **State Management:** Zustand
+* **Validation:** Zod
 
-### 🟥 5. Speaking Room
+### UI & UX
 
-* Hội thoại role-play theo chủ đề
-* Shadowing + ghi âm + AI chấm điểm
-* Tạo tình huống hội thoại mới bằng AI
+* **Styling:** Tailwind CSS v4
+* **Components:** shadcn/ui, Radix UI, Framer Motion (Animation)
+* **Icons:** Lucide React
 
-### 🟨 6. Spaced Repetition (SRS)
+### Backend & Database
 
-* Áp dụng thuật toán **SM-2 chuẩn SuperMemo**
-* Chấm điểm 0–5
-* Điều chỉnh Ease Factor, Interval tự động
+* **ORM:** Prisma
+* **Database:** PostgreSQL (hỗ trợ bởi Supabase hoặc tương đương)
+* **Auth:** NextAuth.js v5 (hỗ trợ Credentials & OAuth)
+* **AI Integration:** Google Generative AI (Gemini SDK)
 
-### 🟫 7. Study Plan
+### Testing & Tools
 
-* Cá nhân hóa theo mục tiêu + thời gian học
-* Nhiệm vụ mỗi ngày
-* Theo dõi tiến độ và gợi ý bài tiếp theo
-
-### 🟦 8. Profile & Badges
-
-* Radar kỹ năng
-* Lịch sử học tập
-* XP – streak – thành tựu
-
----
-
-# 2. 🛠 Công nghệ sử dụng
-
-### ⚙️ Framework & Ngôn ngữ
-
-* **Next.js 15 (App Router)**
-* **TypeScript**
-* **React 18**
-
-### 🎨 UI & Styling
-
-* **Tailwind CSS v4**
-* **shadcn/ui**
-* **Lucide Icons**
-
-### 📦 State & Logic
-
-* **Zustand**
-* **Zod** (validate schema)
-
-### 🧪 Testing
-
-* **Vitest**
-* **MSW** (Mock API)
+* **Testing:** Vitest, MSW (Mock Service Worker)
+* **Storage:** Cloudinary (Quản lý hình ảnh/âm thanh)
 
 ---
 
-# 3. 🚀 Bắt đầu dự án
+## 📂 Cấu trúc thư mục chính
 
-## Yêu cầu
+```text
+├── src/
+│   ├── app/              # Routes & Pages (Next.js App Router)
+│   ├── components/       # UI Components (layout, ui, speaking, vocab...)
+│   ├── actions/          # Server Actions (auth, speaking, vocab, user...)
+│   ├── lib/              # Logic cốt lõi (srs.ts, gemini.ts, prisma.ts...)
+│   ├── hooks/            # Custom React hooks
+│   ├── contexts/         # React Context API providers
+│   ├── types/            # TypeScript interfaces & enums
+│   └── mocks/            # MSW handlers cho môi trường development
+├── prisma/               # Schema định nghĩa DB & file Seed dữ liệu
+└── public/               # Tài sản tĩnh (images, logos...)
 
-* Node.js 18+
-* npm hoặc yarn
+```
 
-## Cài đặt
+---
 
+## 🚀 Cài đặt dự án
+
+### Yêu cầu hệ thống
+
+* **Node.js:** 18.0.0 trở lên
+* **Database:** Một instance PostgreSQL (Local hoặc Cloud)
+
+### Các bước thực hiện
+
+1. **Clone dự án:**
 ```bash
-# Clone repository
 git clone <repository-url>
-cd english-learning-app
+cd dailyeng
 
-# Cài dependencies
+```
+
+
+2. **Cài đặt thư viện:**
+```bash
 npm install
 
-# Chạy ở chế độ dev
+```
+
+
+3. **Cấu hình môi trường:**
+Tạo file `.env` và thêm các biến sau:
+```env
+DATABASE_URL="postgresql://..."
+NEXTAUTH_SECRET="..."
+GEMINI_API_KEY="..."
+CLOUDINARY_URL="..."
+
+```
+
+
+4. **Khởi tạo Database & Seed dữ liệu:**
+```bash
+npx prisma db push
+npm run seed:vocab
+
+```
+
+
+5. **Chạy ứng dụng:**
+```bash
 npm run dev
-```
-
-Mở trình duyệt tại **[http://localhost:3000](http://localhost:3000)**
-
----
-
-# 4. 📁 Cấu trúc thư mục
 
 ```
-├── app/                    # App Router
-│   ├── layout.tsx         
-│   ├── page.tsx           
-│   ├── vocab/             
-│   ├── speaking/          
-│   ├── notebook/          
-│   ├── plan/              
-│   ├── profile/           
-│   └── auth/              
-├── components/            
-│   ├── layout/            
-│   ├── vocab/             
-│   ├── speaking/          
-│   ├── flashcard/         
-│   ├── profile/           
-│   └── ui/                
-├── lib/                   
-│   ├── api.ts             
-│   ├── store.ts           
-│   ├── srs.ts             
-│   ├── auth.ts            
-│   └── mock-data.ts       
-├── types/                
-├── mocks/                
-└── public/               
-```
+
+
+Truy cập tại: `http://localhost:3000`
 
 ---
 
-# 5. 🌐 API mock (MSW)
+## 🧠 Sơ đồ Cơ sở dữ liệu (Prisma)
 
-Tất cả API được mô phỏng trong môi trường dev.
+Hệ thống quản lý dữ liệu chặt chẽ qua các Model chính:
 
-### Bật MSW (mặc định)
-
-`mocks/browser.ts`
-
-### Tắt MSW (production)
-
-Xóa đoạn sau trong `layout.tsx`:
-
-```tsx
-if (typeof window !== "undefined") {
-  import("@/mocks/browser").then(({ worker }) => {
-    worker.start()
-  })
-}
-```
+* **User & ProfileStats:** Quản lý thông tin người dùng và chỉ số kỹ năng (Radar chart).
+* **Topic & VocabItem:** Cấu trúc bài học và từ vựng chuyên sâu.
+* **SpeakingSession & SpeakingTurn:** Lưu trữ lịch sử hội thoại và kết quả phân tích AI.
+* **NotebookItem & Flashcard:** Quản lý dữ liệu học tập cá nhân và lộ trình SRS.
+* **StudyPlan & Task:** Theo dõi lịch trình học tập hằng ngày.
 
 ---
 
-# 6. 🧩 Danh sách API
+## 🧪 Kiểm thử
 
-### 📌 Topics
-
-* `GET /api/topics`
-* `GET /api/topics/:id`
-* `POST /api/topics`
-
-### 📌 Vocabulary
-
-* `GET /api/vocab?topicId=:id`
-
-### 📌 Quizzes
-
-* `GET /api/quizzes?topicId=:id`
-* `POST /api/quizzes/submit`
-
-### 📌 Speaking
-
-* `GET /api/speaking/library`
-* `POST /api/ai/create-topic`
-* `POST /api/speaking/submit-turn`
-
-### 📌 Flashcards
-
-* `GET /api/flashcards`
-* `POST /api/flashcards`
-
-### 📌 SRS
-
-* `GET /api/srs/queue`
-* `POST /api/srs/review`
-
-### 📌 AI Services
-
-* `POST /api/ai/translate`
-* `POST /api/ai/feedback`
-
----
-
-# 7. 🔐 Authentication
-
-Hệ thống đang dùng **auth giả lập** với localStorage.
-Tài khoản mẫu:
-
-* Email: `demo@example.com`
-* Password: `password`
-
-Để tích hợp Auth thật → thay thế `lib/auth.ts`.
-
----
-
-# 8. 🧠 Thuật toán Spaced Repetition (SM-2)
-
-* Điểm chất lượng: **0–5**
-* Tính toán:
-
-  * Ease Factor
-  * Interval
-  * Repetition count
-* Nếu điểm < 3 → reset vòng lặp
-* Được triển khai tại: `lib/srs.ts`
-
----
-
-# 9. 🧪 Testing
+Dự án sử dụng **Vitest** để đảm bảo tính ổn định của các thuật toán (đặc biệt là SRS) và Logic Type.
 
 ```bash
-npm run test
-npm run test:watch
-npm run test:ui
-npm run test:coverage
-```
+npm run test          # Chạy test
+npm run test:ui       # Giao diện trực quan cho test
+npm run test:coverage # Kiểm tra độ bao phủ mã nguồn
 
-Các file test chính:
-
-* `lib/srs.test.ts`
-* `types/index.test.ts`
-
----
-
-# 10. 🎨 Styling & tokens
-
-File: `app/globals.css`
-
-```css
-@theme inline {
-  --color-primary: #3b82f6;
-  --color-secondary: #f3f4f6;
-}
 ```
 
 ---
 
-# 11. ⚡ Tối ưu hiệu năng
+## 📜 Giấy phép
 
-* Tối ưu hình ảnh với Next.js
-* Dynamic imports
-* React memo
-* Virtualized list
-* Lưu cache LocalStorage
+Dự án được phát hành dưới giấy phép **MIT**.
 
 ---
 
-# 12. ♿ Accessibility
-
-* HTML ngữ nghĩa
-* ARIA labels
-* Hỗ trợ bàn phím
-* Quản lý focus
-* Contrast đạt chuẩn WCAG
-
----
-
-# 13. 🌍 Hỗ trợ trình duyệt
-
-* Chrome / Edge 90+
-* Firefox 88+
-* Safari 14+
-* Mobile browsers
-
----
-
-# 14. 🤝 Quy trình đóng góp
-
-1. Fork repo
-2. Tạo nhánh mới
-3. Commit
-4. Push
-5. Tạo Pull Request
-
----
-
-# 15. 🗺 Roadmap
-
-* [ ] Kết nối API thật
-* [ ] OAuth (Google, GitHub)
-* [ ] Ứng dụng di động (React Native)
-* [ ] Offline mode
-* [ ] Dashboard nâng cao
-* [ ] Leaderboard + Challenges
-* [ ] AI tạo bài học tự động
-* [ ] Hỗ trợ đa ngôn ngữ
-
----
-
-# 16. 📜 Giấy phép
-
-MIT License – xem file LICENSE.
-
----
-
-# 17. ❤️ Lời kết
-
-DailyEng được xây dựng với mục tiêu mang đến trải nghiệm học tiếng Anh hiệu quả, sinh động và cá nhân hóa — giúp người học tự tin hơn trong giao tiếp và sử dụng tiếng Anh hằng ngày.
+*DailyEng – Learn English Smarter, Every Day!* ❤️
