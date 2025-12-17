@@ -87,12 +87,12 @@ export async function getVocabTopicsWithProgress(
         // Include vocab items to calculate progress
         vocabItems: userId
           ? {
-              include: {
-                userProgress: {
-                  where: { userId },
-                },
+            include: {
+              userProgress: {
+                where: { userId },
               },
-            }
+            },
+          }
           : false,
       },
       orderBy: [{ topicGroup: { order: "asc" } }, { order: "asc" }],
@@ -176,6 +176,61 @@ export async function searchVocabTopics(query: string, userId?: string) {
     wordCount: t._count.vocabItems || t.wordCount || 0,
     estimatedTime: t.estimatedTime || 30,
     thumbnail: t.thumbnail || "/learning.png",
-    progress: 0, // Search results don't include progress for performance
+    progress: 0,
   }));
+}
+
+// ============================================================================
+// Fetch Single Topic by ID with Vocab Items
+// ============================================================================
+export async function getVocabTopicById(topicId: string, userId?: string) {
+  const topic = await prisma.topic.findUnique({
+    where: { id: topicId },
+    include: {
+      vocabItems: {
+        include: {
+          // Include user progress if userId is provided
+          userProgress: userId ? { where: { userId } } : false
+        }
+      }
+    }
+  });
+
+  if (!topic) return null;
+
+  // Transform vocab items to match UI requirements
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const vocabItems = topic.vocabItems.map((item: any) => ({
+    id: item.id,
+    word: item.word,
+    type: item.partOfSpeech,
+    partOfSpeech: item.partOfSpeech,
+    phon_br: item.phonBr,
+    phon_n_am: item.phonNAm,
+    pronunciation: item.pronunciation,
+    meaning: item.meaning,
+    vietnameseMeaning: item.vietnameseMeaning,
+    exampleSentence: item.exampleSentence,
+    exampleTranslation: item.exampleTranslation,
+    definitions: item.definitions,
+    synonyms: item.synonyms,
+    antonyms: item.antonyms,
+    collocations: item.collocations,
+    masteryLevel: item.userProgress?.[0]?.masteryLevel || 0
+  }));
+
+  // Return plain object, excluding Date fields or converting them
+  return {
+    id: topic.id,
+    title: topic.title,
+    subtitle: topic.subtitle || "",
+    description: topic.description,
+    level: topic.level,
+    wordCount: topic.wordCount,
+    estimatedTime: topic.estimatedTime,
+    thumbnail: topic.thumbnail || null,
+    category: topic.category,
+    subcategory: topic.subcategory,
+    vocab: vocabItems
+  };
 }

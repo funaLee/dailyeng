@@ -1,8 +1,9 @@
 // Server Component - Notebook Page
 import NotebookPageClient from "@/components/page/NotebookPageClient";
 import type { CollectionData, NotebookItem, GrammarItem } from "@/components/page/NotebookPageClient";
+import { getNotebooks, getNotebookItems } from "@/actions/notebook";
 
-// Mock vocabulary data
+// Mock vocabulary data (will be replaced with DB data later)
 const vocabularyItems: NotebookItem[] = [
   {
     id: "v1", word: "Accomplish", pronunciation: "/əˈkʌmplɪʃ/",
@@ -98,22 +99,71 @@ const grammarItems: GrammarItem[] = [
   },
 ];
 
-// Collections data with type
-const collections: CollectionData[] = [
-  { id: "vocabulary", name: "Vocabulary", count: 5, mastered: 1, color: "primary", type: "vocabulary" },
-  { id: "grammar", name: "Grammar", count: 5, mastered: 0, color: "secondary", type: "grammar" },
+// Default sample collections (used when user has no notebooks)
+const defaultCollections: CollectionData[] = [
+  { id: "sample-vocab", name: "IELTS Words", count: 5, mastered: 1, color: "primary", type: "vocabulary" },
+  { id: "sample-grammar", name: "Essential Tenses", count: 5, mastered: 0, color: "secondary", type: "grammar" },
 ];
 
-// Calculate due count
-const now = new Date();
-const dueCount = vocabularyItems.filter(item => item.nextReview && new Date(item.nextReview) <= now).length;
+// Sample vocab items mapped to sample collection
+const sampleVocabItems = vocabularyItems.map(item => ({ ...item, collectionId: "sample-vocab" }));
+const sampleGrammarItems = grammarItems.map(item => ({ ...item, collectionId: "sample-grammar" }));
 
 export default async function NotebookPage() {
+  // Fetch user's notebooks from database
+  const userNotebooks = await getNotebooks();
+  
+  // If user has notebooks, fetch items for each vocabulary notebook
+  let dbVocabItems: NotebookItem[] = [];
+  if (userNotebooks.length > 0) {
+    const vocabNotebooks = userNotebooks.filter(nb => nb.type === "vocabulary");
+    for (const nb of vocabNotebooks) {
+      const items = await getNotebookItems(nb.id);
+      dbVocabItems.push(...items.map(item => ({
+        id: item.id,
+        word: item.word,
+        pronunciation: item.pronunciation || "/.../",
+        meaning: item.meaning,
+        vietnamese: item.vietnamese,
+        examples: item.examples,
+        partOfSpeech: item.partOfSpeech || "noun",
+        level: item.level || "A2",
+        note: item.note || undefined,
+        tags: item.tags,
+        collectionId: item.notebookId,
+        masteryLevel: item.masteryLevel,
+        lastReviewed: item.lastReviewed || undefined,
+        nextReview: item.nextReview || undefined,
+      })));
+    }
+  }
+
+  // Always show sample collections + user's notebooks from DB
+  const userCollections: CollectionData[] = userNotebooks.map(nb => ({
+    id: nb.id,
+    name: nb.name,
+    count: nb.count,
+    mastered: nb.mastered,
+    color: nb.color,
+    type: nb.type as "vocabulary" | "grammar",
+  }));
+  
+  // Combine: sample collections first, then user's notebooks
+  const collections: CollectionData[] = [...defaultCollections, ...userCollections];
+
+  // Combine sample items + DB items
+  const finalVocabItems = [...sampleVocabItems, ...dbVocabItems];
+  const finalGrammarItems = sampleGrammarItems; // Grammar from DB not implemented yet
+
+  // Calculate due count
+  const now = new Date();
+  const dueCount = finalVocabItems.filter(item => item.nextReview && new Date(item.nextReview) <= now).length;
+
   return (
     <NotebookPageClient
       collections={collections}
-      vocabularyItems={vocabularyItems}
-      grammarItems={grammarItems}
+      vocabularyItems={finalVocabItems}
+      grammarItems={finalGrammarItems}
       dueCount={dueCount}
     />
   );
