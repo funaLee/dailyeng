@@ -570,7 +570,7 @@ export default function SpeakingPageClient({
               <Search className="absolute left-3 h-4 w-4 text-primary-400" />
               <Input
                 placeholder="Search all topics..."
-                className={`pl-10 pr-10 h-10 text-sm rounded-full border-2 transition-all ${
+                className={`pl-10 pr-10 h-9 text-sm rounded-full border-2 transition-all ${
                   isSearchMode
                     ? "w-80 border-primary-400 shadow-lg bg-white"
                     : "w-64 border-primary-200 hover:border-primary-300"
