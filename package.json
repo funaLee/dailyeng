@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "seed:vocab": "tsx prisma/seed-vocab-cards.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
