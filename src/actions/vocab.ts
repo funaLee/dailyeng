@@ -1,6 +1,11 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { unstable_cache } from "next/cache";
+
+// Cache configuration
+const VOCAB_CACHE_TAG = "vocab-data";
+const CACHE_TTL = 86400; // 24 hours in seconds
 
 // Helper to capitalize first letter of each word
 function toTitleCase(str: string): string {
@@ -11,45 +16,44 @@ function toTitleCase(str: string): string {
 }
 
 // ============================================================================
-// Fetch TopicGroups for Vocabulary Hub
+// Fetch TopicGroups for Vocabulary Hub (cached)
 // ============================================================================
-export async function getVocabTopicGroups() {
-  const groups = await prisma.topicGroup.findMany({
-    where: { hubType: "vocab" },
-    orderBy: { order: "asc" },
-  });
+export const getVocabTopicGroups = unstable_cache(
+  async () => {
+    const groups = await prisma.topicGroup.findMany({
+      where: { hubType: "vocab" },
+      orderBy: { order: "asc" },
+    });
 
-  // Transform to UI format
-  return groups.map((g) => ({
-    id: g.id,
-    name: toTitleCase(g.name),
-    subcategories: g.subcategories.map((s) => toTitleCase(s)),
-  }));
-}
+    // Transform to UI format
+    return groups.map((g) => ({
+      id: g.id,
+      name: toTitleCase(g.name),
+      subcategories: g.subcategories.map((s) => toTitleCase(s)),
+    }));
+  },
+  ["vocab-topic-groups"],
+  { revalidate: CACHE_TTL, tags: [VOCAB_CACHE_TAG] }
+);
 
 // ============================================================================
-// Fetch Vocabulary Topics with User Progress (Paginated)
+// Cached Base Topics Query (without user progress)
 // ============================================================================
-export async function getVocabTopicsWithProgress(
-  userId?: string,
-  options?: {
-    page?: number;
-    limit?: number;
-    category?: string; // TopicGroup name
-    subcategory?: string; // "All" or specific subcategory
-    levels?: string[]; // ["A1", "A2", ...]
-  }
+async function fetchVocabTopicsBase(
+  category?: string,
+  subcategory?: string,
+  levels?: string[],
+  page: number = 1,
+  limit: number = 12
 ) {
-  const page = options?.page || 1;
-  const limit = options?.limit || 12;
   const skip = (page - 1) * limit;
 
   // First, find the TopicGroup by name to get its ID
   let topicGroupId: string | undefined;
-  if (options?.category) {
+  if (category) {
     const group = await prisma.topicGroup.findFirst({
       where: {
-        name: { equals: options.category, mode: "insensitive" },
+        name: { equals: category, mode: "insensitive" },
         hubType: "vocab",
       },
     });
@@ -63,19 +67,19 @@ export async function getVocabTopicsWithProgress(
   };
 
   // Filter by subcategory if not "All"
-  if (options?.subcategory && options.subcategory !== "All") {
-    where.subcategory = { equals: options.subcategory, mode: "insensitive" };
+  if (subcategory && subcategory !== "All") {
+    where.subcategory = { equals: subcategory, mode: "insensitive" };
   }
 
   // Filter by levels
-  if (options?.levels && options.levels.length > 0) {
-    where.level = { in: options.levels };
+  if (levels && levels.length > 0) {
+    where.level = { in: levels };
   }
 
   // Only get topics that belong to vocab TopicGroups
   where.topicGroup = { hubType: "vocab" };
 
-  // Fetch topics with vocab items count
+  // Fetch topics WITHOUT user progress (cacheable)
   const [topics, total] = await Promise.all([
     prisma.topic.findMany({
       where,
@@ -84,16 +88,6 @@ export async function getVocabTopicsWithProgress(
         _count: {
           select: { vocabItems: true },
         },
-        // Include vocab items to calculate progress
-        vocabItems: userId
-          ? {
-            include: {
-              userProgress: {
-                where: { userId },
-              },
-            },
-          }
-          : false,
       },
       orderBy: [{ topicGroup: { order: "asc" } }, { order: "asc" }],
       skip,
@@ -102,22 +96,113 @@ export async function getVocabTopicsWithProgress(
     prisma.topic.count({ where }),
   ]);
 
-  // Transform to UI format with progress calculation
+  return { topics, total, page, limit };
+}
+
+// Create cached version with dynamic cache key based on filters
+function getCachedVocabTopics(
+  category?: string,
+  subcategory?: string,
+  levels?: string[],
+  page: number = 1,
+  limit: number = 12
+) {
+  // Build cache key from parameters
+  const cacheKey = `vocab-topics-${category || "all"}-${subcategory || "all"}-${
+    (levels || []).sort().join(",") || "all"
+  }-p${page}-l${limit}`;
+
+  return unstable_cache(
+    () => fetchVocabTopicsBase(category, subcategory, levels, page, limit),
+    [cacheKey],
+    { revalidate: CACHE_TTL, tags: [VOCAB_CACHE_TAG] }
+  )();
+}
+
+// Fetch user progress for specific topics (NOT cached - user specific)
+async function getUserTopicsProgress(userId: string, topicIds: string[]) {
+  if (topicIds.length === 0) return new Map<string, number>();
+
+  // Get all vocab items for these topics with user progress
+  const vocabItems = await prisma.vocabItem.findMany({
+    where: {
+      topicId: { in: topicIds },
+    },
+    select: {
+      topicId: true,
+      userProgress: {
+        where: { userId },
+        select: { masteryLevel: true },
+      },
+    },
+  });
+
+  // Calculate progress per topic
+  const topicProgress = new Map<string, { total: number; mastered: number }>();
+
+  for (const item of vocabItems) {
+    const current = topicProgress.get(item.topicId) || {
+      total: 0,
+      mastered: 0,
+    };
+    current.total++;
+    if (
+      item.userProgress.length > 0 &&
+      item.userProgress[0].masteryLevel >= 100
+    ) {
+      current.mastered++;
+    }
+    topicProgress.set(item.topicId, current);
+  }
+
+  // Convert to percentage
+  const progressMap = new Map<string, number>();
+  for (const [topicId, { total, mastered }] of topicProgress) {
+    progressMap.set(
+      topicId,
+      total > 0 ? Math.round((mastered / total) * 100) : 0
+    );
+  }
+
+  return progressMap;
+}
+
+// ============================================================================
+// Fetch Vocabulary Topics with User Progress (Paginated)
+// Uses cached topics + separate user progress query
+// ============================================================================
+export async function getVocabTopicsWithProgress(
+  userId?: string,
+  options?: {
+    page?: number;
+    limit?: number;
+    category?: string;
+    subcategory?: string;
+    levels?: string[];
+  }
+) {
+  const page = options?.page || 1;
+  const limit = options?.limit || 12;
+
+  // Step 1: Get cached topics (no user data)
+  const { topics, total } = await getCachedVocabTopics(
+    options?.category,
+    options?.subcategory,
+    options?.levels,
+    page,
+    limit
+  );
+
+  // Step 2: Get user progress separately (if logged in)
+  const topicIds = topics.map((t) => t.id);
+  const progressMap = userId
+    ? await getUserTopicsProgress(userId, topicIds)
+    : new Map<string, number>();
+
+  // Step 3: Transform and merge
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const items = topics.map((t: any) => {
-    // Calculate progress based on UserVocabProgress
-    let progress = 0;
-    if (t.vocabItems && t.vocabItems.length > 0) {
-      const totalWords = t.vocabItems.length;
-      const masteredWords = t.vocabItems.filter(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (v: any) =>
-          v.userProgress &&
-          v.userProgress.length > 0 &&
-          v.userProgress[0].masteryLevel >= 100
-      ).length;
-      progress = Math.round((masteredWords / totalWords) * 100);
-    }
+    const progress = progressMap.get(t.id) || 0;
 
     return {
       id: t.id,

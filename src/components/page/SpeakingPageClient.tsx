@@ -129,8 +129,6 @@ export interface HistoryTopicItem {
 export interface SpeakingPageClientProps {
   initialTopicGroups?: TopicGroup[];
   demoCriteria: CriteriaItem[];
-  historyGraphData: HistoryGraphItem[];
-  historyTopicsData: HistoryTopicItem[];
   userId: string;
   initialBookmarkIds?: string[];
 }
@@ -142,8 +140,6 @@ const SCENARIOS_PER_PAGE = 12;
 export default function SpeakingPageClient({
   initialTopicGroups = [],
   demoCriteria,
-  historyGraphData,
-  historyTopicsData,
   userId,
   initialBookmarkIds = [],
 }: SpeakingPageClientProps) {
