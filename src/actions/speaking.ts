@@ -7,7 +7,7 @@ import {
   analyzeSessionConversation,
   SessionAnalysisResult,
 } from "@/lib/gemini";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 
 // Helper to ensure user exists (Temporary for dev until real auth)
 async function ensureUser(userId: string) {
@@ -28,15 +28,23 @@ async function ensureUser(userId: string) {
   }
 }
 
-// Fetch topics
-export async function getTopics() {
-  return await prisma.speakingScenario.findMany({
-    where: { isCustom: false },
-    include: {
-      topic: true,
-    },
-  });
-}
+// Cache tags for invalidation
+const SPEAKING_CACHE_TAG = "speaking-data";
+const CACHE_TTL = 86400; // 24 hours in seconds
+
+// Fetch topics (cached)
+export const getTopics = unstable_cache(
+  async () => {
+    return await prisma.speakingScenario.findMany({
+      where: { isCustom: false },
+      include: {
+        topic: true,
+      },
+    });
+  },
+  ["speaking-topics"],
+  { revalidate: CACHE_TTL, tags: [SPEAKING_CACHE_TAG] }
+);
 
 // Helper to capitalize first letter of each word
 function toTitleCase(str: string): string {
@@ -46,22 +54,110 @@ function toTitleCase(str: string): string {
     .join(" ");
 }
 
-// Fetch TopicGroups for Speaking Hub
-export async function getSpeakingTopicGroups() {
-  const groups = await prisma.topicGroup.findMany({
-    where: { hubType: "speaking" },
-    orderBy: { order: "asc" },
-  });
+// Fetch TopicGroups for Speaking Hub (cached)
+export const getSpeakingTopicGroups = unstable_cache(
+  async () => {
+    const groups = await prisma.topicGroup.findMany({
+      where: { hubType: "speaking" },
+      orderBy: { order: "asc" },
+    });
 
-  // Transform to UI format (capitalize names)
-  return groups.map((g) => ({
-    id: g.id,
-    name: toTitleCase(g.name),
-    subcategories: g.subcategories.map((s) => toTitleCase(s)),
-  }));
+    // Transform to UI format (capitalize names)
+    return groups.map((g) => ({
+      id: g.id,
+      name: toTitleCase(g.name),
+      subcategories: g.subcategories.map((s) => toTitleCase(s)),
+    }));
+  },
+  ["speaking-topic-groups"],
+  { revalidate: CACHE_TTL, tags: [SPEAKING_CACHE_TAG] }
+);
+
+// ============================================================================
+// Cached Scenarios Query (without user progress)
+// ============================================================================
+async function fetchScenariosBase(
+  category?: string,
+  subcategory?: string,
+  levels?: string[],
+  page: number = 1,
+  limit: number = 12
+) {
+  const skip = (page - 1) * limit;
+
+  // Build where clause with optional filters
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const where: any = {
+    isCustom: false,
+    topicGroupId: { not: null },
+  };
+
+  if (category) {
+    where.category = category.toLowerCase();
+  }
+  if (subcategory && subcategory !== "All") {
+    where.subcategory = subcategory.toLowerCase();
+  }
+  if (levels && levels.length > 0) {
+    where.difficulty = { in: levels };
+  }
+
+  const [scenarios, total] = await Promise.all([
+    prisma.speakingScenario.findMany({
+      where,
+      orderBy: [
+        { category: "asc" },
+        { subcategory: "asc" },
+        { difficulty: "asc" },
+      ],
+      skip,
+      take: limit,
+    }),
+    prisma.speakingScenario.count({ where }),
+  ]);
+
+  return { scenarios, total, page, limit };
+}
+
+// Create cached version with dynamic cache key based on filters
+function getCachedScenarios(
+  category?: string,
+  subcategory?: string,
+  levels?: string[],
+  page: number = 1,
+  limit: number = 12
+) {
+  // Build cache key from parameters
+  const cacheKey = `scenarios-${category || "all"}-${subcategory || "all"}-${
+    (levels || []).sort().join(",") || "all"
+  }-p${page}-l${limit}`;
+
+  return unstable_cache(
+    () => fetchScenariosBase(category, subcategory, levels, page, limit),
+    [cacheKey],
+    { revalidate: CACHE_TTL, tags: [SPEAKING_CACHE_TAG] }
+  )();
+}
+
+// Fetch user progress for specific scenarios (NOT cached - user specific)
+async function getUserScenariosProgress(userId: string, scenarioIds: string[]) {
+  if (scenarioIds.length === 0) return [];
+
+  return prisma.speakingSession.findMany({
+    where: {
+      userId,
+      scenarioId: { in: scenarioIds },
+    },
+    select: {
+      id: true,
+      scenarioId: true,
+      overallScore: true,
+    },
+  });
 }
 
 // Fetch all Speaking Scenarios with user progress (with pagination)
+// Uses cached scenarios + separate user progress query
 export async function getSpeakingScenariosWithProgress(
   userId?: string,
   options?: {
@@ -74,64 +170,53 @@ export async function getSpeakingScenariosWithProgress(
 ) {
   const page = options?.page || 1;
   const limit = options?.limit || 12;
-  const skip = (page - 1) * limit;
 
-  // Build where clause with optional filters
+  // Step 1: Get cached scenarios (no user data)
+  const { scenarios, total } = await getCachedScenarios(
+    options?.category,
+    options?.subcategory,
+    options?.levels,
+    page,
+    limit
+  );
+
+  // Step 2: Get user progress separately (if logged in)
+  const scenarioIds = scenarios.map((s) => s.id);
+  const userSessions = userId
+    ? await getUserScenariosProgress(userId, scenarioIds)
+    : [];
+
+  // Build lookup map for user progress
+  const progressMap = new Map<string, { count: number }>();
+  for (const session of userSessions) {
+    const existing = progressMap.get(session.scenarioId);
+    if (existing) {
+      existing.count++;
+    } else {
+      progressMap.set(session.scenarioId, { count: 1 });
+    }
+  }
+
+  // Step 3: Transform and merge
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const where: any = {
-    isCustom: false,
-    topicGroupId: { not: null },
-  };
+  const items = scenarios.map((s: any) => {
+    const userProgress = progressMap.get(s.id);
+    const sessionsCompleted = userProgress?.count || 0;
 
-  if (options?.category) {
-    where.category = options.category.toLowerCase();
-  }
-  if (options?.subcategory && options.subcategory !== "All") {
-    where.subcategory = options.subcategory.toLowerCase();
-  }
-  if (options?.levels && options.levels.length > 0) {
-    where.difficulty = { in: options.levels };
-  }
-
-  const [scenarios, total] = await Promise.all([
-    prisma.speakingScenario.findMany({
-      where,
-      include: {
-        sessions: userId
-          ? {
-              where: { userId },
-              select: { id: true, overallScore: true },
-            }
-          : false,
-      },
-      orderBy: [
-        { category: "asc" },
-        { subcategory: "asc" },
-        { difficulty: "asc" },
-      ],
-      skip,
-      take: limit,
-    }),
-    prisma.speakingScenario.count({ where }),
-  ]);
-
-  // Transform to UI Scenario format
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const items = scenarios.map((s: any) => ({
-    id: s.id,
-    title: s.title,
-    description: s.description,
-    category: s.category ? toTitleCase(s.category) : "General",
-    subcategory: s.subcategory ? toTitleCase(s.subcategory) : undefined,
-    level: s.difficulty || "B1",
-    image: s.image || "/learning.png",
-    sessionsCompleted: Array.isArray(s.sessions) ? s.sessions.length : 0,
-    totalSessions: 10, // Default target
-    progress: Array.isArray(s.sessions)
-      ? Math.min(s.sessions.length * 10, 100)
-      : 0,
-    isCustom: s.isCustom,
-  }));
+    return {
+      id: s.id,
+      title: s.title,
+      description: s.description,
+      category: s.category ? toTitleCase(s.category) : "General",
+      subcategory: s.subcategory ? toTitleCase(s.subcategory) : undefined,
+      level: s.difficulty || "B1",
+      image: s.image || "/learning.png",
+      sessionsCompleted,
+      totalSessions: 10, // Default target
+      progress: Math.min(sessionsCompleted * 10, 100),
+      isCustom: s.isCustom,
+    };
+  });
 
   return {
     scenarios: items,
@@ -173,27 +258,31 @@ export async function searchSpeakingScenarios(query: string, userId?: string) {
   }));
 }
 
-// Fetch user's speaking session history
-export async function getScenarioById(id: string) {
-  const scenario = await prisma.speakingScenario.findUnique({
-    where: { id },
-  });
+// Fetch scenario by ID (cached per scenario)
+export const getScenarioById = unstable_cache(
+  async (id: string) => {
+    const scenario = await prisma.speakingScenario.findUnique({
+      where: { id },
+    });
 
-  if (!scenario) return null;
+    if (!scenario) return null;
 
-  return {
-    id: scenario.id,
-    title: scenario.title,
-    description: scenario.description,
-    context: scenario.context,
-    goal: scenario.goal,
-    objectives: (scenario.objectives as string[]) || undefined,
-    userRole: scenario.userRole || undefined,
-    botRole: scenario.botRole || undefined,
-    openingLine: scenario.openingLine || undefined,
-    image: scenario.image || "/learning.png",
-  };
-}
+    return {
+      id: scenario.id,
+      title: scenario.title,
+      description: scenario.description,
+      context: scenario.context,
+      goal: scenario.goal,
+      objectives: (scenario.objectives as string[]) || undefined,
+      userRole: scenario.userRole || undefined,
+      botRole: scenario.botRole || undefined,
+      openingLine: scenario.openingLine || undefined,
+      image: scenario.image || "/learning.png",
+    };
+  },
+  ["speaking-scenario"],
+  { revalidate: CACHE_TTL, tags: [SPEAKING_CACHE_TAG] }
+);
 
 // Fetch user's speaking session history
 export async function getUserSpeakingHistory(userId: string) {
@@ -383,6 +472,7 @@ export async function createCustomScenario(
     });
   }
 
+  revalidateTag(SPEAKING_CACHE_TAG);
   revalidatePath("/speaking");
   return { scenario, sessionId: session.id };
 }
@@ -444,6 +534,7 @@ export async function createRandomScenario(
     });
   }
 
+  revalidateTag(SPEAKING_CACHE_TAG);
   revalidatePath("/speaking");
   return { scenario, sessionId: session.id };
 }

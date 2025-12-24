@@ -1,6 +1,5 @@
 import SpeakingPageClient from "@/components/page/SpeakingPageClient";
 import type { CriteriaItem } from "@/components/page/SpeakingPageClient";
-import { getUserSpeakingHistory } from "@/actions/speaking";
 import { auth } from "@/lib/auth";
 
 // Demo criteria - will be calculated from real session data later
@@ -15,34 +14,13 @@ const DEMO_CRITERIA: CriteriaItem[] = [
 export default async function SpeakingPage() {
   // Get user from auth session
   const session = await auth();
-  const userId = session?.user?.id;
+  const userId = session?.user?.id || "";
 
-  // Only fetch data if user is authenticated
-  // Unauthenticated users will see block UI from ProtectedRoute in SpeakingPageClient
-  if (!userId) {
-    // Pass empty data - ProtectedRoute will show block UI before content
-    return (
-      <SpeakingPageClient
-        demoCriteria={DEMO_CRITERIA}
-        historyGraphData={[]}
-        historyTopicsData={[]}
-        userId=""
-      />
-    );
-  }
-
-  // Fetch history data from database
-  // Topic groups are now fetched client-side for better loading experience
-  const historyData = await getUserSpeakingHistory(userId);
-
-  return (
-    <SpeakingPageClient
-      demoCriteria={DEMO_CRITERIA}
-      historyGraphData={historyData.historyGraph}
-      historyTopicsData={historyData.historyTopics}
-      userId={userId}
-    />
-  );
+  // Render immediately - all data is fetched client-side for better loading UX
+  // History data is lazy-loaded via getSpeakingHistoryStats and getSpeakingHistorySessions
+  // Topic groups are fetched client-side via getSpeakingTopicGroups
+  // Scenarios are fetched client-side via getSpeakingScenariosWithProgress
+  return <SpeakingPageClient demoCriteria={DEMO_CRITERIA} userId={userId} />;
 }
 
 

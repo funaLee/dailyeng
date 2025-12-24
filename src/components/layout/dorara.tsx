@@ -43,11 +43,6 @@ export function Dorara() {
 
   const isAuthenticated = status === "authenticated" && !!session?.user;
 
-  const isImmersivePage =
-    pathname?.startsWith("/speaking/session/") ||
-    (pathname?.startsWith("/vocab/") && pathname !== "/vocab") ||
-    (pathname?.startsWith("/grammar/") && pathname !== "/grammar");
-
   // Load messages from localStorage on mount
   useEffect(() => {
     if (typeof window !== "undefined" && !isInitialized) {
@@ -82,8 +77,8 @@ export function Dorara() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Don't render for non-authenticated users or immersive pages
-  if (!isAuthenticated || isImmersivePage) {
+  // Don't render for non-authenticated users
+  if (!isAuthenticated) {
     return null;
   }
 
