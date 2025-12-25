@@ -504,7 +504,7 @@ export default function HomePageClient({ featureTabs, reviews, partnerLogos }: H
                 <div className="flex-1 relative h-64 w-full md:h-full rounded-2xl overflow-hidden bg-secondary-50/50">
                   <div className="absolute inset-0 bg-linear-to-r from-white/40 to-transparent z-10" />
                   <Image
-                    src="/Dorara-Companion.jpg"
+                    src="/Dorara-Companion.png"
                     alt="AI Companion"
                     fill
                     className="object-cover opacity-80 mix-blend-multiply group-hover:scale-105 transition-transform duration-700"

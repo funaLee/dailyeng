@@ -421,16 +421,25 @@ export default function SpeakingPageClient({
   const handleBookmarkToggle = (topicId: string) => {
     if (!session?.user?.id) return;
 
-    // Optimistic update
+    const wasBookmarked = bookmarkedTopics.includes(topicId);
+
+    // Optimistic update for bookmark IDs
     setBookmarkedTopics((prev) =>
       prev.includes(topicId)
         ? prev.filter((id) => id !== topicId)
         : [...prev, topicId]
     );
 
+    // Optimistic update: immediately remove from bookmarks list if unbookmarking
+    if (wasBookmarked && activeTab === "bookmarks") {
+      setBookmarkedTopicsList((prev) =>
+        prev.filter((topic) => topic.id !== topicId)
+      );
+    }
+
     startTransition(async () => {
       await toggleSpeakingBookmark(session.user.id, topicId);
-      // Refresh bookmarked topics list if on bookmarks tab
+      // Refresh bookmarked topics list if on bookmarks tab to sync with server
       if (activeTab === "bookmarks") {
         const result = await getSpeakingBookmarks(
           session.user.id,
@@ -625,6 +634,7 @@ export default function SpeakingPageClient({
                         href={`/speaking/session/${topic.id}`}
                         onNotYet={() => {}}
                         type="speaking"
+                        subcategory={topic.subcategory}
                         isBookmarked={bookmarkedTopics.includes(topic.id)}
                         onBookmarkToggle={handleBookmarkToggle}
                       />
@@ -717,6 +727,7 @@ export default function SpeakingPageClient({
                             href={`/speaking/session/${topic.id}`}
                             onNotYet={() => {}}
                             type="speaking"
+                            subcategory={topic.subcategory}
                             isBookmarked={bookmarkedTopics.includes(topic.id)}
                             onBookmarkToggle={handleBookmarkToggle}
                           />
@@ -825,6 +836,7 @@ export default function SpeakingPageClient({
                           href={`/speaking/session/${topic.id}`}
                           onNotYet={() => {}}
                           type="speaking"
+                          subcategory={topic.subcategory}
                           isBookmarked={true}
                           onBookmarkToggle={handleBookmarkToggle}
                         />
@@ -1019,6 +1031,7 @@ export default function SpeakingPageClient({
                         href={`/speaking/session/${topic.id}`}
                         onNotYet={() => {}}
                         type="speaking"
+                        subcategory={topic.subcategory}
                         isBookmarked={bookmarkedTopics.includes(topic.id)}
                         onBookmarkToggle={handleBookmarkToggle}
                       />

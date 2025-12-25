@@ -59,6 +59,10 @@ function NavButton({
 
 function SignOutButton() {
   const handleSignOut = async () => {
+    // Clear Dorara chat history from localStorage to prevent seeing old messages
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("dorara-chat-history");
+    }
     // Use callbackUrl to redirect to homepage after sign out
     await signOut({ callbackUrl: "/" });
   };

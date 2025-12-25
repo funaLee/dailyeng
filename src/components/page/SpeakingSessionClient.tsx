@@ -201,6 +201,7 @@ export default function SpeakingSessionClient({
   const [isProcessing, setIsProcessing] = useState(false);
   const [isLoadingFeedback, setIsLoadingFeedback] = useState(false);
   const [isLoadingRecords, setIsLoadingRecords] = useState(false);
+  const [isStartingSession, setIsStartingSession] = useState(false);
   const [dynamicRecords, setDynamicRecords] = useState<LearningRecord[]>([]);
   const [dynamicFeedback, setDynamicFeedback] =
     useState<DetailedFeedbackData | null>(null);
@@ -453,10 +454,58 @@ export default function SpeakingSessionClient({
       if (noSpeechTimeoutRef.current) {
         clearTimeout(noSpeechTimeoutRef.current);
       }
+      // Stop speech recognition on unmount
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {
+          // Ignore - recognition might not be running
+        }
+      }
+      // Stop pitch analyzer on unmount
+      if (pitchAnalyzerRef.current) {
+        pitchAnalyzerRef.current.stop();
+        pitchAnalyzerRef.current = null;
+      }
     };
   }, [sessionId]);
 
+  // Helper function to stop microphone and cleanup
+  const stopMicrophone = () => {
+    // Clear all timeouts
+    if (silenceTimeoutRef.current) {
+      clearTimeout(silenceTimeoutRef.current);
+      silenceTimeoutRef.current = null;
+    }
+    if (noSpeechTimeoutRef.current) {
+      clearTimeout(noSpeechTimeoutRef.current);
+      noSpeechTimeoutRef.current = null;
+    }
+
+    // Stop speech recognition
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {
+        // Ignore - recognition might not be running
+      }
+    }
+
+    // Stop pitch analyzer
+    if (pitchAnalyzerRef.current) {
+      pitchAnalyzerRef.current.stop();
+      pitchAnalyzerRef.current = null;
+    }
+
+    // Reset transcript
+    transcriptRef.current = "";
+
+    // Set recording state to false
+    setIsRecording(false);
+  };
+
   const startSession = async () => {
+    setIsStartingSession(true);
     try {
       // Get userId from auth session
       const userId = session?.user?.id || "user-1"; // Fallback for dev
@@ -494,6 +543,8 @@ export default function SpeakingSessionClient({
     } catch (e) {
       console.error("Failed to start session", e);
       toast.error("Failed to start session");
+    } finally {
+      setIsStartingSession(false);
     }
   };
 
@@ -533,6 +584,9 @@ export default function SpeakingSessionClient({
     }
 
     if (isRecording) {
+      // Immediately set isRecording to false for responsive UI
+      setIsRecording(false);
+
       // Clear timeouts
       if (silenceTimeoutRef.current) {
         clearTimeout(silenceTimeoutRef.current);
@@ -542,8 +596,22 @@ export default function SpeakingSessionClient({
         clearTimeout(noSpeechTimeoutRef.current);
         noSpeechTimeoutRef.current = null;
       }
-      recognitionRef.current?.stop();
-      // isRecording set to false in onend
+
+      // Stop pitch analyzer
+      if (pitchAnalyzerRef.current) {
+        pitchAnalyzerRef.current.stop();
+        pitchAnalyzerRef.current = null;
+      }
+
+      // Stop speech recognition
+      try {
+        recognitionRef.current?.stop();
+      } catch (e) {
+        // Ignore - recognition might not be running
+      }
+
+      // Clear transcript to prevent sending incomplete speech
+      transcriptRef.current = "";
     } else {
       try {
         transcriptRef.current = "";
@@ -998,6 +1066,61 @@ export default function SpeakingSessionClient({
     );
   }
 
+  // Skeleton loading when starting session
+  if (isStartingSession) {
+    return (
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 h-screen max-h-screen flex flex-col">
+        {/* Header Skeleton */}
+        <div className="mb-4 flex items-center justify-center relative max-w-4xl mx-auto w-full">
+          <div className="absolute left-0 w-10 h-10 rounded-full bg-muted animate-pulse" />
+          <div className="h-8 w-48 bg-muted rounded-lg animate-pulse" />
+          <div className="absolute right-0 w-10 h-10 rounded-full bg-muted animate-pulse" />
+        </div>
+
+        {/* Main Content Skeleton */}
+        <div className="flex-1 flex justify-center min-h-0 pb-4">
+          <div className="w-full max-w-4xl rounded-3xl border-2 border-border bg-primary-100 flex flex-col overflow-hidden relative shadow-lg">
+            {/* Chat Messages Skeleton */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {/* Tutor message skeleton */}
+              <div className="flex justify-start">
+                <div className="flex gap-3 max-w-2xl">
+                  <div className="shrink-0 w-7 h-7 rounded-full bg-muted animate-pulse" />
+                  <div className="flex-1">
+                    <div className="rounded-2xl rounded-tl-sm bg-white px-4 py-3 shadow-md w-64">
+                      <div className="h-4 bg-muted rounded animate-pulse mb-2" />
+                      <div className="h-4 bg-muted rounded animate-pulse w-3/4" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* Tutor greeting skeleton */}
+              <div className="flex justify-start">
+                <div className="flex gap-3 max-w-2xl">
+                  <div className="shrink-0 w-7 h-7 rounded-full bg-muted animate-pulse" />
+                  <div className="flex-1">
+                    <div className="rounded-2xl rounded-tl-sm bg-white px-4 py-3 shadow-md w-80">
+                      <div className="h-4 bg-muted rounded animate-pulse mb-2" />
+                      <div className="h-4 bg-muted rounded animate-pulse mb-2" />
+                      <div className="h-4 bg-muted rounded animate-pulse w-1/2" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Input Area Skeleton */}
+            <div className="p-6 border-t border-border bg-white/80 backdrop-blur-xl">
+              <div className="flex justify-center items-center">
+                <div className="w-[60px] h-[60px] rounded-full bg-muted animate-pulse" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (viewState === "preparation") {
     return (
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
@@ -1163,6 +1286,7 @@ export default function SpeakingSessionClient({
                   className="w-full border-2 border-primary-200 hover:bg-primary-50"
                   onClick={async () => {
                     setShowQuitDialog(false);
+                    stopMicrophone(); // Stop mic before analyzing
                     setViewState("analyzing");
                     try {
                       if (sessionId) {
@@ -1179,7 +1303,11 @@ export default function SpeakingSessionClient({
                 >
                   Finish
                 </Button>
-                <Link href="/speaking" className="w-full">
+                <Link
+                  href="/speaking"
+                  className="w-full"
+                  onClick={stopMicrophone}
+                >
                   <Button
                     variant="outline"
                     className="w-full border-2 border-primary-200 hover:bg-primary-50"
@@ -1211,6 +1339,7 @@ export default function SpeakingSessionClient({
                   className="w-full border-2 border-primary-200 hover:bg-primary-50"
                   onClick={async () => {
                     setShowFinishDialog(false);
+                    stopMicrophone(); // Stop mic before analyzing
                     setViewState("analyzing");
                     try {
                       if (sessionId) {

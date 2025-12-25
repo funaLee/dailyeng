@@ -18,6 +18,10 @@ export function ProfileDropdown() {
   const { profile } = useUserProfile();
 
   const handleSignOut = async () => {
+    // Clear Dorara chat history from localStorage to prevent seeing old messages
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("dorara-chat-history");
+    }
     await signOut({ callbackUrl: "/" });
   };
 

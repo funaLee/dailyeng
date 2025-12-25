@@ -178,12 +178,14 @@ export default function PlanPageClient({
           {/* 2. This week's plan Section */}
           <Card className="p-6 border-primary-200 shadow-md bg-white">
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-slate-800">This week&apos;s plan</h2>
+              <h2 className="text-xl font-bold text-slate-800">
+                This week&apos;s plan
+              </h2>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => router.push('/build-plan')}
+                  onClick={() => router.push("/build-plan")}
                   className="border-primary-200 text-primary-700 hover:bg-primary-50"
                 >
                   <Plus className="w-4 h-4 mr-1" />
@@ -194,10 +196,16 @@ export default function PlanPageClient({
                   size="sm"
                   onClick={() => setIsEditing(!isEditing)}
                   className={
-                    isEditing ? "bg-primary-500 text-white" : "border-primary-200 text-primary-700 hover:bg-primary-50"
+                    isEditing
+                      ? "bg-primary-500 text-white"
+                      : "border-primary-200 text-primary-700 hover:bg-primary-50"
                   }
                 >
-                  {isEditing ? <Check className="w-4 h-4 mr-1" /> : <Edit2 className="w-4 h-4 mr-1" />}
+                  {isEditing ? (
+                    <Check className="w-4 h-4 mr-1" />
+                  ) : (
+                    <Edit2 className="w-4 h-4 mr-1" />
+                  )}
                   {isEditing ? "Done" : "Edit"}
                 </Button>
               </div>
@@ -209,16 +217,28 @@ export default function PlanPageClient({
                 {/* Stats Row */}
                 <div className="grid grid-cols-3 gap-4">
                   <div className="rounded-xl border border-primary-200 bg-primary-50/50 p-4 text-center">
-                    <p className="text-xs text-primary-600 font-medium mb-1">Daily study hours</p>
-                    <p className="text-xl font-bold text-primary-900">{stats.dailyHours}h</p>
+                    <p className="text-xs text-primary-600 font-medium mb-1">
+                      Daily study hours
+                    </p>
+                    <p className="text-xl font-bold text-primary-900">
+                      {stats.dailyHours}h
+                    </p>
                   </div>
                   <div className="rounded-xl border border-primary-200 bg-primary-50/50 p-4 text-center">
-                    <p className="text-xs text-primary-600 font-medium mb-1">Weekly study hours</p>
-                    <p className="text-xl font-bold text-primary-900">{stats.weeklyHours}h</p>
+                    <p className="text-xs text-primary-600 font-medium mb-1">
+                      Weekly study hours
+                    </p>
+                    <p className="text-xl font-bold text-primary-900">
+                      {stats.weeklyHours}h
+                    </p>
                   </div>
                   <div className="rounded-xl border border-primary-200 bg-primary-50/50 p-4 text-center">
-                    <p className="text-xs text-primary-600 font-medium mb-1">Total Hours</p>
-                    <p className="text-xl font-bold text-primary-900">{stats.totalHours}h</p>
+                    <p className="text-xs text-primary-600 font-medium mb-1">
+                      Total Hours
+                    </p>
+                    <p className="text-xl font-bold text-primary-900">
+                      {stats.totalHours}h
+                    </p>
                   </div>
                 </div>
 
@@ -226,32 +246,54 @@ export default function PlanPageClient({
                 <div className="rounded-xl border border-primary-200 overflow-hidden shadow-sm bg-white relative">
                   {/* Header Days */}
                   <div className="grid grid-cols-8 border-b border-primary-200 text-center text-xs font-semibold text-slate-500 bg-primary-50/30">
-                    <div className="p-3 border-r border-primary-100">Period</div>
-                    {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
-                      <div key={day} className="p-3 border-r border-primary-100 last:border-r-0 text-primary-900">
-                        {day}
-                      </div>
-                    ))}
+                    <div className="p-3 border-r border-primary-100">
+                      Period
+                    </div>
+                    {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
+                      (day) => (
+                        <div
+                          key={day}
+                          className="p-3 border-r border-primary-100 last:border-r-0 text-primary-900"
+                        >
+                          {day}
+                        </div>
+                      )
+                    )}
                   </div>
 
                   {/* Morning Row */}
                   <div className="grid grid-cols-8 min-h-[80px] border-b border-primary-50">
                     <div className="p-2 border-r border-primary-50 text-center flex flex-col justify-center items-center bg-orange-50/30">
-                      <span className="font-bold text-orange-600 text-xs uppercase mb-1">Morning</span>
-                      <span className="text-[10px] text-slate-400">5am - 12pm</span>
+                      <span className="font-bold text-orange-600 text-xs uppercase mb-1">
+                        Morning
+                      </span>
+                      <span className="text-[10px] text-slate-400">
+                        5am - 12pm
+                      </span>
                     </div>
                     <div className="col-span-7 grid grid-cols-7">
                       {Array.from({ length: 7 }).map((_, i) => (
-                        <div key={i} className="border-r border-primary-50 p-1 relative group hover:bg-slate-50 transition-colors">
-                          {i === 0 && groupedTasks.morning.map(task => (
-                            <div key={task.id}
-                              className={`mb-1 p-1 rounded-md bg-orange-100 border border-orange-200 text-[10px] text-orange-900 truncate hover:shadow-sm cursor-pointer ${isEditing ? 'ring-2 ring-primary-300 ring-offset-1' : ''}`}
-                              onClick={() => handleTaskClick(task)}
-                            >
-                              <span className="font-bold block text-[9px]">{task.startTime}-{task.endTime}</span>
-                              {task.title}
-                            </div>
-                          ))}
+                        <div
+                          key={i}
+                          className="border-r border-primary-50 p-1 relative group hover:bg-slate-50 transition-colors"
+                        >
+                          {i === 0 &&
+                            groupedTasks.morning.map((task) => (
+                              <div
+                                key={task.id}
+                                className={`mb-1 p-1 rounded-md bg-orange-100 border border-orange-200 text-[10px] text-orange-900 truncate hover:shadow-sm cursor-pointer ${
+                                  isEditing
+                                    ? "ring-2 ring-primary-300 ring-offset-1"
+                                    : ""
+                                }`}
+                                onClick={() => handleTaskClick(task)}
+                              >
+                                <span className="font-bold block text-[9px]">
+                                  {task.startTime}-{task.endTime}
+                                </span>
+                                {task.title}
+                              </div>
+                            ))}
                           {isEditing && (
                             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-10 pointer-events-none">
                               <Edit2 className="w-3 h-3 text-slate-300" />
@@ -265,21 +307,36 @@ export default function PlanPageClient({
                   {/* Afternoon Row */}
                   <div className="grid grid-cols-8 min-h-[80px] border-b border-primary-50">
                     <div className="p-2 border-r border-primary-50 text-center flex flex-col justify-center items-center bg-blue-50/30">
-                      <span className="font-bold text-blue-600 text-xs uppercase mb-1">Afternoon</span>
-                      <span className="text-[10px] text-slate-400">12pm - 6pm</span>
+                      <span className="font-bold text-blue-600 text-xs uppercase mb-1">
+                        Afternoon
+                      </span>
+                      <span className="text-[10px] text-slate-400">
+                        12pm - 6pm
+                      </span>
                     </div>
                     <div className="col-span-7 grid grid-cols-7">
                       {Array.from({ length: 7 }).map((_, i) => (
-                        <div key={i} className="border-r border-primary-50 p-1 relative group hover:bg-slate-50 transition-colors">
-                          {i === 0 && groupedTasks.afternoon.map(task => (
-                            <div key={task.id}
-                              className={`mb-1 p-1 rounded-md bg-blue-100 border border-blue-200 text-[10px] text-blue-900 truncate hover:shadow-sm cursor-pointer ${isEditing ? 'ring-2 ring-primary-300 ring-offset-1' : ''}`}
-                              onClick={() => handleTaskClick(task)}
-                            >
-                              <span className="font-bold block text-[9px]">{task.startTime}-{task.endTime}</span>
-                              {task.title}
-                            </div>
-                          ))}
+                        <div
+                          key={i}
+                          className="border-r border-primary-50 p-1 relative group hover:bg-slate-50 transition-colors"
+                        >
+                          {i === 0 &&
+                            groupedTasks.afternoon.map((task) => (
+                              <div
+                                key={task.id}
+                                className={`mb-1 p-1 rounded-md bg-blue-100 border border-blue-200 text-[10px] text-blue-900 truncate hover:shadow-sm cursor-pointer ${
+                                  isEditing
+                                    ? "ring-2 ring-primary-300 ring-offset-1"
+                                    : ""
+                                }`}
+                                onClick={() => handleTaskClick(task)}
+                              >
+                                <span className="font-bold block text-[9px]">
+                                  {task.startTime}-{task.endTime}
+                                </span>
+                                {task.title}
+                              </div>
+                            ))}
                           {isEditing && (
                             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-10 pointer-events-none">
                               <Edit2 className="w-3 h-3 text-slate-300" />
@@ -293,21 +350,36 @@ export default function PlanPageClient({
                   {/* Evening Row */}
                   <div className="grid grid-cols-8 min-h-[80px]">
                     <div className="p-2 border-r border-primary-50 text-center flex flex-col justify-center items-center bg-indigo-50/30">
-                      <span className="font-bold text-indigo-600 text-xs uppercase mb-1">Evening</span>
-                      <span className="text-[10px] text-slate-400">6pm - 11pm</span>
+                      <span className="font-bold text-indigo-600 text-xs uppercase mb-1">
+                        Evening
+                      </span>
+                      <span className="text-[10px] text-slate-400">
+                        6pm - 11pm
+                      </span>
                     </div>
                     <div className="col-span-7 grid grid-cols-7">
                       {Array.from({ length: 7 }).map((_, i) => (
-                        <div key={i} className="border-r border-primary-50 p-1 relative group hover:bg-slate-50 transition-colors">
-                          {i === 0 && groupedTasks.evening.map(task => (
-                            <div key={task.id}
-                              className={`mb-1 p-1 rounded-md bg-indigo-100 border border-indigo-200 text-[10px] text-indigo-900 truncate hover:shadow-sm cursor-pointer ${isEditing ? 'ring-2 ring-primary-300 ring-offset-1' : ''}`}
-                              onClick={() => handleTaskClick(task)}
-                            >
-                              <span className="font-bold block text-[9px]">{task.startTime}-{task.endTime}</span>
-                              {task.title}
-                            </div>
-                          ))}
+                        <div
+                          key={i}
+                          className="border-r border-primary-50 p-1 relative group hover:bg-slate-50 transition-colors"
+                        >
+                          {i === 0 &&
+                            groupedTasks.evening.map((task) => (
+                              <div
+                                key={task.id}
+                                className={`mb-1 p-1 rounded-md bg-indigo-100 border border-indigo-200 text-[10px] text-indigo-900 truncate hover:shadow-sm cursor-pointer ${
+                                  isEditing
+                                    ? "ring-2 ring-primary-300 ring-offset-1"
+                                    : ""
+                                }`}
+                                onClick={() => handleTaskClick(task)}
+                              >
+                                <span className="font-bold block text-[9px]">
+                                  {task.startTime}-{task.endTime}
+                                </span>
+                                {task.title}
+                              </div>
+                            ))}
                           {isEditing && (
                             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-10 pointer-events-none">
                               <Edit2 className="w-3 h-3 text-slate-300" />
@@ -322,32 +394,65 @@ export default function PlanPageClient({
                   {editingTask && (
                     <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 backdrop-blur-sm rounded-xl">
                       <Card className="p-6 w-80 bg-white shadow-xl border-primary-200">
-                        <h3 className="font-bold mb-4 text-slate-800">Edit Time: {editingTask.title}</h3>
+                        <h3 className="font-bold mb-4 text-slate-800">
+                          Edit Time: {editingTask.title}
+                        </h3>
                         <div className="space-y-4">
                           <div>
-                            <label className="text-xs font-bold text-slate-500 block mb-1">Start Time</label>
-                            <input type="time" className="w-full border p-2 rounded-lg text-sm"
+                            <label className="text-xs font-bold text-slate-500 block mb-1">
+                              Start Time
+                            </label>
+                            <input
+                              type="time"
+                              className="w-full border p-2 rounded-lg text-sm"
                               defaultValue={editingTask.startTime}
                               id="edit-start-time"
                             />
                           </div>
                           <div>
-                            <label className="text-xs font-bold text-slate-500 block mb-1">End Time</label>
-                            <input type="time" className="w-full border p-2 rounded-lg text-sm"
+                            <label className="text-xs font-bold text-slate-500 block mb-1">
+                              End Time
+                            </label>
+                            <input
+                              type="time"
+                              className="w-full border p-2 rounded-lg text-sm"
                               defaultValue={editingTask.endTime}
                               id="edit-end-time"
                             />
                           </div>
                           <div className="flex gap-2 justify-end pt-2">
-                            <Button variant="ghost" size="sm" onClick={() => setEditingTask(null)}>Cancel</Button>
-                            <Button size="sm" onClick={async () => {
-                              const start = (document.getElementById('edit-start-time') as HTMLInputElement).value
-                              const end = (document.getElementById('edit-end-time') as HTMLInputElement).value
-                              if (start && end) {
-                                await updateTaskTime(editingTask.id, start, end)
-                                setEditingTask(null)
-                              }
-                            }}>Save</Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setEditingTask(null)}
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={async () => {
+                                const start = (
+                                  document.getElementById(
+                                    "edit-start-time"
+                                  ) as HTMLInputElement
+                                ).value;
+                                const end = (
+                                  document.getElementById(
+                                    "edit-end-time"
+                                  ) as HTMLInputElement
+                                ).value;
+                                if (start && end) {
+                                  await updateTaskTime(
+                                    editingTask.id,
+                                    start,
+                                    end
+                                  );
+                                  setEditingTask(null);
+                                }
+                              }}
+                            >
+                              Save
+                            </Button>
                           </div>
                         </div>
                       </Card>
@@ -359,7 +464,9 @@ export default function PlanPageClient({
               {/* Right Side: Today's Lesson */}
               <div className="lg:col-span-5 flex flex-col">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold text-slate-800">Today&apos;s lesson</h3>
+                  <h3 className="font-bold text-slate-800">
+                    Today&apos;s lesson
+                  </h3>
                   <span className="bg-success-100 text-success-300 font-semibold text-xs px-2.5 py-1 rounded-full">
                     Complete {completedLessons.length}/{todayLessons.length}
                   </span>
@@ -368,37 +475,56 @@ export default function PlanPageClient({
                 <div className="space-y-4 flex-1">
                   {todayLessons.length > 0 ? (
                     todayLessons.map((lesson) => {
-                      const isCompleted = completedLessons.includes(lesson.id)
+                      const isCompleted = completedLessons.includes(lesson.id);
                       return (
                         <div
                           key={lesson.id}
                           onClick={() => {
-                            setSelectedPlanId(lesson.id)
+                            setSelectedPlanId(lesson.id);
                           }}
-                          className={`relative flex items-start gap-4 p-4 border rounded-xl transition-all cursor-pointer group ${isCompleted
-                            ? "bg-success-100 border-2 border-success-200"
-                            : selectedPlanId === lesson.id
+                          className={`relative flex items-start gap-4 p-4 border rounded-xl transition-all cursor-pointer group ${
+                            isCompleted
+                              ? "bg-success-100 border-2 border-success-200"
+                              : selectedPlanId === lesson.id
                               ? "bg-primary-50 border-2 border-primary-500"
                               : "bg-white border-primary-200 border-2 hover:border-primary-300 hover:shadow-md"
-                            }`}
+                          }`}
                         >
-                          <div className="mt-1" onClick={(e) => { e.stopPropagation(); toggleLesson(lesson.id); }}>
+                          <div
+                            className="mt-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleLesson(lesson.id);
+                            }}
+                          >
                             <div
-                              className={`h-5 w-5 rounded border flex items-center justify-center transition-colors ${isCompleted
-                                ? "bg-success-300 border-success-300"
-                                : "border-gray-300 group-hover:border-primary-400"
-                                }`}
+                              className={`h-5 w-5 rounded border flex items-center justify-center transition-colors ${
+                                isCompleted
+                                  ? "bg-success-300 border-success-300"
+                                  : "border-gray-300 group-hover:border-primary-400"
+                              }`}
                             >
-                              {isCompleted && <Check className="h-3 w-3 text-white" />}
+                              {isCompleted && (
+                                <Check className="h-3 w-3 text-white" />
+                              )}
                             </div>
                           </div>
                           <div className="flex-1 space-y-1">
-                            <h4 className={`font-bold text-sm ${isCompleted ? "text-success-300" : "text-primary-800"}`}>
+                            <h4
+                              className={`font-bold text-sm ${
+                                isCompleted
+                                  ? "text-success-300"
+                                  : "text-primary-800"
+                              }`}
+                            >
                               {lesson.title}
                             </h4>
-                            <p className="text-xs text-slate-500 whitespace-pre-line">{lesson.topic}</p>
+                            <p className="text-xs text-slate-500 whitespace-pre-line">
+                              {lesson.topic}
+                            </p>
                             <p className="text-xs text-slate-400 flex items-center gap-1">
-                              <PlayCircle className="w-3 h-3" /> {lesson.duration}
+                              <PlayCircle className="w-3 h-3" />{" "}
+                              {lesson.duration}
                             </p>
                           </div>
                           <div className="absolute bottom-4 right-4">
@@ -409,11 +535,13 @@ export default function PlanPageClient({
                               className="h-7 text-xs bg-secondary-50 text-secondary-700 hover:bg-secondary-100"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              <Link href={lesson.link || "#"}>Learning now</Link>
+                              <Link href={lesson.link || "#"}>
+                                Learning now
+                              </Link>
                             </Button>
                           </div>
                         </div>
-                      )
+                      );
                     })
                   ) : (
                     <div className="p-4 text-center text-slate-500 text-sm italic">
@@ -430,7 +558,11 @@ export default function PlanPageClient({
             {/* Your Goals Section */}
             <Card className="p-6 border-primary-200 shadow-md lg:col-span-1 bg-white relative">
               <div className="absolute top-4 right-4">
-                <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-primary-600">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 text-slate-400 hover:text-primary-600"
+                >
                   <Edit2 className="w-3 h-3" />
                 </Button>
               </div>
@@ -460,12 +592,18 @@ export default function PlanPageClient({
 
                 {/* Study Hours */}
                 <div className="mt-6 p-5 bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl border border-primary-200 text-center">
-                  <p className="text-sm text-slate-600 mb-2">Estimated study hours per week</p>
+                  <p className="text-sm text-slate-600 mb-2">
+                    Estimated study hours per week
+                  </p>
                   <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-4xl font-bold text-primary-700">{studyGoals.hoursPerWeek}h</span>
+                    <span className="text-4xl font-bold text-primary-700">
+                      {studyGoals.hoursPerWeek}h
+                    </span>
                     <span className="text-lg text-primary-600">/ week</span>
                   </div>
-                  <p className="text-xs text-slate-500 mt-2">for {studyGoals.durationMonths} months</p>
+                  <p className="text-xs text-slate-500 mt-2">
+                    for {studyGoals.durationMonths} months
+                  </p>
                 </div>
               </div>
             </Card>
@@ -476,7 +614,9 @@ export default function PlanPageClient({
                 <div className="w-10 h-10 bg-secondary-100 rounded-full flex items-center justify-center">
                   <Calendar className="w-5 h-5 text-secondary-600" />
                 </div>
-                <h2 className="text-xl font-bold text-slate-800">IELTS Exam Schedule</h2>
+                <h2 className="text-xl font-bold text-slate-800">
+                  IELTS Exam Schedule
+                </h2>
               </div>
 
               <div className="space-y-4">
@@ -488,19 +628,44 @@ export default function PlanPageClient({
                       <div className="flex flex-col gap-2">
                         <input
                           type="date"
-                          value={tempExamDate ? format(new Date(tempExamDate), "yyyy-MM-dd") : ""}
-                          onChange={(e) => setTempExamDate(new Date(e.target.value).toISOString())}
+                          value={
+                            tempExamDate
+                              ? format(new Date(tempExamDate), "yyyy-MM-dd")
+                              : ""
+                          }
+                          onChange={(e) =>
+                            setTempExamDate(
+                              new Date(e.target.value).toISOString()
+                            )
+                          }
                           className="w-full text-xs p-1 border rounded"
                         />
                         <div className="flex gap-1 justify-center">
-                          <Button size="sm" className="h-6 text-[10px] px-2" onClick={handleUpdateExamDate}>Save</Button>
-                          <Button size="sm" variant="ghost" className="h-6 text-[10px] px-2" onClick={() => setIsEditingExamDate(false)}>Cancel</Button>
+                          <Button
+                            size="sm"
+                            className="h-6 text-[10px] px-2"
+                            onClick={handleUpdateExamDate}
+                          >
+                            Save
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 text-[10px] px-2"
+                            onClick={() => setIsEditingExamDate(false)}
+                          >
+                            Cancel
+                          </Button>
                         </div>
                       </div>
                     ) : (
                       <div className="flex items-center justify-center gap-2">
                         <span className="font-bold text-slate-800">
-                          {ieltsExam.examDate ? new Date(ieltsExam.examDate).toLocaleDateString("en-US") : "N/A"}
+                          {ieltsExam.examDate
+                            ? new Date(ieltsExam.examDate).toLocaleDateString(
+                                "en-US"
+                              )
+                            : "N/A"}
                         </span>
                         <button
                           onClick={() => setIsEditingExamDate(true)}
@@ -512,14 +677,23 @@ export default function PlanPageClient({
                     )}
                   </div>
                   <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 text-center">
-                    <p className="text-xs text-slate-500 mb-1">Days Remaining</p>
-                    <span className="font-bold text-primary-600 text-lg">{ieltsExam.daysRemaining} days</span>
+                    <p className="text-xs text-slate-500 mb-1">
+                      Days Remaining
+                    </p>
+                    <span className="font-bold text-primary-600 text-lg">
+                      {ieltsExam.daysRemaining} days
+                    </span>
                   </div>
                 </div>
 
                 {/* Illustration */}
                 <div className="relative h-32 bg-gradient-to-br from-primary-50 to-secondary-50 rounded-xl overflow-hidden border border-primary-100">
-                  <Image src="/learning.png" alt="Study illustration" fill className="object-contain p-4" />
+                  <Image
+                    src="/ielts-logo.png"
+                    alt="IELTS Logo"
+                    fill
+                    className="object-contain p-4"
+                  />
                 </div>
 
                 {/* Motivational Message */}
@@ -527,10 +701,16 @@ export default function PlanPageClient({
                   <div className="flex items-start gap-2 justify-center">
                     <Sparkles className="w-5 h-5 text-success-600 flex-shrink-0 mt-0.5" />
                     <p className="text-sm text-success-700">
-                      You will reach your goal if you follow your current study plan by{" "}
+                      You will reach your goal if you follow your current study
+                      plan by{" "}
                       <span className="font-bold">
-                        {ieltsExam.examDate ? new Date(ieltsExam.examDate).toLocaleDateString("en-US") : "..."}
-                      </span>!
+                        {ieltsExam.examDate
+                          ? new Date(ieltsExam.examDate).toLocaleDateString(
+                              "en-US"
+                            )
+                          : "..."}
+                      </span>
+                      !
                     </p>
                   </div>
                 </div>
@@ -550,13 +730,13 @@ export default function PlanPageClient({
                   const getIcon = () => {
                     switch (reminder.type) {
                       case "speaking":
-                        return <Mic className="w-5 h-5" />
+                        return <Mic className="w-5 h-5" />;
                       case "notebook":
-                        return <BookOpen className="w-5 h-5" />
+                        return <BookOpen className="w-5 h-5" />;
                       case "missed":
-                        return <AlertCircle className="w-5 h-5" />
+                        return <AlertCircle className="w-5 h-5" />;
                     }
-                  }
+                  };
 
                   const getColors = () => {
                     switch (reminder.type) {
@@ -569,7 +749,7 @@ export default function PlanPageClient({
                           titleColor: "text-primary-900",
                           btnBg: "bg-primary-100 hover:bg-primary-200",
                           btnText: "text-primary-700",
-                        }
+                        };
                       case "notebook":
                         return {
                           bg: "bg-secondary-50/50",
@@ -579,7 +759,7 @@ export default function PlanPageClient({
                           titleColor: "text-secondary-900",
                           btnBg: "bg-secondary-100 hover:bg-secondary-200",
                           btnText: "text-secondary-700",
-                        }
+                        };
                       case "missed":
                         return {
                           bg: "bg-warning-50/50",
@@ -589,14 +769,17 @@ export default function PlanPageClient({
                           titleColor: "text-warning-900",
                           btnBg: "bg-warning-100 hover:bg-warning-200",
                           btnText: "text-warning-700",
-                        }
+                        };
                     }
-                  }
+                  };
 
-                  const colors = getColors()
+                  const colors = getColors();
 
                   return (
-                    <div key={reminder.id} className={`${colors.bg} ${colors.border} border rounded-xl p-4 space-y-3`}>
+                    <div
+                      key={reminder.id}
+                      className={`${colors.bg} ${colors.border} border rounded-xl p-4 space-y-3`}
+                    >
                       <div className="flex items-center gap-3">
                         <div
                           className={`w-9 h-9 ${colors.iconBg} rounded-full flex items-center justify-center ${colors.iconColor}`}
@@ -604,8 +787,14 @@ export default function PlanPageClient({
                           {getIcon()}
                         </div>
                         <div className="flex-1">
-                          <h3 className={`font-bold text-sm ${colors.titleColor}`}>{reminder.title}</h3>
-                          <p className="text-xs text-slate-500">{reminder.description}</p>
+                          <h3
+                            className={`font-bold text-sm ${colors.titleColor}`}
+                          >
+                            {reminder.title}
+                          </h3>
+                          <p className="text-xs text-slate-500">
+                            {reminder.description}
+                          </p>
                         </div>
                       </div>
                       <Button
@@ -617,68 +806,13 @@ export default function PlanPageClient({
                         <Link href={reminder.href}>{reminder.action}</Link>
                       </Button>
                     </div>
-                  )
+                  );
                 })}
               </div>
             </Card>
           </div>
-
-          {/* 4. My Study Plan Section */}
-          <div className="grid grid-cols-1 gap-8">
-            {/* My Study Plan */}
-            <Card className="p-6 border-primary-100 shadow-md bg-white">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-slate-800">My Study Plan</h2>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => router.push('/build-plan')}
-                  className="text-xs"
-                >
-                  <Plus className="w-3 h-3 mr-1" /> New
-                </Button>
-              </div>
-
-              <div className="space-y-4">
-                {todayLessons.map((plan) => (
-                  <div
-                    key={plan.id}
-                    onClick={() => setSelectedPlanId(plan.id)}
-                    className={`rounded-xl border p-4 cursor-pointer transition-all ${selectedPlanId === plan.id
-                      ? "ring-2 ring-primary-500 border-transparent bg-primary-50 shadow-sm"
-                      : "border-gray-200 hover:border-primary-300 hover:shadow-sm bg-white"
-                      }`}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <h3
-                        className={`font-bold text-sm ${selectedPlanId === plan.id ? "text-primary-900" : "text-slate-700"
-                          }`}
-                      >
-                        {plan.title}
-                      </h3>
-                      {plan.completed && (
-                        <span className="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide">
-                          completed
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-500 mb-4">{plan.topic}</p>
-
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-xs font-bold text-slate-700">
-                        <span>Duration</span>
-                        <span>{plan.duration}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-
-
-          </div>
         </div>
       </div>
     </ProtectedRoute>
-  )
+  );
 }

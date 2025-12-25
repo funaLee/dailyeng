@@ -2,7 +2,8 @@
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { unstable_cache } from "next/cache";
 
 export type NotebookData = {
   id: string;
@@ -13,15 +14,10 @@ export type NotebookData = {
   mastered: number;
 };
 
-// Get all notebooks for current user
-export async function getNotebooks(): Promise<NotebookData[]> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return [];
-  }
-
+// Base function to fetch notebooks from DB
+async function fetchNotebooks(userId: string): Promise<NotebookData[]> {
   const notebooks = await prisma.notebook.findMany({
-    where: { userId: session.user.id },
+    where: { userId },
     include: {
       items: {
         select: { masteryLevel: true },
@@ -38,6 +34,32 @@ export async function getNotebooks(): Promise<NotebookData[]> {
     count: nb.items.length,
     mastered: nb.items.filter((item) => item.masteryLevel >= 80).length,
   }));
+}
+
+// Cached version of fetchNotebooks
+const getCachedNotebooks = (userId: string) =>
+  unstable_cache(() => fetchNotebooks(userId), [`notebooks-${userId}`], {
+    revalidate: 300, // Cache for 5 minutes
+    tags: [`notebooks-${userId}`, "notebooks"],
+  })();
+
+// Get all notebooks for current user (with caching)
+export async function getNotebooks(): Promise<NotebookData[]> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return [];
+  }
+
+  return getCachedNotebooks(session.user.id);
+}
+
+// Revalidate notebook cache for current user
+export async function revalidateNotebookCache(): Promise<void> {
+  const session = await auth();
+  if (session?.user?.id) {
+    revalidateTag(`notebooks-${session.user.id}`);
+  }
+  revalidatePath("/notebook");
 }
 
 // Create a new notebook
@@ -63,7 +85,10 @@ export async function createNotebook(data: {
     });
 
     if (existing) {
-      return { success: false, error: "Notebook with this name already exists" };
+      return {
+        success: false,
+        error: "Notebook with this name already exists",
+      };
     }
 
     const notebook = await prisma.notebook.create({
@@ -75,6 +100,8 @@ export async function createNotebook(data: {
       },
     });
 
+    // Invalidate cache and path
+    revalidateTag(`notebooks-${session.user.id}`);
     revalidatePath("/notebook");
 
     return {
@@ -120,6 +147,8 @@ export async function deleteNotebook(
       where: { id: notebookId },
     });
 
+    // Invalidate cache and path
+    revalidateTag(`notebooks-${session.user.id}`);
     revalidatePath("/notebook");
     return { success: true };
   } catch (error) {
@@ -155,6 +184,8 @@ export async function updateNotebook(
       data,
     });
 
+    // Invalidate cache and path
+    revalidateTag(`notebooks-${session.user.id}`);
     revalidatePath("/notebook");
     return { success: true };
   } catch (error) {
@@ -181,19 +212,15 @@ export type NotebookItemData = {
   nextReview: string | null;
 };
 
-// Get all items for a notebook
-export async function getNotebookItems(
-  notebookId: string
+// Base function to fetch notebook items from DB
+async function fetchNotebookItems(
+  notebookId: string,
+  userId: string
 ): Promise<NotebookItemData[]> {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return [];
-  }
-
   const items = await prisma.notebookItem.findMany({
     where: {
       notebookId,
-      userId: session.user.id,
+      userId,
     },
     orderBy: { createdAt: "desc" },
   });
@@ -214,6 +241,29 @@ export async function getNotebookItems(
     lastReviewed: item.lastReviewed?.toISOString() || null,
     nextReview: item.nextReview?.toISOString() || null,
   }));
+}
+
+// Cached version of fetchNotebookItems
+const getCachedNotebookItems = (notebookId: string, userId: string) =>
+  unstable_cache(
+    () => fetchNotebookItems(notebookId, userId),
+    [`notebook-items-${notebookId}`],
+    {
+      revalidate: 300, // Cache for 5 minutes
+      tags: [`notebooks-${userId}`, `notebook-items-${notebookId}`],
+    }
+  )();
+
+// Get all items for a notebook (with caching)
+export async function getNotebookItems(
+  notebookId: string
+): Promise<NotebookItemData[]> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return [];
+  }
+
+  return getCachedNotebookItems(notebookId, session.user.id);
 }
 
 // Create a new notebook item
@@ -253,6 +303,8 @@ export async function createNotebookItem(data: {
       },
     });
 
+    // Invalidate cache and path
+    revalidateTag(`notebooks-${session.user.id}`);
     revalidatePath("/notebook");
 
     return {
@@ -297,6 +349,8 @@ export async function deleteNotebookItem(
       },
     });
 
+    // Invalidate cache and path
+    revalidateTag(`notebooks-${session.user.id}`);
     revalidatePath("/notebook");
     return { success: true };
   } catch (error) {
@@ -327,6 +381,8 @@ export async function updateNotebookItemMastery(
       },
     });
 
+    // Invalidate cache and path
+    revalidateTag(`notebooks-${session.user.id}`);
     revalidatePath("/notebook");
     return { success: true };
   } catch (error) {

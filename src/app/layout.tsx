@@ -20,6 +20,9 @@ export const metadata: Metadata = {
   title: "DailyEng - Learning English by Interaction!",
   description:
     "Master English with AI-powered vocabulary, speaking, and grammar lessons.",
+  icons: {
+    icon: "/dailyeng.ico",
+  },
 };
 
 export default function RootLayout({
