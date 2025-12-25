@@ -625,6 +625,7 @@ export default function SpeakingPageClient({
                         href={`/speaking/session/${topic.id}`}
                         onNotYet={() => {}}
                         type="speaking"
+                        subcategory={topic.subcategory}
                         isBookmarked={bookmarkedTopics.includes(topic.id)}
                         onBookmarkToggle={handleBookmarkToggle}
                       />
@@ -717,6 +718,7 @@ export default function SpeakingPageClient({
                             href={`/speaking/session/${topic.id}`}
                             onNotYet={() => {}}
                             type="speaking"
+                            subcategory={topic.subcategory}
                             isBookmarked={bookmarkedTopics.includes(topic.id)}
                             onBookmarkToggle={handleBookmarkToggle}
                           />
@@ -825,6 +827,7 @@ export default function SpeakingPageClient({
                           href={`/speaking/session/${topic.id}`}
                           onNotYet={() => {}}
                           type="speaking"
+                          subcategory={topic.subcategory}
                           isBookmarked={true}
                           onBookmarkToggle={handleBookmarkToggle}
                         />
@@ -1019,6 +1022,7 @@ export default function SpeakingPageClient({
                         href={`/speaking/session/${topic.id}`}
                         onNotYet={() => {}}
                         type="speaking"
+                        subcategory={topic.subcategory}
                         isBookmarked={bookmarkedTopics.includes(topic.id)}
                         onBookmarkToggle={handleBookmarkToggle}
                       />

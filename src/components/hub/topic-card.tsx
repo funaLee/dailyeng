@@ -11,18 +11,19 @@ import { Tag } from "@/components/ui/tag"
 import { Bookmark } from "lucide-react"
 
 interface TopicCardProps {
-  id: string
-  title: string
-  description: string
-  level: string
-  wordCount?: number
-  thumbnail?: string
-  progress?: number
-  href?: string
-  onNotYet?: () => void
-  type?: "vocabulary" | "grammar" | "speaking"
-  isBookmarked?: boolean
-  onBookmarkToggle?: (id: string) => void
+  id: string;
+  title: string;
+  description: string;
+  level: string;
+  wordCount?: number;
+  thumbnail?: string;
+  progress?: number;
+  href?: string;
+  onNotYet?: () => void;
+  type?: "vocabulary" | "grammar" | "speaking";
+  isBookmarked?: boolean;
+  onBookmarkToggle?: (id: string) => void;
+  subcategory?: string;
 }
 
 export function TopicCard({
@@ -38,9 +39,10 @@ export function TopicCard({
   type = "vocabulary",
   isBookmarked = false,
   onBookmarkToggle,
+  subcategory,
 }: TopicCardProps) {
-  const isCompleted = progress === 100
-  const isInProgress = progress > 0 && progress < 100
+  const isCompleted = progress === 100;
+  const isInProgress = progress > 0 && progress < 100;
 
   const getButtonLabel = () => {
     // Speaking cards always show "Start Learning"
@@ -108,6 +110,12 @@ export function TopicCard({
           <Badge className="text-xs px-2.5 py-1 bg-primary-100 text-primary-600 border border-primary-200 font-medium">
             {level}
           </Badge>
+          {/* Show subcategory badge for speaking cards */}
+          {type === "speaking" && subcategory && (
+            <Badge className="text-xs px-2.5 py-1 bg-primary-100 text-primary-600 border border-primary-200 font-medium">
+              {subcategory}
+            </Badge>
+          )}
           {/* Hide duration/count badge for speaking cards */}
           {type !== "speaking" && (
             <Badge className="text-xs px-2.5 py-1 bg-primary-100 text-primary-600 border border-primary-200 font-medium">
@@ -170,8 +178,8 @@ export function TopicCard({
   );
 
   if (href) {
-    return <Link href={href}>{cardContent}</Link>
+    return <Link href={href}>{cardContent}</Link>;
   }
 
-  return cardContent
+  return cardContent;
 }
